@@ -1,0 +1,274 @@
+<tool id="plant_tribes_assembly_post_processor" name="AssemblyPostProcessor" version="0.4.0">
+    <description>post-processes de novo transcriptome assembly</description>
+    <requirements>
+        <requirement type="package" version="0.4">plant_tribes_assembly_post_processor</requirement>
+    </requirements>
+    <stdio>
+        <!-- Anything other than zero is an error -->
+        <exit_code range="1:" />
+        <exit_code range=":-1" />
+        <!-- In case the return code has not been set propery check stderr too -->
+        <regex match="Error:" />
+        <regex match="Exception:" />
+    </stdio>
+    <command>
+        <![CDATA[
+            AssemblyPostProcesser
+            --transcripts '$input'
+            --prediction_method $prediction_method_cond.prediction_method
+            #if str($prediction_method_cond.prediction_method) == 'estscan':
+                --score_matrices '$score_matrices'
+            #end if
+            #if str($options_type.options_type_selector) == 'advanced':
+                #if str($options_type.target_gene_family_assembly_cond.target_gene_family_assembly) == 'yes':
+                    --gene_family_search '$options_type.target_gene_family_assembly_cond.orthogroups'
+                    --scaffold '$options_type.target_gene_family_assembly_cond.scaffold.fields.path'
+                    --method '$options_type.target_gene_family_assembly_cond.method'
+                #end if
+                --gap_trimming $options_type.gap_trimming
+                #if str($options_type.strand_specific) == 'yes':
+                    --strand_specific
+                #end if
+                #if str($options_type.dereplicate) == 'yes':
+                    --dereplicate
+                #end if
+                --min_length $options_type.min_length
+            #end if
+            --num_threads \${GALAXY_SLOTS:-4}
+            >/dev/null
+        ]]>
+    </command>
+    <inputs>
+        <param name="input" format="fasta" type="data" label="Transcriptome assembly fasta file"/>
+        <conditional name="prediction_method_cond">
+            <param name="prediction_method" type="select" label="Coding regions prediction method">
+                <option value="transdecoder" selected="true">TransDecoder</option>
+                <option value="estscan">ESTScan</option>
+            </param>
+            <when value="transdecoder" />
+            <when value="estscan">
+                <param name="score_matrices" format="smat" type="data" label="Scores matrices"/>
+            </when>
+        </conditional>
+        <conditional name="options_type">
+            <param name="options_type_selector" type="select" label="Options configuration">
+                <option value="basic" selected="true">Basic</option>
+                <option value="advanced">Advanced</option>
+            </param>
+            <when value="basic" />
+            <when value="advanced">
+                <conditional name="target_gene_family_assembly_cond">
+                    <param name="target_gene_family_assembly" type="select" label="Perform targeted gene assembly?">
+                        <option value="no" selected="true">No</option>
+                        <option value="yes">Yes</option>
+                    </param>
+                    <when value="no" />
+                    <when value="yes">
+                        <param name="orthogroups" format="tabular" type="data" label="Targeted gene families"/>
+                        <param name="scaffold" type="select" label="Gene family scaffold">
+                            <options from_data_table="plant_tribes_scaffolds" />
+                            <validator type="no_options" message="No PlantTribes scaffolds are available.  Use the PlantTribes Scaffolds Download Data Manager tool in Galaxy to install and populate the PlantTribes scaffolds data table."/>
+                        </param>
+                        <param name="method" type="select" label="Protein clustering method">
+                            <option value="gfam" selected="true">GFam</option>
+                            <option value="orthofinder">OrthoFinder</option>
+                            <option value="orthomcl">OrthoMCL</option>
+                        </param>
+                    </when>
+                </conditional>
+                <param name="gap_trimming" type="float" value="0.1" min="0" max="1.0" label="Trim alignments"/>
+                <param name="strand_specific" type="select" label="Strand-specific assembly?">
+                    <option value="no" selected="true">No</option>
+                    <option value="yes">Yes</option>
+                </param>
+                <param name="dereplicate" type="select" label="Remove duplicate sequences?">
+                    <option value="no" selected="true">No</option>
+                    <option value="yes">Yes</option>
+                </param>
+                <param name="min_length" type="integer" value="200" label="Minimum sequence length"/>
+            </when>
+        </conditional>
+    </inputs>
+    <outputs>
+        <collection name="transcripts" type="list">
+            <discover_datasets pattern="__name__" directory="assemblyPostProcessing_dir" visible="true" ext="fasta" />
+        </collection>
+    </outputs>
+    <tests>
+        <test>
+            <param name="input" value="assembly.fasta" ftype="fasta" />
+            <param name="prediction_method" value="transdecoder" />
+            <output_collection name="transcripts" type="list">
+                <element name="transcripts.cds" file="transcripts.cds" ftype="fasta"/>
+                <element name="transcripts.cleaned.cds" file="transcripts.cleaned.cds" ftype="fasta"/>
+                <element name="transcripts.cleaned.pep" file="transcripts.cleaned.pep" ftype="fasta"/>
+                <element name="transcripts.pep" file="transcripts.pep" ftype="fasta"/>
+            </output_collection>
+        </test>
+        <test>
+            <param name="input" value="assembly.fasta" ftype="fasta" />
+            <param name="prediction_method" value="transdecoder" />
+            <param name="options_type_selector" value="advanced" />
+            <param name="gap_trimming" value="0.1" />
+            <param name="dereplicate" value="yes" />
+            <param name="min_length" value="200" />
+            <output_collection name="transcripts" type="list">
+                <element name="transcripts.cds" file="transcripts.cds" ftype="fasta"/>
+                <element name="transcripts.cleaned.cds" file="transcripts.cleaned.cds" ftype="fasta"/>
+                <element name="transcripts.cleaned.nr.cds" file="transcripts.cleaned.nr.cds" ftype="fasta"/>
+                <element name="transcripts.cleaned.nr.pep" file="transcripts.cleaned.nr.pep" ftype="fasta"/>
+                <element name="transcripts.cleaned.pep" file="transcripts.cleaned.pep" ftype="fasta"/>
+                <element name="transcripts.pep" file="transcripts.pep" ftype="fasta"/>
+            </output_collection>
+        </test>
+    </tests>
+    <help>
+This tool is one of the PlantTribes collection of automated modular analysis pipelines for comparative and
+evolutionary analyses of genome-scale gene families and transcriptomes.  This tool post-processes de novo
+assembled transcripts into putative coding sequences and their corresponding amino acid translations and
+optionally assigns transcripts to circumscribed gene families ("orthogroups")[2].  After transcripts have been
+assigned to gene families, overlapping contigs can be identified and merged to reduce fragmentation in the
+de novo assembly.  
+
+-----
+
+**Required options**
+
+ * **Transcriptome assembly fasta file** - either de novo or reference-guided transcriptome assembly fasta file selected from your history.
+ * **Coding regions prediction method** - method for finding coding regions within transcripts.  Available methods are TransDecoder[3] and ESTScan[4].
+ * **Scores matrices** - scores matrices, based on a related species, are required when ESTScan is used to find coding regions.  Details of how to create species-specific scores matrices can be found on the ESTScan website (http://estscan.sourceforge.net).  Matrices of some organisms are also available to download.
+
+**Other options**
+
+ * **Perform targeted gene assembly?** - selecting 'Yes' enables local assembly of one or more targeted gene families in a specific scaffold.  Scaffolds are defined in PlantTribes as clusters of paralogous/orthologous sequences from a specified set of proteomes[5-7].
+
+   * **Targeted gene families** - select a history item containing a list of targeted orthogroup identifiers corresponding to the gene family classification from a specified scaffold.  Gene identifiers can be obtained from the function annotation table ("Orthogroup ID" field of .summary file) of scaffold data installed into Galaxy via the PlantTribes Scaffolds Download Data Manager tool, and also available at the PlantTribes github repository (https://github.com/dePamphilis/PlantTribes/tree/master/config).
+   * **Gene family scaffold** - one of the PlantTribes gene family scaffolds (installed into Galaxy by the PlantTribes Scaffolds Download Data Manager tool) whose orthogroup(s) are targeted for the localized assembly.
+   * **Protein clustering method** - gene family scaffold protein clustering method.  Each PlantTribes scaffold data has up to three sets of clusters - GFam[8] (clusters of consensus domain architecture), OrthoFinder[9] (broadly defined clusters) or OrthoMCL[10] (narrowly defined clusters).  You can also install your own data scaffold created using a different clustering method as long as it conforms to the PlantTribes scaffold data format.
+
+ * **Trim alignments** - trim gene family multiple sequence alignments that include scaffold backbone genes and locally assembled transcripts to remove non-conserved regions (gappy sites)[11].  The trimmed alignments are used in assigning scores to locally assembled transcripts to determine how well they compare to the backbone gene models.  The default setting of 0.1 removes sites that have gaps in 90% of the sequences in the multiple sequence alignment.  This option is restricted to the range 0.0 - 1.0.
+ * **Strand-specific assembly?** - select 'Yes' if transcriptome library sequences were strand-specific.  If 'Yes" is selected, transcripts from the minority strand (antisense) are removed.
+ * **Remove duplicate sequences?** - select 'Yes' to remove duplicated and exact subsequences[12].
+ * **Minimum sequence length** - set the minimum sequence length of predicted coding regions. The default is 200 bp.
+
+    </help>
+    <citations>
+        <citation type="bibtex">
+            @misc{None,
+            journal = {None},
+            author = {1. Wafula EK},
+            title = {Manuscript in preparation},
+            year = {None},
+            url = {https://github.com/dePamphilis/PlantTribes},}
+        </citation>
+        <citation type="bibtex">
+            @article{Honaas2016,
+            journal = {PloS one},
+            author = {2. Honaas LA, Wafula EK, Wickett NJ, Der JP, Zhang Y, Edger PP, Altman NS, Pires JC, Leebens-Mack JH},
+            title = {Selecting superior de novo transcriptome assemblies: lessons learned by leveraging the best plant genome},
+            year = {2016},
+            volume = {11},
+            number = {1},
+            pages = {e0146062},}
+        </citation>
+        <citation type="bibtex">
+            @article{Haas2013,
+            journal = {Nature Protocols},
+            author = {3. Haas BJ, Papanicolaou A, Yassour M, Grabherr M, Blood PD, Bowden J, Couger MB, Eccles D, Li B, Lieber M, MacManes MD},
+            title = {De novo transcript sequence reconstruction from RNA-seq using the Trinity platform for reference generation and analysis},
+            year = {2013},
+            volume = {8},
+            number = {8},
+            pages = {1494-1512},}
+        </citation>
+        <citation type="bibtex">
+            @article{Iseli1999,
+            journal = {ISMB},
+            author = {4. Iseli C, Jongeneel CV, Bucher P},
+            title = {ESTScan: a program for detecting, evaluating, and reconstructing potential coding regions in EST sequences},
+            year = {1999},
+            volume = {99},
+            pages = {138-148},
+            url = {http://estscan.sourceforge.net},}
+        </citation>
+        <citation type="bibtex">
+            @article{Huang1999,
+            journal = {Genome Research},
+            author = {5. Huang X, Madan A},
+            title = {CAP3: A DNA sequence assembly program},
+            year = {1999},
+            volume = {9},
+            number = {9},
+            pages = {868-877},
+            url = {http://seq.cs.iastate.edu/cap3.html},}
+        </citation>
+        <citation type="bibtex">
+            @article{Eddy2009,
+            journal = {Genome Inform},
+            author = {6. Eddy SR},
+            title = {A new generation of homology search tools based on probabilistic inference},
+            year = {2009},
+            volume = {23},
+            number = {1},
+            pages = {205-211},}
+        </citation>
+        <citation type="bibtex">
+            @article{Katoh2013,
+            journal = {Molecular biology and evolution},
+            author = {7. Katoh K, Standley DM},
+            title = {MAFFT multiple sequence alignment software version 7: improvements in performance and usability},
+            year = {2013},
+            volume = {30},
+            number = {4},
+            pages = {772-780},}
+        </citation>
+        <citation type="bibtex">
+            @article{Sasidharan2012,
+            journal = {Nucleic Acids Research},
+            author = {8. Sasidharan R, Nepusz T, Swarbreck D, Huala E, Paccanaro A},
+            title = {GFam: a platform for automatic annotation of gene families},
+            year = {2012},
+            pages = {gks631},}
+        </citation>
+        <citation type="bibtex">
+            @article{Li2003,
+            journal = {Genome Research}
+            author = {9. Li L, Stoeckert CJ, Roos DS},
+            title = {OrthoMCL: identification of ortholog groups for eukaryotic genomes},
+            year = {2003},
+            volume = {13},
+            number = {9},
+            pages = {2178-2189},}
+        </citation>
+        <citation type="bibtex">
+            @article{Emms2015,
+            journal = {Genome Biology}
+            author = {10. Emms DM, Kelly S},
+            title = {OrthoFinder: solving fundamental biases in whole genome comparisons dramatically improves orthogroup inference accuracy},
+            year = {2015},
+            volume = {16},
+            number = {1},
+            pages = {157},}
+        </citation>
+        <citation type="bibtex">
+            @article{Capella-Gutierrez2009,
+            journal = {Bioinformatics,},
+            author = {11. Capella-Gutierrez S, Silla-Martínez JM, Gabaldón T},
+            title = {trimAl: a tool for automated alignment trimming in large-scale phylogenetic analyses},
+            year = {2009},
+            volume = {25},
+            number = {15},
+            pages = {1972-1973},}
+        </citation>
+        <citation type="bibtex">
+            @article{Gremme2013,
+            journal = {IEEE/ACM Transactions on Computational Biology and Bioinformatics},
+            author = {12. Gremme G, Steinbiss S, Kurtz S},
+            title = {GenomeTools: a comprehensive software library for efficient processing of structured genome annotations},
+            year = {2013},
+            volume = {10},
+            number = {3},
+            pages = {645-656},}
+        </citation>
+    </citations>
+</tool>

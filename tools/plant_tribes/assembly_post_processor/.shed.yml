@@ -1,0 +1,15 @@
+name: plant_tribes_assembly_post_processor
+owner: greg
+description: |
+  Contains a tool that postprocesses de novo assembly transcripts into putative coding sequences and their
+  corresponding amino acid translations, locally assembling targeted gene families.
+homepage_url: https://github.com/dePamphilis/PlantTribes
+long_description: |
+  Contains a tool that is one of the PlantTribes collection of automated modular analysis pipelines that
+  utilize objective classifications of complete protein sequences from sequenced plant genomes to perform
+  comparative evolutionary studies. It postprocesses de novo assembly transcripts into putative coding
+  sequences and their corresponding amino acid translations, locally assembling targeted gene families.
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/plant_tribes/assembly_post_processor
+type: unrestricted
+categories:
+- Phylogenetics

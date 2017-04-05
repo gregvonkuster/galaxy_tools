@@ -1,0 +1,375 @@
+<tool id="plant_tribes_gene_family_classifier" name="GeneFamilyClassifier" version="0.4.0">
+    <description>classifies gene sequences into pre-computed orthologous plant gene family clusters</description>
+    <requirements>
+        <requirement type="package" version="0.4">plant_tribes_gene_family_classifier</requirement>
+    </requirements>
+    <stdio>
+        <!-- Anything other than zero is an error -->
+        <exit_code range="1:" />
+        <exit_code range=":-1" />
+        <!-- In case the return code has not been set propery check stderr too -->
+        <regex match="Error:" />
+        <regex match="Exception:" />
+    </stdio>
+    <command>
+        <![CDATA[
+            #if str($options_type.options_type_selector) == 'advanced':
+                #set specify_super_orthogroups_cond = $options_type.specify_super_orthogroups_cond
+                #set specify_super_orthogroups = $specify_super_orthogroups_cond.specify_super_orthogroups
+                #set create_orthogroup_cond = $options_type.create_orthogroup_cond
+                #set create_orthogroup = $create_orthogroup_cond.create_orthogroup
+                #set specify_single_copy_cond = $options_type.specify_single_copy_cond
+                #set specify_single_copy = $specify_single_copy_cond.specify_single_copy
+                #if str($specify_super_orthogroups) == 'yes':
+                    #set specify_super_orthos = True
+                    #set super_orthogroups = $specify_super_orthogroups_cond.super_orthogroups
+                #else:
+                    #set specify_super_orthos = False
+                #end if
+                #if str($create_orthogroup) == 'yes':
+                    #set create_ortho_sequences = True
+                    #set create_corresponding_coding_sequences_cond = $create_orthogroup_cond.create_corresponding_coding_sequences_cond
+                    #if str($create_corresponding_coding_sequences_cond.create_corresponding_coding_sequences) == 'yes':
+                        #set create_corresponding_coding_sequences = True
+                    #else:
+                        #set create_corresponding_coding_sequences = False
+                    #end if
+                #else:
+                    #set create_ortho_sequences = False
+                    #set create_corresponding_coding_sequences = False
+                #end if
+                #if str($specify_single_copy) == 'yes':
+                    #set single_copy_orthogroup = True
+                    #set single_copy_cond = $specify_single_copy_cond.single_copy_cond
+                    #set single_copy = $single_copy_cond.single_copy
+                #else:
+                    #set single_copy_orthogroup = False
+                #end if
+            #else:
+                #set single_copy_orthogroup = False
+                #set create_ortho_sequences = False
+                #set create_corresponding_coding_sequences = False
+            #end if
+
+            python $__tool_directory__/gene_family_classifier.py
+            --input '$input'
+            --scaffold '$scaffold.fields.path'
+            --method $method
+            --classifier $save_hmmscan_log_cond.classifier
+            --config_dir '$scaffold.fields.path'
+            --num_threads \${GALAXY_SLOTS:-4}
+
+            #if str($options_type.options_type_selector) == 'advanced':
+                #if specify_super_orthos:
+                    --super_orthogroups $super_orthogroups
+                #end if
+                #if $single_copy_orthogroup:
+                    #if str($single_copy) == 'custom':
+                        #set single_copy_custom_cond = $single_copy_cond.single_copy_custom_cond
+                        #set single_copy_custom = $single_copy_custom_cond.single_copy_custom
+                        #if str($single_copy_custom) == 'no':
+                            --single_copy_custom 'default'
+                        #else:
+                            --single_copy_custom '$single_copy_custom_cond.single_copy_custom_config'
+                        #end if
+                    #else:
+                        #if $single_copy_cond.single_copy_taxa > 0:
+                            --single_copy_taxa $single_copy_cond.single_copy_taxa
+                        #end if
+                        #if $single_copy_cond.taxa_present > 0:
+                            --taxa_present $single_copy_cond.taxa_present
+                        #end if
+                    #end if
+                #end if
+                #if $create_ortho_sequences:
+                    --orthogroup_fasta "true"
+                    #if $create_corresponding_coding_sequences:
+                        --coding_sequences '$create_corresponding_coding_sequences_cond.coding_sequences'
+                    #end if
+                #end if
+            #end if
+
+            #if str($save_hmmscan_log_cond.classifier) == 'hmmscan' or str($save_hmmscan_log_cond.classifier) == 'both' and str($save_hmmscan_log_cond.save_hmmscan_log) == 'yes':
+                --save_hmmscan_log
+                --hmmscan_log '$hmmscan_log'
+            #end if
+            #if $create_ortho_sequences:
+                #if $create_corresponding_coding_sequences:
+                    --output_ptorthocs '$output_ptorthocs'
+                    --output_ptorthocs_dir '$output_ptorthocs.files_path'
+                #else:
+                    --output_ptortho '$output_ptortho'
+                    --output_ptortho_dir '$output_ptortho.files_path'
+                #end if
+            #end if
+            #if $single_copy_orthogroup:
+                #if $create_ortho_sequences:
+                    --output_ptsco '$output_ptsco'
+                    --output_ptsco_dir '$output_ptsco.files_path'
+                #end if
+            #end if
+        ]]>
+    </command>
+    <inputs>
+        <param name="input" format="fasta" type="data" label="Proteins fasta file"/>
+        <param name="scaffold" type="select" label="Gene family scaffold">
+            <options from_data_table="plant_tribes_scaffolds" />
+            <validator type="no_options" message="No PlantTribes scaffolds are available.  Use the PlantTribes Scaffolds Download Data Manager tool in Galaxy to install and populate the PlantTribes scaffolds data table."/>
+        </param>
+        <param name="method" type="select" label="Protein clustering method">
+            <option value="gfam" selected="true">GFam</option>
+            <option value="orthofinder">OrthoFinder</option>
+            <option value="orthomcl">OrthoMCL</option>
+        </param>
+        <conditional name="save_hmmscan_log_cond">
+            <param name="classifier" type="select" label="Protein classifier">
+                <option value="blastp" selected="true">blastp</option>
+                <option value="hmmscan">hmmscan</option>
+                <option value="both">Both blastp and hmmscan</option>
+            </param>
+            <when value="blastp" />
+            <when value="hmmscan">
+                <param name="save_hmmscan_log" type="select" label="Save hmmscan log?">
+                    <option value="no" selected="true">No</option>
+                    <option value="yes">Yes</option>
+                </param>
+            </when>
+            <when value="both">
+                <param name="save_hmmscan_log" type="select" label="Save hmmscan log?">
+                    <option value="no" selected="true">No</option>
+                    <option value="yes">Yes</option>
+                </param>
+            </when>
+        </conditional>
+        <conditional name="options_type">
+            <param name="options_type_selector" type="select" label="Options configuration">
+                <option value="basic" selected="true">Basic</option>
+                <option value="advanced">Advanced</option>
+            </param>
+            <when value="basic" />
+            <when value="advanced">
+                <conditional name="specify_super_orthogroups_cond">
+                    <param name="specify_super_orthogroups" type="select" label="Super orthogroups configuration">
+                        <option value="no" selected="true">No</option>
+                        <option value="yes">Yes</option>
+                    </param>
+                    <when value="no"/>
+                    <when value="yes">
+                        <param name="super_orthogroups" type="select" label="Clustering distance measure">
+                            <option value="min_evalue" selected="true">minimum e-value</option>
+                            <option value="avg_evalue">average e-value</option>
+                        </param>
+                    </when>
+                </conditional>
+                <conditional name="specify_single_copy_cond">
+                    <param name="specify_single_copy" type="select" label="Single copy orthogroups configuration">
+                        <option value="no" selected="true">No</option>
+                        <option value="yes">Yes</option>
+                    </param>
+                    <when value="no"/>
+                    <when value="yes">
+                        <conditional name="single_copy_cond">
+                            <param name="single_copy" type="select" label="Selection criterion">
+                                <option value="taxa" selected="true">Global selection</option>
+                                <option value="custom">Custom selection</option>
+                            </param>
+                            <when value="custom">
+                                <conditional name="single_copy_custom_cond">
+                                    <param name="single_copy_custom" type="select" label="Custom selection configuration">
+                                        <option value="no" selected="true">No</option>
+                                        <option value="yes">Yes</option>
+                                    </param>
+                                    <when value="no"/>
+                                    <when value="yes">
+                                        <param name="single_copy_custom_config" format="txt" type="data" label="Custom selection file"/>
+                                    </when>
+                                </conditional>
+                            </when>
+                            <when value="taxa">
+                                <param name="single_copy_taxa" type="integer" value="0" min="0" label="Minimum single copy taxa" help="Zero values have no affect"/>
+                                <param name="taxa_present" type="integer" value="0" min="0" label="Minimum taxa present" help="Zero values have no affect"/>
+                            </when>
+                        </conditional>
+                    </when>
+                </conditional>
+                <conditional name="create_orthogroup_cond">
+                    <param name="create_orthogroup" type="select" label="Orthogroups fasta configuration">
+                        <option value="no" selected="true">No</option>
+                        <option value="yes">Yes</option>
+                    </param>
+                    <when value="no" />
+                    <when value="yes">
+                        <conditional name="create_corresponding_coding_sequences_cond">
+                            <param name="create_corresponding_coding_sequences" type="select" label="Orthogroups coding sequences">
+                                <option value="no" selected="true">No</option>
+                                <option value="yes">Yes</option>
+                            </param>
+                            <when value="no" />
+                            <when value="yes">
+                                <param name="coding_sequences" format="fasta" type="data" label="Coding sequences fasta file"/>
+                            </when>
+                        </conditional>
+                    </when>
+                </conditional>
+            </when>
+        </conditional>
+    </inputs>
+    <outputs>
+        <data name="hmmscan_log" format="txt" label="Protein classification hmmscan.log on ${on_string}">
+            <filter>save_hmmscan_log_cond['classifier'] in ['hmmscan', 'both'] and save_hmmscan_log_cond['save_hmmscan_log'] == 'yes'</filter>
+        </data>
+        <data name="output_ptortho" format="ptortho" label="Gene family clusters on ${on_string}">
+            <filter>options_type['options_type_selector'] == 'advanced' and options_type['create_orthogroup_cond']['create_orthogroup'] == 'yes' and options_type['create_orthogroup_cond']['create_corresponding_coding_sequences_cond']['create_corresponding_coding_sequences'] == 'no'</filter>
+        </data>
+        <data name="output_ptorthocs" format="ptorthocs" label="Gene family clusters and corresponding coding sequences on ${on_string}">
+            <filter>options_type['options_type_selector'] == 'advanced' and options_type['create_orthogroup_cond']['create_orthogroup'] == 'yes' and options_type['create_orthogroup_cond']['create_corresponding_coding_sequences_cond']['create_corresponding_coding_sequences'] == 'yes'</filter>
+        </data>
+        <data name="output_ptsco" format="tabular" label="Single copy orthogroups on ${on_string}">
+            <filter>options_type['options_type_selector'] == 'advanced' and options_type['create_orthogroup_cond']['create_orthogroup'] == 'yes' and options_type['specify_single_copy_cond']['specify_single_copy'] == 'yes'</filter>
+            <change_format>
+                <when input="options_type.create_orthogroup_cond.create_corresponding_coding_sequences_cond.create_corresponding_coding_sequences" value="no" format="ptortho" />
+                <when input="options_type.create_orthogroup_cond.create_corresponding_coding_sequences_cond.create_corresponding_coding_sequences" value="yes" format="ptorthocs" />
+            </change_format>
+        </data>
+        <collection name="orthos" type="list">
+            <discover_datasets pattern="__name__" directory="geneFamilyClassification_dir" visible="false" ext="tabular" />
+        </collection>
+    </outputs>
+    <tests>
+        <test>
+            <param name="input" value="transcripts.cleaned.nr.pep" ftype="fasta" />
+            <param name="scaffold" value="22Gv1.1"/>
+            <param name="method" value="orthomcl"/>
+            <param name="classifier" value="blastp"/>
+            <param name="dereplicate" value="yes"/>
+            <param name="min_length" value="200"/>
+            <output_collection name="orthos" type="list">
+                <element name="proteins.blastp.22Gv1.1" file="proteins.blastp.22Gv1.1" ftype="tabular"/>
+                <element name="proteins.blastp.22Gv1.1.bestOrthos" file="proteins.blastp.22Gv1.1.bestOrthos" ftype="tabular"/>
+                <element name="proteins.blastp.22Gv1.1.bestOrthos.summary" file="proteins.blastp.22Gv1.1.bestOrthos.summary" ftype="tabular"/>
+            </output_collection>
+        </test>
+    </tests>
+    <help>
+This tool is one of the PlantTribes collection of automated modular analysis pipelines for comparative and evolutionary
+analyses of genome-scale gene families and transcriptomes. This tool classifies gene coding sequences either produced by
+the AssemblyPostProcessor tool or from an external source into pre-computed orthologous gene family clusters (orthogroups)
+of a PlantTribes scaffold.  Classified sequences are then assigned with the corresponding orthogroups’ metadata that includes
+gene counts of backbone taxa, super clusters (super orthogoups) at multiple stringencies, and functional annotations from
+sources such as Gene Ontology (GO), InterPro protein domains, and UniProt KB/Swiss-Prot.  Additionally, sequences belonging
+to single/low-copy gene families that are mainly utilized in species tree inference can be determined.
+
+-----
+
+**Required options**
+
+ * **Proteins fasta file** - proteins fasta file either produced by the AssemblyPostProcessor tool or an external source selected from your history.
+ * **Gene family scaffold** - one of the PlantTribes gene family scaffolds [2-4] installed into Galaxy by the PlantTribes Scaffold Data Manager tool.
+ * **Protein clustering method** - gene family scaffold protein clustering method as described in the AssemblyPostProcessor tool.
+ * **Protein classifier** - classifier to assign protein sequences into a specified scaffold orthogroups. PlantTribes implements three classification approaches; blastp (faster)[5], hmmscan (slower but more sensitive assignment of divergent homologs)[6], and both blastp and hmmscan (disagreements resolved in favor of hmmscan; more exhaustive).
+
+**Other options**
+
+ * **Super orthogroups configuration** - select ‘Yes’ to enable super orthogroups configuration options.  Super orthogroups[7] are constructed through a second iteration of MCL clustering to connect distant, but potentially related orthogroup clusters.
+
+   * **Clustering distance measure** - distance measure used in merging orthogroup clusters into super orthogroup clusters.  PlantTribes pre-computed super orthogroups are based on the minimum and average blastp e-value between all pairs of scaffold orthogroups used as the input matrix for MCL clustering algorithm[8].
+
+ * **Single copy orthogroups configuration** - select ‘Yes’ to enable single/low-copy orthogroups selection configuration options.
+
+   * **Selection criterion** - single/low-copy orthogroups selection criterion. PlantTribes provides custom and global selection criteria for selecting user-defined single/low-copy scaffold orthogoups.
+
+     * **Global selection configuration** - the upper limit values of the following two parameters vary depending on the selected gene family scaffold, and the tool will produce an error if the value exceeds the number of species in the circumscribed scaffold.  Zero values have no affect.
+
+       * **Minimum single copy taxa** - minimum number of taxa with single copy genes in the orthogroup.
+       * **Minimum taxa present** - minimum number of taxa present in the orthogroup.
+
+     * **Custom selection configuration** - select ‘Yes’ to enable selection of a single copy configuration file.  Scaffold configuration templates (.singleCopy.config) of how to customize single/low-copy orthogroups selection can be found in the scaffold data installed into Galaxy via the PlantTribes Scaffolds Download Data Manager tool, and also available at the PlantTribes GitHub repository (https://github.com/dePamphilis/PlantTribes/config ).  Single/low-copy settings shown in these templates are used as defaults if ‘No’ is selected.
+
+       * **Custom selection file** - select a single/low-copy customized configuration file from your history.
+
+ * **Orthogroups fasta configuration** - select ‘Yes’ to create proteins orthogroups fasta files for the classified sequences.
+
+   * **Orthogroups coding sequences** - select ‘Yes’ to create corresponding coding sequences orthogroups fasta files for the classified protein sequences. Requires coding sequences fasta file corresponding to the proteins fasta file to be selected from your history.
+
+     * **Coding sequences fasta file** - select coding sequences fasta file corresponding to the proteins fasta file from your history.
+
+    </help>
+    <citations>
+        <citation type="bibtex">
+            @misc{None,
+            journal = {None},
+            author = {1. Wafula EK},
+            title = {Manuscript in preparation},
+            year = {None},
+            url = {https://github.com/dePamphilis/PlantTribes},}
+        </citation>
+        <citation type="bibtex">
+            @article{Sasidharan2012,
+            journal = {Nucleic Acids Research},
+            author = {2. Sasidharan R, Nepusz T, Swarbreck D, Huala E, Paccanaro A},
+            title = {GFam: a platform for automatic annotation of gene families},
+            year = {2012},
+            pages = {gks631},}
+        </citation>
+        <citation type="bibtex">
+            @article{Li2003,
+            journal = {Genome Research}
+            author = {3. Li L, Stoeckert CJ, Roos DS},
+            title = {OrthoMCL: identification of ortholog groups for eukaryotic genomes},
+            year = {2003},
+            volume = {13},
+            number = {9},
+            pages = {2178-2189},}
+        </citation>
+        <citation type="bibtex">
+            @article{Emms2015,
+            journal = {Genome Biology}
+            author = {4. Emms DM, Kelly S},
+            title = {OrthoFinder: solving fundamental biases in whole genome comparisons dramatically improves orthogroup inference accuracy},
+            year = {2015},
+            volume = {16},
+            number = {1},
+            pages = {157},}
+        </citation>
+        <citation type="bibtex">
+            @article{Altschul1990,
+            journal = {Journal of molecular biology}
+            author = {5. Altschul SF, Gish W, Miller W, Myers EW, Lipman DJ},
+            title = {Basic local alignment search tool},
+            year = {1990},
+            volume = {215},
+            number = {3},
+            pages = {403-410},}
+        </citation>
+        <citation type="bibtex">
+            @article{Eddy2009,
+            journal = {Genome Inform},
+            author = {6. Eddy SR},
+            title = {A new generation of homology search tools based on probabilistic inference},
+            year = {2009},
+            volume = {23},
+            number = {1},
+            pages = {205-211},}
+        </citation>
+        <citation type="bibtex">
+            @article{Wall2008,
+            journal = {Nucleic Acids Research},
+            author = {7. Wall PK, Leebens-Mack J, Muller KF, Field D, Altman NS},
+            title = {PlantTribes: a gene and gene family resource for comparative genomics in plants},
+            year = {2008},
+            volume = {36},
+            number = {suppl 1},
+            pages = {D970-D976},}
+        </citation>
+        <citation type="bibtex">
+            @article{Enright2002,
+            journal = {Nucleic acids research},
+            author = {8. Enright AJ, Van Dongen S, Ouzounis CA},
+            title = {n efficient algorithm for large-scale detection of protein families},
+            year = {2002},
+            volume = {30},
+            number = {7},
+            pages = {1575-1584},}
+        </citation>
+    </citations>
+</tool>
