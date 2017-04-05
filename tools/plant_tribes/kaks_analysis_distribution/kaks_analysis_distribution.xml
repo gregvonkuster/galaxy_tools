@@ -1,0 +1,44 @@
+<tool id="kaks_analysis_distribution" name="KaKsAnalysis distribution" version="1.0.0">
+    <description>plots synonymous (Ks) distribution and fits significant component(s)</description>
+    <requirements>
+         <requirement type="package" version="1.3.0">r-optparse</requirement>
+    </requirements>
+    <command>
+        <![CDATA[
+            Rscript $__tool_directory__/kaks_analysis_distribution.R
+            -k '${kaks}'
+            -c '${components}'
+            -o '$output'
+        ]]>
+    </command>
+    <inputs>
+        <param name="kaks" format="tabular" type="data" label="KaKs analysis file" />
+        <param name="components" format="tabular" type="data" label="Significant components in the ks distribution" />
+    </inputs>
+    <outputs>
+        <data name="output" format="pdf"/>
+    </outputs>
+    <tests>
+        <test>
+            <param name="kaks" value="kaks.tabular" ftype="tabular" />
+            <param name="components" value="components.tabular" ftype="tabular" />
+            <output name="output" file="output.pdf" ftype="pdf" compare="contains" />
+        </test>
+    </tests>
+    <help>
+**What it does**
+ 
+Draws a barplot of the significant components in the ks distribution.
+    </help>
+    <citations>
+        <citation type="bibtex">
+            @article{None,
+            journal = {None},
+            author = {1. Wafula EK},
+            title = {Manuscript in preparation},
+            year = {None},
+            url = {https://github.com/dePamphilis/PlantTribes},}
+        </citation>
+    </citations>
+</tool>
+
