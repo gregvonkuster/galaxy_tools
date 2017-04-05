@@ -1,0 +1,243 @@
+<tool id="plant_tribes_kaks_analysis" name="KaKsAnalysis" version="0.8.0">
+    <description>estimates paralogous and orthologous pairwise synonymous (Ks) and non-synonymous (Ka) substitution rates</description>
+    <requirements>
+        <requirement type="package" version="0.8">plant_tribes_kaks_analysis</requirement>
+    </requirements>
+    <stdio>
+        <!-- Anything other than zero is an error -->
+        <exit_code range="1:" />
+        <exit_code range=":-1" />
+        <!-- In case the return code has not been set propery check stderr too -->
+        <regex match="Error:" />
+        <regex match="Exception:" />
+    </stdio>
+    <command>
+        <![CDATA[
+            #set output_dir = 'kaksAnalysis_dir'
+            #set comparison = $comparison_cond.comparison
+            #if str($options_type.options_type_selector) == 'advanced':
+                #set codeml_ctl_file_cond = $options_type.codeml_ctl_file_cond
+                #set codeml_ctl_file_select = $codeml_ctl_file_cond.codeml_ctl_file_select
+                #set fit_components_cond = $options_type.fit_components_cond
+                #set fit_components = $fit_components_cond.fit_components
+                #set recalibrate_cond = $options_type.recalibrate_cond
+                #set recalibrate = $recalibrate_cond.recalibrate
+                #set set_min_coverage_cond = $options_type.set_min_coverage_cond
+                #set set_min_coverage = $set_min_coverage_cond.set_min_coverage
+                #set set_lower_ks_limit_cond = $options_type.set_lower_ks_limit_cond
+                #set set_lower_ks_limit = $set_lower_ks_limit_cond.set_lower_ks_limit
+                #set set_upper_ks_limit_cond = $options_type.set_upper_ks_limit_cond
+                #set set_upper_ks_limit = $set_upper_ks_limit_cond.set_upper_ks_limit
+            #else:
+                #set codeml_ctl_file_select = 'no'
+                #set fit_components = 'no'
+                #set set_lower_ks_limit = 'no'
+                #set set_upper_ks_limit = 'no'
+            #end if
+            KaKsAnalysis
+            --num_threads \${GALAXY_SLOTS:-4}
+            --coding_sequences_species_1 '$coding_sequences_species_1'
+            --proteins_species_1 '$proteins_species_1'
+            --comparison $comparison
+            #if str($comparison) == 'orthologs':
+                --coding_sequences_species_2 '$comparison_cond.coding_sequences_species_2'
+                --proteins_species_2 '$comparison_cond.proteins_species_2'
+            #end if
+            #if str($options_type.options_type_selector) == 'advanced':
+                #if str($set_min_coverage) == 'yes':
+                    --min_coverage $set_min_coverage_cond.min_coverage
+                #end if
+                #if str($recalibrate) == 'yes':
+                    --recalibration_rate $recalibrate_cond.recalibration_rate
+                #end if
+                #if str($codeml_ctl_file_select) == 'yes':
+                    --codeml_ctl_file '$codeml_ctl_file_cond.codeml_ctl_file'
+                    # No else block needed here because the default codeml_ctl config
+                    # will be used if the --codeml_ctl_file flag is missing.
+                #end if
+                #if str($fit_components) == 'yes':
+                    --fit_components
+                    --num_of_components $fit_components_cond.num_of_components
+                #end if
+                #if str($set_lower_ks_limit) == 'yes':
+                    --min_ks $set_lower_ks_limit_cond.min_ks
+                #end if
+                #if str($set_upper_ks_limit) == 'yes':
+                    --max_ks $set_upper_ks_limit_cond.max_ks
+                #end if
+            #end if
+            >/dev/null
+            && mv $output_dir/species1.fna '$output_species1_fna'
+            && mv $output_dir/species1.faa '$output_species1_faa'
+            #if str($comparison) == 'paralogs':
+                && mv $output_dir/species1.fna.blastn.paralogs '$output_species1_paralog'
+            #else:
+                && mv $output_dir/species2.faa '$output_species2_faa'
+                && mv $output_dir/species2.fna '$output_species2_fna'
+                && mv $output_dir/species1.fna.blastn.orthologs '$output_species1_ortholog'
+                && mv $output_dir/species2.fna.blastn.orthologs '$output_species2_ortholog'
+            #end if
+            && mv $output_dir/*.rbhb '$output_rbhb'
+            && mv $output_dir/*.kaks '$output_kaks'
+            #if str($fit_components) == 'yes':
+                && mv $output_dir/*.components '$output_components'
+            #end if
+        ]]>
+    </command>
+    <inputs>
+        <param name="coding_sequences_species_1" format="fasta" type="data" label="Coding sequences (CDS) fasta file for species1" />
+        <param name="proteins_species_1" format="fasta" type="data" label="Aamino acids (proteins) sequences fasta file for species1" />
+        <conditional name="comparison_cond">
+            <param name="comparison" type="select" label="Select method for pairwise sequence comparison to determine homolgous pairs" help="Cross species comparison requires selection of inputs for second species">
+                <option value="paralogs" selected="true">Self species comparison</option>
+                <option value="orthologs">Cross species comparison</option>
+            </param>
+            <when value="paralogs" />
+            <when value="orthologs">
+                <param name="coding_sequences_species_2" format="fasta" type="data" label="Coding sequences (CDS) fasta file for species2" />
+                <param name="proteins_species_2" format="fasta" type="data" label="Aamino acids (proteins) sequences fasta file for species2" />
+            </when>
+        </conditional>
+        <conditional name="options_type">
+            <param name="options_type_selector" type="select" label="Options Configuration">
+                <option value="basic" selected="true">Basic</option>
+                <option value="advanced">Advanced</option>
+            </param>
+            <when value="basic" />
+            <when value="advanced">
+                <conditional name="set_min_coverage_cond">
+                    <param name="set_min_coverage" type="select" label="Specify minimum sequence pairwise coverage length between homologous pairs?">
+                        <option value="no" selected="true">No</option>
+                        <option value="yes">Yes</option>
+                    </param>
+                    <when value="no" />
+                    <when value="yes">
+                        <param name="min_coverage" type="float" value="0.5" min="0.3" max="1.0" label="Minimum sequence pairwise coverage length between homologous pairs" />
+                    </when>
+                </conditional>
+                <conditional name="recalibrate_cond">
+                    <param name="recalibrate" type="select" label="Specify evolutionary rate for recalibrating synonymous subsitutions (ks) of species?">
+                        <option value="no" selected="true">No</option>
+                        <option value="yes">Yes</option>
+                    </param>
+                    <when value="no" />
+                    <when value="yes">
+                        <param name="recalibration_rate" type="float" value="0.0" min="0.0" label="Evolutionary rate for recalibrating synonymous subsitutions (ks) of species" />
+                    </when>
+                </conditional>
+                <conditional name="codeml_ctl_file_cond">
+                    <param name="codeml_ctl_file_select" type="select" label="Select PAML codeml control file?" help="Used for ML analysis of protein-coding DNA sequences using codon substitution models, select No to use the default control file">
+                        <option value="no" selected="true">No</option>
+                        <option value="yes">Yes</option>
+                    </param>
+                    <when value="no" />
+                    <when value="yes">
+                        <param name="codeml_ctl_file" format="txt" type="data" label="PAML codeml control file" />
+                    </when>
+                </conditional>
+                <conditional name="fit_components_cond">
+                    <param name="fit_components" type="select" label="Fit a mixture model of multivariate normal components to synonymous (ks) distribution?" help="Used to identify significant duplication events in a genome">
+                        <option value="no" selected="true">No</option>
+                        <option value="yes">Yes</option>
+                    </param>
+                    <when value="no" />
+                    <when value="yes">
+                        <param name="num_of_components" type="integer" value="1" min="1" label="Number of components to fit to synonymous subsitutions (ks) distribution" />
+                    </when>
+                </conditional>
+                <conditional name="set_lower_ks_limit_cond">
+                    <param name="set_lower_ks_limit" type="select" label="Set lower limit of synonymous subsitutions (ks)?" help="Reduces background noise from young paralogous pairs due to normal gene births and deaths in a genome">
+                        <option value="no" selected="true">No</option>
+                        <option value="yes">Yes</option>
+                    </param>
+                    <when value="no" />
+                    <when value="yes">
+                        <param name="min_ks" type="float" value="0.0" min="0.0" label="Lower limit of synonymous subsitutions (ks)" />
+                    </when>
+                </conditional>
+                <conditional name="set_upper_ks_limit_cond">
+                    <param name="set_upper_ks_limit" type="select" label="Set upper limit of synonymous subsitutions (ks)?" help="Excludes likey ancient paralogous pairs">
+                        <option value="no" selected="true">No</option>
+                        <option value="yes">Yes</option>
+                    </param>
+                    <when value="no" />
+                    <when value="yes">
+                        <param name="max_ks" type="float" value="0.0" min="0.0" label="Upper limit of synonymous subsitutions (ks)" />
+                    </when>
+                </conditional>
+            </when>
+        </conditional>
+        <!-- Required due to the Emmix license -->
+        <param name="non_commercial_use" label="I certify that I am not using this tool for commercial purposes." type="boolean" truevalue="NON_COMMERCIAL_USE" falsevalue="COMMERCIAL_USE" checked="False">
+            <validator type="expression" message="This tool is only available for non-commercial use.">value == True</validator>
+        </param>
+    </inputs>
+    <outputs>
+        <data name="output_species1_fna" format="fasta" label="KaKs analysis (coding sequences) on ${on_string}" />
+        <data name="output_species1_faa" format="fasta" label="KaKs analysis (amino acids) on ${on_string}" />
+        <data name="output_species2_fna" format="fasta" label="KaKs analysis (coding sequences) on ${on_string}">
+            <filter>comparison_cond['comparison'] == 'orthologs'</filter>
+        </data>
+        <data name="output_species2_faa" format="fasta" label="KaKs analysis (amino acids) on ${on_string}">
+            <filter>comparison_cond['comparison'] == 'orthologs'</filter>
+        </data>
+        <data name="output_species1_paralog" format="tabular" label="KaKs analysis (blastn results) on ${on_string}">
+            <filter>comparison_cond['comparison'] == 'paralogs'</filter>
+        </data>
+        <data name="output_species1_ortholog" format="tabular" label="KaKs analysis (blastn results) on ${on_string}">
+            <filter>comparison_cond['comparison'] == 'orthologs'</filter>
+        </data>
+        <data name="output_species2_ortholog" format="tabular" label="KaKs analysis (blastn results) on ${on_string}">
+            <filter>comparison_cond['comparison'] == 'orthologs'</filter>
+        </data>
+        <data name="output_rbhb" format="tabular" label="KaKs analysis (paralogous pairs) on ${on_string}" />
+        <data name="output_kaks" format="tabular" label="KaKs analysis on ${on_string}" />
+        <data name="output_components" format="tabular" label="KaKs analysis (significant components in the ks distribution) on ${on_string}">
+            <filter>options_type['options_type_selector'] == 'advanced' and options_type['fit_components_cond']['fit_components'] == 'yes'</filter>
+        </data>
+    </outputs>
+    <tests>
+        <test>
+        </test>
+    </tests>
+    <help>
+This tool is one of the PlantTribes collection of automated modular analysis pipelines that utilize objective classifications of
+complete protein sequences from sequenced plant genomes to perform comparative evolutionary studies. This tool performs orthologous
+or paralogous ks analyses of coding sequences and amino acid sequences.
+
+-----
+
+**Options**
+
+ * **Required**
+
+  - **Coding sequences (CDS) fasta file for species1** - Coding sequences (CDS) fasta file for species1.
+  - **Aamino acids (proteins) sequences fasta file for species1** - Aamino acids (proteins) sequences fasta file for species1
+  - **Select method for pairwise sequence comparison to determine homolgous pairs** - Pairwise sequence comparison to determine homolgous pairs (cross species comparison requires selection of inputs for species2).
+
+ * **Optional**
+
+  - **Minimum sequence pairwise coverage length between homologous pairs** - Minimum sequence pairwise coverage length between homologous pairs (e.g., 0.5 results in 50% coverage.  Legal values lie between 0.3 and 1.0.
+  - **Evolutionary rate for recalibrating synonymous subsitutions (ks) of species** - (applies to paralogous ks analysis) Recalibrate synonymous subsitutions (ks) of species using a predetermined evoutionary rate that can be determined from a species tree inferred from a collection single copy genes from taxa of interest (Cui et al., 2006).
+  - **Select PAML codeml control file?** - Select PAML's codeml control file from your history.  This file is used to to perfom ML analysis of protein-coding DNA sequences using codon substitution models.  Selecting No uses the default file which does not include input (seqfile, treefile) and output (outfile) parameters of codeml.
+  - **Fit a mixture model of multivariate normal components to synonymous (ks) distribution?** - Fit a mixture model of multivariate normal components to synonymous (ks) distribution to identify significant duplication event(s) in a genome.
+  - **Number components to fit to synonymous subsitutions (ks) distribution** - Number components to fit to synonymous subsitutions (ks) distribution.
+  - **Lower limit of synonymous subsitutions (ks)** - Lower limit of synonymous subsitutions (ks) - necessary if fitting components to the distribution to reduce background noise from young paralogous pairs due to normal gene births and deaths in a genome.
+  - **Upper limit of synonymous subsitutions (ks)** - Upper limit of synonymous subsitutions (ks) - necessary if fitting components to the distribution to exclude likey ancient paralogous pairs.
+
+    </help>
+    <citations>
+        <citation type="bibtex">
+            @article{None,
+            journal = {None},
+            author = {1. Wafula EK},
+            title = {Manuscript in preparation},
+            year = {None},
+            url = {https://github.com/dePamphilis/PlantTribes},}
+        </citation>
+        <citation type="doi">10.1093/bioinformatics/btw412</citation>
+        <citation type="doi">10.1186/1471-2105-10-421</citation>
+        <citation type="doi">10.1093/molbev/msm088</citation>
+        <citation type="doi">10.18637/jss.v004.i02</citation>
+    </citations>
+</tool>

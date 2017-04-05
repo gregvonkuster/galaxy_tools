@@ -1,5 +1,5 @@
 name: plant_tribes_gene_family_classifier
-owner: iuc
+owner: greg
 description: |
   Contains a tool that classifies gene sequences into precomputed orthologous gene family clusters using either
   blastp (faster), HMMScan (slower but more sensitive to remote homologs) or both (more exhaustive).
