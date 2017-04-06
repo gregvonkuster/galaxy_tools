@@ -1,0 +1,85 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<macros>
+    <xml name="requirements_assembly_post_processor">
+        <requirements>
+            <requirement type="package" version="0.4">plant_tribes_assembly_post_processor</requirement>
+        </requirements>
+    </xml>
+    <xml name="requirements_gene_family_classifier">
+        <requirements>
+            <requirement type="package" version="0.8">plant_tribes_gene_family_classifier</requirement>
+        </requirements>
+    </xml>
+    <xml name="requirements_gene_family_integrator">
+        <requirements>
+            <requirement type="package" version="0.8">plant_tribes_gene_family_integrator</requirement>
+        </requirements>
+    </xml>
+    <xml name="stdio">
+        <stdio>
+            <exit_code range="1:"/>
+            <exit_code range=":-1"/>
+            <regex match="Error:"/>
+            <regex match="Exception:"/>
+        </stdio>
+    </xml>
+    <xml name="param_scaffold">
+        <param name="scaffold" type="select" label="Orthogroups or gene families proteins scaffold">
+            <options from_data_table="plant_tribes_scaffolds" />
+            <validator type="no_options" message="No PlantTribes scaffolds are available.  Use the PlantTribes Scaffolds Download Data Manager tool in Galaxy to install and populate the PlantTribes scaffolds data table." />
+        </param>
+    </xml>
+    <xml name="param_method">
+        <param name="method" type="select" label="Protein clustering method">
+            <option value="gfam" selected="true">GFam</option>
+            <option value="orthofinder">OrthoFinder</option>
+            <option value="orthomcl">OrthoMCL</option>
+        </param>
+    </xml>
+    <xml name="param_orthogroup_fna">
+        <param name="orthogroup_fna" type="select" display="radio" label="Process corresponding gene family classification orthogroups CDS fasta files?">
+            <option value="yes" selected="true">Yes</option>
+            <option value="no">No</option>
+        </param>
+    </xml>
+    <xml name="citation1">
+        <citation type="bibtex">
+            @misc{None,
+            journal = {None},
+            author = {1. Wafula EK},
+            title = {Manuscript in preparation},
+            year = {None},
+            url = {https://github.com/dePamphilis/PlantTribes},}
+        </citation>
+    </xml>
+    <xml name="citations2to4">
+        <citation type="bibtex">
+            @article{Sasidharan2012,
+            journal = {Nucleic Acids Research},
+            author = {2. Sasidharan R, Nepusz T, Swarbreck D, Huala E, Paccanaro A},
+            title = {GFam: a platform for automatic annotation of gene families},
+            year = {2012},
+            pages = {gks631},}
+        </citation>
+        <citation type="bibtex">
+            @article{Li2003,
+            journal = {Genome Research}
+            author = {3. Li L, Stoeckert CJ, Roos DS},
+            title = {OrthoMCL: identification of ortholog groups for eukaryotic genomes},
+            year = {2003},
+            volume = {13},
+            number = {9},
+            pages = {2178-2189},}
+        </citation>
+        <citation type="bibtex">
+            @article{Emms2015,
+            journal = {Genome Biology}
+            author = {4. Emms DM, Kelly S},
+            title = {OrthoFinder: solving fundamental biases in whole genome comparisons dramatically improves orthogroup inference accuracy},
+            year = {2015},
+            volume = {16},
+            number = {1},
+            pages = {157},}
+        </citation>
+    </xml>
+</macros>
