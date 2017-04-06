@@ -1,16 +1,10 @@
 <tool id="plant_tribes_assembly_post_processor" name="AssemblyPostProcessor" version="0.4.0">
     <description>post-processes de novo transcriptome assembly</description>
-    <requirements>
-        <requirement type="package" version="0.4">plant_tribes_assembly_post_processor</requirement>
-    </requirements>
-    <stdio>
-        <!-- Anything other than zero is an error -->
-        <exit_code range="1:" />
-        <exit_code range=":-1" />
-        <!-- In case the return code has not been set propery check stderr too -->
-        <regex match="Error:" />
-        <regex match="Exception:" />
-    </stdio>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <expand macro="requirements_assembly_post_processor" />
+    <expand macro="stdio" />
     <command>
         <![CDATA[
             AssemblyPostProcesser
@@ -153,14 +147,7 @@ de novo assembly.
 
     </help>
     <citations>
-        <citation type="bibtex">
-            @misc{None,
-            journal = {None},
-            author = {1. Wafula EK},
-            title = {Manuscript in preparation},
-            year = {None},
-            url = {https://github.com/dePamphilis/PlantTribes},}
-        </citation>
+        <expand macro="citation1" />
         <citation type="bibtex">
             @article{Honaas2016,
             journal = {PloS one},
