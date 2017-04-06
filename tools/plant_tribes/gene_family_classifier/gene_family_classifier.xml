@@ -1,16 +1,10 @@
 <tool id="plant_tribes_gene_family_classifier" name="GeneFamilyClassifier" version="0.4.0">
     <description>classifies gene sequences into pre-computed orthologous plant gene family clusters</description>
-    <requirements>
-        <requirement type="package" version="0.4">plant_tribes_gene_family_classifier</requirement>
-    </requirements>
-    <stdio>
-        <!-- Anything other than zero is an error -->
-        <exit_code range="1:" />
-        <exit_code range=":-1" />
-        <!-- In case the return code has not been set propery check stderr too -->
-        <regex match="Error:" />
-        <regex match="Exception:" />
-    </stdio>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <expand macro="requirements_gene_family_classifier" />
+    <expand macro="stdio" />
     <command>
         <![CDATA[
             #if str($options_type.options_type_selector) == 'advanced':
@@ -295,42 +289,8 @@ to single/low-copy gene families that are mainly utilized in species tree infere
 
     </help>
     <citations>
-        <citation type="bibtex">
-            @misc{None,
-            journal = {None},
-            author = {1. Wafula EK},
-            title = {Manuscript in preparation},
-            year = {None},
-            url = {https://github.com/dePamphilis/PlantTribes},}
-        </citation>
-        <citation type="bibtex">
-            @article{Sasidharan2012,
-            journal = {Nucleic Acids Research},
-            author = {2. Sasidharan R, Nepusz T, Swarbreck D, Huala E, Paccanaro A},
-            title = {GFam: a platform for automatic annotation of gene families},
-            year = {2012},
-            pages = {gks631},}
-        </citation>
-        <citation type="bibtex">
-            @article{Li2003,
-            journal = {Genome Research}
-            author = {3. Li L, Stoeckert CJ, Roos DS},
-            title = {OrthoMCL: identification of ortholog groups for eukaryotic genomes},
-            year = {2003},
-            volume = {13},
-            number = {9},
-            pages = {2178-2189},}
-        </citation>
-        <citation type="bibtex">
-            @article{Emms2015,
-            journal = {Genome Biology}
-            author = {4. Emms DM, Kelly S},
-            title = {OrthoFinder: solving fundamental biases in whole genome comparisons dramatically improves orthogroup inference accuracy},
-            year = {2015},
-            volume = {16},
-            number = {1},
-            pages = {157},}
-        </citation>
+        <expand macro="citation1" />
+        <expand macro="citations2to4" />
         <citation type="bibtex">
             @article{Altschul1990,
             journal = {Journal of molecular biology}
