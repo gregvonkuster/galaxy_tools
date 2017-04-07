@@ -1,0 +1,13 @@
+name: plant_tribes_gene_family_aligner
+owner: greg
+description: |
+  Contains a tool that integrates de novo assembly sequences with scaffold gene family sequences.
+homepage_url: https://github.com/dePamphilis/PlantTribes
+long_description: |
+  Contains a tool that tool is one of the PlantTribes collection of automated modular analysis pipelines that
+  utilize objective classifications of complete protein sequences from sequenced plant genomes to perform
+  comparative evolutionary studies.  This tool aligns gene family sequences.
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/plant_tribes/gene_family_aligner
+type: unrestricted
+categories:
+- Phylogenetics

@@ -1,0 +1,145 @@
+<tool id="plant_tribes_gene_family_aligner" name="GeneFamilyAligner" version="0.8.0">
+    <description>aligns gene family sequences</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <expand macro="requirements_gene_family_aligner" />
+    <expand macro="stdio" />
+    <command>
+        <![CDATA[
+            #set input_format = $input_format_cond.input_format
+            #set scaffold = $input_format_cond.scaffold
+            #set alignment_method_cond = $input_format_cond.alignment_method_cond
+            #set alignment_method = $alignment_method_cond.alignment_method
+
+            python $__tool_directory__/gene_family_aligner.py
+            --scaffold '$scaffold.fields.path'
+            --method $input_format_cond.method
+            --alignment_method $alignment_method
+            #if str($alignment_method) == 'pasta':
+                --pasta_script_path '$__tool_directory__/run_pasta.py'
+                --pasta_iter_limit $alignment_method_cond.pasta_iter_limit
+            #end if
+            --num_threads \${GALAXY_SLOTS:-4}
+            #if str($input_format) == 'ptortho':
+                --orthogroup_faa '$input_format_cond.input_ptortho.extra_files_path'
+                --output '$output_ptortho'
+                --output_dir '$output_ptortho.files_path'
+            #else:
+                ## str($input_format) == 'ptorthocs'
+                --orthogroup_faa '$input_format_cond.input_ptorthocs.extra_files_path'
+                #if str($input_format_cond.codon_alignments) == 'yes':
+                    --codon_alignments 'true'
+                    --output '$output_ptorthocs'
+                    --output_dir '$output_ptorthocs.files_path'
+                #else:
+                    --output '$output_ptortho'
+                    --output_dir '$output_ptortho.files_path'
+                #end if
+            #end if
+            #if str($options_type_cond.options_type) == 'advanced':
+                #set remove_gappy_sequences_cond = $options_type_cond.remove_gappy_sequences_cond
+                #set remove_gappy_sequences = $remove_gappy_sequences_cond.remove_gappy_sequences
+                #if str($remove_gappy_sequences) == 'yes':
+                    #set trim_type_cond = $remove_gappy_sequences_cond.trim_type_cond
+                    #set trim_type = $trim_type_cond.trim_type
+                    #if str($trim_type) == 'gap_trimming':
+                        --gap_trimming $trim_type_cond.gap_trimming
+                    #else:
+                        ## str($trim_type) == 'automated_trimming'
+                        --automated_trimming 'true'
+                    #end if
+                    #set remove_sequences_with_gaps_cond = $remove_gappy_sequences_cond.remove_sequences_with_gaps_cond
+                    #set remove_sequences_with_gaps = $remove_sequences_with_gaps_cond.remove_sequences_with_gaps
+                    #if str($remove_sequences_with_gaps) == 'yes':
+                        --remove_sequences $remove_sequences_with_gaps_cond.remove_sequences_with_gaps_of
+                        --iterative_realignment $remove_sequences_with_gaps_cond.iterative_realignment
+                    #end if
+                #end if
+            #end if
+        ]]>
+    </command>
+    <inputs>
+        <conditional name="input_format_cond">
+            <param name="input_format" type="select" label="Select type of data to sub sample">
+                <option value="ptortho">Gene family clusters</option>
+                <option value="ptorthocs">Gene family clusters with corresponding coding sequences</option>
+            </param>
+            <when value="ptortho">
+                <param name="input_ptortho" format="ptortho" type="data" label="Gene family clusters" />
+                <expand macro="param_scaffold" />
+                <expand macro="param_method" />
+                <expand macro="cond_alignment_method" />
+            </when>
+            <when value="ptorthocs">
+                <param name="input_ptorthocs" format="ptorthocs" type="data" label="Gene family clusters with corresponding coding sequences" />
+                <expand macro="param_scaffold" />
+                <expand macro="param_method" />
+                <expand macro="cond_alignment_method" />
+                <expand macro="param_codon_alignments" />
+            </when>
+        </conditional>
+        <conditional name="options_type_cond">
+            <expand macro="param_options_type" />
+            <when value="basic" />
+            <when value="advanced">
+                <expand macro="cond_remove_gappy_sequences" />
+            </when>
+        </conditional>
+    </inputs>
+    <outputs>
+        <data name="output_ptortho" format="ptortho" label="Integrated gene family clusters on ${on_string}">
+            <filter>input_format_cond['input_format'] == 'ptortho' or (input_format_cond['input_format'] == 'ptorthocs' and input_format_cond['codon_alignments'] == 'no')</filter>
+        </data>
+        <data name="output_ptorthocs" format="ptorthocs" label="Integrated gene family clusters and corresponding coding sequences on ${on_string}">
+            <filter>input_format_cond['input_format'] == 'ptorthocs' and input_format_cond['codon_alignments'] == 'yes'</filter>
+        </data>
+    </outputs>
+    <tests>
+        <!-- Test framework does not currently support inputs whose associated files_path contains files to be analyzed.
+        <test>
+        </test>
+        -->
+    </tests>
+    <help>
+This tool is one of the PlantTribes collection of automated modular analysis pipelines for comparative and evolutionary
+analyses of genome-scale gene families and transcriptomes. This tool aligns gene family sequences.
+
+-----
+
+**Required options**
+
+ * **Select type of data to sub sample**
+
+  - **Gene family clusters** - sequences classified into gene family clusters.
+  - **Gene family clusters with corresponding coding sequences** - sequences classified into gene family clusters including corresponding coding sequences.
+
+    - **Construct orthogroup multiple codon alignments** - construct orthogroup multiple codon alignments.
+
+ * **Gene family scaffold** - one of the PlantTribes gene family scaffolds [2-4] installed into Galaxy by the PlantTribes Scaffold Data Manager tool.
+ * **Protein clustering method** - gene family scaffold protein clustering method as described in the AssemblyPostProcessor tool.
+
+ * **Select method for multiple sequence alignments**
+
+  - **MAFFT algorithm** - mafft algorithm.
+  - **Pasta algorithm** - pasta algorithm.
+
+    - **Maximum number of iterations that the PASTA algorithm will execute** - maximum number of iterations that the PASTA algorithm will execute.
+
+**Other options**
+
+ * **Remove gappy sequences in alignments**
+
+  - **Select process used for gap trimming** - either nucleotide based or using trimAl's ML heuristic trimming approach
+
+    - **Nucleotide based**
+
+      - **Remove sites in alignments with gaps of**
+      - **Maximum number of iterations** - maximum number of iterations for iterative orthogroups realignment, trimming and fitering
+
+    </help>
+    <citations>
+        <expand macro="citation1" />
+        <expand macro="citations2to4" />
+    </citations>
+</tool>
