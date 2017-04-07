@@ -34,7 +34,7 @@
         </stdio>
     </xml>
     <xml name="param_codon_alignments">
-        <param name="codon_alignments" type="select" display="radio" label="Construct orthogroup multiple codon alignments?">
+        <param name="codon_alignments" type="select" label="Construct orthogroup multiple codon alignments?">
             <option value="yes" selected="true">Yes</option>
             <option value="no">No</option>
         </param>
@@ -53,7 +53,7 @@
         </param>
     </xml>
     <xml name="param_orthogroup_fna">
-        <param name="orthogroup_fna" type="select" display="radio" label="Process corresponding gene family classification orthogroups CDS fasta files?">
+        <param name="orthogroup_fna" type="select" label="Process corresponding gene family classification orthogroups CDS fasta files?">
             <option value="yes" selected="true">Yes</option>
             <option value="no">No</option>
         </param>
