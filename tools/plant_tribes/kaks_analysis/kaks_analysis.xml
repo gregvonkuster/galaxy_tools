@@ -1,16 +1,10 @@
 <tool id="plant_tribes_kaks_analysis" name="KaKsAnalysis" version="0.8.0">
     <description>estimates paralogous and orthologous pairwise synonymous (Ks) and non-synonymous (Ka) substitution rates</description>
-    <requirements>
-        <requirement type="package" version="0.8">plant_tribes_kaks_analysis</requirement>
-    </requirements>
-    <stdio>
-        <!-- Anything other than zero is an error -->
-        <exit_code range="1:" />
-        <exit_code range=":-1" />
-        <!-- In case the return code has not been set propery check stderr too -->
-        <regex match="Error:" />
-        <regex match="Exception:" />
-    </stdio>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <expand macro="requirements_kaks_analysis" />
+    <expand macro="stdio" />
     <command>
         <![CDATA[
             #set output_dir = 'kaksAnalysis_dir'
@@ -227,14 +221,7 @@ or paralogous ks analyses of coding sequences and amino acid sequences.
 
     </help>
     <citations>
-        <citation type="bibtex">
-            @article{None,
-            journal = {None},
-            author = {1. Wafula EK},
-            title = {Manuscript in preparation},
-            year = {None},
-            url = {https://github.com/dePamphilis/PlantTribes},}
-        </citation>
+        <expand macro="citation1" />
         <citation type="doi">10.1093/bioinformatics/btw412</citation>
         <citation type="doi">10.1186/1471-2105-10-421</citation>
         <citation type="doi">10.1093/molbev/msm088</citation>

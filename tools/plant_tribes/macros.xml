@@ -20,6 +20,11 @@
             <requirement type="package" version="0.8">plant_tribes_gene_family_integrator</requirement>
         </requirements>
     </xml>
+    <xml name="requirements_kaks_analysis">
+        <requirements>
+            <requirement type="package" version="0.8">plant_tribes_kaks_analysis</requirement>
+        </requirements>
+    </xml>
     <xml name="stdio">
         <stdio>
             <exit_code range="1:"/>
