@@ -12,7 +12,7 @@ OUTPUT_DIR = 'geneFamilyClassification_dir'
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--input', dest='input', help="Input dataset")
-parser.add_argument('--scaffold', dest='scaffold', default='mode', help='Orthogroups or gene families proteins scaffold')
+parser.add_argument('--scaffold', dest='scaffold', help='Orthogroups or gene families proteins scaffold')
 parser.add_argument('--method', dest='method', help='Protein clustering method')
 parser.add_argument('--classifier', dest='classifier', help='Protein classification method')
 parser.add_argument('--config_dir', dest='config_dir', help='Directory containing default configuration files')
