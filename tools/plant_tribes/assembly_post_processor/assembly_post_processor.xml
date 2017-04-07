@@ -7,7 +7,7 @@
     <expand macro="stdio" />
     <command>
         <![CDATA[
-            AssemblyPostProcesser
+            AssemblyPostProcessor
             --transcripts '$input'
             --prediction_method $prediction_method_cond.prediction_method
             #if str($prediction_method_cond.prediction_method) == 'estscan':
