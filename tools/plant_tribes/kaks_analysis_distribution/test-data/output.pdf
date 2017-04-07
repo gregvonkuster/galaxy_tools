@@ -1,0 +1,52 @@
+1 0 obj
+<<
+/Title (R Graphics Output)
+/Creator (R)
+>>
+endobj
+2 0 obj
+<< /Type /Catalog /Pages 3 0 R >>
+endobj
+7 0 obj
+<< /Type /Page /Parent 3 0 R /Contents 8 0 R /Resources 4 0 R >>
+endobj
+8 0 obj
+<<
+>>
+stream
+endobj
+3 0 obj
+<< /Type /Pages /Kids [ 7 0 R ] /Count 1 /MediaBox [0 0 504 504] >>
+endobj
+4 0 obj
+<<
+/ProcSet [/PDF /Text]
+/Font <</F2 10 0 R >>
+/ExtGState << >>
+/ColorSpace << /sRGB 5 0 R >>
+>>
+endobj
+5 0 obj
+[/ICCBased 6 0 R]
+endobj
+6 0 obj
+<< /Alternate /DeviceRGB /N 3 /Length 2596 /Filter /FlateDecode >>
+stream
+9 0 obj
+<<
+/Type /Encoding /BaseEncoding /WinAnsiEncoding
+/Differences [ 45/minus 96/quoteleft
+144/dotlessi /grave /acute /circumflex /tilde /macron /breve /dotaccent
+/dieresis /.notdef /ring /cedilla /.notdef /hungarumlaut /ogonek /caron /space]
+>>
+endobj
+10 0 obj
+<< /Type /Font /Subtype /Type1 /Name /F2 /BaseFont /Helvetica
+/Encoding 9 0 R >>
+endobj
+xref
+0 11
+trailer
+<< /Size 11 /Info 1 0 R /Root 2 0 R >>
+startxref
+%%EOF
