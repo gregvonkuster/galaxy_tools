@@ -1,4 +1,4 @@
-<tool id="plant_tribes_gene_family_classifier" name="GeneFamilyClassifier" version="0.4.0">
+<tool id="plant_tribes_gene_family_classifier" name="GeneFamilyClassifier" version="@WRAPPER_VERSION@.0">
     <description>classifies gene sequences into pre-computed orthologous plant gene family clusters</description>
     <macros>
         <import>macros.xml</import>
