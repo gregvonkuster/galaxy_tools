@@ -13,23 +13,19 @@ parser.add_argument('--automated_trimming', dest='automated_trimming', default=N
 parser.add_argument('--codon_alignments', dest='codon_alignments', default=None, help="Flag for constructing orthogroup multiple codon alignments")
 parser.add_argument('--gap_trimming', dest='gap_trimming', default=None, type=float, help='Remove sites in alignments with gaps of')
 parser.add_argument('--iterative_realignment', dest='iterative_realignment', type=int, default=None, help='"Maximum number of iterations')
-parser.add_argument('--method', dest='method', help='Protein clustering method')
 parser.add_argument('--num_threads', dest='num_threads', type=int, help='Number of threads to use for execution')
 parser.add_argument('--orthogroup_faa', dest='orthogroup_faa', help="Directory of input fasta datasets")
 parser.add_argument('--output', dest='output', help="Output dataset")
-parser.add_argument('--output_dir', dest='output_dir', help="Output dataset file_path directory")
+parser.add_argument('--output_dir', dest='output_dir', help="Output dataset files_path directory")
 parser.add_argument('--pasta_iter_limit', dest='pasta_iter_limit', type=int, default=None, help='"Maximum number of iteration that the PASTA algorithm will execute')
 parser.add_argument('--pasta_script_path', dest='pasta_script_path', default=None, help='Path to script for executing pasta')
 parser.add_argument('--remove_sequences', dest='remove_sequences', default=None, type=float, help='Remove sequences with gaps of')
-parser.add_argument('--scaffold', dest='scaffold', help='Orthogroups or gene families proteins scaffold')
 
 args = parser.parse_args()
 
 # Build the command line.
 cmd = 'GeneFamilyAligner'
 cmd += ' --orthogroup_faa %s' % args.orthogroup_faa
-cmd += ' --scaffold %s' % args.scaffold
-cmd += ' --method %s' % args.method
 cmd += ' --alignment_method %s' % args.alignment_method
 if args.alignment_method == 'pasta':
     if args.pasta_script_path is not None:

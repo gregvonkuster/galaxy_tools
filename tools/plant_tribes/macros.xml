@@ -91,9 +91,9 @@
             <when value="no" />
             <when value="yes">
                 <conditional name="trim_type_cond">
-                    <param name="trim_type" type="select" label="Select process used for gap trimming">
-                        <option value="gap_trimming" selected="true">Nucleotide based</option>
-                        <option value="automated_trimming">Trim alignments using trimAl's ML heuristic trimming approach</option>
+                    <param name="trim_type" type="select" label="Select process used for trimming">
+                        <option value="gap_trimming" selected="true">Remove gappy sites in alignments (gap trimming)</option>
+                        <option value="automated_trimming">Trim alignments using trimAl's ML heuristic trimming approach (automated trimming)</option>
                     </param>
                     <when value="gap_trimming">
                         <param name="gap_trimming" type="float" value="0" min="0" max="1.0" label="Remove sites in alignments with gaps of" help="Zero value has no affect" />
