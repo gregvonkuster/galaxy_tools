@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import argparse
+import os
 import subprocess
 
 import utils
@@ -27,5 +28,5 @@ if args.orthogroup_fna is not None:
 proc = subprocess.Popen(args=cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
 rc = proc.wait()
 utils.check_execution_errors(rc, proc.stderr)
-utils.move_directory_files(OUTPUT_DIR, args.output_dir)
+utils.move_directory_files(os.path.join(OUTPUT_DIR, 'orthogroups_fasta'), args.output_dir)
 utils.write_html_output(args.output, 'Integrated gene family sequences', args.output_dir)

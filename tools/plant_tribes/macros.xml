@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <macros>
+    <token name="@WRAPPER_VERSION@">0.8</token>
     <xml name="requirements_assembly_post_processor">
         <requirements>
             <requirement type="package" version="0.4">plant_tribes_assembly_post_processor</requirement>
@@ -23,6 +24,11 @@
     <xml name="requirements_kaks_analysis">
         <requirements>
             <requirement type="package" version="0.8">plant_tribes_kaks_analysis</requirement>
+        </requirements>
+    </xml>
+    <xml name="requirements_gene_family_phylogeny_builder">
+        <requirements>
+            <requirement type="package" version="0.8">plant_tribes_gene_family_phylogeny_builder</requirement>
         </requirements>
     </xml>
     <xml name="stdio">
@@ -86,7 +92,7 @@
             <when value="yes">
                 <conditional name="trim_type_cond">
                     <param name="trim_type" type="select" label="Select process used for gap trimming">
-                        <option value="gap_trimming" selected="true">Nucleotide based </option>
+                        <option value="gap_trimming" selected="true">Nucleotide based</option>
                         <option value="automated_trimming">Trim alignments using trimAl's ML heuristic trimming approach</option>
                     </param>
                     <when value="gap_trimming">
