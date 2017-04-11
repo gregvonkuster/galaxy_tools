@@ -83,11 +83,15 @@
                 <option value="ptorthocs">Gene family clusters with corresponding coding sequences</option>
             </param>
             <when value="ptortho">
-                <param name="input_ptortho" format="ptortho" type="data" label="Gene family clusters" />
+                <param name="input_ptortho" format="ptortho" type="data" label="Gene family clusters">
+                    <validator type="empty_files_path" />
+                </param>
                 <expand macro="cond_alignment_method" />
             </when>
             <when value="ptorthocs">
-                <param name="input_ptorthocs" format="ptorthocs" type="data" label="Gene family clusters with corresponding coding sequences" />
+                <param name="input_ptorthocs" format="ptorthocs" type="data" label="Gene family clusters with corresponding coding sequences">
+                    <validator type="empty_files_path" />
+                </param>
                 <expand macro="cond_alignment_method" />
                 <expand macro="param_codon_alignments" />
             </when>
