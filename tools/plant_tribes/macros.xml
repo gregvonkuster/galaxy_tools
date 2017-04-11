@@ -102,7 +102,7 @@
                         <option value="automated_trimming">Trim alignments using trimAl's ML heuristic trimming approach (automated trimming)</option>
                     </param>
                     <when value="gap_trimming">
-                        <param name="gap_trimming" type="float" value="0" min="0" max="1.0" label="Remove sites in alignments with gaps of" help="Zero value has no affect" />
+                        <param name="gap_trimming" type="float" optional="true" min="0" max="1.0" label="Remove sites in alignments with gaps of" />
                     </when>
                     <when value="automated_trimming" />
                 </conditional>
@@ -113,8 +113,8 @@
                     </param>
                     <when value="no" />
                     <when value="yes">
-                        <param name="remove_sequences_with_gaps_of" type="float" value="0" min="0" max="1" label="Remove sequences with gaps of" help="Zero value has no affect" />
-                        <param name="iterative_realignment" type="integer" value="0" min="0" label="Maximum number of iterations" help="Zero value has no affect"/>
+                        <param name="remove_sequences_with_gaps_of" type="float" optional="true" min="0" max="1" label="Remove sequences with gaps of" />
+                        <param name="iterative_realignment" type="integer" optional="true" min="0" label="Maximum number of iterations" />
                     </when>
                 </conditional>
             </when>

@@ -67,10 +67,10 @@
                             --single_copy_custom '$single_copy_custom_cond.single_copy_custom_config'
                         #end if
                     #else:
-                        #if $single_copy_cond.single_copy_taxa > 0:
+                        #if str($single_copy_cond.single_copy_taxa):
                             --single_copy_taxa $single_copy_cond.single_copy_taxa
                         #end if
-                        #if $single_copy_cond.taxa_present > 0:
+                        #if str($single_copy_cond.taxa_present):
                             --taxa_present $single_copy_cond.taxa_present
                         #end if
                     #end if
@@ -180,8 +180,8 @@
                                 </conditional>
                             </when>
                             <when value="taxa">
-                                <param name="single_copy_taxa" type="integer" value="0" min="0" label="Minimum single copy taxa" help="Zero values have no affect"/>
-                                <param name="taxa_present" type="integer" value="0" min="0" label="Minimum taxa present" help="Zero values have no affect"/>
+                                <param name="single_copy_taxa" type="integer" optional="true" min="0" label="Minimum single copy taxa"/>
+                                <param name="taxa_present" type="integer" optional="true" min="0" label="Minimum taxa present"/>
                             </when>
                         </conditional>
                     </when>
@@ -272,7 +272,7 @@ to single/low-copy gene families that are mainly utilized in species tree infere
 
    * **Selection criterion** - single/low-copy orthogroups selection criterion. PlantTribes provides custom and global selection criteria for selecting user-defined single/low-copy scaffold orthogoups.
 
-     * **Global selection configuration** - the upper limit values of the following two parameters vary depending on the selected gene family scaffold, and the tool will produce an error if the value exceeds the number of species in the circumscribed scaffold.  Zero values have no affect.
+     * **Global selection configuration** - the upper limit values of the following two parameters vary depending on the selected gene family scaffold, and the tool will produce an error if the value exceeds the number of species in the circumscribed scaffold.
 
        * **Minimum single copy taxa** - minimum number of taxa with single copy genes in the orthogroup.
        * **Minimum taxa present** - minimum number of taxa present in the orthogroup.

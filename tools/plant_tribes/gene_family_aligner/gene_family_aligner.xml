@@ -38,7 +38,7 @@
             #if str($remove_gappy_sequences) == 'yes':
                 #set trim_type_cond = $remove_gappy_sequences_cond.trim_type_cond
                 #set trim_type = $trim_type_cond.trim_type
-                #if str($trim_type) == 'gap_trimming':
+                #if str($trim_type) == 'gap_trimming' and str($trim_type_cond.gap_trimming):
                     --gap_trimming $trim_type_cond.gap_trimming
                 #else:
                     ## str($trim_type) == 'automated_trimming'
@@ -47,8 +47,12 @@
                 #set remove_sequences_with_gaps_cond = $remove_gappy_sequences_cond.remove_sequences_with_gaps_cond
                 #set remove_sequences_with_gaps = $remove_sequences_with_gaps_cond.remove_sequences_with_gaps
                 #if str($remove_sequences_with_gaps) == 'yes':
-                    --remove_sequences $remove_sequences_with_gaps_cond.remove_sequences_with_gaps_of
-                    --iterative_realignment $remove_sequences_with_gaps_cond.iterative_realignment
+                    #if str($remove_sequences_with_gaps_cond.remove_sequences_with_gaps_of):
+                        --remove_sequences $remove_sequences_with_gaps_cond.remove_sequences_with_gaps_of
+                    #end if
+                    #if str($remove_sequences_with_gaps_cond.iterative_realignment):
+                        --iterative_realignment $remove_sequences_with_gaps_cond.iterative_realignment
+                    #end if
                     #if $output_codon_alignments:
                         --output '$output_aln_filtered_ca'
                         --output_dir '$output_aln_filtered_ca.files_path'

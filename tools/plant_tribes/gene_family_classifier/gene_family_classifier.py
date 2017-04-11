@@ -19,8 +19,8 @@ parser.add_argument('--config_dir', dest='config_dir', help='Directory containin
 parser.add_argument('--num_threads', dest='num_threads', type=int, help='Number of threads to use for execution')
 parser.add_argument('--super_orthogroups', dest='super_orthogroups', default=None, help='Super orthogroups clustering specification')
 parser.add_argument('--single_copy_custom', dest='single_copy_custom', default=None, help='Custom single copy orthogroup configuration')
-parser.add_argument('--single_copy_taxa', dest='single_copy_taxa', type=int, default=None, help='"Minimum single copy taxa required in orthogroup')
-parser.add_argument('--taxa_present', dest='taxa_present', type=int, default=None, help='Minimum taxa required in single copy orthogroup')
+parser.add_argument('--single_copy_taxa', dest='single_copy_taxa', type=int, default=0, help='"Minimum single copy taxa required in orthogroup')
+parser.add_argument('--taxa_present', dest='taxa_present', type=int, default=0, help='Minimum taxa required in single copy orthogroup')
 parser.add_argument('--orthogroup_fasta', dest='orthogroup_fasta', default=None, help='Flag to create orthogroup sequences')
 parser.add_argument('--coding_sequences', dest='coding_sequences', default=None, help='Flag to create orthogroup coding sequences')
 parser.add_argument('--save_hmmscan_log', dest='save_hmmscan_log', default=None, help='Flag to save the hmmscan log')
@@ -47,9 +47,9 @@ if args.super_orthogroups is not None:
     cmd += ' --super_orthogroups %s' % args.super_orthogroups
 if args.single_copy_custom is not None:
     cmd += ' --single_copy_custom %s' % args.single_copy_custom
-if args.single_copy_taxa is not None:
+if args.single_copy_taxa > 0:
     cmd += ' --single_copy_taxa %d' % args.single_copy_taxa
-if args.taxa_present is not None:
+if args.taxa_present > 0:
     cmd += ' --taxa_present %d' % args.taxa_present
 if args.orthogroup_fasta is None:
     create_ortho_sequences = False

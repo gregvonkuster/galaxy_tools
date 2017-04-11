@@ -11,15 +11,15 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--alignment_method', dest='alignment_method', help='Multiple sequence alignments method')
 parser.add_argument('--automated_trimming', dest='automated_trimming', default=None, help="Trims alignments using trimAl's ML heuristic trimming approach")
 parser.add_argument('--codon_alignments', dest='codon_alignments', default=None, help="Flag for constructing orthogroup multiple codon alignments")
-parser.add_argument('--gap_trimming', dest='gap_trimming', default=None, type=float, help='Remove sites in alignments with gaps of')
-parser.add_argument('--iterative_realignment', dest='iterative_realignment', type=int, default=None, help='"Maximum number of iterations')
+parser.add_argument('--gap_trimming', dest='gap_trimming', default=0, type=float, help='Remove sites in alignments with gaps of')
+parser.add_argument('--iterative_realignment', dest='iterative_realignment', type=int, default=0, help='"Maximum number of iterations')
 parser.add_argument('--num_threads', dest='num_threads', type=int, help='Number of threads to use for execution')
 parser.add_argument('--orthogroup_faa', dest='orthogroup_faa', help="Directory of input fasta datasets")
 parser.add_argument('--output', dest='output', help="Output dataset")
 parser.add_argument('--output_dir', dest='output_dir', help="Output dataset files_path directory")
 parser.add_argument('--pasta_iter_limit', dest='pasta_iter_limit', type=int, default=None, help='"Maximum number of iteration that the PASTA algorithm will execute')
 parser.add_argument('--pasta_script_path', dest='pasta_script_path', default=None, help='Path to script for executing pasta')
-parser.add_argument('--remove_sequences', dest='remove_sequences', default=None, type=float, help='Remove sequences with gaps of')
+parser.add_argument('--remove_sequences', dest='remove_sequences', default=0, type=float, help='Remove sequences with gaps of')
 
 args = parser.parse_args()
 
@@ -37,11 +37,11 @@ if args.codon_alignments is not None:
     cmd += ' --codon_alignments'
 if args.automated_trimming is not None:
     cmd += ' --automated_trimming'
-if args.gap_trimming is not None:
+if args.gap_trimming > 0:
     cmd += ' --gap_trimming %4f' % args.gap_trimming
-if args.remove_sequences is not None:
+if args.remove_sequences > 0:
     cmd += ' --remove_sequences %4f' % args.remove_sequences
-if args.iterative_realignment is not None:
+if args.iterative_realignment > 0:
     cmd += ' --iterative_realignment %d' % args.iterative_realignment
 # Run the command.
 proc = subprocess.Popen(args=cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
