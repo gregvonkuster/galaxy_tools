@@ -70,6 +70,12 @@
             <validator type="no_options" message="No PlantTribes scaffolds are available.  Use the PlantTribes Scaffolds Download Data Manager tool in Galaxy to install and populate the PlantTribes scaffolds data table." />
         </param>
     </xml>
+    <xml name="param_sequence_type">
+        <param name="sequence_type" type="select" label="Sequence type used in the phylogenetic inference (dna)">
+            <option value="protein" selected="true">Amino acid based</option>
+            <option value="dna">Nucleotide based</option>
+        </param>
+    </xml>
     <xml name="cond_alignment_method">
         <conditional name="alignment_method_cond">
             <param name="alignment_method" type="select" force_select="true" label="Select method for multiple sequence alignments">

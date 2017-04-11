@@ -1,0 +1,161 @@
+<tool id="plant_tribes_gene_family_phylogeny_builder" name="GeneFamilyPhylogenyBuilder" version="@WRAPPER_VERSION@.0">
+    <description>builds gene family phylogenetic trees</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <expand macro="requirements_gene_family_phylogeny_builder" />
+    <expand macro="stdio" />
+    <command>
+        <![CDATA[
+            #set input_format = $input_format_cond.input_format
+            #set tree_inference = $tree_inference_cond.tree_inference
+            #if str($tree_inference) == 'raxml':
+                #set rooting_order_file_cond = $tree_inference_cond.rooting_order_file_cond
+                #set rooting_order_file = $rooting_order_file_cond.rooting_order_file
+                #if str($rooting_order_file) == 'yes':
+                    #set rooting_order = $rooting_order_file_cond.rooting_order
+                #end if
+                #set bootstrap_replicates = $tree_inference_cond.bootstrap_replicates
+            #end if
+
+            python $__tool_directory__/gene_family_phylogeny_builder.py
+            #if str($input_format) == 'ptalign':
+                --orthogroup_aln '$input_format_cond.input_ptalign.extra_files_path'
+                --alignment_type 'aln'
+                --sequence_type 'protein'
+            #else if str($input_format) == 'ptalignca':
+                --orthogroup_aln '$input_format_cond.input_ptalignca.extra_files_path'
+                --alignment_type 'aln'
+                --sequence_type $input_format_cond.sequence_type
+            #else if str($input_format) == 'ptalignfiltered':
+                --orthogroup_aln '$input_format_cond.input_ptalignfiltered.extra_files_path'
+                --alignment_type 'filter'
+                --sequence_type 'protein'
+            #else if str($input_format) == 'ptalignfilteredca':
+                --orthogroup_aln '$input_format_cond.input_ptalignfilteredca.extra_files_path'
+                --alignment_type 'filter'
+                --sequence_type $input_format_cond.sequence_type
+            #else if str($input_format) == 'ptaligntrimmed':
+                --orthogroup_aln '$input_format_cond.input_ptaligntrimmed.extra_files_path'
+                --alignment_type 'trim'
+                --sequence_type 'protein'
+            #else if str($input_format) == 'ptaligntrimmedca':
+                --orthogroup_aln '$input_format_cond.input_ptaligntrimmedca.extra_files_path'
+                --alignment_type 'trim'
+                --sequence_type $input_format_cond.sequence_type
+            #end if
+            --scaffold '$scaffold.fields.path'
+            --config_dir '$scaffold.fields.path'
+            --method $method
+            --tree_inference $tree_inference
+            #if str($tree_inference) == 'raxml':
+                #if str($rooting_order_file) == 'yes':
+                    --rooting_order '$rooting_order'
+                    ## No else block needed here because the default rooting_order
+                    ## configuration will be used if the --rooting_order flag is missing.
+                #end if
+                --bootstrap_replicates $bootstrap_replicates
+            #end if
+            --min_orthogroup_size $min_orthogroup_size
+            --max_orthogroup_size $max_orthogroup_size
+            --num_threads \${GALAXY_SLOTS:-4}
+            --output '$output_pttree'
+            --output_dir '$output_pttree.files_path'
+        ]]>
+    </command>
+    <inputs>
+        <conditional name="input_format_cond">
+            <param name="input_format" type="select" label="Select type of data">
+                <option value="ptalign">Aligned gene family sequences</option>
+                <option value="ptalignca">Aligned gene family sequences with codon alignments</option>
+                <option value="ptalignfiltered">Filtered aligned gene family sequences</option>
+                <option value="ptalignfilteredca">Filtered aligned gene family sequences with codon alignments</option>
+                <option value="ptaligntrimmed">Trimmed aligned gene family sequences</option>
+                <option value="ptaligntrimmedca">Trimmed aligned gene family sequences with codon alignments</option>
+            </param>
+            <when value="ptalign">
+                <param name="input_ptalign" format="ptalign" type="data" label="Aligned gene family sequences">
+                    <!-- <validator type="empty_files_path" /> -->
+                </param>
+            </when>
+            <when value="ptalignca">
+                <param name="input_ptalignca" format="ptalignca" type="data" label="Aligned gene family sequences with codon alignments">
+                    <!-- <validator type="empty_files_path" /> -->
+                </param>
+                <expand macro="param_sequence_type" />
+            </when>
+            <when value="ptalignfiltered">
+                <param name="input_ptalignfiltered" format="ptalignfiltered" type="data" label="Filtered aligned gene family sequences">
+                    <!-- <validator type="empty_files_path" /> -->
+                </param>
+            </when>
+            <when value="ptalignfilteredca">
+                <param name="input_ptalignfilteredca" format="ptalignfilteredca" type="data" label="Filtered aligned gene family sequences with codon alignments">
+                    <!-- <validator type="empty_files_path" /> -->
+                </param>
+                <expand macro="param_sequence_type" />
+            </when>
+            <when value="ptaligntrimmed">
+                <param name="input_ptaligntrimmed" format="ptaligntrimmed" type="data" label="Trimmed aligned gene family sequences">
+                    <!-- <validator type="empty_files_path" /> -->
+                </param>
+            </when>
+            <when value="ptaligntrimmedca">
+                <param name="input_ptaligntrimmedca" format="ptaligntrimmedca" type="data" label="Trimmed aligned gene family sequences with codon alignments">
+                    <!-- <validator type="empty_files_path" /> -->
+                </param>
+                <expand macro="param_sequence_type" />
+            </when>
+        </conditional>
+        <expand macro="param_scaffold" />
+        <expand macro="param_method" />
+        <conditional name="tree_inference_cond">
+            <param name="tree_inference" type="select" label="Phylogenetic trees inference method">
+                <option value="raxml" selected="true">RAxML</option>
+                <option value="fasttree">FastTree</option>
+            </param>
+            <when value="raxml">
+                <conditional name="rooting_order_file_cond">
+                    <param name="rooting_order_file" type="select" label="Select rooting order configuration for rooting trees?" help="Select No for the default rooting order configuration which uses the most distant taxon present in the orthogroup">
+                        <option value="no" selected="true">No</option>
+                        <option value="yes">Yes</option>
+                    </param>
+                    <when value="no" />
+                    <when value="yes">
+                        <param name="rooting_order" format="txt" type="data" label="Rooting order configuration for rooting trees" />
+                    </when>
+                </conditional>
+                <param name="bootstrap_replicates" type="integer" value="100" min="0" label="Number of replicates for rapid bootstrap analysis and search for the best-scoring ML tree" />
+            </when>
+            <when value="fasttree" />
+        </conditional>
+        <param name="max_orthogroup_size" type="integer" value="100" min="0" label="Maximum number of sequences in orthogroup alignments" />
+        <param name="min_orthogroup_size" type="integer" value="4" min="0" label="Minimum number of sequences in orthogroup alignments" />
+    </inputs>
+    <outputs>
+        <data name="output_pttree" format="pttree" label="Gene family phylogenetic trees on ${on_string}" />
+    </outputs>
+    <tests>
+        <!-- Test framework does not currently support inputs whose associated files_path contains files to be analyzed.
+        <test>
+        </test>
+        -->
+    </tests>
+    <help>
+This tool is one of the PlantTribes collection of automated modular analysis pipelines that utilize objective classifications of
+complete protein sequences from sequenced plant genomes to perform comparative evolutionary studies. It performs phylogenomic
+analyses by creating multiple sequence alignments and inferred maximum likelihood phylogenies for orthogroups produced by the
+**GeneFamilyAligner** tool.
+
+-----
+
+**Required options**
+
+**Other options**
+
+    </help>
+    <citations>
+        <expand macro="citation1" />
+        <expand macro="citations2to4" />
+    </citations>
+</tool>

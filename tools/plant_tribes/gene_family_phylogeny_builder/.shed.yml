@@ -1,0 +1,14 @@
+name: plant_tribes_gene_family_phylogeny_builder
+owner: greg
+description: |
+  Contains a tool that creates multiple sequence alignments and inferred maximum likelihood phylogenies for orthogroups.
+homepage_url: https://github.com/dePamphilis/PlantTribes
+long_description: |
+  This tool is one of the PlantTribes collection of automated modular analysis pipelines that utilize objective classifications of
+  complete protein sequences from sequenced plant genomes to perform comparative evolutionary studies. It performs phylogenomic
+  analyses by creating multiple sequence alignments and inferred maximum likelihood phylogenies for orthogroups produced by the
+  GeneFamilyAligner tool.
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/plant_tribes/gene_family_phylogeny_builder
+type: unrestricted
+categories:
+- Phylogenetics
