@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<repositories description="This tool uses the data installed by the data_manager_plant_tribes_scaffolds_downloader Data Manager tool.">
+    <repository name="data_manager_plant_tribes_scaffolds_downloader" owner="iuc" />
+</repositories>
