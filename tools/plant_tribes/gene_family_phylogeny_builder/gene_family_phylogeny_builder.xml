@@ -1,5 +1,5 @@
 <tool id="plant_tribes_gene_family_phylogeny_builder" name="GeneFamilyPhylogenyBuilder" version="@WRAPPER_VERSION@.0">
-    <description>builds gene family phylogenetic trees</description>
+    <description>builds phylogenetic trees of aligned orthologous gene family clusters</description>
     <macros>
         <import>macros.xml</import>
     </macros>

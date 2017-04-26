@@ -1,5 +1,5 @@
 <tool id="plant_tribes_gene_family_integrator" name="GeneFamilyIntegrator" version="@WRAPPER_VERSION@.0">
-    <description>integrates de novo assembly sequences with scaffold gene family sequences</description>
+    <description>integrates gene models in pre-computed orthologous gene family clusters with classified gene coding sequences</description>
     <macros>
         <import>macros.xml</import>
     </macros>

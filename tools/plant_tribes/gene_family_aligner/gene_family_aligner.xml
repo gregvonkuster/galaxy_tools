@@ -1,5 +1,5 @@
 <tool id="plant_tribes_gene_family_aligner" name="GeneFamilyAligner" version="@WRAPPER_VERSION@.0">
-    <description>aligns gene family sequences</description>
+    <description>aligns integrated orthologous gene family clusters</description>
     <macros>
         <import>macros.xml</import>
     </macros>
@@ -88,13 +88,13 @@
             </param>
             <when value="ptortho">
                 <param name="input_ptortho" format="ptortho" type="data" label="Gene family clusters">
-                    <validator type="empty_files_path" />
+                    <!-- <validator type="empty_files_path" /> -->
                 </param>
                 <expand macro="cond_alignment_method" />
             </when>
             <when value="ptorthocs">
                 <param name="input_ptorthocs" format="ptorthocs" type="data" label="Gene family clusters with corresponding coding sequences">
-                    <validator type="empty_files_path" />
+                    <!-- <validator type="empty_files_path" /> -->
                 </param>
                 <expand macro="cond_alignment_method" />
                 <expand macro="param_codon_alignments" />
