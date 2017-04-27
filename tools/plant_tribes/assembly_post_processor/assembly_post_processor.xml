@@ -15,10 +15,11 @@
             #end if
             #if str($options_type.options_type_selector) == 'advanced':
                 #if str($options_type.target_gene_family_assembly_cond.target_gene_family_assembly) == 'yes':
-                    --gene_family_search '$options_type.target_gene_family_assembly_cond.orthogroups'
-                    --scaffold '$options_type.target_gene_family_assembly_cond.scaffold.fields.path'
-                    --method '$options_type.target_gene_family_assembly_cond.method'
-                    --gap_trimming $options_type.gap_trimming
+                    #set target_gene_family_assembly_cond = $options_type.target_gene_family_assembly_cond
+                    --gene_family_search '$target_gene_family_assembly_cond.orthogroups'
+                    --scaffold '$target_gene_family_assembly_cond.scaffold.fields.path'
+                    --method '$target_gene_family_assembly_cond.method'
+                    --gap_trimming $target_gene_family_assembly_cond.gap_trimming
                 #end if
                 #if str($options_type.strand_specific) == 'yes':
                     --strand_specific
