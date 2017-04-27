@@ -260,7 +260,7 @@ to single/low-copy gene families that are mainly utilized in species tree infere
  * **Proteins fasta file** - proteins fasta file either produced by the AssemblyPostProcessor tool or an external source selected from your history.
  * **Gene family scaffold** - one of the PlantTribes gene family scaffolds [2-4] installed into Galaxy by the PlantTribes Scaffold Data Manager tool.
  * **Protein clustering method** - gene family scaffold protein clustering method as described in the AssemblyPostProcessor tool.
- * **Protein classifier** - classifier to assign protein sequences into a specified scaffold orthogroups. PlantTribes implements three classification approaches; blastp (faster)[6], hmmscan (slower but more sensitive assignment of divergent homologs)[6], and both blastp and hmmscan (disagreements resolved in favor of hmmscan; more exhaustive).
+ * **Protein classifier** - classifier to assign protein sequences into a specified scaffold orthogroups. PlantTribes implements three classification approaches; blastp (faster)[5], hmmscan (slower but more sensitive assignment of divergent homologs)[6], and both blastp and hmmscan (disagreements resolved in favor of hmmscan; more exhaustive).
 
 **Other options**
 
@@ -290,12 +290,38 @@ to single/low-copy gene families that are mainly utilized in species tree infere
     </help>
     <citations>
         <expand macro="citation1" />
-        <expand macro="citations2to4" />
-        <expand macro="citation5" />
+        <citation type="bibtex">
+            @article{Sasidharan2012,
+            journal = {Nucleic Acids Research},
+            author = {2. Sasidharan R, Nepusz T, Swarbreck D, Huala E, Paccanaro A},
+            title = {GFam: a platform for automatic annotation of gene families},
+            year = {2012},
+            pages = {gks631},}
+        </citation>
+        <citation type="bibtex">
+            @article{Li2003,
+            journal = {Genome Research}
+            author = {3. Li L, Stoeckert CJ, Roos DS},
+            title = {OrthoMCL: identification of ortholog groups for eukaryotic genomes},
+            year = {2003},
+            volume = {13},
+            number = {9},
+            pages = {2178-2189},}
+        </citation>
+        <citation type="bibtex">
+            @article{Emms2015,
+            journal = {Genome Biology}
+            author = {4. Emms DM, Kelly S},
+            title = {OrthoFinder: solving fundamental biases in whole genome comparisons dramatically improves orthogroup inference accuracy},
+            year = {2015},
+            volume = {16},
+            number = {1},
+            pages = {157},}
+        </citation>
         <citation type="bibtex">
             @article{Altschul1990,
             journal = {Journal of molecular biology}
-            author = {6. Altschul SF, Gish W, Miller W, Myers EW, Lipman DJ},
+            author = {5. Altschul SF, Gish W, Miller W, Myers EW, Lipman DJ},
             title = {Basic local alignment search tool},
             year = {1990},
             volume = {215},
@@ -305,12 +331,22 @@ to single/low-copy gene families that are mainly utilized in species tree infere
         <citation type="bibtex">
             @article{Eddy2009,
             journal = {Genome Inform},
-            author = {7. Eddy SR},
+            author = {6. Eddy SR},
             title = {A new generation of homology search tools based on probabilistic inference},
             year = {2009},
             volume = {23},
             number = {1},
             pages = {205-211},}
+        </citation>
+        <citation type="bibtex">
+            @article{Wall2008,
+            journal = {Nucleic Acids Research},
+            author = {7. Wall PK, Leebens-Mack J, Muller KF, Field D, Altman NS},
+            title = {PlantTribes: a gene and gene family resource for comparative genomics in plants},
+            year = {2008},
+            volume = {36},
+            number = {suppl 1},
+            pages = {D970-D976},}
         </citation>
         <citation type="bibtex">
             @article{Enright2002,

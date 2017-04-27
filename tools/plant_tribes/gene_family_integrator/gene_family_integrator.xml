@@ -93,7 +93,43 @@ gene models with gene coding sequences classified into the scaffold by the GeneF
     </help>
     <citations>
         <expand macro="citation1" />
-        <expand macro="citations2to4" />
-        <expand macro="citation5" />
+        <citation type="bibtex">
+            @article{Wall2008,
+            journal = {Nucleic Acids Research},
+            author = {2. Wall PK, Leebens-Mack J, Muller KF, Field D, Altman NS},
+            title = {PlantTribes: a gene and gene family resource for comparative genomics in plants},
+            year = {2008},
+            volume = {36},
+            number = {suppl 1},
+            pages = {D970-D976},}
+        </citation>
+        <citation type="bibtex">
+            @article{Sasidharan2012,
+            journal = {Nucleic Acids Research},
+            author = {3. Sasidharan R, Nepusz T, Swarbreck D, Huala E, Paccanaro A},
+            title = {GFam: a platform for automatic annotation of gene families},
+            year = {2012},
+            pages = {gks631},}
+        </citation>
+        <citation type="bibtex">
+            @article{Li2003,
+            journal = {Genome Research}
+            author = {4. Li L, Stoeckert CJ, Roos DS},
+            title = {OrthoMCL: identification of ortholog groups for eukaryotic genomes},
+            year = {2003},
+            volume = {13},
+            number = {9},
+            pages = {2178-2189},}
+        </citation>
+        <citation type="bibtex">
+            @article{Emms2015,
+            journal = {Genome Biology}
+            author = {5. Emms DM, Kelly S},
+            title = {OrthoFinder: solving fundamental biases in whole genome comparisons dramatically improves orthogroup inference accuracy},
+            year = {2015},
+            volume = {16},
+            number = {1},
+            pages = {157},}
+        </citation>
     </citations>
 </tool>
