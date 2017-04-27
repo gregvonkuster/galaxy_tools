@@ -59,13 +59,13 @@
         </param>
     </xml>
     <xml name="param_orthogroup_fna">
-        <param name="orthogroup_fna" type="select" label="Process corresponding gene family classification orthogroups CDS fasta files?">
+        <param name="orthogroup_fna" type="select" label="Orthogroups coding sequences?">
             <option value="yes" selected="true">Yes</option>
             <option value="no">No</option>
         </param>
     </xml>
     <xml name="param_scaffold">
-        <param name="scaffold" type="select" label="Orthogroups or gene families proteins scaffold">
+        <param name="scaffold" type="select" label="Gene family scaffold">
             <options from_data_table="plant_tribes_scaffolds" />
             <validator type="no_options" message="No PlantTribes scaffolds are available.  Use the PlantTribes Scaffolds Download Data Manager tool in Galaxy to install and populate the PlantTribes scaffolds data table." />
         </param>
@@ -158,6 +158,18 @@
             volume = {16},
             number = {1},
             pages = {157},}
+        </citation>
+    </xml>
+    <xml name="citation5">
+        <citation type="bibtex">
+            @article{Wall2008,
+            journal = {Nucleic Acids Research},
+            author = {5. Wall PK, Leebens-Mack J, Muller KF, Field D, Altman NS},
+            title = {PlantTribes: a gene and gene family resource for comparative genomics in plants},
+            year = {2008},
+            volume = {36},
+            number = {suppl 1},
+            pages = {D970-D976},}
         </citation>
     </xml>
 </macros>

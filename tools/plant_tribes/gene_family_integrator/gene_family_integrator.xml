@@ -34,19 +34,19 @@
     </command>
     <inputs>
         <conditional name="input_format_cond">
-            <param name="input_format" type="select" label="Select type of data to sub sample">
+            <param name="input_format" type="select" label="Classified orthogroup fasta files">
                 <option value="ptortho">Gene family clusters</option>
                 <option value="ptorthocs">Gene family clusters with corresponding coding sequences</option>
             </param>
             <when value="ptortho">
-                <param name="input_ptortho" format="ptortho" type="data" label="Gene family clusters">
+                <param name="input_ptortho" format="ptortho" type="data" label="Protein orthogroup fasta files">
                     <validator type="empty_files_path" />
                 </param>
                 <expand macro="param_scaffold" />
                 <expand macro="param_method" />
             </when>
             <when value="ptorthocs">
-                <param name="input_ptorthocs" format="ptorthocs" type="data" label="Gene family clusters with corresponding coding sequences">
+                <param name="input_ptorthocs" format="ptorthocs" type="data" label="Protein and coding sequences orthogroup fasta files">
                     <validator type="empty_files_path" />
                 </param>
                 <expand macro="param_scaffold" />
@@ -71,24 +71,25 @@
     </tests>
     <help>
 This tool is one of the PlantTribes collection of automated modular analysis pipelines for comparative and evolutionary
-analyses of genome-scale gene families and transcriptomes. This tool integrates classified post processed de novo transcriptome
-assembly sequence(s) with the scaffold gene family sequences.
+analyses of genome-scale gene families and transcriptomes. This tool integrates PlantTribes scaffold orthogroup backbone
+gene models with gene coding sequences classified into the scaffold by the GeneFamilyClassifier tool.
 
 -----
 
 **Required options**
 
- * **Gene family clusters** - sequences classified into gene family clusters, optionally including corresponding coding sequences.
- * **Gene family scaffold** - one of the PlantTribes gene family scaffolds [2-4] installed into Galaxy by the PlantTribes Scaffold Data Manager tool.
+ * **Classified orthogroup fasta files** - orthogroup fasta files produced by the GeneFamilyClassifier tool selected from your history.  Depending on how the GeneFamilyClassifier tool was executed, these could either be proteins or proteins and their corresponding coding sequences.
+ * **Gene family scaffold** - one of the PlantTribes gene family scaffolds installed into Galaxy by the PlantTribes Scaffold Data Manager tool.
  * **Protein clustering method** - gene family scaffold protein clustering method as described in the AssemblyPostProcessor tool.
 
 **Other options**
 
- * **Process corresponding gene family classification orthogroups CDS fasta files** - Select 'Yes' top process corresponding gene family classification orthogroups CDS fasta files.
+ * **Orthogroups coding sequences** - Select 'Yes' to create corresponding coding sequences orthogroups fasta files for the classified protein sequences.
 
     </help>
     <citations>
         <expand macro="citation1" />
         <expand macro="citations2to4" />
+        <expand macro="citation5" />
     </citations>
 </tool>
