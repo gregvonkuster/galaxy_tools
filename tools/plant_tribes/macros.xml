@@ -78,9 +78,9 @@
     </xml>
     <xml name="cond_alignment_method">
         <conditional name="alignment_method_cond">
-            <param name="alignment_method" type="select" force_select="true" label="Select method for multiple sequence alignments">
-                <option value="mafft" selected="true">MAFFT algorithm</option>
-                <option value="pasta">PASTA algorithm</option>
+            <param name="alignment_method" type="select" force_select="true" label="Multiple sequence alignment method">
+                <option value="mafft" selected="true">MAFFT</option>
+                <option value="pasta">PASTA</option>
             </param>
             <when value="mafft" />
             <when value="pasta">
@@ -90,31 +90,31 @@
     </xml>
     <xml name="cond_remove_gappy_sequences">
         <conditional name="remove_gappy_sequences_cond">
-            <param name="remove_gappy_sequences" type="select" label="Remove gappy sequences in alignments?">
+            <param name="remove_gappy_sequences" type="select" label="Alignment post-processing configuration?">
                 <option value="no" selected="true">No</option>
                 <option value="yes">Yes</option>
             </param>
             <when value="no" />
             <when value="yes">
                 <conditional name="trim_type_cond">
-                    <param name="trim_type" type="select" label="Select process used for trimming">
-                        <option value="gap_trimming" selected="true">Remove gappy sites in alignments (gap trimming)</option>
-                        <option value="automated_trimming">Trim alignments using trimAl's ML heuristic trimming approach (automated trimming)</option>
+                    <param name="trim_type" type="select" label="Trimming method">
+                        <option value="gap_trimming" selected="true">Gap score based trimming</option>
+                        <option value="automated_trimming">Automated heuristic trimming</option>
                     </param>
                     <when value="gap_trimming">
-                        <param name="gap_trimming" type="float" optional="true" min="0" max="1.0" label="Remove sites in alignments with gaps of" />
+                        <param name="gap_trimming" type="float" optional="true" min="0" max="1.0" label="Gap score" />
                     </when>
                     <when value="automated_trimming" />
                 </conditional>
                 <conditional name="remove_sequences_with_gaps_cond">
-                    <param name="remove_sequences_with_gaps" type="select" label="Remove sequences with specified gaps?">
+                    <param name="remove_sequences_with_gaps" type="select" label="Remove sequences?">
                         <option value="no" selected="true">No</option>
                         <option value="yes">Yes</option>
                     </param>
                     <when value="no" />
                     <when value="yes">
-                        <param name="remove_sequences_with_gaps_of" type="float" optional="true" min="0" max="1" label="Remove sequences with gaps of" />
-                        <param name="iterative_realignment" type="integer" optional="true" min="0" label="Maximum number of iterations" />
+                        <param name="remove_sequences_with_gaps_of" type="float" optional="true" min="0" max="1" label="Coverage score" />
+                        <param name="iterative_realignment" type="integer" optional="true" min="0" label="Realignment iteration limit" />
                     </when>
                 </conditional>
             </when>

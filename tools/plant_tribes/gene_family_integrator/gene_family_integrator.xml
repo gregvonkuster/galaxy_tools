@@ -35,11 +35,11 @@
     <inputs>
         <conditional name="input_format_cond">
             <param name="input_format" type="select" label="Classified orthogroup fasta files">
-                <option value="ptortho">Gene family clusters</option>
-                <option value="ptorthocs">Gene family clusters with corresponding coding sequences</option>
+                <option value="ptortho">Proteins orthogroup fasta files</option>
+                <option value="ptorthocs">Protein and coding sequences orthogroup fasta files</option>
             </param>
             <when value="ptortho">
-                <param name="input_ptortho" format="ptortho" type="data" label="Protein orthogroup fasta files">
+                <param name="input_ptortho" format="ptortho" type="data" label="Proteins orthogroup fasta files">
                     <validator type="empty_files_path" />
                 </param>
                 <expand macro="param_scaffold" />
@@ -79,6 +79,10 @@ gene models with gene coding sequences classified into the scaffold by the GeneF
 **Required options**
 
  * **Classified orthogroup fasta files** - orthogroup fasta files produced by the GeneFamilyClassifier tool selected from your history.  Depending on how the GeneFamilyClassifier tool was executed, these could either be proteins or proteins and their corresponding coding sequences.
+
+  - **Proteins orthogroup fasta files** - proteins fasta files.
+  - **Protein and coding sequences orthogroup fasta files** - proteins and their corresponding coding sequences fasta files.
+
  * **Gene family scaffold** - one of the PlantTribes gene family scaffolds installed into Galaxy by the PlantTribes Scaffold Data Manager tool.
  * **Protein clustering method** - gene family scaffold protein clustering method as described in the AssemblyPostProcessor tool.
 
