@@ -224,9 +224,6 @@ of multivariate normal distributions to identify significant duplication event(s
     - **recalibration rate** - a predetermined evolutionary recalibration rate.
 
   - **PAML codeml configuration** - select 'Yes' to enable selection of a PAML codeml control file to carry out maximum likelihood analysis of protein-coding DNA sequences using codon substitution models.  Template file "codeml.ctl.args" can be found in the scaffold data installed into Galaxy via the PlantTribes Scaffolds Download Data Manager tool, and are also available at the PlantTribes GitHub `repository`_.  Default settings shown in the template are used if 'No' is selected.
-
-.. _repository: https://github.com/dePamphilis/PlantTribes/blob/master/config/codeml.ctl.args
-
   - **Rates clustering configuration** - select 'Yes' to estimate clusters of synonymous substitution rates using a mixture of multivariate normal distributions which represent putative duplication event(s).
 
     - **Number of components** - number of components to include in the normal mixture model.
@@ -237,8 +234,9 @@ of multivariate normal distributions to identify significant duplication event(s
 
   - **Upper limit synonymous subsitution rates configuration** - select 'Yes' to set the maximum allowable synonymous substitution rate to use in the normal mixtures cluster analysis to exclude likely ancient paralogs in a genome.
 
-
     - **Maximum rate** - maximum allowable synonymous substitution rate.
+
+.. _repository: https://github.com/dePamphilis/PlantTribes/blob/master/config/codeml.ctl.args
 
     </help>
     <citations>
