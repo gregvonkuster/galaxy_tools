@@ -277,7 +277,9 @@ sequences belonging to single/low-copy gene families that are mainly utilized in
        * **Minimum single copy taxa** - minimum number of taxa with single copy genes in the orthogroup.
        * **Minimum taxa present** - minimum number of taxa present in the orthogroup.
 
-     * **Custom selection configuration** - select ‘Yes’ to enable selection of a single copy configuration file.  Scaffold configuration templates (.singleCopy.config) of how to customize single/low-copy orthogroups selection can be found in the scaffold data installed into Galaxy via the PlantTribes Scaffolds Download Data Manager tool, and also available at the PlantTribes GitHub repository (https://github.com/dePamphilis/PlantTribes/config ).  Single/low-copy settings shown in these templates are used as defaults if ‘No’ is selected.
+     * **Custom selection configuration** - select ‘Yes’ to enable selection of a single copy configuration file.  Scaffold configuration templates (.singleCopy.config) of how to customize single/low-copy orthogroups selection can be found in the scaffold data installed into Galaxy via the PlantTribes Scaffolds Download Data Manager tool, and also available at the PlantTribes GitHub `repository`_.  Single/low-copy settings shown in these templates are used as defaults if ‘No’ is selected.
+
+.. _repository: https://github.com/dePamphilis/PlantTribes/tree/master/config
 
        * **Custom selection file** - select a single/low-copy customized configuration file from your history.
 
