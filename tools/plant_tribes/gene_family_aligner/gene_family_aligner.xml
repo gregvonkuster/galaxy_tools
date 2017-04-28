@@ -156,9 +156,6 @@ of integrated orthologous gene family fasta files produced by the GeneFamilyInte
  * **Alignment post-processing configuration** - select 'Yes' to enable multiple sequence alignment post-processing configuration options.
 
   - **Trimming method** - multiple sequence alignment trimming method.  PlantTribes trims alignments using two automated approaches implemented in trimAl.  Gap score based trimming removes alignments sites that do not achieve a user specified gap score.  For example, a setting of 0.1 removes sites that have gaps in 90% or more of the sequences in the multiple sequence alignment.  The automated heuristic trimming approach determines the best automated trimAl method to trim a given alignment as described in the trimAl tutorial `trimAl`_.
-
-.. _trimAl: http://trimal.cgenomics.org
-
     - **Nucleotide based**
 
       - **Gap score** - 1.0 - (the fraction of sequences with gap allowed in an alignment site).  The score is restricted to the range 0.0 - 1.0.  Zero value has no effect.
@@ -168,6 +165,8 @@ of integrated orthologous gene family fasta files produced by the GeneFamilyInte
       - **Coverage score** - minimum fraction of sites without gaps for a sequence in a multiple sequence alignment.  The score is restricted to the range 0.0 - 1.0.  Zero value has no effect.
 
       - **Realignment iteration limit** - number of iterations to perform trimming, removal of sequences, and realignment of orthogroup sequences.  Zero value has no effect.
+
+.. _trimAl: http://trimal.cgenomics.org
 
     </help>
     <citations>
