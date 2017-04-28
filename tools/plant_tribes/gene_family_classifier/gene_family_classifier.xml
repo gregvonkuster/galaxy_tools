@@ -279,8 +279,6 @@ sequences belonging to single/low-copy gene families that are mainly utilized in
 
      * **Custom selection configuration** - select ‘Yes’ to enable selection of a single copy configuration file.  Scaffold configuration templates (.singleCopy.config) of how to customize single/low-copy orthogroups selection can be found in the scaffold data installed into Galaxy via the PlantTribes Scaffolds Download Data Manager tool, and also available at the PlantTribes GitHub `repository`_.  Single/low-copy settings shown in these templates are used as defaults if ‘No’ is selected.
 
-.. _repository: https://github.com/dePamphilis/PlantTribes/tree/master/config
-
        * **Custom selection file** - select a single/low-copy customized configuration file from your history.
 
  * **Orthogroups fasta configuration** - select ‘Yes’ to create proteins orthogroups fasta files for the classified sequences.
@@ -288,6 +286,8 @@ sequences belonging to single/low-copy gene families that are mainly utilized in
    * **Orthogroups coding sequences** - select ‘Yes’ to create corresponding coding sequences orthogroups fasta files for the classified protein sequences. Requires coding sequences fasta file corresponding to the proteins fasta file to be selected from your history.
 
      * **Coding sequences fasta file** - select coding sequences fasta file corresponding to the proteins fasta file from your history.
+
+.. _repository: https://github.com/dePamphilis/PlantTribes/tree/master/config
 
     </help>
     <citations>
