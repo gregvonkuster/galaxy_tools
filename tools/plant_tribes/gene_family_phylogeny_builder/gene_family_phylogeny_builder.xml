@@ -65,43 +65,43 @@
     </command>
     <inputs>
         <conditional name="input_format_cond">
-            <param name="input_format" type="select" label="Select type of data">
-                <option value="ptalign">Aligned gene family sequences</option>
-                <option value="ptalignca">Aligned gene family sequences with codon alignments</option>
-                <option value="ptalignfiltered">Filtered aligned gene family sequences</option>
-                <option value="ptalignfilteredca">Filtered aligned gene family sequences with codon alignments</option>
-                <option value="ptaligntrimmed">Trimmed aligned gene family sequences</option>
-                <option value="ptaligntrimmedca">Trimmed aligned gene family sequences with codon alignments</option>
+            <param name="input_format" type="select" label="Orthogroup alignments">
+                <option value="ptalign">Proteins orthogroup alignments</option>
+                <option value="ptalignca">Protein and coding sequences orthogroup alignments</option>
+                <option value="ptalignfiltered">Filtered proteins orthogroup alignments</option>
+                <option value="ptalignfilteredca">Filtered protein and coding sequences orthogroup alignments</option>
+                <option value="ptaligntrimmed">Trimmed proteins orthogroup alignments</option>
+                <option value="ptaligntrimmedca">Trimmed protein and coding sequences orthogroup alignments</option>
             </param>
             <when value="ptalign">
-                <param name="input_ptalign" format="ptalign" type="data" label="Aligned gene family sequences">
+                <param name="input_ptalign" format="ptalign" type="data" label="Proteins orthogroup alignments">
                     <!-- <validator type="empty_files_path" /> -->
                 </param>
             </when>
             <when value="ptalignca">
-                <param name="input_ptalignca" format="ptalignca" type="data" label="Aligned gene family sequences with codon alignments">
+                <param name="input_ptalignca" format="ptalignca" type="data" label="Protein and coding sequences orthogroup alignments">
                     <!-- <validator type="empty_files_path" /> -->
                 </param>
                 <expand macro="param_sequence_type" />
             </when>
             <when value="ptalignfiltered">
-                <param name="input_ptalignfiltered" format="ptalignfiltered" type="data" label="Filtered aligned gene family sequences">
+                <param name="input_ptalignfiltered" format="ptalignfiltered" type="data" label="Filtered proteins orthogroup alignments">
                     <!-- <validator type="empty_files_path" /> -->
                 </param>
             </when>
             <when value="ptalignfilteredca">
-                <param name="input_ptalignfilteredca" format="ptalignfilteredca" type="data" label="Filtered aligned gene family sequences with codon alignments">
+                <param name="input_ptalignfilteredca" format="ptalignfilteredca" type="data" label="Filtered protein and coding sequences orthogroup alignments">
                     <!-- <validator type="empty_files_path" /> -->
                 </param>
                 <expand macro="param_sequence_type" />
             </when>
             <when value="ptaligntrimmed">
-                <param name="input_ptaligntrimmed" format="ptaligntrimmed" type="data" label="Trimmed aligned gene family sequences">
+                <param name="input_ptaligntrimmed" format="ptaligntrimmed" type="data" label="Trimmed proteins orthogroup alignments">
                     <!-- <validator type="empty_files_path" /> -->
                 </param>
             </when>
             <when value="ptaligntrimmedca">
-                <param name="input_ptaligntrimmedca" format="ptaligntrimmedca" type="data" label="Trimmed aligned gene family sequences with codon alignments">
+                <param name="input_ptaligntrimmedca" format="ptaligntrimmedca" type="data" label="Trimmed protein and coding sequences orthogroup alignments">
                     <!-- <validator type="empty_files_path" /> -->
                 </param>
                 <expand macro="param_sequence_type" />
@@ -110,13 +110,13 @@
         <expand macro="param_scaffold" />
         <expand macro="param_method" />
         <conditional name="tree_inference_cond">
-            <param name="tree_inference" type="select" label="Phylogenetic trees inference method">
+            <param name="tree_inference" type="select" label="Phylogenetic inference method">
                 <option value="raxml" selected="true">RAxML</option>
                 <option value="fasttree">FastTree</option>
             </param>
             <when value="raxml">
                 <conditional name="rooting_order_file_cond">
-                    <param name="rooting_order_file" type="select" label="Select rooting order configuration for rooting trees?" help="Select No for the default rooting order configuration which uses the most distant taxon present in the orthogroup">
+                    <param name="rooting_order_file" type="select" label="Rooting order configuration?">
                         <option value="no" selected="true">No</option>
                         <option value="yes">Yes</option>
                     </param>
@@ -125,12 +125,12 @@
                         <param name="rooting_order" format="txt" type="data" label="Rooting order configuration for rooting trees" />
                     </when>
                 </conditional>
-                <param name="bootstrap_replicates" type="integer" value="100" min="0" label="Number of replicates for rapid bootstrap analysis and search for the best-scoring ML tree" />
+                <param name="bootstrap_replicates" type="integer" value="100" min="0" label="Bootstrap replicates" />
             </when>
             <when value="fasttree" />
         </conditional>
-        <param name="max_orthogroup_size" type="integer" value="100" min="0" label="Maximum number of sequences in orthogroup alignments" />
-        <param name="min_orthogroup_size" type="integer" value="4" min="0" label="Minimum number of sequences in orthogroup alignments" />
+        <param name="max_orthogroup_size" type="integer" value="100" min="0" label="Maximum orthogroup size" />
+        <param name="min_orthogroup_size" type="integer" value="4" min="0" label="Minimum orthogroup size" />
     </inputs>
     <outputs>
         <data name="output_pttree" format="pttree" label="Gene family phylogenetic trees on ${on_string}" />
@@ -142,24 +142,46 @@
         -->
     </tests>
     <help>
-This tool is one of the PlantTribes collection of automated modular analysis pipelines that utilize objective classifications of
-complete protein sequences from sequenced plant genomes to perform comparative evolutionary studies. It performs phylogenomic
-analyses by creating multiple sequence alignments and inferred maximum likelihood phylogenies for orthogroups produced by the
-**GeneFamilyAligner** tool.
+This tool is one of the PlantTribes collection of automated modular analysis pipelines for comparative and evolutionary
+analyses of genome-scale gene families and transcriptomes.  This tool performs gene family phylogenetic inference of
+multiple sequence alignments produced by the GeneFamilyAligner tool.
 
 -----
 
 **Required options**
 
+ * **Orthogroup alignments** - orthogroup alignment fasta files produced by the GeneFamilyAligner tool selected from your history.  Depending on how the GeneFamilyAligner tool was executed, these could either be pre-processed alignments, trimmed alignments or both trimmed and filtered alignments.
+ * **Gene family scaffold** - one of the PlantTribes gene family scaffolds installed into Galaxy by the PlantTribes Scaffold Download Data Manager tool.
+ * **Protein clustering method** - gene family scaffold protein clustering method as described in the Asse3mblyPostProcessor tool.
+ * **Phylogenetic inference method** - method for estimating orthogroup maximum likelihood (ML) phylogenetic trees.  PlantTribes estimates ML phylogenetic trees using either RAxML or FastTree algorithms.
+
 **Other options**
+
+ * **Rooting order configuration** - select 'Yes' to enable selection of a rooting order configuration file for RAxML.  Scaffold configuration templates (.rootingOrder.config) of how to customize the RAxML ML tree rooting order can be found in the scaffold data installed into Galaxy via the PlantTribes Scaffolds Download Data Manager tool, and is also available at the PlantTribes GitHub repository `planttribes`_.  Phylogenetic tree rooting order settings shown in these templates are used as defaults if 'No' is selected.
+
+.. _planttribes: https://github.com/dePamphillis/PlantTribes/config
+
+ * **Bootstrap replicates** - number of bootstrap replicates for RAxML to conduct a rapid bootstrap analysis and search for the best-scoring ML tree (default = 100).
+ * **Maximum orthogroup size** - Maximum number of sequences allowed in orthogroup alignments (default = 100).
+ * **Minimum orthogroup size** - Minimum number of sequences allowed in orthogroup alignments (default = 4).
 
     </help>
     <citations>
         <expand macro="citation1" />
         <citation type="bibtex">
+            @article{Wall2008,
+            journal = {Nucleic Acids Research},
+            author = {2. Wall PK, Leebens-Mack J, Muller KF, Field D, Altman NS},
+            title = {PlantTribes: a gene and gene family resource for comparative genomics in plants},
+            year = {2008},
+            volume = {36},
+            number = {suppl 1},
+            pages = {D970-D976},}
+        </citation>
+        <citation type="bibtex">
             @article{Sasidharan2012,
             journal = {Nucleic Acids Research},
-            author = {2. Sasidharan R, Nepusz T, Swarbreck D, Huala E, Paccanaro A},
+            author = {3. Sasidharan R, Nepusz T, Swarbreck D, Huala E, Paccanaro A},
             title = {GFam: a platform for automatic annotation of gene families},
             year = {2012},
             pages = {gks631},}
@@ -167,7 +189,7 @@ analyses by creating multiple sequence alignments and inferred maximum likelihoo
         <citation type="bibtex">
             @article{Li2003,
             journal = {Genome Research}
-            author = {3. Li L, Stoeckert CJ, Roos DS},
+            author = {4. Li L, Stoeckert CJ, Roos DS},
             title = {OrthoMCL: identification of ortholog groups for eukaryotic genomes},
             year = {2003},
             volume = {13},
@@ -177,12 +199,30 @@ analyses by creating multiple sequence alignments and inferred maximum likelihoo
         <citation type="bibtex">
             @article{Emms2015,
             journal = {Genome Biology}
-            author = {4. Emms DM, Kelly S},
+            author = {5. Emms DM, Kelly S},
             title = {OrthoFinder: solving fundamental biases in whole genome comparisons dramatically improves orthogroup inference accuracy},
             year = {2015},
             volume = {16},
             number = {1},
             pages = {157},}
+        </citation>
+        <citation type="bibtex">
+            @article{Stamatakis2014,
+            journal = {Bioinformatics},
+            author = {6. Stamatakis A},
+            title = {RAxML Version 8: A tool for Phylogenetic Analysis and Post-Analysis of Large Phylogenies},
+            year = {2014},
+            url = {http://sco.h-its.org/exelixis/web/software/raxml/index.html},}
+        </citation>
+        <citation type="bibtex">
+            @article{Price2010,
+            journal = {PLoS one},
+            author = {7. Price MN, Dehal PS, Arkin AP},
+            title = {FastTree 2-approximately maximim-likelihood trees for large alignments},
+            year = {2010},
+            volume = {5},
+            number = {3},
+            pages = {e9490},}
         </citation>
     </citations>
 </tool>
