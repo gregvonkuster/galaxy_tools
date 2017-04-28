@@ -40,7 +40,7 @@
         </stdio>
     </xml>
     <xml name="param_codon_alignments">
-        <param name="codon_alignments" type="select" label="Construct orthogroup multiple codon alignments?">
+        <param name="codon_alignments" type="select" label="Construct orthogroup multiple codon alignments">
             <option value="yes" selected="true">Yes</option>
             <option value="no">No</option>
         </param>
@@ -59,7 +59,7 @@
         </param>
     </xml>
     <xml name="param_orthogroup_fna">
-        <param name="orthogroup_fna" type="select" label="Orthogroups coding sequences?">
+        <param name="orthogroup_fna" type="select" label="Orthogroups coding sequences">
             <option value="yes" selected="true">Yes</option>
             <option value="no">No</option>
         </param>
@@ -90,7 +90,7 @@
     </xml>
     <xml name="cond_remove_gappy_sequences">
         <conditional name="remove_gappy_sequences_cond">
-            <param name="remove_gappy_sequences" type="select" label="Alignment post-processing configuration?">
+            <param name="remove_gappy_sequences" type="select" label="Alignment post-processing configuration">
                 <option value="no" selected="true">No</option>
                 <option value="yes">Yes</option>
             </param>
@@ -107,7 +107,7 @@
                     <when value="automated_trimming" />
                 </conditional>
                 <conditional name="remove_sequences_with_gaps_cond">
-                    <param name="remove_sequences_with_gaps" type="select" label="Remove sequences?">
+                    <param name="remove_sequences_with_gaps" type="select" label="Remove sequences">
                         <option value="no" selected="true">No</option>
                         <option value="yes">Yes</option>
                     </param>
