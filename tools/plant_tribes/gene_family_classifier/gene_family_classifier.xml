@@ -250,8 +250,8 @@ analyses of genome-scale gene families and transcriptomes. This tool classifies 
 the AssemblyPostProcessor tool or from an external source into pre-computed orthologous gene family clusters (orthogroups)
 of a PlantTribes scaffold.  Classified sequences are then assigned with the corresponding orthogroups’ metadata that includes
 gene counts of backbone taxa, super clusters (super orthogoups) at multiple stringencies, and functional annotations from
-sources such as Gene Ontology (GO), InterPro protein domains, TAIR, UniProtKB/TrEMBL, and UniProtKB/Swiss-Prot.  Additionally, sequences belonging
-to single/low-copy gene families that are mainly utilized in species tree inference can be determined.
+sources such as Gene Ontology (GO), InterPro protein domains, TAIR, UniProtKB/TrEMBL, and UniProtKB/Swiss-Prot.  Additionally,
+sequences belonging to single/low-copy gene families that are mainly utilized in species tree inference can be determined.
 
 -----
 
