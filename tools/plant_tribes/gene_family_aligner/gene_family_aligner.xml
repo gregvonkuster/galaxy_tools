@@ -88,13 +88,13 @@
             </param>
             <when value="ptortho">
                 <param name="input_ptortho" format="ptortho" type="data" label="Proteins orthogroup fasta files">
-                    <!-- <validator type="empty_files_path" /> -->
+                    <!-- <validator type="empty_extra_files_path" /> -->
                 </param>
                 <expand macro="cond_alignment_method" />
             </when>
             <when value="ptorthocs">
                 <param name="input_ptorthocs" format="ptorthocs" type="data" label="Protein and coding sequences orthogroup fasta files">
-                    <!-- <validator type="empty_files_path" /> -->
+                    <!-- <validator type="empty_extra_files_path" /> -->
                 </param>
                 <expand macro="cond_alignment_method" />
                 <expand macro="param_codon_alignments" />
@@ -123,7 +123,7 @@
         </data>
     </outputs>
     <tests>
-        <!-- Test framework does not currently support inputs whose associated files_path contains files to be analyzed.
+        <!-- Test framework does not currently support inputs whose associated extra_files_path contains files to be analyzed.
         <test>
         </test>
         -->
