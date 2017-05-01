@@ -139,11 +139,11 @@ of integrated orthologous gene family fasta files produced by the GeneFamilyInte
 
  * **Classified orthogroup fasta files** - orthogroup fasta files produced by the GeneFamilyClassifier tool selected from your history.  Depending on how the GeneFamilyClassifier tool was exectured, these could either be proteins or proteins and their corresponding coding sequences.
 
- * **Codon alignments** - select 'Yes' to create codon multiple sequence alignments.  This option requires protein and their corresponding coding sequences to be provided as input data.
-
  * **Multiple sequence alignment method** - method for estimating orthogroup multiple sequence alignments.  PlantTribes estimates alignments using either MAFFT's L-INS-i algorithm or the divide and conquer approach implemented in the PASTA pipeline for large alignments.
 
   - **PASTA iteration limit** - number of PASTA iterations. By default, PASTA performs 3 iterations.
+
+ * **Codon alignments** - select 'Yes' to create codon multiple sequence alignments.  This option requires protein and their corresponding coding sequences to be provided as input data.
 
 **Other options**
 
