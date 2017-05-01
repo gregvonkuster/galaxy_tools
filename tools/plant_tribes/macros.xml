@@ -40,7 +40,7 @@
         </stdio>
     </xml>
     <xml name="param_codon_alignments">
-        <param name="codon_alignments" type="select" label="Construct orthogroup multiple codon alignments">
+        <param name="codon_alignments" type="select" label="Codon alignments">
             <option value="yes" selected="true">Yes</option>
             <option value="no">No</option>
         </param>
@@ -84,7 +84,7 @@
             </param>
             <when value="mafft" />
             <when value="pasta">
-                <param name="pasta_iter_limit" type="integer" value="3" min="1" label="Maximum number of iterations that the PASTA algorithm will execute" />
+                <param name="pasta_iter_limit" type="integer" value="3" min="1" label="PASTA iteration limit" />
             </when>
         </conditional>
     </xml>
