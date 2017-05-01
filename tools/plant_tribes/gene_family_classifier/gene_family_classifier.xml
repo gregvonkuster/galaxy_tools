@@ -283,7 +283,7 @@ sequences belonging to single/low-copy gene families that are mainly utilized in
 
  * **Orthogroups fasta configuration** - select ‘Yes’ to create proteins orthogroups fasta files for the classified sequences.
 
-   * **Orthogroups coding sequences** - select ‘Yes’ to create corresponding coding sequences orthogroups fasta files for the classified protein sequences. Requires coding sequences fasta file corresponding to the proteins fasta file to be selected from your history.
+   * **Orthogroups coding sequences** - select ‘Yes’ to create corresponding coding sequences orthogroup fasta files for the classified protein sequences. Requires coding sequences fasta file corresponding to the proteins fasta file to be selected from your history.
 
      * **Coding sequences fasta file** - select coding sequences fasta file corresponding to the proteins fasta file from your history.
 
