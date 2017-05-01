@@ -122,7 +122,7 @@
                     </param>
                     <when value="no" />
                     <when value="yes">
-                        <param name="rooting_order" format="txt" type="data" label="Rooting order configuration for rooting trees" />
+                        <param name="rooting_order" format="txt" type="data" label="Rooting order configuration" />
                     </when>
                 </conditional>
                 <param name="bootstrap_replicates" type="integer" value="100" min="0" label="Bootstrap replicates" />
@@ -152,15 +152,15 @@ multiple sequence alignments produced by the GeneFamilyAligner tool.
 
  * **Orthogroup alignments** - orthogroup alignment fasta files produced by the GeneFamilyAligner tool selected from your history.  Depending on how the GeneFamilyAligner tool was executed, these could either be pre-processed alignments, trimmed alignments or both trimmed and filtered alignments.
  * **Gene family scaffold** - one of the PlantTribes gene family scaffolds installed into Galaxy by the PlantTribes Scaffold Download Data Manager tool.
- * **Protein clustering method** - gene family scaffold protein clustering method as described in the Asse3mblyPostProcessor tool.
+ * **Protein clustering method** - gene family scaffold protein clustering method as described in the AssemblyPostProcessor tool.
  * **Phylogenetic inference method** - method for estimating orthogroup maximum likelihood (ML) phylogenetic trees.  PlantTribes estimates ML phylogenetic trees using either RAxML or FastTree algorithms.
 
 **Other options**
 
  * **Rooting order configuration** - select 'Yes' to enable selection of a rooting order configuration file for RAxML.  Scaffold configuration templates (.rootingOrder.config) of how to customize the RAxML ML tree rooting order can be found in the scaffold data installed into Galaxy via the PlantTribes Scaffolds Download Data Manager tool, and is also available at the PlantTribes GitHub `repository`_.  Phylogenetic tree rooting order settings shown in these templates are used as defaults if 'No' is selected.
  * **Bootstrap replicates** - number of bootstrap replicates for RAxML to conduct a rapid bootstrap analysis and search for the best-scoring ML tree (default = 100).
- * **Maximum orthogroup size** - Maximum number of sequences allowed in orthogroup alignments (default = 100).
- * **Minimum orthogroup size** - Minimum number of sequences allowed in orthogroup alignments (default = 4).
+ * **Maximum orthogroup size** - maximum number of sequences allowed in orthogroup alignments (default = 100).
+ * **Minimum orthogroup size** - minimum number of sequences allowed in orthogroup alignments (default = 4).
 
 .. _repository: https://github.com/dePamphilis/PlantTribes/tree/master/config
 
