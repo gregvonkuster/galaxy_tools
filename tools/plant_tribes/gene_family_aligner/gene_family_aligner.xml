@@ -139,32 +139,25 @@ of integrated orthologous gene family fasta files produced by the GeneFamilyInte
 
  * **Classified orthogroup fasta files** - orthogroup fasta files produced by the GeneFamilyClassifier tool selected from your history.  Depending on how the GeneFamilyClassifier tool was exectured, these could either be proteins or proteins and their corresponding coding sequences.
 
-  - **Proteins orthogroup fasta files** - proteins fasta files.
-  - **Protein and coding sequences orthogroup fasta files** - proteins and their corresponding coding sequences fasta files.
-
-    - **Construct orthogroup multiple codon alignments** - construct orthogroup multiple codon alignments.
+ * **Codon alignments** - select 'Yes' to create codon multiple sequence alignments.  This option requires protein and their corresponding coding sequences to be provided as input data.
 
  * **Multiple sequence alignment method** - method for estimating orthogroup multiple sequence alignments.  PlantTribes estimates alignments using either MAFFT's L-INS-i algorithm or the divide and conquer approach implemented in the PASTA pipeline for large alignments.
 
-  - **MAFFT** - MAFFT algorithm.
-  - **PASTA** - PASTA algorithm.
-
-    - **PASTA iteration limit** - number of PASTA iterations. By default, PASTA performs 3 iterations.
+  - **PASTA iteration limit** - number of PASTA iterations. By default, PASTA performs 3 iterations.
 
 **Other options**
 
  * **Alignment post-processing configuration** - select 'Yes' to enable multiple sequence alignment post-processing configuration options.
 
   - **Trimming method** - multiple sequence alignment trimming method.  PlantTribes trims alignments using two automated approaches implemented in trimAl.  Gap score based trimming removes alignments sites that do not achieve a user specified gap score.  For example, a setting of 0.1 removes sites that have gaps in 90% or more of the sequences in the multiple sequence alignment.  The automated heuristic trimming approach determines the best automated trimAl method to trim a given alignment as described in the trimAl tutorial `trimAl`_.
-    - **Nucleotide based**
 
-      - **Gap score** - 1.0 - (the fraction of sequences with gap allowed in an alignment site).  The score is restricted to the range 0.0 - 1.0.  Zero value has no effect.
+    - **Gap score** - the fraction of sequences with gap allowed in an alignment site.  The score is restricted to the range 0.0 - 1.0.  Zero value has no effect.
 
   - **Remove sequences** - select 'Yes' to remove sequences in multiple sequence alignments that do not achieve a user specified alignment coverage score.  For example, a setting of 0.7 removes sequences with more than 30% gaps in the alignment.  This option requires one of the trimming methods to be set.
 
-      - **Coverage score** - minimum fraction of sites without gaps for a sequence in a multiple sequence alignment.  The score is restricted to the range 0.0 - 1.0.  Zero value has no effect.
+    - **Coverage score** - minimum fraction of sites without gaps for a sequence in a multiple sequence alignment.  The score is restricted to the range 0.0 - 1.0.  Zero value has no effect.
 
-      - **Realignment iteration limit** - number of iterations to perform trimming, removal of sequences, and realignment of orthogroup sequences.  Zero value has no effect.
+    - **Realignment iteration limit** - number of iterations to perform trimming, removal of sequences, and realignment of orthogroup sequences.  Zero value has no effect.
 
 .. _trimAl: http://trimal.cgenomics.org
 
