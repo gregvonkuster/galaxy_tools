@@ -40,14 +40,14 @@
             </param>
             <when value="ptortho">
                 <param name="input_ptortho" format="ptortho" type="data" label="Proteins orthogroup fasta files">
-                    <!-- <validator type="empty_extra_files_path" /> -->
+                    <validator type="empty_extra_files_path" />
                 </param>
                 <expand macro="param_scaffold" />
                 <expand macro="param_method" />
             </when>
             <when value="ptorthocs">
                 <param name="input_ptorthocs" format="ptorthocs" type="data" label="Protein and coding sequences orthogroup fasta files">
-                    <!-- <validator type="empty_extra_files_path" /> -->
+                    <validator type="empty_extra_files_path" />
                 </param>
                 <expand macro="param_scaffold" />
                 <expand macro="param_method" />

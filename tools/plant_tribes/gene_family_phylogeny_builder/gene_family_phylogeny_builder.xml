@@ -75,34 +75,34 @@
             </param>
             <when value="ptalign">
                 <param name="input_ptalign" format="ptalign" type="data" label="Proteins orthogroup alignments">
-                    <!-- <validator type="empty_extra_files_path" /> -->
+                    <validator type="empty_extra_files_path" />
                 </param>
             </when>
             <when value="ptalignca">
                 <param name="input_ptalignca" format="ptalignca" type="data" label="Protein and coding sequences orthogroup alignments">
-                    <!-- <validator type="empty_extra_files_path" /> -->
+                    <validator type="empty_extra_files_path" />
                 </param>
                 <expand macro="param_sequence_type" />
             </when>
             <when value="ptalignfiltered">
                 <param name="input_ptalignfiltered" format="ptalignfiltered" type="data" label="Filtered proteins orthogroup alignments">
-                    <!-- <validator type="empty_extra_files_path" /> -->
+                    <validator type="empty_extra_files_path" />
                 </param>
             </when>
             <when value="ptalignfilteredca">
                 <param name="input_ptalignfilteredca" format="ptalignfilteredca" type="data" label="Filtered protein and coding sequences orthogroup alignments">
-                    <!-- <validator type="empty_extra_files_path" /> -->
+                    <validator type="empty_extra_files_path" />
                 </param>
                 <expand macro="param_sequence_type" />
             </when>
             <when value="ptaligntrimmed">
                 <param name="input_ptaligntrimmed" format="ptaligntrimmed" type="data" label="Trimmed proteins orthogroup alignments">
-                    <!-- <validator type="empty_extra_files_path" /> -->
+                    <validator type="empty_extra_files_path" />
                 </param>
             </when>
             <when value="ptaligntrimmedca">
                 <param name="input_ptaligntrimmedca" format="ptaligntrimmedca" type="data" label="Trimmed protein and coding sequences orthogroup alignments">
-                    <!-- <validator type="empty_extra_files_path" /> -->
+                    <validator type="empty_extra_files_path" />
                 </param>
                 <expand macro="param_sequence_type" />
             </when>
