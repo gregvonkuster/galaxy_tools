@@ -207,19 +207,19 @@ of multivariate normal distributions to identify significant duplication event(s
 
  * **Required**
 
-  - **Coding sequences for the first species** - coding sequence fasta file for for the first species either produced by the AssemblyPostProcessor tool or an external source selected from your history.
-  - **Protein sequences for the first species** - corresponding protein sequence fasta files for the first species either produced by the AssemblyPostProcessor tool or an external source selected from your history.
-  - **Type of sequence comparison** - pairwise sequence comparison to determine homolgous pairs.  This can be either paralogous for self-species comparison or orthologous for cross-species comparison.  Cross species comparision requires data selected for the second species.
+  - **Coding sequences for the first species** - coding sequence fasta file for the first species either produced by the AssemblyPostProcessor tool or from an external source selected from your history.
+  - **Protein sequences for the first species** - corresponding protein sequence fasta files for the first species either produced by the AssemblyPostProcessor tool or from an external source selected from your history.
+  - **Type of sequence comparison** - pairwise sequence comparison to determine homolgous pairs.  This can be either paralogous for self-species comparison or orthologous for cross-species comparison.  Cross-species comparision requires input for the second species.
 
  * **Optional**
 
-  - **Coding sequences for the second species** - coding sequence fasta file for for the second species either produced by the AssemblyPostProcessor tool or an external source selected from your history.  Required only for orthologous comparison.
-  - **Protein sequences for the second species** - corresponding protein sequence fasta files for the second species either produced by the AssemblyPostProcessor tool or an external source selected from your history.  Required only for orthologous comparison.
+  - **Coding sequences for the second species** - coding sequence fasta file for the second species either produced by the AssemblyPostProcessor tool or from an external source selected from your history.  This option is required only for orthologous comparison.
+  - **Protein sequences for the second species** - corresponding protein sequence fasta files for the second species either produced by the AssemblyPostProcessor tool or from an external source selected from your history.  This option is required only for orthologous comparison.
   - **Alignment coverage configuration** - select 'Yes' to set the minimum allowable alignment coverage length between homologous pairs.  PlantTribes uses global codon alignment match score to determine the pairwise alignment coverage.  By default, the match score is set to 0.5 if 'No' is selected.
 
     - **match score** - number of base matches in a pairwise sequence alignment divided by the length of shorter sequence.  Positions in the alignment corresponding to gaps are not considered.  The score is restricted to the range 0.3 - 1.0.
 
-  - **Species rates recalibration configuration** - select 'Yes' to recalibrate synonymous substitution rates of a species using a predetermined evolutionary rate.  Recalibration evolutionary rate can be determined from a species tree inferred from a collection of conserved single copy genes from taxa of interest as described in Cui et al., 2006.  Applies only to paralogous comparisons.
+  - **Species rates recalibration configuration** - select 'Yes' to recalibrate synonymous substitution rates of a species using a predetermined evolutionary rate.  Recalibration evolutionary rate can be determined from a species tree inferred from a collection of conserved single copy genes from taxa of interest as described in [7].  Rate recalibration applies only to paralogous comparisons.
 
     - **recalibration rate** - a predetermined evolutionary recalibration rate.
 
@@ -290,6 +290,16 @@ of multivariate normal distributions to identify significant duplication event(s
             volume = {4},
             number = {2},
             pages = {1-14},}
+        </citation>
+        <citation type="bibtex">
+            @article{Cui2006,
+            journal = {Genome Research},
+            author = {7. Cui L, Wall PK, Leebens-Mack JH, Lindsay BG, Soltis DE, Doyle JJ, Soltis PS, Carlson JE, Arumuganathan K, Barakat A, Albert VA},
+            title = {Widespread genome duplications throughout the history of flowering plants},
+            year = {2006},
+            volume = {16},
+            number = {6},
+            pages = {738-749},}
         </citation>
     </citations>
 </tool>
