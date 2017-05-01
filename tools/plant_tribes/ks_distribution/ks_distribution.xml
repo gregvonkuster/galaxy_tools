@@ -38,10 +38,8 @@ distribution of synonymous substitution (Ks) rates and fit the estimated signifi
 
 **Options**
 
- * **Required**
-
-  - **Synonymous substitution rates** - estimated synonymous substitution (Ks) rates output file produced by the KaKsAnalysis tool selected from your history.
-  - **Synonymous components** - estimated significant component(s) output file produced by the KaKsAnalysis tool selected from your history.
+ * **Synonymous substitution rates** - estimated synonymous substitution (Ks) rates output file produced by the KaKsAnalysis tool selected from your history.
+ * **Synonymous components** - estimated significant component(s) output file produced by the KaKsAnalysis tool selected from your history.
     </help>
     <citations>
         <expand macro="citation1" />
