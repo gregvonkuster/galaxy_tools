@@ -11,7 +11,7 @@ BUFF_SIZE = 1048576
 OUTPUT_DIR = 'geneFamilyClassification_dir'
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--input', dest='input', help="Input dataset")
+parser.add_argument('--input', dest='input', help='Input dataset')
 parser.add_argument('--scaffold', dest='scaffold', help='Orthogroups or gene families proteins scaffold')
 parser.add_argument('--method', dest='method', help='Protein clustering method')
 parser.add_argument('--classifier', dest='classifier', help='Protein classification method')
@@ -19,7 +19,7 @@ parser.add_argument('--config_dir', dest='config_dir', help='Directory containin
 parser.add_argument('--num_threads', dest='num_threads', type=int, help='Number of threads to use for execution')
 parser.add_argument('--super_orthogroups', dest='super_orthogroups', default=None, help='Super orthogroups clustering specification')
 parser.add_argument('--single_copy_custom', dest='single_copy_custom', default=None, help='Custom single copy orthogroup configuration')
-parser.add_argument('--single_copy_taxa', dest='single_copy_taxa', type=int, default=0, help='"Minimum single copy taxa required in orthogroup')
+parser.add_argument('--single_copy_taxa', dest='single_copy_taxa', type=int, default=0, help='Minimum single copy taxa required in orthogroup')
 parser.add_argument('--taxa_present', dest='taxa_present', type=int, default=0, help='Minimum taxa required in single copy orthogroup')
 parser.add_argument('--orthogroup_fasta', dest='orthogroup_fasta', default=None, help='Flag to create orthogroup sequences')
 parser.add_argument('--coding_sequences', dest='coding_sequences', default=None, help='Flag to create orthogroup coding sequences')

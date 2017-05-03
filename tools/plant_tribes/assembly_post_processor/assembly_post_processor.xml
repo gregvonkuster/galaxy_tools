@@ -7,7 +7,7 @@
     <expand macro="stdio" />
     <command>
         <![CDATA[
-            AssemblyPostProcessor
+            python $__tool_directory__/assembly_post_processor.py
             --transcripts '$input'
             --prediction_method $prediction_method_cond.prediction_method
             #if str($prediction_method_cond.prediction_method) == 'estscan':
@@ -22,15 +22,14 @@
                     --gap_trimming $target_gene_family_assembly_cond.gap_trimming
                 #end if
                 #if str($options_type.strand_specific) == 'yes':
-                    --strand_specific
+                    --strand_specific 'true'
                 #end if
                 #if str($options_type.dereplicate) == 'yes':
-                    --dereplicate
+                    --dereplicate 'true'
                 #end if
                 --min_length $options_type.min_length
             #end if
             --num_threads \${GALAXY_SLOTS:-4}
-            >/dev/null
         ]]>
     </command>
     <inputs>

@@ -3,9 +3,11 @@ import shutil
 import sys
 
 
-def check_execution_errors(rc, stderr):
+def check_execution_errors(rc, stderr, stdout=None):
     if rc != 0:
-        stop_err(stderr.read())
+        if stdout is None:
+            stop_err(stderr.read())
+        msg = '%s\n%s' % (stdout.read(), stderr.read())
 
 
 def move_directory_files(source_dir, destination_dir):

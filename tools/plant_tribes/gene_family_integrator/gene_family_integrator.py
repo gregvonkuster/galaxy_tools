@@ -8,12 +8,12 @@ import utils
 OUTPUT_DIR = 'integratedGeneFamilies_dir'
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--orthogroup_faa', dest='orthogroup_faa', help="Directory of input fasta datasets")
+parser.add_argument('--orthogroup_faa', dest='orthogroup_faa', help='Directory of input fasta datasets')
 parser.add_argument('--scaffold', dest='scaffold', help='Orthogroups or gene families proteins scaffold')
 parser.add_argument('--method', dest='method', help='Protein clustering method')
 parser.add_argument('--orthogroup_fna', dest='orthogroup_fna', default=None, help='Use correspong coding sequences')
-parser.add_argument('--output', dest='output', help="Output dataset")
-parser.add_argument('--output_dir', dest='output_dir', help="Output dataset file_path directory")
+parser.add_argument('--output', dest='output', help='Output dataset')
+parser.add_argument('--output_dir', dest='output_dir', help='Output dataset file_path directory')
 
 args = parser.parse_args()
 
