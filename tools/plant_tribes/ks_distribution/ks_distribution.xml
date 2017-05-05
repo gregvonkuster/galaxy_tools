@@ -4,8 +4,7 @@
         <import>macros.xml</import>
     </macros>
     <expand macro="requirements_ks_distribution" />
-    <expand macro="stdio" />
-    <command>
+    <command detect_errors="exit_code">
         <![CDATA[
             Rscript $__tool_directory__/ks_distribution.R
             -k '${kaks}'

@@ -4,8 +4,7 @@
         <import>macros.xml</import>
     </macros>
     <expand macro="requirements_kaks_analysis" />
-    <expand macro="stdio" />
-    <command>
+    <command detect_errors="exit_code">
         <![CDATA[
             #set output_dir = 'kaksAnalysis_dir'
             #set comparison = $comparison_cond.comparison

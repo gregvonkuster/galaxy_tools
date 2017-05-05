@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import argparse
-import subprocess
 
 import utils
 
@@ -41,9 +40,10 @@ if args.rooting_order is not None:
 cmd += ' --scaffold %s' % args.scaffold
 cmd += ' --sequence_type %s' % args.sequence_type
 cmd += ' --tree_inference %s' % args.tree_inference
+
 # Run the command.
-proc = subprocess.Popen(args=cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
-rc = proc.wait()
-utils.check_execution_errors(rc, proc.stderr)
+utils.run_command(cmd)
+
+# Handle outputs.
 utils.move_directory_files(OUTPUT_DIR, args.output_dir)
 utils.write_html_output(args.output, 'Phylogenetic trees', args.output_dir)

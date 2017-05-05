@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 import argparse
-import os
-import subprocess
 
 import utils
-
-OUTPUT_DIR = 'assemblyPostProcessor_dir'
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dereplicate', dest='dereplicate', default=None, help='Remove duplicate sequences')
@@ -43,8 +39,5 @@ if args.score_matrices is not None:
 if args.strand_specific is not None:
     cmd += ' --strand_specific'
 cmd += ' --transcripts %s' % args.transcripts
-
 # Run the command.
-proc = subprocess.Popen(args=cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
-rc = proc.wait()
-utils.check_execution_errors(rc, proc.stderr, proc.stdout)
+utils.run_command(cmd)

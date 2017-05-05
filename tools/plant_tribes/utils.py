@@ -1,13 +1,30 @@
 import os
 import shutil
+import subprocess
 import sys
 
+FSTDERR = 'stderr.txt'
+FSTDOUT = 'stdout.txt'
 
-def check_execution_errors(rc, stderr, stdout=None):
+
+def check_execution_errors(rc, fstderr, fstdout):
     if rc != 0:
-        if stdout is None:
-            stop_err(stderr.read())
-        msg = '%s\n%s' % (stdout.read(), stderr.read())
+        fh = open(fstdout, 'rb')
+        out_msg = fh.read()
+        fh.close()
+        fh = open(fstderr, 'rb')
+        err_msg = fh.read()
+        fh.close()
+        msg = '%s\n%s\n' % (str(out_msg), str(err_msg))
+        stop_err(msg)
+
+
+def get_response_buffers():
+    fstderr = os.path.join(os.getcwd(), FSTDERR)
+    fherr = open(fstderr, 'wb')
+    fstdout = os.path.join(os.getcwd(), FSTDOUT)
+    fhout = open(fstdout, 'wb')
+    return fherr, fhout
 
 
 def move_directory_files(source_dir, destination_dir):
@@ -20,9 +37,18 @@ def move_directory_files(source_dir, destination_dir):
         shutil.move(source_entry, destination_directory)
 
 
+def run_command(cmd):
+    fherr, fhout = get_response_buffers()
+    proc = subprocess.Popen(args=cmd, stderr=fherr, stdout=fhout, shell=True)
+    rc = proc.wait()
+    # Check results.
+    fherr.close()
+    fhout.close()
+    check_execution_errors(rc, fstderr, fstdout)
+
+
 def stop_err(msg):
-    sys.stderr.write(msg)
-    sys.exit(1)
+    sys.exit(msg)
 
 
 def write_html_output(output, title, dir):

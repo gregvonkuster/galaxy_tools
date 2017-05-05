@@ -2,7 +2,6 @@
 import argparse
 import os
 import shutil
-import subprocess
 
 import utils
 
@@ -34,7 +33,6 @@ parser.add_argument('--output_ptsco_dir', dest='output_ptsco_dir', default=None,
 
 args = parser.parse_args()
 
-
 # Build the command line.
 cmd = 'GeneFamilyClassifier'
 cmd += ' --proteins %s' % args.input
@@ -61,10 +59,10 @@ if args.coding_sequences is None:
 else:
     create_corresponding_coding_sequences = True
     cmd += ' --coding_sequences %s' % args.coding_sequences
+
 # Run the command.
-proc = subprocess.Popen(args=cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
-rc = proc.wait()
-utils.check_execution_errors(rc, proc.stderr)
+utils.run_command(cmd)
+
 # Handle hmmscan.log output.
 if args.classifier in ['hmmscan', 'both']:
     src_hmmscan_log = os.path.join(OUTPUT_DIR, 'hmmscan.log')
@@ -73,6 +71,7 @@ if args.classifier in ['hmmscan', 'both']:
             os.remove(src_hmmscan_log)
         else:
             shutil.move(src_hmmscan_log, args.hmmscan_log)
+
 # Handle orthogroups outputs.
 if create_ortho_sequences:
     if create_corresponding_coding_sequences:
@@ -86,6 +85,7 @@ if create_ortho_sequences:
     orthogroups_fasta_src_dir = os.path.join(OUTPUT_DIR, 'orthogroups_fasta')
     utils.move_directory_files(orthogroups_fasta_src_dir, orthogroups_fasta_dest_dir)
     utils.write_html_output(out_file, title, orthogroups_fasta_dest_dir)
+
 # Handle single copy orthogroup outputs.
 if args.output_ptsco is not None:
     single_copy_fasta_src_dir = os.path.join(OUTPUT_DIR, 'single_copy_fasta')

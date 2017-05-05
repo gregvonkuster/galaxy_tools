@@ -4,8 +4,7 @@
         <import>macros.xml</import>
     </macros>
     <expand macro="requirements_gene_family_classifier" />
-    <expand macro="stdio" />
-    <command>
+    <command detect_errors="exit_code">
         <![CDATA[
             #if str($options_type.options_type_selector) == 'advanced':
                 #set specify_super_orthogroups_cond = $options_type.specify_super_orthogroups_cond

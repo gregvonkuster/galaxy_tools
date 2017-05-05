@@ -36,14 +36,6 @@
             <requirement type="package" version="0.8">plant_tribes_gene_family_phylogeny_builder</requirement>
         </requirements>
     </xml>
-    <xml name="stdio">
-        <stdio>
-            <exit_code range="1:"/>
-            <exit_code range=":-1"/>
-            <regex match="Error:"/>
-            <regex match="Exception:"/>
-        </stdio>
-    </xml>
     <xml name="param_codon_alignments">
         <param name="codon_alignments" type="select" label="Codon alignments">
             <option value="yes" selected="true">Yes</option>

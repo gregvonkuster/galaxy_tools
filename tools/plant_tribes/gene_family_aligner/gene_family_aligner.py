@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import argparse
 import os
-import subprocess
 
 import utils
 
@@ -43,10 +42,11 @@ if args.remove_sequences > 0:
     cmd += ' --remove_sequences %4f' % args.remove_sequences
 if args.iterative_realignment > 0:
     cmd += ' --iterative_realignment %d' % args.iterative_realignment
+
 # Run the command.
-proc = subprocess.Popen(args=cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
-rc = proc.wait()
-utils.check_execution_errors(rc, proc.stderr)
+utils.run_command(cmd)
+
+# Handle outputs.
 if args.codon_alignments is None:
     src_output_dir = OUTPUT_DIR
 else:

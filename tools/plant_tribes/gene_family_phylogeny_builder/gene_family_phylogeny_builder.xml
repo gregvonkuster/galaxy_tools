@@ -4,8 +4,7 @@
         <import>macros.xml</import>
     </macros>
     <expand macro="requirements_gene_family_phylogeny_builder" />
-    <expand macro="stdio" />
-    <command>
+    <command detect_errors="exit_code">
         <![CDATA[
             #set input_format = $input_format_cond.input_format
             #set tree_inference = $tree_inference_cond.tree_inference

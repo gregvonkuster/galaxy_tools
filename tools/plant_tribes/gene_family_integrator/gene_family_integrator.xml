@@ -4,8 +4,7 @@
         <import>macros.xml</import>
     </macros>
     <expand macro="requirements_gene_family_integrator" />
-    <expand macro="stdio" />
-    <command>
+    <command detect_errors="exit_code">
         <![CDATA[
             #set input_format = $input_format_cond.input_format
             #set scaffold = $input_format_cond.scaffold
