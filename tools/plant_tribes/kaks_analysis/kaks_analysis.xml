@@ -202,15 +202,13 @@ of multivariate normal distributions to identify significant duplication event(s
 
 -----
 
-**Options**
-
- * **Required**
+ * **Required options**
 
   - **Coding sequences for the first species** - coding sequence fasta file for the first species either produced by the AssemblyPostProcessor tool or from an external source selected from your history.
   - **Protein sequences for the first species** - corresponding protein sequence fasta files for the first species either produced by the AssemblyPostProcessor tool or from an external source selected from your history.
-  - **Type of sequence comparison** - pairwise sequence comparison to determine homolgous pairs.  This can be either paralogous for self-species comparison or orthologous for cross-species comparison.  Cross-species comparision requires input for the second species.
+  - **Type of sequence comparison** - pairwise sequence comparison to determine homologous pairs.  This can be either paralogous for self-species comparison or orthologous for cross-species comparison.  Cross-species comparison requires input for the second species.
 
- * **Optional**
+ * **Other options**
 
   - **Coding sequences for the second species** - coding sequence fasta file for the second species either produced by the AssemblyPostProcessor tool or from an external source selected from your history.  This option is required only for orthologous comparison.
   - **Protein sequences for the second species** - corresponding protein sequence fasta files for the second species either produced by the AssemblyPostProcessor tool or from an external source selected from your history.  This option is required only for orthologous comparison.
@@ -227,11 +225,11 @@ of multivariate normal distributions to identify significant duplication event(s
 
     - **Number of components** - number of components to include in the normal mixture model.
 
-  - **Lower limit synonymous subsitution rates configuration** - select 'Yes' to set the minimum allowable synonymous substitution rate to use in the normal mixtures cluster analysis to exclude young paralogs that arise from normal gene births and deaths in a genome.
+  - **Lower limit synonymous substitution rates configuration** - select 'Yes' to set the minimum allowable synonymous substitution rate to use in the normal mixtures cluster analysis to exclude young paralogs that arise from normal gene births and deaths in a genome.
 
     - **Minimum rate** - minimum allowable synonymous substitution rate.
 
-  - **Upper limit synonymous subsitution rates configuration** - select 'Yes' to set the maximum allowable synonymous substitution rate to use in the normal mixtures cluster analysis to exclude likely ancient paralogs in a genome.
+  - **Upper limit synonymous substitution rates configuration** - select 'Yes' to set the maximum allowable synonymous substitution rate to use in the normal mixtures cluster analysis to exclude likely ancient paralogs in a genome.
 
     - **Maximum rate** - maximum allowable synonymous substitution rate.
 

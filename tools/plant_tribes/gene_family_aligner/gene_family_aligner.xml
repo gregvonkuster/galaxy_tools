@@ -136,7 +136,7 @@ of integrated orthologous gene family fasta files produced by the GeneFamilyInte
 
 **Required options**
 
- * **Classified orthogroup fasta files** - orthogroup fasta files produced by the GeneFamilyClassifier tool selected from your history.  Depending on how the GeneFamilyClassifier tool was exectured, these could either be proteins or proteins and their corresponding coding sequences.
+ * **Classified orthogroup fasta files** - orthogroup fasta files produced by the GeneFamilyClassifier tool selected from your history.  Depending on how the GeneFamilyClassifier tool was executed, these could either be proteins or proteins and their corresponding coding sequences.
 
  * **Multiple sequence alignment method** - method for estimating orthogroup multiple sequence alignments.  PlantTribes estimates alignments using either MAFFT's L-INS-i algorithm or the divide and conquer approach implemented in the PASTA pipeline for large alignments.
 
