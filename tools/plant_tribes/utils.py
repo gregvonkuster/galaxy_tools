@@ -24,7 +24,7 @@ def get_response_buffers():
     fherr = open(fstderr, 'wb')
     fstdout = os.path.join(os.getcwd(), FSTDOUT)
     fhout = open(fstdout, 'wb')
-    return fherr, fhout
+    return fstderr, fherr, fstdout, fhout
 
 
 def move_directory_files(source_dir, destination_dir):
@@ -38,7 +38,7 @@ def move_directory_files(source_dir, destination_dir):
 
 
 def run_command(cmd):
-    fherr, fhout = get_response_buffers()
+    fstderr, fherr, fstdout, fhout = get_response_buffers()
     proc = subprocess.Popen(args=cmd, stderr=fherr, stdout=fhout, shell=True)
     rc = proc.wait()
     # Check results.
