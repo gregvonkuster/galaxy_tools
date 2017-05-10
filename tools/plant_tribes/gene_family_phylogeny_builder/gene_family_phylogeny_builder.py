@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 import argparse
+import os
 
 import utils
 
-OUTPUT_DIR = 'phylogenomicsAnalysis_dir'
+OUTPUT_DIR = 'geneFamilyPhylogenies_dir'
 
 parser = argparse.ArgumentParser()
 
@@ -15,8 +16,10 @@ parser.add_argument('--method', dest='method', help='Protein clustering method')
 parser.add_argument('--min_orthogroup_size', dest='min_orthogroup_size', type=int, help='Minimum number of sequences in orthogroup alignments')
 parser.add_argument('--num_threads', dest='num_threads', type=int, help='Number of threads to use for execution')
 parser.add_argument('--orthogroup_aln', dest='orthogroup_aln', help='Input dataset files_path')
-parser.add_argument('--output', dest='output', help='Output for phylogenetic trees')
-parser.add_argument('--output_dir', dest='output_dir', help='output.files_path')
+parser.add_argument('--output_phylip', dest='output_phylip', default=None, help='Output for orthogroup phylip multiple sequence alignments')
+parser.add_argument('--output_phylip_dir', dest='output_phylip_dir', default=None, help='output_phylip.files_path')
+parser.add_argument('--output_tree', dest='output_tree', help='Output for phylogenetic trees')
+parser.add_argument('--output_tree_dir', dest='output_tree_dir', help='output_tree.files_path')
 parser.add_argument('--rooting_order', dest='rooting_order', default=None, help='Rooting order configuration for rooting trees')
 parser.add_argument('--scaffold', dest='scaffold', help='Orthogroups or gene families proteins scaffold')
 parser.add_argument('--sequence_type', dest='sequence_type', help='Sequence type used in the phylogenetic inference')
@@ -45,5 +48,10 @@ cmd += ' --tree_inference %s' % args.tree_inference
 utils.run_command(cmd)
 
 # Handle outputs.
-utils.move_directory_files(OUTPUT_DIR, args.output_dir)
-utils.write_html_output(args.output, 'Phylogenetic trees', args.output_dir)
+if args.output_phylip is not None and args.output_phylip_dir is not None:
+    src_output_dir = os.path.join(OUTPUT_DIR, 'phylip_aln')
+    utils.move_directory_files(src_output_dir, args.output_phylip_dir)
+    utils.write_html_output(args.output_phylip, 'Orthogroup phylip multiple sequence alignments', args.output_phylip_dir)
+src_output_dir = os.path.join(OUTPUT_DIR, 'orthogroups_tree')
+utils.move_directory_files(src_output_dir, args.output_tree_dir)
+utils.write_html_output(args.output_tree, 'Phylogenetic trees', args.output_tree_dir)
