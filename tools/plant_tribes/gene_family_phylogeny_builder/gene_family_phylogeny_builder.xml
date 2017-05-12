@@ -54,14 +54,14 @@
                     ## configuration will be used if the --rooting_order flag is missing.
                 #end if
                 --bootstrap_replicates $bootstrap_replicates
-                --output_phylip '$output_phylip'
-                --output_phylip_dir '$output_phylip.files_path'
+                ##--output_phylip '$output_phylip'
+                ##--output_phylip_dir '$output_phylip.files_path'
             #end if
             --min_orthogroup_size $min_orthogroup_size
             --max_orthogroup_size $max_orthogroup_size
             --num_threads \${GALAXY_SLOTS:-4}
-            --output_tree '$output_tree'
-            --output_tree_dir '$output_tree.files_path'
+            ##--output_tree '$output_tree'
+            ##--output_tree_dir '$output_tree.files_path'
         ]]>
     </command>
     <inputs>
@@ -134,16 +134,16 @@
         <param name="min_orthogroup_size" type="integer" value="4" min="0" label="Minimum orthogroup size" />
     </inputs>
     <outputs>
-        <data name="output_phylip" format="ptphylip" label="Gene family orthogroup phylip multiple sequence alignments on ${on_string}">
-            <filter>tree_inference_cond['tree_inference'] == 'raxml'</filter>
-        </data>
-        <data name="output_tree" format="pttree" label="Gene family phylogenetic trees on ${on_string}" />
+        <collection name="phylip" type="list">
+            <discover_datasets pattern="__name__" directory="geneFamilyPhylogenies_dir/phylip_aln" format="phylip" />
+        </collection>
+        <collection name="tree" type="list">
+            <discover_datasets pattern="__name__" directory="geneFamilyPhylogenies_dir/orthogroups_tree" format="nhx" />
+        </collection>
     </outputs>
     <tests>
-        <!-- Test framework does not currently support inputs whose associated extra_files_path contains files to be analyzed.
         <test>
         </test>
-        -->
     </tests>
     <help>
 This tool is one of the PlantTribes collection of automated modular analysis pipelines for comparative and evolutionary
