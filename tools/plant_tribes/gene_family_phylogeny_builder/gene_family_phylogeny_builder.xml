@@ -128,8 +128,8 @@
             </when>
             <when value="fasttree" />
         </conditional>
-        <param name="max_orthogroup_size" type="integer" value="100" min="0" label="Maximum orthogroup size" />
-        <param name="min_orthogroup_size" type="integer" value="4" min="0" label="Minimum orthogroup size" />
+        <param name="max_orthogroup_size" type="integer" value="100" min="4" label="Maximum orthogroup size" />
+        <param name="min_orthogroup_size" type="integer" value="4" min="4" label="Minimum orthogroup size" />
     </inputs>
     <outputs>
         <data name="output_phylip" format="ptphylip" label="GeneFamilyPhylogenyBuilder orthogroup phylip multiple sequence alignments on ${on_string}">
