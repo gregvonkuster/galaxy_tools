@@ -100,18 +100,17 @@
         </test>
         <test>
             <param name="input" value="assembly.fasta" ftype="fasta" />
-            <param name="prediction_method" value="transdecoder" />
+            <param name="prediction_method" value="estscan" />
+            <param name="score_matrices" value="arabidopsis_thaliana.smat" ftype="smat"/>
             <param name="options_type_selector" value="advanced" />
-            <param name="gap_trimming" value="0.1" />
             <param name="dereplicate" value="yes" />
-            <param name="min_length" value="200" />
             <output_collection name="transcripts" type="list">
-                <element name="transcripts.cds" file="transcripts.cds" ftype="fasta"/>
-                <element name="transcripts.cleaned.cds" file="transcripts.cleaned.cds" ftype="fasta"/>
+                <element name="transcripts.cds" file="transcripts2.cds" ftype="fasta"/>
+                <element name="transcripts.cleaned.cds" file="transcripts.cleaned.nr.cds" ftype="fasta"/>
                 <element name="transcripts.cleaned.nr.cds" file="transcripts.cleaned.nr.cds" ftype="fasta"/>
                 <element name="transcripts.cleaned.nr.pep" file="transcripts.cleaned.nr.pep" ftype="fasta"/>
-                <element name="transcripts.cleaned.pep" file="transcripts.cleaned.pep" ftype="fasta"/>
-                <element name="transcripts.pep" file="transcripts.pep" ftype="fasta"/>
+                <element name="transcripts.cleaned.pep" file="transcripts.cleaned.nr.pep" ftype="fasta"/>
+                <element name="transcripts.pep" file="transcripts2.pep" ftype="fasta"/>
             </output_collection>
         </test>
     </tests>
