@@ -56,7 +56,7 @@ def stop_err(msg):
 
 def write_html_output(output, title, dir):
     with open(output, 'w') as fh:
-        fh.write('<html><head><h3>%s</h3></head>\n' % title)
+        fh.write('<html><head><h3>%s: %d files</h3></head>\n' % (title, len(os.listdir(dir))))
         fh.write('<body><p/><table cellpadding="2">\n')
         fh.write('<tr><th>Size</th><th>Name</th></tr>\n')
         for index, fname in enumerate(sorted(os.listdir(dir))):
