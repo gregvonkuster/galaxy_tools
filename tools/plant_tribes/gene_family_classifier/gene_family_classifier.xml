@@ -229,19 +229,20 @@
         </collection>
     </outputs>
     <tests>
-        <!-- Need to figure out how to test using scaffolds data.
         <test>
             <param name="input" value="transcripts.cleaned.nr.pep" ftype="fasta" />
-            <param name="scaffold" value="plant_tribes/scaffolds/22Gv1.1"/>
+            <param name="scaffold" value="22Gv1.1"/>
             <param name="method" value="orthomcl"/>
-            <param name="classifier" value="blastp"/>
+            <param name="classifier" value="both"/>
             <output_collection name="orthos" type="list">
                 <element name="proteins.blastp.22Gv1.1" file="proteins.blastp.22Gv1.1" ftype="tabular" compare="contains"/>
                 <element name="proteins.blastp.22Gv1.1.bestOrthos" file="proteins.blastp.22Gv1.1.bestOrthos" ftype="tabular"/>
-                <element name="proteins.blastp.22Gv1.1.bestOrthos.summary" file="proteins.blastp.22Gv1.1.bestOrthos.summary" ftype="tabular"/>
+                <element name="proteins.both.22Gv1.1.bestOrthos" file="proteins.both.22Gv1.1.bestOrthos" ftype="tabular" compare="contains"/>
+                <element name="proteins.both.22Gv1.1.bestOrthos.summary" file="proteins.both.22Gv1.1.bestOrthos.summary" ftype="tabular" compare="contains"/>
+                <element name="proteins.hmmscan.22Gv1.1" file="proteins.hmmscan.22Gv1.1ry" ftype="tabular" compare="contains"/>
+                <element name="proteins.hmmscan.22Gv1.1.bestOrthos" file="proteins.hmmscan.22Gv1.1.bestOrthos" ftype="tabular"/>
             </output_collection>
         </test>
-        -->
     </tests>
     <help>
 This tool is one of the PlantTribes collection of automated modular analysis pipelines for comparative and evolutionary
