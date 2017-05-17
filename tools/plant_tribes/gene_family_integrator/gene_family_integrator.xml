@@ -63,10 +63,15 @@
         </data>
     </outputs>
     <tests>
-        <!-- Test framework does not currently support inputs whose associated extra_files_path contains files to be analyzed.
         <test>
+            <param name="input_format" value="ptorthocs"/>
+            <param name="input_ptorthocs" value="input.ptorthocs" ftype="ptorthocs"/>
+            <param name="scaffold" value="22Gv1.1"/>
+            <param name="method" value="orthomcl"/>
+            <param name="classifier" value="both"/>
+            <param name="orthogroup_fna" value="yes"/>
+            <output name="output_ptorthocs" file="output.ptorthocs" ftype="ptorthocs"/>
         </test>
-        -->
     </tests>
     <help>
 This tool is one of the PlantTribes collection of automated modular analysis pipelines for comparative and evolutionary
