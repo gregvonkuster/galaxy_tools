@@ -230,10 +230,14 @@
     </outputs>
     <tests>
         <test>
-            <param name="input" value="transcripts.cleaned.nr.pep" ftype="fasta" />
+            <param name="input" value="transcripts.cleaned.nr.pep" ftype="fasta"/>
             <param name="scaffold" value="22Gv1.1"/>
             <param name="method" value="orthomcl"/>
             <param name="classifier" value="both"/>
+            <param name="options_type_selector" value="advanced"/>
+            <param name="create_orthogroup" value="yes"/>
+            <param name="create_corresponding_coding_sequences" value="yes"/>
+            <output name="output_ptorthocs" file="output.ptorthocs" ftype="ptorthocs"/>
             <output_collection name="orthos" type="list">
                 <element name="proteins.blastp.22Gv1.1" file="proteins.blastp.22Gv1.1" ftype="tabular" compare="contains"/>
                 <element name="proteins.blastp.22Gv1.1.bestOrthos" file="proteins.blastp.22Gv1.1.bestOrthos" ftype="tabular" compare="contains"/>
