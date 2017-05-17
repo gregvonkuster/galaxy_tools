@@ -236,11 +236,11 @@
             <param name="classifier" value="both"/>
             <output_collection name="orthos" type="list">
                 <element name="proteins.blastp.22Gv1.1" file="proteins.blastp.22Gv1.1" ftype="tabular" compare="contains"/>
-                <element name="proteins.blastp.22Gv1.1.bestOrthos" file="proteins.blastp.22Gv1.1.bestOrthos" ftype="tabular"/>
+                <element name="proteins.blastp.22Gv1.1.bestOrthos" file="proteins.blastp.22Gv1.1.bestOrthos" ftype="tabular" compare="contains"/>
                 <element name="proteins.both.22Gv1.1.bestOrthos" file="proteins.both.22Gv1.1.bestOrthos" ftype="tabular" compare="contains"/>
                 <element name="proteins.both.22Gv1.1.bestOrthos.summary" file="proteins.both.22Gv1.1.bestOrthos.summary" ftype="tabular" compare="contains"/>
-                <element name="proteins.hmmscan.22Gv1.1" file="proteins.hmmscan.22Gv1.1ry" ftype="tabular" compare="contains"/>
-                <element name="proteins.hmmscan.22Gv1.1.bestOrthos" file="proteins.hmmscan.22Gv1.1.bestOrthos" ftype="tabular"/>
+                <element name="proteins.hmmscan.22Gv1.1" file="proteins.hmmscan.22Gv1.1" ftype="tabular" compare="contains"/>
+                <element name="proteins.hmmscan.22Gv1.1.bestOrthos" file="proteins.hmmscan.22Gv1.1.bestOrthos" ftype="tabular" compare="contains"/>
             </output_collection>
         </test>
     </tests>
