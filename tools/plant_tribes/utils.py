@@ -56,18 +56,21 @@ def stop_err(msg):
 
 def write_html_output(output, title, dir):
     with open(output, 'w') as fh:
-        fh.write('<html><head><h3>%s: %d files</h3></head>\n' % (title, len(os.listdir(dir))))
+        dir_items = sorted(os.listdir(dir))
+        # Directories can only contain either files or directories, but not both.
+        item_path = os.path.join(dir, dir_items[0])
+        if os.path.isdir(item_path):
+            header = 'Directories'
+        else:
+            header = 'Datasets'
+        fh.write('<html><head><h3>%s: %d items</h3></head>\n' % (title, len(dir_items)))
         fh.write('<body><p/><table cellpadding="2">\n')
-        fh.write('<tr><th>Size</th><th>Name</th></tr>\n')
-        for index, fname in enumerate(sorted(os.listdir(dir))):
+        fh.write('<tr><th>%s</th></tr>\n' % header)
+        for index, fname in enumerate(dir_items):
             if index % 2 == 0:
                 bgcolor = '#D8D8D8'
             else:
                 bgcolor = '#FFFFFF'
-            try:
-                size = str(os.path.getsize(os.path.join(dir, fname)))
-            except:
-                size = 'unknown'
             link = '<a href="%s" type="text/plain">%s</a>\n' % (fname, fname)
-            fh.write('<tr bgcolor="%s"><td>%s</td><td>%s</td></tr>\n' % (bgcolor, size, link))
+            fh.write('<tr bgcolor="%s"><td>%s</td></tr>\n' % (bgcolor, link))
         fh.write('</table></body></html>\n')

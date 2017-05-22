@@ -13,9 +13,11 @@
                 --score_matrices '$score_matrices'
             #end if
             #if str($options_type.options_type_selector) == 'advanced':
-                #if str($options_type.target_gene_family_assembly_cond.target_gene_family_assembly) == 'yes':
-                    #set target_gene_family_assembly_cond = $options_type.target_gene_family_assembly_cond
+                #set target_gene_family_assembly_cond = $options_type.target_gene_family_assembly_cond
+                #if str($target_gene_family_assembly_cond.target_gene_family_assembly) == 'yes':
                     --gene_family_search '$target_gene_family_assembly_cond.orthogroups'
+                    --output_pttgf $output_pttgf
+                    --output_pttgf_dir $output_pttgf.files_path
                     --scaffold '$target_gene_family_assembly_cond.scaffold.fields.path'
                     --method '$target_gene_family_assembly_cond.method'
                     --gap_trimming $target_gene_family_assembly_cond.gap_trimming
@@ -83,6 +85,9 @@
         </conditional>
     </inputs>
     <outputs>
+        <data name="output_pttgf" format="pttgf" label="${tool.name} (targeted gene families) on ${on_string}">
+            <filter>options_type['options_type_selector'] == 'advanced' and options_type['target_gene_family_assembly_cond']['target_gene_family_assembly'] == 'yes'</filter>
+        </data>
         <collection name="transcripts" type="list">
             <discover_datasets pattern="__name__" directory="assemblyPostProcessing_dir" visible="true" ext="fasta" />
         </collection>

@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 import argparse
+import os
 
 import utils
+
+OUTPUT_DIR = 'assemblyPostProcessing_dir'
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dereplicate', dest='dereplicate', default=None, help='Remove duplicate sequences')
@@ -10,6 +13,8 @@ parser.add_argument('--gene_family_search', dest='gene_family_search', default=N
 parser.add_argument('--method', dest='method', default=None, help='Protein clustering method')
 parser.add_argument('--min_length', dest='min_length', type=int, default=0, help='Minimum sequence length')
 parser.add_argument('--num_threads', dest='num_threads', type=int, help='Number of processors')
+parser.add_argument('--output_pttgf', dest='output_pttgf', default=None, help='Primary targeted gene families dataset')
+parser.add_argument('--output_pttgf_dir', dest='output_pttgf_dir', default=None, help='Directory hierarchy of targeted gene family datasets')
 parser.add_argument('--prediction_method', dest='prediction_method', help='Coding regions prediction method')
 parser.add_argument('--scaffold', dest='scaffold', default=None, help='Gene family scaffold')
 parser.add_argument('--score_matrices', dest='score_matrices', default=None, help='Scores matrices')
@@ -41,3 +46,9 @@ if args.strand_specific is not None:
 cmd += ' --transcripts %s' % args.transcripts
 # Run the command.
 utils.run_command(cmd)
+
+# Handle outputs.
+if args.output_pttgf is not None and args.output_pttgf_dir is not None:
+    src_output_dir = os.path.join(OUTPUT_DIR, 'targeted_gene_families')
+    utils.move_directory_files(src_output_dir, args.output_pttgf_dir)
+    utils.write_html_output(args.output_pttgf, 'Targeted gene families', args.output_pttgf_dir)
