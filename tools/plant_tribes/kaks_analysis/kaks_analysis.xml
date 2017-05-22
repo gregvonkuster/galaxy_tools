@@ -166,26 +166,26 @@
         </param>
     </inputs>
     <outputs>
-        <data name="output_species1_fna" format="fasta" label="KaKs analysis (coding sequences) on ${on_string}" />
-        <data name="output_species1_faa" format="fasta" label="KaKs analysis (amino acids) on ${on_string}" />
-        <data name="output_species2_fna" format="fasta" label="KaKs analysis (coding sequences) on ${on_string}">
+        <data name="output_species1_fna" format="fasta" label="${tool.name} (coding sequences) on ${on_string}" />
+        <data name="output_species1_faa" format="fasta" label="${tool.name} (amino acids) on ${on_string}" />
+        <data name="output_species2_fna" format="fasta" label="${tool.name} (coding sequences) on ${on_string}">
             <filter>comparison_cond['comparison'] == 'orthologs'</filter>
         </data>
-        <data name="output_species2_faa" format="fasta" label="KaKs analysis (amino acids) on ${on_string}">
+        <data name="output_species2_faa" format="fasta" label="${tool.name} (amino acids) on ${on_string}">
             <filter>comparison_cond['comparison'] == 'orthologs'</filter>
         </data>
-        <data name="output_species1_paralog" format="tabular" label="KaKs analysis (blastn results) on ${on_string}">
+        <data name="output_species1_paralog" format="tabular" label="${tool.name} (blastn results) on ${on_string}">
             <filter>comparison_cond['comparison'] == 'paralogs'</filter>
         </data>
-        <data name="output_species1_ortholog" format="tabular" label="KaKs analysis (blastn results) on ${on_string}">
+        <data name="output_species1_ortholog" format="tabular" label="${tool.name} (blastn results) on ${on_string}">
             <filter>comparison_cond['comparison'] == 'orthologs'</filter>
         </data>
-        <data name="output_species2_ortholog" format="tabular" label="KaKs analysis (blastn results) on ${on_string}">
+        <data name="output_species2_ortholog" format="tabular" label="${tool.name} (blastn results) on ${on_string}">
             <filter>comparison_cond['comparison'] == 'orthologs'</filter>
         </data>
-        <data name="output_rbhb" format="tabular" label="KaKs analysis (paralogous pairs) on ${on_string}" />
-        <data name="output_kaks" format="tabular" label="KaKs analysis on ${on_string}" />
-        <data name="output_components" format="tabular" label="KaKs analysis (significant components in the ks distribution) on ${on_string}">
+        <data name="output_rbhb" format="tabular" label="${tool.name} (paralogous pairs) on ${on_string}" />
+        <data name="output_kaks" format="tabular" label="${tool.name} on ${on_string}" />
+        <data name="output_components" format="tabular" label="${tool.name} (significant components in the ks distribution) on ${on_string}">
             <filter>options_type['options_type_selector'] == 'advanced' and options_type['fit_components_cond']['fit_components'] == 'yes'</filter>
         </data>
     </outputs>

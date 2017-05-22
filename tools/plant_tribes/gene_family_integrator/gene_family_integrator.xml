@@ -55,10 +55,10 @@
         </conditional>
     </inputs>
     <outputs>
-        <data name="output_ptortho" format="ptortho" label="Integrated gene family clusters on ${on_string}">
+        <data name="output_ptortho" format="ptortho" label="${tool.name} (integrated gene family clusters) on ${on_string}">
             <filter>input_format_cond['input_format'] == 'ptortho' or (input_format_cond['input_format'] == 'ptorthocs' and input_format_cond['orthogroup_fna'] == 'no')</filter>
         </data>
-        <data name="output_ptorthocs" format="ptorthocs" label="Integrated gene family clusters and corresponding coding sequences on ${on_string}">
+        <data name="output_ptorthocs" format="ptorthocs" label="${tool.name} (integrated gene family clusters and corresponding coding sequences) on ${on_string}">
             <filter>input_format_cond['input_format'] == 'ptorthocs' and input_format_cond['orthogroup_fna'] == 'yes'</filter>
         </data>
     </outputs>

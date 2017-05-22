@@ -145,13 +145,13 @@
         </conditional>
     </inputs>
     <outputs>
-        <collection name="tree" type="list" label="GeneFamilyPhylogenyBuilder phylogenetic trees (dataset collection) on ${on_string}">
+        <collection name="tree" type="list" label="${tool.name} (phylogenetic trees, dataset collection) on ${on_string}">
             <discover_datasets pattern="__name__" directory="geneFamilyPhylogenies_dir/orthogroups_tree" format="nhx" />
         </collection>
-        <data name="output_tree" format="pttree" label="GeneFamilyPhylogenyBuilder phylogenetic trees (directory) on ${on_string}">
+        <data name="output_tree" format="pttree" label="${tool.name} (phylogenetic trees, directory) on ${on_string}">
             <filter>output_pttree_dir_cond['output_pttree_dir'] == 'yes'</filter>
         </data>
-        <data name="output_phylip" format="ptphylip" label="GeneFamilyPhylogenyBuilder orthogroup phylip multiple sequence alignments on ${on_string}">
+        <data name="output_phylip" format="ptphylip" label="${tool.name} (orthogroup phylip multiple sequence alignments) on ${on_string}">
             <filter>tree_inference_cond['tree_inference'] == 'raxml'</filter>
         </data>
     </outputs>

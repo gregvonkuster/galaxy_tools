@@ -208,16 +208,16 @@
         </conditional>
     </inputs>
     <outputs>
-        <data name="hmmscan_log" format="txt" label="Protein classification hmmscan.log on ${on_string}">
+        <data name="hmmscan_log" format="txt" label="${tool.name} (hmmscan.log) on ${on_string}">
             <filter>save_hmmscan_log_cond['classifier'] in ['hmmscan', 'both'] and save_hmmscan_log_cond['save_hmmscan_log'] == 'yes'</filter>
         </data>
-        <data name="output_ptortho" format="ptortho" label="Gene family clusters on ${on_string}">
+        <data name="output_ptortho" format="ptortho" label="${tool.name} (gene family clusters) on ${on_string}">
             <filter>options_type['options_type_selector'] == 'advanced' and options_type['create_orthogroup_cond']['create_orthogroup'] == 'yes' and options_type['create_orthogroup_cond']['create_corresponding_coding_sequences_cond']['create_corresponding_coding_sequences'] == 'no'</filter>
         </data>
-        <data name="output_ptorthocs" format="ptorthocs" label="Gene family clusters and corresponding coding sequences on ${on_string}">
+        <data name="output_ptorthocs" format="ptorthocs" label="${tool.name} (gene family clusters and corresponding coding sequences) on ${on_string}">
             <filter>options_type['options_type_selector'] == 'advanced' and options_type['create_orthogroup_cond']['create_orthogroup'] == 'yes' and options_type['create_orthogroup_cond']['create_corresponding_coding_sequences_cond']['create_corresponding_coding_sequences'] == 'yes'</filter>
         </data>
-        <data name="output_ptsco" format="tabular" label="Single copy orthogroups on ${on_string}">
+        <data name="output_ptsco" format="tabular" label="${tool.name} (single copy orthogroups) on ${on_string}">
             <filter>options_type['options_type_selector'] == 'advanced' and options_type['create_orthogroup_cond']['create_orthogroup'] == 'yes' and options_type['specify_single_copy_cond']['specify_single_copy'] == 'yes'</filter>
             <change_format>
                 <when input="options_type.create_orthogroup_cond.create_corresponding_coding_sequences_cond.create_corresponding_coding_sequences" value="no" format="ptortho" />
