@@ -94,8 +94,8 @@
     </outputs>
     <tests>
         <test>
-            <param name="input" value="assembly.fasta" ftype="fasta" />
-            <param name="prediction_method" value="transdecoder" />
+            <param name="input" value="assembly.fasta" ftype="fasta"/>
+            <param name="prediction_method" value="transdecoder"/>
             <output_collection name="transcripts" type="list">
                 <element name="transcripts.cds" file="transcripts.cds" ftype="fasta"/>
                 <element name="transcripts.cleaned.cds" file="transcripts.cleaned.cds" ftype="fasta"/>
@@ -104,11 +104,11 @@
             </output_collection>
         </test>
         <test>
-            <param name="input" value="assembly.fasta" ftype="fasta" />
-            <param name="prediction_method" value="estscan" />
+            <param name="input" value="assembly.fasta" ftype="fasta"/>
+            <param name="prediction_method" value="estscan"/>
             <param name="score_matrices" value="arabidopsis_thaliana.smat" ftype="smat"/>
-            <param name="options_type_selector" value="advanced" />
-            <param name="dereplicate" value="yes" />
+            <param name="options_type_selector" value="advanced"/>
+            <param name="dereplicate" value="yes"/>
             <output_collection name="transcripts" type="list">
                 <element name="transcripts.cds" file="transcripts2.cds" ftype="fasta"/>
                 <element name="transcripts.cleaned.cds" file="transcripts.cleaned.nr.cds" ftype="fasta"/>
@@ -116,6 +116,24 @@
                 <element name="transcripts.cleaned.nr.pep" file="transcripts.cleaned.nr.pep" ftype="fasta"/>
                 <element name="transcripts.cleaned.pep" file="transcripts.cleaned.nr.pep" ftype="fasta"/>
                 <element name="transcripts.pep" file="transcripts2.pep" ftype="fasta"/>
+            </output_collection>
+        </test>
+        <test>
+            <param name="input" value="assembly_tgf.fasta" ftype="fasta"/>
+            <param name="prediction_method" value="transdecoder"/>
+            <param name="options_type_selector" value="advanced"/>
+            <param name="target_gene_family_assembly" value="yes"/>
+            <param name="scaffold" value="22Gv1.1"/>
+            <param name="method" value="orthomcl"/>
+            <param name="dereplicate" value="yes"/>
+            <output name="output_pttgf" file="output.pttgf" ftype="pttgf"/>
+            <output_collection name="transcripts" type="list">
+                <element name="transcripts.cds" file="transcripts_tgf.cds" ftype="fasta"/>
+                <element name="transcripts.cleaned.cds" file="transcripts.cleaned_tgf.cds" ftype="fasta"/>
+                <element name="transcripts.cleaned.nr.cds" file="transcripts_tgf.cleaned.nr.cds" ftype="fasta"/>
+                <element name="transcripts.cleaned.nr.pep" file="transcripts_tgf.cleaned.nr.pep" ftype="fasta"/>
+                <element name="transcripts.cleaned.pep" file="transcripts.cleaned_tgf.pep" ftype="fasta"/>
+                <element name="transcripts.pep" file="transcripts_tgf.pep" ftype="fasta"/>
             </output_collection>
         </test>
     </tests>
