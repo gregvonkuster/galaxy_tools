@@ -57,15 +57,19 @@ def stop_err(msg):
 def write_html_output(output, title, dir):
     with open(output, 'w') as fh:
         dir_items = sorted(os.listdir(dir))
-        # Directories can only contain either files or directories, but not both.
-        item_path = os.path.join(dir, dir_items[0])
-        if os.path.isdir(item_path):
-            header = 'Directories'
+        # Directories can only contain either files or directories,
+        # but not both.
+        if len(dir_items) > 0:
+            item_path = os.path.join(dir, dir_items[0])
+            if os.path.isdir(item_path):
+                header = 'Directories'
+            else:
+                header = 'Datasets'
         else:
-            header = 'Datasets'
+            header = ''
         fh.write('<html><head><h3>%s: %d items</h3></head>\n' % (title, len(dir_items)))
         fh.write('<body><p/><table cellpadding="2">\n')
-        fh.write('<tr><th>%s</th></tr>\n' % header)
+        fh.write('<tr><b>%s</th></b>\n' % header)
         for index, fname in enumerate(dir_items):
             if index % 2 == 0:
                 bgcolor = '#D8D8D8'
