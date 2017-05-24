@@ -27,10 +27,16 @@
                 #end if
                 #if str($options_type.dereplicate) == 'yes':
                     --dereplicate 'true'
+                    --output_cleaned_nr_cds '$output_cleaned_nr_cds'
+                    --output_cleaned_nr_pep '$output_cleaned_nr_pep'
                 #end if
                 --min_length $options_type.min_length
             #end if
             --num_threads \${GALAXY_SLOTS:-4}
+            --output_cds '$output_cds'
+            --output_cleaned_cds '$output_cleaned_cds'
+            --output_cleaned_pep '$output_cleaned_pep'
+            --output_pep '$output_pep'
         ]]>
     </command>
     <inputs>
@@ -88,20 +94,25 @@
         <data name="output_pttgf" format="pttgf" label="${tool.name} (targeted gene families) on ${on_string}">
             <filter>options_type['options_type_selector'] == 'advanced' and options_type['target_gene_family_assembly_cond']['target_gene_family_assembly'] == 'yes'</filter>
         </data>
-        <collection name="transcripts" type="list">
-            <discover_datasets pattern="__name__" directory="assemblyPostProcessing_dir" visible="true" ext="fasta" />
-        </collection>
+        <data name="output_cds" format="fasta" label="${tool.name} on ${on_string} (transcripts.cds)"/>
+        <data name="output_cleaned_cds" format="fasta" label="${tool.name} on ${on_string} (transcripts.cleaned.cds)"/>
+        <data name="output_cleaned_nr_cds" format="fasta" label="${tool.name} on ${on_string} (transcripts.cleaned.nr.cds)">
+            <filter>options_type['options_type_selector'] == 'advanced' and options_type['dereplicate'] == 'yes'</filter>
+        </data>
+        <data name="output_cleaned_nr_pep" format="fasta" label="${tool.name} on ${on_string} (transcripts.cleaned.nr.pep)">
+            <filter>options_type['options_type_selector'] == 'advanced' and options_type['dereplicate'] == 'yes'</filter>
+        </data>
+        <data name="output_cleaned_pep" format="fasta" label="${tool.name} on ${on_string} (transcripts.cleaned.pep)"/>
+        <data name="output_pep" format="fasta" label="${tool.name} on ${on_string} (transcripts.pep)"/>
     </outputs>
     <tests>
         <test>
             <param name="input" value="assembly.fasta" ftype="fasta"/>
             <param name="prediction_method" value="transdecoder"/>
-            <output_collection name="transcripts" type="list">
-                <element name="transcripts.cds" file="transcripts.cds" ftype="fasta"/>
-                <element name="transcripts.cleaned.cds" file="transcripts.cleaned.cds" ftype="fasta"/>
-                <element name="transcripts.cleaned.pep" file="transcripts.cleaned.pep" ftype="fasta"/>
-                <element name="transcripts.pep" file="transcripts.pep" ftype="fasta"/>
-            </output_collection>
+            <output name="output_cds" file="transcripts.cds" ftype="fasta"/>
+            <output name="output_cleaned_cds" file="transcripts.cleaned.cds" ftype="fasta"/>
+            <output name="output_cleaned._ep" file="transcripts.cleaned.pep" ftype="fasta"/>
+            <output name="output_pep" file="transcripts.pep" ftype="fasta"/>
         </test>
         <test>
             <param name="input" value="assembly.fasta" ftype="fasta"/>
@@ -109,14 +120,12 @@
             <param name="score_matrices" value="arabidopsis_thaliana.smat" ftype="smat"/>
             <param name="options_type_selector" value="advanced"/>
             <param name="dereplicate" value="yes"/>
-            <output_collection name="transcripts" type="list">
-                <element name="transcripts.cds" file="transcripts2.cds" ftype="fasta"/>
-                <element name="transcripts.cleaned.cds" file="transcripts.cleaned.nr.cds" ftype="fasta"/>
-                <element name="transcripts.cleaned.nr.cds" file="transcripts.cleaned.nr.cds" ftype="fasta"/>
-                <element name="transcripts.cleaned.nr.pep" file="transcripts.cleaned.nr.pep" ftype="fasta"/>
-                <element name="transcripts.cleaned.pep" file="transcripts.cleaned.nr.pep" ftype="fasta"/>
-                <element name="transcripts.pep" file="transcripts2.pep" ftype="fasta"/>
-            </output_collection>
+            <output name="output_cds" file="transcripts2.cds" ftype="fasta"/>
+            <output name="output_cleaned_cds" file="transcripts.cleaned.nr.cds" ftype="fasta"/>
+            <output name="output_cleaned_nr_cds" file="transcripts.cleaned.nr.cds" ftype="fasta"/>
+            <output name="output_cleaned_nr_pep" file="transcripts.cleaned.nr.pep" ftype="fasta"/>
+            <output name="output_cleaned_pep" file="transcripts.cleaned.nr.pep" ftype="fasta"/>
+            <output name="output_pep" file="transcripts2.pep" ftype="fasta"/>
         </test>
         <test>
             <param name="input" value="assembly_tgf.fasta" ftype="fasta"/>
@@ -128,14 +137,12 @@
             <param name="method" value="orthomcl"/>
             <param name="dereplicate" value="yes"/>
             <output name="output_pttgf" file="output.pttgf" ftype="pttgf"/>
-            <output_collection name="transcripts" type="list">
-                <element name="transcripts.cds" file="transcripts_tgf.cds" ftype="fasta"/>
-                <element name="transcripts.cleaned.cds" file="transcripts.cleaned_tgf.cds" ftype="fasta"/>
-                <element name="transcripts.cleaned.nr.cds" file="transcripts_tgf.cleaned.nr.cds" ftype="fasta"/>
-                <element name="transcripts.cleaned.nr.pep" file="transcripts_tgf.cleaned.nr.pep" ftype="fasta"/>
-                <element name="transcripts.cleaned.pep" file="transcripts.cleaned_tgf.pep" ftype="fasta"/>
-                <element name="transcripts.pep" file="transcripts_tgf.pep" ftype="fasta"/>
-            </output_collection>
+            <output name="output_cds" file="transcripts_tgf.cds" ftype="fasta"/>
+            <output name="output_cleaned_cds" file="transcripts.cleaned_tgf.cds" ftype="fasta"/>
+            <output name="output_cleaned_nr_cds" file="transcripts_tgf.cleaned.nr.cds" ftype="fasta"/>
+            <output name="output_cleaned_nr_pep" file="transcripts_tgf.cleaned.nr.pep" ftype="fasta"/>
+            <output name="output_cleaned_pep" file="transcripts.cleaned_tgf.pep" ftype="fasta"/>
+            <output name="output_pep" file="transcripts_tgf.pep" ftype="fasta"/>
         </test>
     </tests>
     <help>

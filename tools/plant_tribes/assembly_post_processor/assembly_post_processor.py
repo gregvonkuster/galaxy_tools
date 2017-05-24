@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import argparse
 import os
+import shutil
 
 import utils
 
@@ -14,6 +15,12 @@ parser.add_argument('--method', dest='method', default=None, help='Protein clust
 parser.add_argument('--min_length', dest='min_length', type=int, default=0, help='Minimum sequence length')
 parser.add_argument('--num_threads', dest='num_threads', type=int, help='Number of processors')
 parser.add_argument('--output_pttgf', dest='output_pttgf', default=None, help='Primary targeted gene families dataset')
+parser.add_argument('--output_cds', dest='output_cds', help='Output transcripts.cds')
+parser.add_argument('--output_cleaned_cds', dest='output_cleaned_cds', help='Output transcripts.cleaned.cds')
+parser.add_argument('--output_cleaned_nr_cds', dest='output_cleaned_nr_cds', default=None, help='Output transcripts.cleaned.nr.cds')
+parser.add_argument('--output_cleaned_nr_pep', dest='output_cleaned_nr_pep', default=None, help='Output transcripts.cleaned.nr.pep')
+parser.add_argument('--output_cleaned_pep', dest='output_cleaned_pep', help='Output transcripts.cleaned.pep')
+parser.add_argument('--output_pep', dest='output_pep', help='Output transcripts.pep')
 parser.add_argument('--output_pttgf_dir', dest='output_pttgf_dir', default=None, help='Directory hierarchy of targeted gene family datasets')
 parser.add_argument('--prediction_method', dest='prediction_method', help='Coding regions prediction method')
 parser.add_argument('--scaffold', dest='scaffold', default=None, help='Gene family scaffold')
@@ -48,6 +55,14 @@ cmd += ' --transcripts %s' % args.transcripts
 utils.run_command(cmd)
 
 # Handle outputs.
+shutil.move(os.path.join(OUTPUT_DIR, 'transcripts.cds'), args.output_cds)
+shutil.move(os.path.join(OUTPUT_DIR, 'transcripts.cleaned.cds'), args.output_cleaned_cds)
+if args.output_cleaned_nr_cds is not None:
+    shutil.move(os.path.join(OUTPUT_DIR, 'transcripts.cleaned.nr.cds'), args.output_cleaned_nr_cds)
+if args.output_cleaned_nr_pep is not None:
+    shutil.move(os.path.join(OUTPUT_DIR, 'transcripts.cleaned.nr.pep'), args.output_cleaned_nr_pep)
+shutil.move(os.path.join(OUTPUT_DIR, 'transcripts.cleaned.pep'), args.output_cleaned_pep)
+shutil.move(os.path.join(OUTPUT_DIR, 'transcripts.pep'), args.output_pep)
 if args.output_pttgf is not None and args.output_pttgf_dir is not None:
     src_output_dir = os.path.join(OUTPUT_DIR, 'targeted_gene_families')
     utils.move_directory_files(src_output_dir, args.output_pttgf_dir)
