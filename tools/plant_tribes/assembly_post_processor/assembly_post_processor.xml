@@ -123,6 +123,7 @@
             <param name="prediction_method" value="transdecoder"/>
             <param name="options_type_selector" value="advanced"/>
             <param name="target_gene_family_assembly" value="yes"/>
+            <param name="orthogroups" value="target_orthos.ids"/>
             <param name="scaffold" value="22Gv1.1"/>
             <param name="method" value="orthomcl"/>
             <param name="dereplicate" value="yes"/>
