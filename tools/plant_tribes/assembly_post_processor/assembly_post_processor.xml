@@ -91,19 +91,19 @@
         </conditional>
     </inputs>
     <outputs>
-        <data name="output_pttgf" format="pttgf" label="${tool.name} (targeted gene families) on ${on_string}">
+        <data name="output_pttgf" format="pttgf" label="Targeted gene families ${tool.name} on ${on_string}">
             <filter>options_type['options_type_selector'] == 'advanced' and options_type['target_gene_family_assembly_cond']['target_gene_family_assembly'] == 'yes'</filter>
         </data>
-        <data name="output_cds" format="fasta" label="${tool.name} on ${on_string} (transcripts.cds)"/>
-        <data name="output_cleaned_cds" format="fasta" label="${tool.name} on ${on_string} (transcripts.cleaned.cds)"/>
-        <data name="output_cleaned_nr_cds" format="fasta" label="${tool.name} on ${on_string} (transcripts.cleaned.nr.cds)">
+        <data name="output_pep" format="fasta" label="transcripts.pep ${tool.name} on ${on_string}"/>
+        <data name="output_cleaned_pep" format="fasta" label="transcripts.cleaned.pep ${tool.name} on ${on_string}"/>
+        <data name="output_cleaned_nr_pep" format="fasta" label="transcripts.cleaned.nr.pep ${tool.name} on ${on_string}">
             <filter>options_type['options_type_selector'] == 'advanced' and options_type['dereplicate'] == 'yes'</filter>
         </data>
-        <data name="output_cleaned_nr_pep" format="fasta" label="${tool.name} on ${on_string} (transcripts.cleaned.nr.pep)">
+        <data name="output_cleaned_nr_cds" format="fasta" label="transcripts.cleaned.nr.cds ${tool.name} on ${on_string}">
             <filter>options_type['options_type_selector'] == 'advanced' and options_type['dereplicate'] == 'yes'</filter>
         </data>
-        <data name="output_cleaned_pep" format="fasta" label="${tool.name} on ${on_string} (transcripts.cleaned.pep)"/>
-        <data name="output_pep" format="fasta" label="${tool.name} on ${on_string} (transcripts.pep)"/>
+        <data name="output_cleaned_cds" format="fasta" label="transcripts.cleaned.cds ${tool.name} on ${on_string}"/>
+        <data name="output_cds" format="fasta" label="transcripts.cds ${tool.name} on ${on_string}"/>
     </outputs>
     <tests>
         <test>
