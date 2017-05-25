@@ -102,22 +102,22 @@
         <expand macro="cond_remove_gappy_sequences" />
     </inputs>
     <outputs>
-        <data name="output_aln" format="ptalign" label="${tool.name} (aligned gene family sequences) on ${on_string}">
+        <data name="output_aln" format="ptalign" label="${tool.name} (proteins orthogroup alignments) on ${on_string}">
             <filter>(input_format_cond['input_format'] == 'ptortho' or (input_format_cond['input_format'] == 'ptorthocs' and input_format_cond['codon_alignments'] == 'no')) and remove_gappy_sequences_cond['remove_gappy_sequences'] == 'no'</filter>
         </data>
-        <data name="output_aln_ca" format="ptalignca" label="${tool.name} (aligned gene family sequences with codon alignments) on ${on_string}">
+        <data name="output_aln_ca" format="ptalignca" label="${tool.name} (protein and coding sequences orthogroup alignments) on ${on_string}">
             <filter>(input_format_cond['input_format'] == 'ptortho' or (input_format_cond['input_format'] == 'ptorthocs' and input_format_cond['codon_alignments'] == 'yes')) and remove_gappy_sequences_cond['remove_gappy_sequences'] == 'no'</filter>
         </data>
-        <data name="output_aln_filtered" format="ptalignfiltered" label="${tool.name} (filtered aligned gene family sequences) on ${on_string}">
+        <data name="output_aln_filtered" format="ptalignfiltered" label="${tool.name} (filtered proteins orthogroup alignments) on ${on_string}">
             <filter>(input_format_cond['input_format'] == 'ptortho' or (input_format_cond['input_format'] == 'ptorthocs' and input_format_cond['codon_alignments'] == 'no')) and (remove_gappy_sequences_cond['remove_gappy_sequences'] == 'yes' and remove_gappy_sequences_cond['remove_sequences_with_gaps_cond']['remove_sequences_with_gaps'] == 'yes')</filter>
         </data>
-        <data name="output_aln_filtered_ca" format="ptalignfilteredca" label="${tool.name} (filtered aligned gene family sequences with codon alignments) on ${on_string}">
+        <data name="output_aln_filtered_ca" format="ptalignfilteredca" label="${tool.name} (filtered protein and coding sequences orthogroup alignments) on ${on_string}">
             <filter>(input_format_cond['input_format'] == 'ptortho' or (input_format_cond['input_format'] == 'ptorthocs' and input_format_cond['codon_alignments'] == 'yes')) and (remove_gappy_sequences_cond['remove_gappy_sequences'] == 'yes' and remove_gappy_sequences_cond['remove_sequences_with_gaps_cond']['remove_sequences_with_gaps'] == 'yes')</filter>
         </data>
-        <data name="output_aln_trimmed" format="ptaligntrimmed" label="${tool.name} (trimmed aligned gene family sequences) on ${on_string}">
+        <data name="output_aln_trimmed" format="ptaligntrimmed" label="${tool.name} (trimmed proteins orthogroup alignments) on ${on_string}">
             <filter>(input_format_cond['input_format'] == 'ptortho' or (input_format_cond['input_format'] == 'ptorthocs' and input_format_cond['codon_alignments'] == 'no')) and (remove_gappy_sequences_cond['remove_gappy_sequences'] == 'yes' and remove_gappy_sequences_cond['remove_sequences_with_gaps_cond']['remove_sequences_with_gaps'] == 'no')</filter>
         </data>
-        <data name="output_aln_trimmed_ca" format="ptaligntrimmedca" label="${tool.name} (trimmed aligned gene family sequences with codon alignments) on ${on_string}">
+        <data name="output_aln_trimmed_ca" format="ptaligntrimmedca" label="${tool.name} (trimmed protein and coding sequences orthogroup alignments) on ${on_string}">
             <filter>(input_format_cond['input_format'] == 'ptortho' or (input_format_cond['input_format'] == 'ptorthocs' and input_format_cond['codon_alignments'] == 'yes')) and (remove_gappy_sequences_cond['remove_gappy_sequences'] == 'yes' and remove_gappy_sequences_cond['remove_sequences_with_gaps_cond']['remove_sequences_with_gaps'] == 'no')</filter>
         </data>
     </outputs>
