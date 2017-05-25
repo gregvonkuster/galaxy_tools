@@ -191,6 +191,14 @@
     </outputs>
     <tests>
         <test>
+            <param name="coding_sequences_species_1" value="species1_cds.fasta" ftype="fasta"/>
+            <param name="proteins_species_1" value="species1_pep.fasta" ftype="fasta"/>
+            <param name="non_commercial_use" value="yes"/>
+            <output name="output_species1_fna" file="species1_cds.fasta" ftype="fasta"/>
+            <output name="output_species1_faa" file="species1_pep.fasta" ftype="fasta"/>
+            <output name="output_species1_paralog" file="output_blastn_results1.tabular" ftype="tabular"/>
+            <!-- output_rbhb is empty in this test, so not incluyded here. -->
+            <output name="output_kaks" file="output1.tabular" ftype="tabular"/>
         </test>
     </tests>
     <help>
