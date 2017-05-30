@@ -214,7 +214,7 @@
         <data name="output_ptortho" format="ptortho" label="${tool.name} (gene family clusters) on ${on_string}">
             <filter>options_type['options_type_selector'] == 'advanced' and options_type['create_orthogroup_cond']['create_orthogroup'] == 'yes' and options_type['create_orthogroup_cond']['create_corresponding_coding_sequences_cond']['create_corresponding_coding_sequences'] == 'no'</filter>
         </data>
-        <data name="output_ptorthocs" format="ptorthocs" label="${tool.name} (gene family clusters and corresponding coding sequences) on ${on_string}">
+        <data name="output_ptorthocs" format="ptorthocs" label="${tool.name} (gene family clusters) on ${on_string}">
             <filter>options_type['options_type_selector'] == 'advanced' and options_type['create_orthogroup_cond']['create_orthogroup'] == 'yes' and options_type['create_orthogroup_cond']['create_corresponding_coding_sequences_cond']['create_corresponding_coding_sequences'] == 'yes'</filter>
         </data>
         <data name="output_ptsco" format="tabular" label="${tool.name} (single copy orthogroups) on ${on_string}">
