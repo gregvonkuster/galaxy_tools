@@ -7,12 +7,13 @@
     <command detect_errors="exit_code">
         <![CDATA[
             Rscript $__tool_directory__/ks_distribution.R
-            -k '${kaks}'
-            -c '${components}'
+            -k '$input'
+            -c '$components'
             -o '$output'
         ]]>
     </command>
     <inputs>
+        <param name="input" format="tabular" type="data" label="KaKsAnalysis tabular file" />
         <param name="rates" format="tabular" type="data" label="Synonymous substitution rates" />
         <param name="components" format="tabular" type="data" label="Significant components" />
     </inputs>
@@ -21,6 +22,7 @@
     </outputs>
     <tests>
         <test>
+            <param name="input" value="kaks_input1.tabular" ftype="tabular" />
             <param name="rates" value="rates.tabular" ftype="tabular" />
             <param name="components" value="components.tabular" ftype="tabular" />
             <output name="output" file="output.pdf" ftype="pdf" compare="contains" />
