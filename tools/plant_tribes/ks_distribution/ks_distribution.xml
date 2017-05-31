@@ -1,5 +1,5 @@
 <tool id="ks_distribution" name="KsDistribution" version="1.0.0">
-    <description>plots the distribution of synonymous substitution (Ks) rates and fits significant componets(s)</description>
+    <description>plots the distribution of synonymous substitution (Ks) rates and fits significant component(s)</description>
     <macros>
         <import>macros.xml</import>
     </macros>
