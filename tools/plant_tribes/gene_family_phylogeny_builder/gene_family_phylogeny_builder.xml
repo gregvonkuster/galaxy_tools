@@ -179,6 +179,7 @@ multiple sequence alignments produced by the GeneFamilyAligner tool.
  * **Bootstrap replicates** - number of bootstrap replicates for RAxML to conduct a rapid bootstrap analysis and search for the best-scoring ML tree (default = 100).
  * **Maximum orthogroup size** - maximum number of sequences allowed in orthogroup alignments (default = 100).
  * **Minimum orthogroup size** - minimum number of sequences allowed in orthogroup alignments (default = 4).
+ * **Output additional directory of phylogenetic tree files** - selecting 'Yes' will produce an additional output that has an associated directory of files that are copies of the  elements of the phylogenetic trees output dataset collection (this output will be used for future downstream tools).
 
 .. _repository: https://github.com/dePamphilis/PlantTribes/tree/master/config
 
