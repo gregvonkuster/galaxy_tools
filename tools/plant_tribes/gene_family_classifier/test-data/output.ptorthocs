@@ -1,28 +1,28 @@
-<html><head><h3>Orthogroups and corresponding coding sequences files: 12 files</h3></head>
+<html><head><h3>Orthogroups and corresponding coding sequences files: 12 items</h3></head>
 <body><p/><table cellpadding="2">
-<tr><th>Size</th><th>Name</th></tr>
-<tr bgcolor="#D8D8D8"><td>145</td><td><a href="20.faa" type="text/plain">20.faa</a>
+<tr><b>Datasets</th></b>
+<tr bgcolor="#D8D8D8"><td><a href="20.faa" type="text/plain">20.faa</a>
 </td></tr>
-<tr bgcolor="#FFFFFF"><td>145</td><td><a href="20.fna" type="text/plain">20.fna</a>
+<tr bgcolor="#FFFFFF"><td><a href="20.fna" type="text/plain">20.fna</a>
 </td></tr>
-<tr bgcolor="#D8D8D8"><td>99</td><td><a href="3494.faa" type="text/plain">3494.faa</a>
+<tr bgcolor="#D8D8D8"><td><a href="3494.faa" type="text/plain">3494.faa</a>
 </td></tr>
-<tr bgcolor="#FFFFFF"><td>99</td><td><a href="3494.fna" type="text/plain">3494.fna</a>
+<tr bgcolor="#FFFFFF"><td><a href="3494.fna" type="text/plain">3494.fna</a>
 </td></tr>
-<tr bgcolor="#D8D8D8"><td>111</td><td><a href="3722.faa" type="text/plain">3722.faa</a>
+<tr bgcolor="#D8D8D8"><td><a href="3722.faa" type="text/plain">3722.faa</a>
 </td></tr>
-<tr bgcolor="#FFFFFF"><td>111</td><td><a href="3722.fna" type="text/plain">3722.fna</a>
+<tr bgcolor="#FFFFFF"><td><a href="3722.fna" type="text/plain">3722.fna</a>
 </td></tr>
-<tr bgcolor="#D8D8D8"><td>183</td><td><a href="38889.faa" type="text/plain">38889.faa</a>
+<tr bgcolor="#D8D8D8"><td><a href="38889.faa" type="text/plain">38889.faa</a>
 </td></tr>
-<tr bgcolor="#FFFFFF"><td>183</td><td><a href="38889.fna" type="text/plain">38889.fna</a>
+<tr bgcolor="#FFFFFF"><td><a href="38889.fna" type="text/plain">38889.fna</a>
 </td></tr>
-<tr bgcolor="#D8D8D8"><td>138</td><td><a href="39614.faa" type="text/plain">39614.faa</a>
+<tr bgcolor="#D8D8D8"><td><a href="39614.faa" type="text/plain">39614.faa</a>
 </td></tr>
-<tr bgcolor="#FFFFFF"><td>138</td><td><a href="39614.fna" type="text/plain">39614.fna</a>
+<tr bgcolor="#FFFFFF"><td><a href="39614.fna" type="text/plain">39614.fna</a>
 </td></tr>
-<tr bgcolor="#D8D8D8"><td>128</td><td><a href="5235.faa" type="text/plain">5235.faa</a>
+<tr bgcolor="#D8D8D8"><td><a href="5235.faa" type="text/plain">5235.faa</a>
 </td></tr>
-<tr bgcolor="#FFFFFF"><td>128</td><td><a href="5235.fna" type="text/plain">5235.fna</a>
+<tr bgcolor="#FFFFFF"><td><a href="5235.fna" type="text/plain">5235.fna</a>
 </td></tr>
 </table></body></html>
