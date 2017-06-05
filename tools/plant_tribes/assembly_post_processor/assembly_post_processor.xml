@@ -111,7 +111,7 @@
             <param name="prediction_method" value="transdecoder"/>
             <output name="output_cds" file="transcripts.cds" ftype="fasta"/>
             <output name="output_cleaned_cds" file="transcripts.cleaned.cds" ftype="fasta"/>
-            <output name="output_cleaned._ep" file="transcripts.cleaned.pep" ftype="fasta"/>
+            <output name="output_cleaned_pep" file="transcripts.cleaned.pep" ftype="fasta"/>
             <output name="output_pep" file="transcripts.pep" ftype="fasta"/>
         </test>
         <test>
