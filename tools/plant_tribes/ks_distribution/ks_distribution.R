@@ -64,7 +64,7 @@ get_pi_mu_var = function(components_data, num_components)
     return(results)
 }
 
-plot_ks<-function(kaks_input, output, pi, mu, var, max_ks)
+plot_ks<-function(kaks_input, output, pi, mu, var)
 {
     # Start PDF device driver to save charts to output.
     pdf(file=output, bg="white")
@@ -72,8 +72,8 @@ plot_ks<-function(kaks_input, output, pi, mu, var, max_ks)
     max_ks <- max(kaks$Ks, na.rm=TRUE)
     # Change bin width
     max_bin_range <- as.integer(max_ks / 0.05)
-    bin <- 0.05 * seq(0, max_bin_range)
-    kaks <- kaks[kaks$Ks<max_ks,];
+    bin <- 0.05 * seq(0, (max_bin_range + 1 ))
+    kaks <- kaks[kaks$Ks<max_ks,]
     h.kst <- hist(kaks$Ks, breaks=bin, plot=F)
     nc <- h.kst$counts
     vx <- h.kst$mids
@@ -81,11 +81,11 @@ plot_ks<-function(kaks_input, output, pi, mu, var, max_ks)
     # Set margin for plot bottom, left top, right.
     par(mai=c(0.5, 0.5, 0, 0))
     # Plot dimension in inches.
-    par(pin=c(2.5, 2.5))
-    g <- calculate_fitted_density(pi, mu, var)
-    h <- ntot * 2.5 / sum(g)
-    vx <- seq(1, 100) * 0.02
-    ymax <- max(nc) + 5
+    par(pin=c(3.0, 3.0))
+    g <- calculate_fitted_density(pi, mu, var, max_ks)
+    h <- ntot * 1.5 / sum(g)
+    vx <- seq(1, 100) * (max_ks / 100)
+    ymax <- max(nc)
     barplot(nc, space=0.25, offset=0, width=0.04, xlim=c(0, max_ks), ylim=c(0, ymax), col="lightpink1", border="lightpink3")
     # Add x-axis.
     axis(1)
@@ -96,13 +96,13 @@ plot_ks<-function(kaks_input, output, pi, mu, var, max_ks)
     }
 }
 
-calculate_fitted_density <- function(pi, mu, var)
+calculate_fitted_density <- function(pi, mu, var, max_ks)
 {
     comp <- length(pi)
     var <- var/mu^2
     mu <- log(mu)
     # Calculate lognormal density.
-    vx <- seq(1, 100) * 0.02
+    vx <- seq(1, 100) * (max_ks / 100)
     fx <- matrix(0, 100, comp)
     for (i in 1:100)
     {
@@ -122,9 +122,42 @@ num_components <- get_num_components(components_data)
 
 # Set pi, mu, var.
 items <- get_pi_mu_var(components_data, num_components)
-pi <- items[1:3]
-mu <- items[4:6]
-var <- items[7:9]
+if (num_components == 1)
+{
+	pi <- items[1]
+	mu <- items[2]
+	var <- items[3]
+}
+if (num_components == 2)
+{
+	pi <- items[1:2]
+	mu <- items[3:4]
+	var <- items[5:6]
+}
+if (num_components == 3)
+{
+	pi <- items[1:3]
+	mu <- items[4:6]
+	var <- items[7:9]
+}
+if (num_components == 4)
+{
+	pi <- items[1:4]
+	mu <- items[5:8]
+	var <- items[9:12]
+}
+if (num_components == 5)
+{
+	pi <- items[1:5]
+	mu <- items[6:10]
+	var <- items[11:15]
+}
+if (num_components == 6)
+{
+	pi <- items[1:6]
+	mu <- items[7:12]
+	var <- items[13:18]
+}
 
 # Plot the output.
-plot_ks(opt$kaks_input, opt$output, pi, mu, var, max_ks)
+plot_ks(opt$kaks_input, opt$output, pi, mu, var)
