@@ -82,8 +82,8 @@
                 #end if
             #end if
 
-            #if str($save_hmmscan_log_cond.classifier) == 'hmmscan' or str($save_hmmscan_log_cond.classifier) == 'both' and str($save_hmmscan_log_cond.save_hmmscan_log) == 'yes':
-                --save_hmmscan_log
+            #if (str($save_hmmscan_log_cond.classifier) == 'hmmscan' or str($save_hmmscan_log_cond.classifier) == 'both') and str($save_hmmscan_log_cond.save_hmmscan_log) == 'yes':
+                --save_hmmscan_log 'true'
                 --hmmscan_log '$hmmscan_log'
             #end if
             #if $create_ortho_sequences:
