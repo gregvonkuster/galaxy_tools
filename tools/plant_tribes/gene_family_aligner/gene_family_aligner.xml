@@ -4,81 +4,79 @@
         <import>macros.xml</import>
     </macros>
     <expand macro="requirements_gene_family_aligner" />
-    <command detect_errors="exit_code">
-        <![CDATA[
-            #set input_format = $input_format_cond.input_format
-            #set alignment_method_cond = $input_format_cond.alignment_method_cond
-            #set alignment_method = $alignment_method_cond.alignment_method
-            #if str($input_format_cond.input_format) == 'ptortho':
-                #set output_codon_alignments = False
-            #else if str($input_format_cond.input_format) == 'ptorthocs' and str($input_format_cond.codon_alignments ) == 'no':
-                #set output_codon_alignments = False
-            #else:
-                #set output_codon_alignments = True
-            #end if
+    <command detect_errors="exit_code"><![CDATA[
+#set input_format = $input_format_cond.input_format
+#set alignment_method_cond = $input_format_cond.alignment_method_cond
+#set alignment_method = $alignment_method_cond.alignment_method
+#if str($input_format_cond.input_format) == 'ptortho':
+    #set output_codon_alignments = False
+#else if str($input_format_cond.input_format) == 'ptorthocs' and str($input_format_cond.codon_alignments ) == 'no':
+    #set output_codon_alignments = False
+#else:
+    #set output_codon_alignments = True
+#end if
 
-            python $__tool_directory__/gene_family_aligner.py
-            --alignment_method $alignment_method
-            #if str($alignment_method) == 'pasta':
-                --pasta_script_path '$__tool_directory__/run_pasta.py'
-                --pasta_iter_limit $alignment_method_cond.pasta_iter_limit
-            #end if
-            --num_threads \${GALAXY_SLOTS:-4}
-            #if str($input_format) == 'ptortho':
-                --orthogroup_faa '$input_format_cond.input_ptortho.extra_files_path'
-            #else:
-                ## str($input_format) == 'ptorthocs'
-                --orthogroup_faa '$input_format_cond.input_ptorthocs.extra_files_path'
-                #if str($input_format_cond.codon_alignments) == 'yes':
-                    --codon_alignments 'true'
-                #end if
-            #end if
-            #set remove_gappy_sequences = $remove_gappy_sequences_cond.remove_gappy_sequences
-            #if str($remove_gappy_sequences) == 'yes':
-                #set trim_type_cond = $remove_gappy_sequences_cond.trim_type_cond
-                #set trim_type = $trim_type_cond.trim_type
-                #if str($trim_type) == 'gap_trimming' and str($trim_type_cond.gap_trimming):
-                    --gap_trimming $trim_type_cond.gap_trimming
-                #else:
-                    ## str($trim_type) == 'automated_trimming'
-                    --automated_trimming 'true'
-                #end if
-                #set remove_sequences_with_gaps_cond = $remove_gappy_sequences_cond.remove_sequences_with_gaps_cond
-                #set remove_sequences_with_gaps = $remove_sequences_with_gaps_cond.remove_sequences_with_gaps
-                #if str($remove_sequences_with_gaps) == 'yes':
-                    #if str($remove_sequences_with_gaps_cond.remove_sequences_with_gaps_of):
-                        --remove_sequences $remove_sequences_with_gaps_cond.remove_sequences_with_gaps_of
-                    #end if
-                    #if str($remove_sequences_with_gaps_cond.iterative_realignment):
-                        --iterative_realignment $remove_sequences_with_gaps_cond.iterative_realignment
-                    #end if
-                    #if $output_codon_alignments:
-                        --output '$output_aln_filtered_ca'
-                        --output_dir '$output_aln_filtered_ca.files_path'
-                    #else:
-                        --output '$output_aln_filtered'
-                        --output_dir '$output_aln_filtered.files_path'
-                    #end if
-                #else:
-                    #if $output_codon_alignments:
-                        --output '$output_aln_trimmed_ca'
-                        --output_dir '$output_aln_trimmed_ca.files_path'
-                    #else:
-                        --output '$output_aln_trimmed'
-                        --output_dir '$output_aln_trimmed.files_path'
-                    #end if
-                #end if
-            #else:
-                #if $output_codon_alignments:
-                    --output '$output_aln_ca'
-                    --output_dir '$output_aln_ca.files_path'
-                #else:
-                    --output '$output_aln'
-                    --output_dir '$output_aln.files_path'
-                #end if
-            #end if
-        ]]>
-    </command>
+python $__tool_directory__/gene_family_aligner.py
+--alignment_method $alignment_method
+#if str($alignment_method) == 'pasta':
+    --pasta_script_path '$__tool_directory__/run_pasta.py'
+    --pasta_iter_limit $alignment_method_cond.pasta_iter_limit
+#end if
+--num_threads \${GALAXY_SLOTS:-4}
+#if str($input_format) == 'ptortho':
+    --orthogroup_faa '$input_format_cond.input_ptortho.extra_files_path'
+#else:
+    ## str($input_format) == 'ptorthocs'
+    --orthogroup_faa '$input_format_cond.input_ptorthocs.extra_files_path'
+    #if str($input_format_cond.codon_alignments) == 'yes':
+        --codon_alignments 'true'
+    #end if
+#end if
+#set remove_gappy_sequences = $remove_gappy_sequences_cond.remove_gappy_sequences
+#if str($remove_gappy_sequences) == 'yes':
+    #set trim_type_cond = $remove_gappy_sequences_cond.trim_type_cond
+    #set trim_type = $trim_type_cond.trim_type
+    #if str($trim_type) == 'gap_trimming' and str($trim_type_cond.gap_trimming):
+        --gap_trimming $trim_type_cond.gap_trimming
+    #else:
+        ## str($trim_type) == 'automated_trimming'
+        --automated_trimming 'true'
+    #end if
+    #set remove_sequences_with_gaps_cond = $remove_gappy_sequences_cond.remove_sequences_with_gaps_cond
+    #set remove_sequences_with_gaps = $remove_sequences_with_gaps_cond.remove_sequences_with_gaps
+    #if str($remove_sequences_with_gaps) == 'yes':
+        #if str($remove_sequences_with_gaps_cond.remove_sequences_with_gaps_of):
+            --remove_sequences $remove_sequences_with_gaps_cond.remove_sequences_with_gaps_of
+        #end if
+        #if str($remove_sequences_with_gaps_cond.iterative_realignment):
+            --iterative_realignment $remove_sequences_with_gaps_cond.iterative_realignment
+        #end if
+        #if $output_codon_alignments:
+            --output '$output_aln_filtered_ca'
+            --output_dir '$output_aln_filtered_ca.files_path'
+        #else:
+            --output '$output_aln_filtered'
+            --output_dir '$output_aln_filtered.files_path'
+        #end if
+    #else:
+        #if $output_codon_alignments:
+            --output '$output_aln_trimmed_ca'
+            --output_dir '$output_aln_trimmed_ca.files_path'
+        #else:
+            --output '$output_aln_trimmed'
+            --output_dir '$output_aln_trimmed.files_path'
+        #end if
+    #end if
+#else:
+    #if $output_codon_alignments:
+        --output '$output_aln_ca'
+        --output_dir '$output_aln_ca.files_path'
+    #else:
+        --output '$output_aln'
+        --output_dir '$output_aln.files_path'
+    #end if
+#end if
+    ]]></command>
     <inputs>
         <conditional name="input_format_cond">
             <param name="input_format" type="select" label="Classified orthogroup fasta files">

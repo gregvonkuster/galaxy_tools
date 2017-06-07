@@ -4,69 +4,67 @@
         <import>macros.xml</import>
     </macros>
     <expand macro="requirements_gene_family_phylogeny_builder" />
-    <command detect_errors="exit_code">
-        <![CDATA[
-            #set input_format = $input_format_cond.input_format
-            #set tree_inference = $tree_inference_cond.tree_inference
-            #if str($tree_inference) == 'raxml':
-                #set rooting_order_file_cond = $tree_inference_cond.rooting_order_file_cond
-                #set rooting_order_file = $rooting_order_file_cond.rooting_order_file
-                #if str($rooting_order_file) == 'yes':
-                    #set rooting_order = $rooting_order_file_cond.rooting_order
-                #end if
-                #set bootstrap_replicates = $tree_inference_cond.bootstrap_replicates
-            #end if
+    <command detect_errors="exit_code"><![CDATA[
+#set input_format = $input_format_cond.input_format
+#set tree_inference = $tree_inference_cond.tree_inference
+#if str($tree_inference) == 'raxml':
+    #set rooting_order_file_cond = $tree_inference_cond.rooting_order_file_cond
+    #set rooting_order_file = $rooting_order_file_cond.rooting_order_file
+    #if str($rooting_order_file) == 'yes':
+        #set rooting_order = $rooting_order_file_cond.rooting_order
+    #end if
+    #set bootstrap_replicates = $tree_inference_cond.bootstrap_replicates
+#end if
 
-            python $__tool_directory__/gene_family_phylogeny_builder.py
-            #if str($input_format) == 'ptalign':
-                --orthogroup_aln '$input_format_cond.input_ptalign.extra_files_path'
-                --alignment_type 'aln'
-                --sequence_type 'protein'
-            #else if str($input_format) == 'ptalignca':
-                --orthogroup_aln '$input_format_cond.input_ptalignca.extra_files_path'
-                --alignment_type 'aln'
-                --sequence_type $input_format_cond.sequence_type
-            #else if str($input_format) == 'ptalignfiltered':
-                --orthogroup_aln '$input_format_cond.input_ptalignfiltered.extra_files_path'
-                --alignment_type 'filter'
-                --sequence_type 'protein'
-            #else if str($input_format) == 'ptalignfilteredca':
-                --orthogroup_aln '$input_format_cond.input_ptalignfilteredca.extra_files_path'
-                --alignment_type 'filter'
-                --sequence_type $input_format_cond.sequence_type
-            #else if str($input_format) == 'ptaligntrimmed':
-                --orthogroup_aln '$input_format_cond.input_ptaligntrimmed.extra_files_path'
-                --alignment_type 'trim'
-                --sequence_type 'protein'
-            #else if str($input_format) == 'ptaligntrimmedca':
-                --orthogroup_aln '$input_format_cond.input_ptaligntrimmedca.extra_files_path'
-                --alignment_type 'trim'
-                --sequence_type $input_format_cond.sequence_type
-            #end if
-            --scaffold '$scaffold.fields.path'
-            --config_dir '$scaffold.fields.path'
-            --method $method
-            --tree_inference $tree_inference
-            #if str($tree_inference) == 'raxml':
-                #if str($rooting_order_file) == 'yes':
-                    --rooting_order '$rooting_order'
-                    ## No else block needed here because the default rooting_order
-                    ## configuration will be used if the --rooting_order flag is missing.
-                #end if
-                --bootstrap_replicates $bootstrap_replicates
-                --output_phylip '$output_phylip'
-                --output_phylip_dir '$output_phylip.files_path'
-            #end if
-            --min_orthogroup_size $min_orthogroup_size
-            --max_orthogroup_size $max_orthogroup_size
-            --num_threads \${GALAXY_SLOTS:-4}
-            #set output_pttree_dir = $output_pttree_dir_cond.output_pttree_dir
-            #if str($output_pttree_dir) == 'yes':
-                --output_tree '$output_tree'
-                --output_tree_dir '$output_tree.files_path'
-            #end if
-        ]]>
-    </command>
+python $__tool_directory__/gene_family_phylogeny_builder.py
+#if str($input_format) == 'ptalign':
+    --orthogroup_aln '$input_format_cond.input_ptalign.extra_files_path'
+    --alignment_type 'aln'
+    --sequence_type 'protein'
+#else if str($input_format) == 'ptalignca':
+    --orthogroup_aln '$input_format_cond.input_ptalignca.extra_files_path'
+    --alignment_type 'aln'
+    --sequence_type $input_format_cond.sequence_type
+#else if str($input_format) == 'ptalignfiltered':
+    --orthogroup_aln '$input_format_cond.input_ptalignfiltered.extra_files_path'
+    --alignment_type 'filter'
+    --sequence_type 'protein'
+#else if str($input_format) == 'ptalignfilteredca':
+    --orthogroup_aln '$input_format_cond.input_ptalignfilteredca.extra_files_path'
+    --alignment_type 'filter'
+    --sequence_type $input_format_cond.sequence_type
+#else if str($input_format) == 'ptaligntrimmed':
+    --orthogroup_aln '$input_format_cond.input_ptaligntrimmed.extra_files_path'
+    --alignment_type 'trim'
+    --sequence_type 'protein'
+#else if str($input_format) == 'ptaligntrimmedca':
+    --orthogroup_aln '$input_format_cond.input_ptaligntrimmedca.extra_files_path'
+    --alignment_type 'trim'
+    --sequence_type $input_format_cond.sequence_type
+#end if
+--scaffold '$scaffold.fields.path'
+--config_dir '$scaffold.fields.path'
+--method $method
+--tree_inference $tree_inference
+#if str($tree_inference) == 'raxml':
+    #if str($rooting_order_file) == 'yes':
+        --rooting_order '$rooting_order'
+        ## No else block needed here because the default rooting_order
+        ## configuration will be used if the --rooting_order flag is missing.
+    #end if
+    --bootstrap_replicates $bootstrap_replicates
+    --output_phylip '$output_phylip'
+    --output_phylip_dir '$output_phylip.files_path'
+#end if
+--min_orthogroup_size $min_orthogroup_size
+--max_orthogroup_size $max_orthogroup_size
+--num_threads \${GALAXY_SLOTS:-4}
+#set output_pttree_dir = $output_pttree_dir_cond.output_pttree_dir
+#if str($output_pttree_dir) == 'yes':
+    --output_tree '$output_tree'
+    --output_tree_dir '$output_tree.files_path'
+#end if
+    ]]></command>
     <inputs>
         <conditional name="input_format_cond">
             <param name="input_format" type="select" label="Orthogroup alignments">

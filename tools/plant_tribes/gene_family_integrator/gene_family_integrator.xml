@@ -4,33 +4,31 @@
         <import>macros.xml</import>
     </macros>
     <expand macro="requirements_gene_family_integrator" />
-    <command detect_errors="exit_code">
-        <![CDATA[
-            #set input_format = $input_format_cond.input_format
-            #set scaffold = $input_format_cond.scaffold
-            #set method = $input_format_cond.method
+    <command detect_errors="exit_code"><![CDATA[
+#set input_format = $input_format_cond.input_format
+#set scaffold = $input_format_cond.scaffold
+#set method = $input_format_cond.method
 
-            python $__tool_directory__/gene_family_integrator.py
-            --scaffold '$scaffold.fields.path'
-            --method $method
-            #if str($input_format) == 'ptortho':
-                --orthogroup_faa '$input_format_cond.input_ptortho.extra_files_path'
-                --output '$output_ptortho'
-                --output_dir '$output_ptortho.files_path'
-            #else:
-                ## str($input_format) == 'ptorthocs'
-                --orthogroup_faa '$input_format_cond.input_ptorthocs.extra_files_path'
-                #if str($input_format_cond.orthogroup_fna) == 'yes':
-                    --orthogroup_fna 'true'
-                    --output '$output_ptorthocs'
-                    --output_dir '$output_ptorthocs.files_path'
-                #else:
-                    --output '$output_ptortho'
-                    --output_dir '$output_ptortho.files_path'
-                #end if
-            #end if
-        ]]>
-    </command>
+python $__tool_directory__/gene_family_integrator.py
+--scaffold '$scaffold.fields.path'
+--method $method
+#if str($input_format) == 'ptortho':
+    --orthogroup_faa '$input_format_cond.input_ptortho.extra_files_path'
+    --output '$output_ptortho'
+    --output_dir '$output_ptortho.files_path'
+#else:
+    ## str($input_format) == 'ptorthocs'
+    --orthogroup_faa '$input_format_cond.input_ptorthocs.extra_files_path'
+    #if str($input_format_cond.orthogroup_fna) == 'yes':
+        --orthogroup_fna 'true'
+        --output '$output_ptorthocs'
+        --output_dir '$output_ptorthocs.files_path'
+    #else:
+        --output '$output_ptortho'
+        --output_dir '$output_ptortho.files_path'
+    #end if
+#end if
+    ]]></command>
     <inputs>
         <conditional name="input_format_cond">
             <param name="input_format" type="select" label="Classified orthogroup fasta files">

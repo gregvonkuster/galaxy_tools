@@ -4,79 +4,77 @@
         <import>macros.xml</import>
     </macros>
     <expand macro="requirements_kaks_analysis" />
-    <command detect_errors="exit_code">
-        <![CDATA[
-            #set output_dir = 'kaksAnalysis_dir'
-            #set comparison = $comparison_cond.comparison
-            #if str($options_type.options_type_selector) == 'advanced':
-                #set codeml_ctl_file_cond = $options_type.codeml_ctl_file_cond
-                #set codeml_ctl_file_select = $codeml_ctl_file_cond.codeml_ctl_file_select
-                #set fit_components_cond = $options_type.fit_components_cond
-                #set fit_components = $fit_components_cond.fit_components
-                #set recalibrate_cond = $options_type.recalibrate_cond
-                #set recalibrate = $recalibrate_cond.recalibrate
-                #set set_min_coverage_cond = $options_type.set_min_coverage_cond
-                #set set_min_coverage = $set_min_coverage_cond.set_min_coverage
-                #set set_lower_ks_limit_cond = $options_type.set_lower_ks_limit_cond
-                #set set_lower_ks_limit = $set_lower_ks_limit_cond.set_lower_ks_limit
-                #set set_upper_ks_limit_cond = $options_type.set_upper_ks_limit_cond
-                #set set_upper_ks_limit = $set_upper_ks_limit_cond.set_upper_ks_limit
-            #else:
-                #set codeml_ctl_file_select = 'no'
-                #set fit_components = 'no'
-                #set set_lower_ks_limit = 'no'
-                #set set_upper_ks_limit = 'no'
-            #end if
-            KaKsAnalysis
-            --num_threads \${GALAXY_SLOTS:-4}
-            --coding_sequences_species_1 '$coding_sequences_species_1'
-            --proteins_species_1 '$proteins_species_1'
-            --comparison $comparison
-            #if str($comparison) == 'orthologs':
-                --coding_sequences_species_2 '$comparison_cond.coding_sequences_species_2'
-                --proteins_species_2 '$comparison_cond.proteins_species_2'
-            #end if
-            #if str($options_type.options_type_selector) == 'advanced':
-                #if str($set_min_coverage) == 'yes':
-                    --min_coverage $set_min_coverage_cond.min_coverage
-                #end if
-                #if str($recalibrate) == 'yes':
-                    --recalibration_rate $recalibrate_cond.recalibration_rate
-                #end if
-                #if str($codeml_ctl_file_select) == 'yes':
-                    --codeml_ctl_file '$codeml_ctl_file_cond.codeml_ctl_file'
-                    # No else block needed here because the default codeml_ctl config
-                    # will be used if the --codeml_ctl_file flag is missing.
-                #end if
-                #if str($fit_components) == 'yes':
-                    --fit_components
-                    --num_of_components $fit_components_cond.num_of_components
-                #end if
-                #if str($set_lower_ks_limit) == 'yes':
-                    --min_ks $set_lower_ks_limit_cond.min_ks
-                #end if
-                #if str($set_upper_ks_limit) == 'yes':
-                    --max_ks $set_upper_ks_limit_cond.max_ks
-                #end if
-            #end if
-            >/dev/null
-            && mv $output_dir/species1.fna '$output_species1_fna'
-            && mv $output_dir/species1.faa '$output_species1_faa'
-            #if str($comparison) == 'paralogs':
-                && mv $output_dir/species1.fna.blastn.paralogs '$output_species1_paralog'
-            #else:
-                && mv $output_dir/species2.faa '$output_species2_faa'
-                && mv $output_dir/species2.fna '$output_species2_fna'
-                && mv $output_dir/species1.fna.blastn.orthologs '$output_species1_ortholog'
-                && mv $output_dir/species2.fna.blastn.orthologs '$output_species2_ortholog'
-            #end if
-            && mv $output_dir/*.rbhb '$output_rbhb'
-            && mv $output_dir/*.kaks '$output_kaks'
-            #if str($fit_components) == 'yes':
-                && mv $output_dir/*.components '$output_components'
-            #end if
-        ]]>
-    </command>
+    <command detect_errors="exit_code"><![CDATA[
+#set output_dir = 'kaksAnalysis_dir'
+#set comparison = $comparison_cond.comparison
+#if str($options_type.options_type_selector) == 'advanced':
+    #set codeml_ctl_file_cond = $options_type.codeml_ctl_file_cond
+    #set codeml_ctl_file_select = $codeml_ctl_file_cond.codeml_ctl_file_select
+    #set fit_components_cond = $options_type.fit_components_cond
+    #set fit_components = $fit_components_cond.fit_components
+    #set recalibrate_cond = $options_type.recalibrate_cond
+    #set recalibrate = $recalibrate_cond.recalibrate
+    #set set_min_coverage_cond = $options_type.set_min_coverage_cond
+    #set set_min_coverage = $set_min_coverage_cond.set_min_coverage
+    #set set_lower_ks_limit_cond = $options_type.set_lower_ks_limit_cond
+    #set set_lower_ks_limit = $set_lower_ks_limit_cond.set_lower_ks_limit
+    #set set_upper_ks_limit_cond = $options_type.set_upper_ks_limit_cond
+    #set set_upper_ks_limit = $set_upper_ks_limit_cond.set_upper_ks_limit
+#else:
+    #set codeml_ctl_file_select = 'no'
+    #set fit_components = 'no'
+    #set set_lower_ks_limit = 'no'
+    #set set_upper_ks_limit = 'no'
+#end if
+KaKsAnalysis
+--num_threads \${GALAXY_SLOTS:-4}
+--coding_sequences_species_1 '$coding_sequences_species_1'
+--proteins_species_1 '$proteins_species_1'
+--comparison $comparison
+#if str($comparison) == 'orthologs':
+    --coding_sequences_species_2 '$comparison_cond.coding_sequences_species_2'
+    --proteins_species_2 '$comparison_cond.proteins_species_2'
+#end if
+#if str($options_type.options_type_selector) == 'advanced':
+    #if str($set_min_coverage) == 'yes':
+        --min_coverage $set_min_coverage_cond.min_coverage
+    #end if
+    #if str($recalibrate) == 'yes':
+        --recalibration_rate $recalibrate_cond.recalibration_rate
+    #end if
+    #if str($codeml_ctl_file_select) == 'yes':
+        --codeml_ctl_file '$codeml_ctl_file_cond.codeml_ctl_file'
+        # No else block needed here because the default codeml_ctl config
+        # will be used if the --codeml_ctl_file flag is missing.
+    #end if
+    #if str($fit_components) == 'yes':
+        --fit_components
+        --num_of_components $fit_components_cond.num_of_components
+    #end if
+    #if str($set_lower_ks_limit) == 'yes':
+        --min_ks $set_lower_ks_limit_cond.min_ks
+    #end if
+    #if str($set_upper_ks_limit) == 'yes':
+        --max_ks $set_upper_ks_limit_cond.max_ks
+    #end if
+#end if
+>/dev/null
+&& mv $output_dir/species1.fna '$output_species1_fna'
+&& mv $output_dir/species1.faa '$output_species1_faa'
+#if str($comparison) == 'paralogs':
+    && mv $output_dir/species1.fna.blastn.paralogs '$output_species1_paralog'
+#else:
+    && mv $output_dir/species2.faa '$output_species2_faa'
+    && mv $output_dir/species2.fna '$output_species2_fna'
+    && mv $output_dir/species1.fna.blastn.orthologs '$output_species1_ortholog'
+    && mv $output_dir/species2.fna.blastn.orthologs '$output_species2_ortholog'
+#end if
+&& mv $output_dir/*.rbhb '$output_rbhb'
+&& mv $output_dir/*.kaks '$output_kaks'
+#if str($fit_components) == 'yes':
+    && mv $output_dir/*.components '$output_components'
+#end if
+    ]]></command>
     <inputs>
         <param name="coding_sequences_species_1" format="fasta" type="data" label="Coding sequences for the first species" />
         <param name="proteins_species_1" format="fasta" type="data" label="Protein sequences for the first species" />

@@ -4,105 +4,103 @@
         <import>macros.xml</import>
     </macros>
     <expand macro="requirements_gene_family_classifier" />
-    <command detect_errors="exit_code">
-        <![CDATA[
-            #if str($options_type.options_type_selector) == 'advanced':
-                #set specify_super_orthogroups_cond = $options_type.specify_super_orthogroups_cond
-                #set specify_super_orthogroups = $specify_super_orthogroups_cond.specify_super_orthogroups
-                #set create_orthogroup_cond = $options_type.create_orthogroup_cond
-                #set create_orthogroup = $create_orthogroup_cond.create_orthogroup
-                #set specify_single_copy_cond = $options_type.specify_single_copy_cond
-                #set specify_single_copy = $specify_single_copy_cond.specify_single_copy
-                #if str($specify_super_orthogroups) == 'yes':
-                    #set specify_super_orthos = True
-                    #set super_orthogroups = $specify_super_orthogroups_cond.super_orthogroups
-                #else:
-                    #set specify_super_orthos = False
-                #end if
-                #if str($create_orthogroup) == 'yes':
-                    #set create_ortho_sequences = True
-                    #set create_corresponding_coding_sequences_cond = $create_orthogroup_cond.create_corresponding_coding_sequences_cond
-                    #if str($create_corresponding_coding_sequences_cond.create_corresponding_coding_sequences) == 'yes':
-                        #set create_corresponding_coding_sequences = True
-                    #else:
-                        #set create_corresponding_coding_sequences = False
-                    #end if
-                #else:
-                    #set create_ortho_sequences = False
-                    #set create_corresponding_coding_sequences = False
-                #end if
-                #if str($specify_single_copy) == 'yes':
-                    #set single_copy_orthogroup = True
-                    #set single_copy_cond = $specify_single_copy_cond.single_copy_cond
-                    #set single_copy = $single_copy_cond.single_copy
-                #else:
-                    #set single_copy_orthogroup = False
-                #end if
+    <command detect_errors="exit_code"><![CDATA[
+#if str($options_type.options_type_selector) == 'advanced':
+    #set specify_super_orthogroups_cond = $options_type.specify_super_orthogroups_cond
+    #set specify_super_orthogroups = $specify_super_orthogroups_cond.specify_super_orthogroups
+    #set create_orthogroup_cond = $options_type.create_orthogroup_cond
+    #set create_orthogroup = $create_orthogroup_cond.create_orthogroup
+    #set specify_single_copy_cond = $options_type.specify_single_copy_cond
+    #set specify_single_copy = $specify_single_copy_cond.specify_single_copy
+    #if str($specify_super_orthogroups) == 'yes':
+        #set specify_super_orthos = True
+        #set super_orthogroups = $specify_super_orthogroups_cond.super_orthogroups
+    #else:
+        #set specify_super_orthos = False
+    #end if
+    #if str($create_orthogroup) == 'yes':
+        #set create_ortho_sequences = True
+        #set create_corresponding_coding_sequences_cond = $create_orthogroup_cond.create_corresponding_coding_sequences_cond
+        #if str($create_corresponding_coding_sequences_cond.create_corresponding_coding_sequences) == 'yes':
+            #set create_corresponding_coding_sequences = True
+        #else:
+            #set create_corresponding_coding_sequences = False
+        #end if
+    #else:
+        #set create_ortho_sequences = False
+        #set create_corresponding_coding_sequences = False
+    #end if
+    #if str($specify_single_copy) == 'yes':
+        #set single_copy_orthogroup = True
+        #set single_copy_cond = $specify_single_copy_cond.single_copy_cond
+        #set single_copy = $single_copy_cond.single_copy
+    #else:
+        #set single_copy_orthogroup = False
+    #end if
+#else:
+    #set single_copy_orthogroup = False
+    #set create_ortho_sequences = False
+    #set create_corresponding_coding_sequences = False
+#end if
+
+python $__tool_directory__/gene_family_classifier.py
+--input '$input'
+--scaffold '$scaffold.fields.path'
+--method $method
+--classifier $save_hmmscan_log_cond.classifier
+--config_dir '$scaffold.fields.path'
+--num_threads \${GALAXY_SLOTS:-4}
+
+#if str($options_type.options_type_selector) == 'advanced':
+    #if specify_super_orthos:
+        --super_orthogroups $super_orthogroups
+    #end if
+    #if $single_copy_orthogroup:
+        #if str($single_copy) == 'custom':
+            #set single_copy_custom_cond = $single_copy_cond.single_copy_custom_cond
+            #set single_copy_custom = $single_copy_custom_cond.single_copy_custom
+            #if str($single_copy_custom) == 'no':
+                --single_copy_custom 'default'
             #else:
-                #set single_copy_orthogroup = False
-                #set create_ortho_sequences = False
-                #set create_corresponding_coding_sequences = False
+                --single_copy_custom '$single_copy_custom_cond.single_copy_custom_config'
             #end if
+        #else:
+            #if str($single_copy_cond.single_copy_taxa):
+                --single_copy_taxa $single_copy_cond.single_copy_taxa
+            #end if
+            #if str($single_copy_cond.taxa_present):
+                --taxa_present $single_copy_cond.taxa_present
+            #end if
+        #end if
+    #end if
+    #if $create_ortho_sequences:
+        --orthogroup_fasta "true"
+        #if $create_corresponding_coding_sequences:
+            --coding_sequences '$create_corresponding_coding_sequences_cond.coding_sequences'
+        #end if
+    #end if
+#end if
 
-            python $__tool_directory__/gene_family_classifier.py
-            --input '$input'
-            --scaffold '$scaffold.fields.path'
-            --method $method
-            --classifier $save_hmmscan_log_cond.classifier
-            --config_dir '$scaffold.fields.path'
-            --num_threads \${GALAXY_SLOTS:-4}
-
-            #if str($options_type.options_type_selector) == 'advanced':
-                #if specify_super_orthos:
-                    --super_orthogroups $super_orthogroups
-                #end if
-                #if $single_copy_orthogroup:
-                    #if str($single_copy) == 'custom':
-                        #set single_copy_custom_cond = $single_copy_cond.single_copy_custom_cond
-                        #set single_copy_custom = $single_copy_custom_cond.single_copy_custom
-                        #if str($single_copy_custom) == 'no':
-                            --single_copy_custom 'default'
-                        #else:
-                            --single_copy_custom '$single_copy_custom_cond.single_copy_custom_config'
-                        #end if
-                    #else:
-                        #if str($single_copy_cond.single_copy_taxa):
-                            --single_copy_taxa $single_copy_cond.single_copy_taxa
-                        #end if
-                        #if str($single_copy_cond.taxa_present):
-                            --taxa_present $single_copy_cond.taxa_present
-                        #end if
-                    #end if
-                #end if
-                #if $create_ortho_sequences:
-                    --orthogroup_fasta "true"
-                    #if $create_corresponding_coding_sequences:
-                        --coding_sequences '$create_corresponding_coding_sequences_cond.coding_sequences'
-                    #end if
-                #end if
-            #end if
-
-            #if (str($save_hmmscan_log_cond.classifier) == 'hmmscan' or str($save_hmmscan_log_cond.classifier) == 'both') and str($save_hmmscan_log_cond.save_hmmscan_log) == 'yes':
-                --save_hmmscan_log 'true'
-                --hmmscan_log '$hmmscan_log'
-            #end if
-            #if $create_ortho_sequences:
-                #if $create_corresponding_coding_sequences:
-                    --output_ptorthocs '$output_ptorthocs'
-                    --output_ptorthocs_dir '$output_ptorthocs.files_path'
-                #else:
-                    --output_ptortho '$output_ptortho'
-                    --output_ptortho_dir '$output_ptortho.files_path'
-                #end if
-            #end if
-            #if $single_copy_orthogroup:
-                #if $create_ortho_sequences:
-                    --output_ptsco '$output_ptsco'
-                    --output_ptsco_dir '$output_ptsco.files_path'
-                #end if
-            #end if
-        ]]>
-    </command>
+#if (str($save_hmmscan_log_cond.classifier) == 'hmmscan' or str($save_hmmscan_log_cond.classifier) == 'both') and str($save_hmmscan_log_cond.save_hmmscan_log) == 'yes':
+    --save_hmmscan_log 'true'
+    --hmmscan_log '$hmmscan_log'
+#end if
+#if $create_ortho_sequences:
+    #if $create_corresponding_coding_sequences:
+        --output_ptorthocs '$output_ptorthocs'
+        --output_ptorthocs_dir '$output_ptorthocs.files_path'
+    #else:
+        --output_ptortho '$output_ptortho'
+        --output_ptortho_dir '$output_ptortho.files_path'
+    #end if
+#end if
+#if $single_copy_orthogroup:
+    #if $create_ortho_sequences:
+        --output_ptsco '$output_ptsco'
+        --output_ptsco_dir '$output_ptsco.files_path'
+    #end if
+#end if
+    ]]></command>
     <inputs>
         <param name="input" format="fasta" type="data" label="Proteins fasta file"/>
         <param name="scaffold" type="select" label="Gene family scaffold">
