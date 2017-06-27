@@ -14,10 +14,9 @@ parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
 args <- parse_args(parser, positional_arguments=TRUE)
 opt <- args$options
 
-set_component_colors = function(colors, number_comp)
-{   
+set_component_colors = function(colors, number_comp) {
     # Handle colors for components.
-    if (is.na(colors)) {
+    if (is.null(colors)) {
         # Randomly specify colors for components.
         component_colors <- c("red", "yellow", "green", "black", "blue", "darkorange")
     } else {
@@ -55,8 +54,7 @@ set_component_colors = function(colors, number_comp)
     return(component_colors)
 }
 
-get_pi_mu_var = function(components_data, number_comp)
-{
+get_pi_mu_var = function(components_data, number_comp) {
     if (number_comp == 1) {
         pi <- c(components_data[1, 9])
         mu <- c(components_data[1, 7])
@@ -86,8 +84,7 @@ get_pi_mu_var = function(components_data, number_comp)
     return(results)
 }
 
-plot_ks<-function(kaks_input, number_comp, component_colors, output, pi, mu, var)
-{
+plot_ks<-function(kaks_input, component_colors, output, pi, mu, var) {
     # Start PDF device driver to save charts to output.
     pdf(file=output, bg="white")
     kaks <- read.table(file=kaks_input, header=T)
@@ -116,8 +113,7 @@ plot_ks<-function(kaks_input, number_comp, component_colors, output, pi, mu, var
     }
 }
 
-calculate_fitted_density <- function(pi, mu, var, max_ks)
-{
+calculate_fitted_density <- function(pi, mu, var, max_ks) {
     comp <- length(pi)
     var <- var/mu^2
     mu <- log(mu)
@@ -138,6 +134,10 @@ calculate_fitted_density <- function(pi, mu, var, max_ks)
 # Read in the components data.
 components_data <- read.delim(opt$components_input, header=TRUE)
 number_comp <- as.integer(opt$number_comp)
+if (number_comp == 0) {
+    # Default to 1 component to allow functional testing.
+    number_comp <- 1
+}
 
 # Set component colors.
 component_colors <- set_component_colors(opt$specified_colors, number_comp)
@@ -171,4 +171,4 @@ if (number_comp == 1) {
 }
 
 # Plot the output.
-plot_ks(opt$kaks_input, number_comp, component_colors, opt$output, pi, mu, var)
+plot_ks(opt$kaks_input, component_colors, opt$output, pi, mu, var)
