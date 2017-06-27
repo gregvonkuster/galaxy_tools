@@ -1,4 +1,4 @@
-<tool id="ks_distribution" name="KsDistribution" version="1.0.0">
+<tool id="ks_distribution" name="KsDistribution" version="1.0.1">
     <description>plots the distribution of synonymous substitution (Ks) rates and fits significant component(s)</description>
     <macros>
         <import>macros.xml</import>
@@ -8,11 +8,39 @@
 Rscript $__tool_directory__/ks_distribution.R
 -k '$input'
 -c '$components'
+-n $components.metadata.number_comp
 -o '$output'
+#if str($choose_colors_cond.choose_colors) == 'yes':
+    #set specified_colors = list()
+    #for $selection in $choose_colors_cond.colors:
+        $specified_colors.append(str($selection.color))
+    #end for
+    #set specified_colors = ",".join($specified_colors)
+    -s '$specified_colors'
+#end if
     ]]></command>
     <inputs>
         <param name="input" format="tabular" type="data" label="KaKsAnalysis tabular file" />
-        <param name="components" format="tabular" type="data" label="Significant components" />
+        <param name="components" format="ptkscmp" type="data" label="Significant components" />
+        <conditional name="choose_colors_cond">
+            <param name="choose_colors" type="select" label="Choose colors for significant components">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no" />
+            <when value="yes">
+                <repeat name="colors" title="Component colors" min="1">
+                    <param name="color" type="select" label="Color">
+                        <option value="red" selected="True">red</option>
+                        <option value="green">green</option>
+                        <option value="blue">blue</option>
+                        <option value="yellow">yellow</option>
+                        <option value="darkorange">dark orange</option>
+                        <option value="black">black</option>
+                    </param>
+                </repeat>
+            </when>
+        </conditional>
     </inputs>
     <outputs>
         <data name="output" format="pdf"/>
@@ -20,7 +48,7 @@ Rscript $__tool_directory__/ks_distribution.R
     <tests>
         <test>
             <param name="input" value="kaks_input1.tabular" ftype="tabular" />
-            <param name="components" value="components.tabular" ftype="tabular" />
+            <param name="components" value="components.ptkscmp" ftype="ptkscmp" />
             <output name="output" file="output.pdf" ftype="pdf" compare="contains" />
         </test>
     </tests>
@@ -37,6 +65,9 @@ distribution of synonymous substitution (Ks) rates and fit the estimated signifi
 
  * **Synonymous substitution rates** - estimated synonymous substitution (Ks) rates output file produced by the KaKsAnalysis tool selected from your history.
  * **Synonymous components** - estimated significant component(s) output file produced by the KaKsAnalysis tool selected from your history.
+ * **Choose colors for significant components** - select 'Yes' to specify component colors or 'No' for colors chosen randlomly.
+
+   * **Component colors** - select a color from the palette for each component (colors will be chosen randomly for unspecified components).
     </help>
     <citations>
         <expand macro="citation1" />
