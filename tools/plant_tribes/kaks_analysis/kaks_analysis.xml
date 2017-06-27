@@ -1,4 +1,4 @@
-<tool id="plant_tribes_kaks_analysis" name="KaKsAnalysis" version="@WRAPPER_VERSION@.0">
+<tool id="plant_tribes_kaks_analysis" name="KaKsAnalysis" version="@WRAPPER_VERSION@.1">
     <description>estimates paralogous and orthologous pairwise synonymous (Ks) and non-synonymous (Ka) substitution rates</description>
     <macros>
         <import>macros.xml</import>
@@ -183,7 +183,7 @@ KaKsAnalysis
         </data>
         <data name="output_rbhb" format="tabular" label="${tool.name} (paralogous pairs) on ${on_string}" />
         <data name="output_kaks" format="tabular" label="${tool.name} on ${on_string}" />
-        <data name="output_components" format="tabular" label="${tool.name} (significant components in the ks distribution) on ${on_string}">
+        <data name="output_components" format="ptkscmp" label="${tool.name} (significant components in the ks distribution) on ${on_string}">
             <filter>options_type['options_type_selector'] == 'advanced' and options_type['fit_components_cond']['fit_components'] == 'yes'</filter>
         </data>
     </outputs>
@@ -191,7 +191,7 @@ KaKsAnalysis
         <test>
             <param name="coding_sequences_species_1" value="species1_cds.fasta" ftype="fasta"/>
             <param name="proteins_species_1" value="species1_pep.fasta" ftype="fasta"/>
-            <param name="non_commercial_use" value="yes"/>
+            <param name="non_commercial_use" value="True"/>
             <output name="output_species1_fna" file="species1_cds.fasta" ftype="fasta" compare="contains"/>
             <output name="output_species1_faa" file="species1_pep.fasta" ftype="fasta" compare="contains"/>
             <output name="output_species1_paralog" file="output_blastn_results1.tabular" ftype="tabular" compare="contains"/>
