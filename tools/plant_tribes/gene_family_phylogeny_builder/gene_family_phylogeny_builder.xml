@@ -16,30 +16,30 @@
     #set bootstrap_replicates = $tree_inference_cond.bootstrap_replicates
 #end if
 
-python $__tool_directory__/gene_family_phylogeny_builder.py
+python '$__tool_directory__/gene_family_phylogeny_builder.py'
 #if str($input_format) == 'ptalign':
     --orthogroup_aln '$input_format_cond.input_ptalign.extra_files_path'
-    --alignment_type 'aln'
-    --sequence_type 'protein'
+    --alignment_type aln
+    --sequence_type protein
 #else if str($input_format) == 'ptalignca':
     --orthogroup_aln '$input_format_cond.input_ptalignca.extra_files_path'
-    --alignment_type 'aln'
+    --alignment_type aln
     --sequence_type $input_format_cond.sequence_type
 #else if str($input_format) == 'ptalignfiltered':
     --orthogroup_aln '$input_format_cond.input_ptalignfiltered.extra_files_path'
-    --alignment_type 'filter'
-    --sequence_type 'protein'
+    --alignment_type filter
+    --sequence_type protein
 #else if str($input_format) == 'ptalignfilteredca':
     --orthogroup_aln '$input_format_cond.input_ptalignfilteredca.extra_files_path'
-    --alignment_type 'filter'
+    --alignment_type filter
     --sequence_type $input_format_cond.sequence_type
 #else if str($input_format) == 'ptaligntrimmed':
     --orthogroup_aln '$input_format_cond.input_ptaligntrimmed.extra_files_path'
-    --alignment_type 'trim'
-    --sequence_type 'protein'
+    --alignment_type trim
+    --sequence_type protein
 #else if str($input_format) == 'ptaligntrimmedca':
     --orthogroup_aln '$input_format_cond.input_ptaligntrimmedca.extra_files_path'
-    --alignment_type 'trim'
+    --alignment_type trim
     --sequence_type $input_format_cond.sequence_type
 #end if
 --scaffold '$scaffold.fields.path'

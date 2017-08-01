@@ -43,7 +43,7 @@
     #set create_corresponding_coding_sequences = False
 #end if
 
-python $__tool_directory__/gene_family_classifier.py
+python '$__tool_directory__/gene_family_classifier.py'
 --input '$input'
 --scaffold '$scaffold.fields.path'
 --method $method
@@ -60,7 +60,7 @@ python $__tool_directory__/gene_family_classifier.py
             #set single_copy_custom_cond = $single_copy_cond.single_copy_custom_cond
             #set single_copy_custom = $single_copy_custom_cond.single_copy_custom
             #if str($single_copy_custom) == 'no':
-                --single_copy_custom 'default'
+                --single_copy_custom default
             #else:
                 --single_copy_custom '$single_copy_custom_cond.single_copy_custom_config'
             #end if
@@ -74,7 +74,7 @@ python $__tool_directory__/gene_family_classifier.py
         #end if
     #end if
     #if $create_ortho_sequences:
-        --orthogroup_fasta "true"
+        --orthogroup_fasta true
         #if $create_corresponding_coding_sequences:
             --coding_sequences '$create_corresponding_coding_sequences_cond.coding_sequences'
         #end if
@@ -82,7 +82,7 @@ python $__tool_directory__/gene_family_classifier.py
 #end if
 
 #if (str($save_hmmscan_log_cond.classifier) == 'hmmscan' or str($save_hmmscan_log_cond.classifier) == 'both') and str($save_hmmscan_log_cond.save_hmmscan_log) == 'yes':
-    --save_hmmscan_log 'true'
+    --save_hmmscan_log true
     --hmmscan_log '$hmmscan_log'
 #end if
 #if $create_ortho_sequences:

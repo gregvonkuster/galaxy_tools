@@ -16,6 +16,7 @@ parser.add_argument('--num_threads', dest='num_threads', type=int, help='Number 
 parser.add_argument('--orthogroup_faa', dest='orthogroup_faa', help='Directory of input fasta datasets')
 parser.add_argument('--output', dest='output', help='Output dataset')
 parser.add_argument('--output_dir', dest='output_dir', help='Output dataset files_path directory')
+parser.add_argument('--output_dataset_collection', dest='output_dataset_collection', default=None, help='Output additional dataset collection of files.')
 parser.add_argument('--pasta_iter_limit', dest='pasta_iter_limit', type=int, default=None, help='Maximum number of iteration that the PASTA algorithm will execute')
 parser.add_argument('--pasta_script_path', dest='pasta_script_path', default=None, help='Path to script for executing pasta')
 parser.add_argument('--remove_sequences', dest='remove_sequences', default=0, type=float, help='Remove sequences with gaps of')
@@ -51,5 +52,7 @@ if args.codon_alignments is None:
     src_output_dir = OUTPUT_DIR
 else:
     src_output_dir = os.path.join(OUTPUT_DIR, 'orthogroups_aln')
+if args.output_dataset_collection is not None:
+    utils.move_directory_files(src_output_dir, args.output_dataset_collection, copy=True)
 utils.move_directory_files(src_output_dir, args.output_dir)
 utils.write_html_output(args.output, 'Aligned gene family sequences', args.output_dir)

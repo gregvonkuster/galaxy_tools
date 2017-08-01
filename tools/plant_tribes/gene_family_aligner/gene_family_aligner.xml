@@ -16,7 +16,7 @@
     #set output_codon_alignments = True
 #end if
 
-python $__tool_directory__/gene_family_aligner.py
+python '$__tool_directory__/gene_family_aligner.py'
 --alignment_method $alignment_method
 #if str($alignment_method) == 'pasta':
     --pasta_script_path '$__tool_directory__/run_pasta.py'
@@ -29,7 +29,7 @@ python $__tool_directory__/gene_family_aligner.py
     ## str($input_format) == 'ptorthocs'
     --orthogroup_faa '$input_format_cond.input_ptorthocs.extra_files_path'
     #if str($input_format_cond.codon_alignments) == 'yes':
-        --codon_alignments 'true'
+        --codon_alignments true
     #end if
 #end if
 #set remove_gappy_sequences = $remove_gappy_sequences_cond.remove_gappy_sequences
@@ -40,7 +40,7 @@ python $__tool_directory__/gene_family_aligner.py
         --gap_trimming $trim_type_cond.gap_trimming
     #else:
         ## str($trim_type) == 'automated_trimming'
-        --automated_trimming 'true'
+        --automated_trimming true
     #end if
     #set remove_sequences_with_gaps_cond = $remove_gappy_sequences_cond.remove_sequences_with_gaps_cond
     #set remove_sequences_with_gaps = $remove_sequences_with_gaps_cond.remove_sequences_with_gaps
@@ -76,6 +76,10 @@ python $__tool_directory__/gene_family_aligner.py
         --output_dir '$output_aln.files_path'
     #end if
 #end if
+#set output_dataset_collection = $output_dataset_collection_cond.output_dataset_collection
+#if str($output_dataset_collection) == 'yes':
+    --output_dataset_collection dataset_collection
+#end if
     ]]></command>
     <inputs>
         <conditional name="input_format_cond">
@@ -98,6 +102,14 @@ python $__tool_directory__/gene_family_aligner.py
             </when>
         </conditional>
         <expand macro="cond_remove_gappy_sequences" />
+        <conditional name="output_dataset_collection_cond">
+            <param name="output_dataset_collection" type="select" label="Output additional dataset collection of files?">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no" />
+            <when value="yes" />
+        </conditional>
     </inputs>
     <outputs>
         <data name="output_aln" format="ptalign" label="${tool.name} (proteins orthogroup alignments) on ${on_string}">
@@ -118,6 +130,10 @@ python $__tool_directory__/gene_family_aligner.py
         <data name="output_aln_trimmed_ca" format="ptaligntrimmedca" label="${tool.name} (trimmed protein and coding sequences orthogroup alignments) on ${on_string}">
             <filter>(input_format_cond['input_format'] == 'ptortho' or (input_format_cond['input_format'] == 'ptorthocs' and input_format_cond['codon_alignments'] == 'yes')) and (remove_gappy_sequences_cond['remove_gappy_sequences'] == 'yes' and remove_gappy_sequences_cond['remove_sequences_with_gaps_cond']['remove_sequences_with_gaps'] == 'no')</filter>
         </data>
+        <collection name="dataset_collection" type="list" label="${tool.name} (dataset collection) on ${on_string}">
+            <discover_datasets pattern="__name__" directory="dataset_collection" format="fasta" />
+            <filter>output_dataset_collection_cond['output_dataset_collection'] == 'yes'</filter>
+        </collection>
     </outputs>
     <tests>
         <!-- Test framework does not currently support inputs whose associated extra_files_path contains files to be analyzed.
@@ -155,6 +171,8 @@ of integrated orthologous gene family fasta files produced by the GeneFamilyInte
     - **Coverage score** - minimum fraction of sites without gaps for a sequence in a multiple sequence alignment.  The score is restricted to the range 0.0 - 1.0.  Zero value has no effect.
 
     - **Realignment iteration limit** - number of iterations to perform trimming, removal of sequences, and realignment of orthogroup sequences.  Zero value has no effect.
+
+ * **Output additional dataset collection of files** - selecting 'Yes' will produce an additional output dataset collection whose elements are copies of the directories of files (these elements can be viewed with visualization tools).
 
 .. _trimAl: http://trimal.cgenomics.org
 

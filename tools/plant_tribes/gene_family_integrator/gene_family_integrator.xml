@@ -9,7 +9,7 @@
 #set scaffold = $input_format_cond.scaffold
 #set method = $input_format_cond.method
 
-python $__tool_directory__/gene_family_integrator.py
+python '$__tool_directory__/gene_family_integrator.py'
 --scaffold '$scaffold.fields.path'
 --method $method
 #if str($input_format) == 'ptortho':
@@ -20,7 +20,7 @@ python $__tool_directory__/gene_family_integrator.py
     ## str($input_format) == 'ptorthocs'
     --orthogroup_faa '$input_format_cond.input_ptorthocs.extra_files_path'
     #if str($input_format_cond.orthogroup_fna) == 'yes':
-        --orthogroup_fna 'true'
+        --orthogroup_fna true
         --output '$output_ptorthocs'
         --output_dir '$output_ptorthocs.files_path'
     #else:

@@ -5,7 +5,7 @@
     </macros>
     <expand macro="requirements_assembly_post_processor" />
     <command detect_errors="exit_code"><![CDATA[
-python $__tool_directory__/assembly_post_processor.py
+python '$__tool_directory__/assembly_post_processor.py'
 --transcripts '$input'
 --prediction_method $prediction_method_cond.prediction_method
 #if str($prediction_method_cond.prediction_method) == 'estscan':
@@ -15,17 +15,17 @@ python $__tool_directory__/assembly_post_processor.py
     #set target_gene_family_assembly_cond = $options_type.target_gene_family_assembly_cond
     #if str($target_gene_family_assembly_cond.target_gene_family_assembly) == 'yes':
         --gene_family_search '$target_gene_family_assembly_cond.orthogroups'
-        --output_pttgf $output_pttgf
-        --output_pttgf_dir $output_pttgf.files_path
+        --output_pttgf '$output_pttgf'
+        --output_pttgf_dir '$output_pttgf.files_path'
         --scaffold '$target_gene_family_assembly_cond.scaffold.fields.path'
         --method '$target_gene_family_assembly_cond.method'
         --gap_trimming $target_gene_family_assembly_cond.gap_trimming
     #end if
     #if str($options_type.strand_specific) == 'yes':
-        --strand_specific 'true'
+        --strand_specific true
     #end if
     #if str($options_type.dereplicate) == 'yes':
-        --dereplicate 'true'
+        --dereplicate true
         --output_cleaned_nr_cds '$output_cleaned_nr_cds'
         --output_cleaned_nr_pep '$output_cleaned_nr_pep'
     #end if
