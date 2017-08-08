@@ -242,5 +242,15 @@ multiple sequence alignments produced by the GeneFamilyAligner tool.
             number = {3},
             pages = {e9490},}
         </citation>
+        <citation type="bibtex">
+            @article{Nascimento2016,
+            journal = {Bioinformatics},
+            author = {8. Nascimento M, Sousa A, Ramirez M, Francisco AP, Carriço JA, Vaz C},
+            title = {PHYLOViZ 2.0: providing scalable data integration and visualization for multiple phylogenetic inference methods},
+            year = {2016},
+            volume = {33},
+            number = {1},
+            pages = {128-129},}
+        </citation>
     </citations>
 </tool>

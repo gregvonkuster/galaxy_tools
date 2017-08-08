@@ -218,5 +218,25 @@ of integrated orthologous gene family fasta files produced by the GeneFamilyInte
             number = {15},
             pages = {1972-1973},}
         </citation>
+        <citation type="bibtex">
+            @article{Yachdav2016,
+            journal = {Bioinformatics,},
+            author = {6. Yachdav G, Wilzbach S, Rauscher B, Sheridan R, Sillitoe I, Procter J, Lewis SE, Rost B, Goldberg T},
+            title = {MSAViewer: interactive JavaScript visualization of multiple sequence alignments},
+            year = {2016},
+            volume = {32},
+            number = {22},
+            pages = {3501-3503},}
+        </citation>
+        <citation type="bibtex">
+            @article{Clamp2004,
+            journal = {Bioinformatics,},
+            author = {7. Clamp M, Cuff J, Searle SM, Barton GJ},
+            title = {The jalview java alignment editor},
+            year = {2004},
+            volume = {20},
+            number = {3},
+            pages = {426-427},}
+        </citation>
     </citations>
 </tool>
