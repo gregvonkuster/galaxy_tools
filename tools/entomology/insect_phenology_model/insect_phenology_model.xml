@@ -1,0 +1,101 @@
+<?xml version="."?>
+<tool id="insect_phenology_model" name="Insect phenology model" version="1.0.0">
+    <description>expressing stage-specific phenology and population dynamics</description>
+    <requirements>
+         <requirement type="package" version="1.3.0">r-optparse</requirement>
+    </requirements>
+    <command><![CDATA[
+#set loc_lat_items = str($location).split(':')
+#set loc = $loc_lat_items[0]
+#set lat = $loc_lat_items[1]
+Rscript '$__tool_directory__/insect_phenology_model.R'
+-a $adult_mort
+-b $adult_accum
+-c $egg_mort
+-d $lat
+-e $loc
+-f $max_clutch_size
+-i $min_clutch_size
+-j $nymph_mort
+-k $old_nymph_accum
+-o $output
+-p $oviposition
+-q $photoperiod
+-s $replications
+-t $se_plot
+-u $year
+-v '$temperature_data'
+-y $young_nymph_accum
+    ]]></command>
+    <inputs>
+        <param name="location" type="select" label="Location">
+            <options from_file="locations.txt">
+                <column name="name" index="0"/>
+                <column name="value" index="1"/>
+            </options>
+        </param>
+        <param name="temperature_data" type="data" format="csv" label="Temperature data" />
+        <param name="year" type="select" label="Temperature data year">
+            <options from_file="years.txt">
+                <column name="name" index="0"/>
+                <column name="value" index="1"/>
+            </options>
+        </param>
+        <param name="replications" type="integer" value="10" min="1" label="Number of replications" />
+        <param name="photoperiod" type="float" value="13.5" min="0" label="Critical photoperiod for diapause induction/termination" />
+        <param name="egg_mort" type="integer" value="1" min="0" label="Adjustment rate for egg mortality" />
+        <param name="nymph_mort" type="integer" value="1" min="0" label="Adjustment rate for nymph mortality" />
+        <param name="adult_mort" type="integer" value="1" min="0" label="Adjustment rate for adult mortality" />
+        <param name="oviposition" type="integer" value="1" min="0" label="Adjustment oviposition rate" />
+        <param name="min_clutch_size" type="integer" value="0" min="0" label="Adjustment of minimum clutch size" />
+        <param name="max_clutch_size" type="integer" value="0" min="0" label="Adjustment of maximum clutch size" />
+        <param name="young_nymph_accum" type="integer" value="0" min="0" label="Adjustment of DD accumulation (egg->young nymph)" />
+        <param name="old_nymph_accum" type="integer" value="0" min="0" label="Adjustment of DD accumulation (young nymph->old nymph)" />
+        <param name="adult_accum" type="integer" value="0" min="0" label="Adjustment of DD accumulation (old nymph->adult)" />
+        <param name="se_plot" type="select" label="Plot SE?">
+            <option value="1" selected="True">Yes</option>
+            <option value="0">No</option>
+        </param>
+    </inputs>
+    <outputs>
+        <data name="output" format="pdf" label="${tool.name} ${str($location).split(':')[0]}, ${year} on ${on_string}" />
+    </outputs>
+    <tests>
+        <test>
+            <param name="temperature_data" value="asheville2014.csv" ftype="csv" />
+            <param name="location" value="asheville:35.58" />
+            <param name="year" value="2014" />
+            <param name="replications" value="3" />
+            <output name="output" file="output.pdf" ftype="pdf" compare="contains" />
+        </test>
+    </tests>
+    <help>
+**What it does**
+ 
+Provides an agent-based stochastic model expressing stage-specific phenology and population dynamics for an insect species across geographic regions.
+
+-----
+
+**Required options**
+
+ * **Location** - the location associated with the selected temperature data.
+ * **Temperature data** - select the dataset from your history containing the temperature data.
+ * **Temperature data year** - the year during which the temperature data was recorded.
+ * **Number of replications** - number of replications.
+ * **Critical photoperiod for diapause induction/termination** - critical photoperiod for diapause induction/termination.
+ * **Adjustment rate for egg mortality** - adjustment rate for egg mortality.
+ * **Adjustment rate for nymph mortality** - adjustment rate for nymph mortality.
+ * **Adjustment rate for adult mortality** - adjustment rate for adult mortality.
+ * **Adjustment oviposition rate** - adjustment oviposition rate.
+ * **Adjustment of minimum clutch size** - adjustment of minimum clutch size.
+ * **Adjustment of maximum clutch size** - adjustment of maximum clutch size
+ * **Adjustment of DD accumulation (egg->young nymph)** - adjustment of DD accumulation (egg->young nymph).
+ * **Adjustment of DD accumulation (young nymph->old nymph)** - adjustment of DD accumulation (young nymph->old nymph).
+ * **Adjustment of DD accumulation (old nymph->adult)** - adjustment of DD accumulation (old nymph->adult).
+ * **Plot SE** - add SE lines to plot for eggs, nymphs and adults.
+ 
+    </help>
+    <citations>
+        <citation type="doi">10.3389/fphys.2016.00165</citation>
+    </citations>
+</tool>

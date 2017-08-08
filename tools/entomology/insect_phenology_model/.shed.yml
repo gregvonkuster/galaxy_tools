@@ -1,0 +1,13 @@
+name: insect_phenology_model
+owner: greg
+description: |
+  Contains a tool that provides an agent-based stochastic model expressing stage-specific phenology and population dynamics
+  for an insect species across geographic regions.
+homepage_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/entomology/insect_phenology_model
+long_description: |
+  Contains a tool that provides an agent-based stochastic model expressing stage-specific phenology and population dynamics
+  for an insect species across geographic regions.
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/entomology/insect_phenology_model
+type: unrestricted
+categories:
+- Entomology
