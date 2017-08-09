@@ -1,8 +1,16 @@
-Asheville NC	asheville:35.58
-Bridgeton NJ	bridgeton:39.43
-Davis CA	davis:38.55
-Geneva NY	geneva:42.88
-Homestead FL	homestead:25.47
-Riverside CA	riverside:33.95
-Salem OR	salem:44.93
-Wenatchee WA	wneatchee:47.42
+Asheville NC	asheville_nc:35.58
+Bridgeton NJ	bridgeton_nj:39.43
+Davis CA	davis_ca:38.55
+Geneva NY	geneva_ny:42.88
+Homestead FL	homestead_fl:25.47
+NJ_companion	nj_companion:39.62
+NJ_management	nj_management:39.66
+PA_companion	pa_companion:39.98
+PA_management	pa_management:39.97
+Riverside CA	riverside_ca:33.95
+Salem OR	salem_or:44.93
+VA_companion	va_companion:39.15
+VA_management	va_management:39.13
+Wenatchee WA	wneatchee_wa:47.42
+WV_companion	wv_companion:39.38
+WV_management	wv_management:39.52
