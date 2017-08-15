@@ -1,4 +1,4 @@
-<tool id="plant_tribes_gene_family_integrator" name="GeneFamilyIntegrator" version="@WRAPPER_VERSION@.0">
+<tool id="plant_tribes_gene_family_integrator" name="GeneFamilyIntegrator" version="@WRAPPER_VERSION@.2">
     <description>integrates gene models in pre-computed orthologous gene family clusters with classified gene coding sequences</description>
     <macros>
         <import>macros.xml</import>
