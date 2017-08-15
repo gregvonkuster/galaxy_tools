@@ -143,9 +143,14 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
             </param>
             <when value="datasets">
                 <repeat name="input_repeat" title="Cell type, Epigenetic factor and Input" min="1">
-                    <param name="cell_type_name" type="text" value="" label="Cell type name"/>
-                    <param name="epigenetic_factor_name" type="text" value="" label="Epigenetic factor name"/>
+                    <param name="cell_type_name" type="text" value="" label="Cell type name">
+                        <validator type="empty_field"/>
+                    </param>
+                    <param name="epigenetic_factor_name" type="text" value="" label="Epigenetic factor name">
+                        <validator type="empty_field"/>
+                    </param>
                     <param name="input" type="data" format="bigwig,bam" label="BAM or BigWig file">
+                        <validator type="empty_field"/>
                         <validator type="unspecified_build"/>
                     </param>
                 </repeat>
