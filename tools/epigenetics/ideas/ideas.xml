@@ -8,15 +8,13 @@
         <requirement type="package" version="1.2.0">ideas</requirement>
         <requirement type="package" version="1.3.2">r-optparse</requirement>
     </requirements>
-    <command><![CDATA[
+    <command detect_errors="exit_code"><![CDATA[
 #import os
 #set tmp_dir = 'tmp'
-#set prep_output_dir = 'prep_output'
 #set prep_output_config = 'prep_output_config.txt'
-#set ideas_input_dir = 'ideas_input'
-#set ideas_matrix_input_file = $os.path.join($ideas_input_dir, 'r_matrix.txt')
-mkdir -p $prep_output_dir &&
-mkdir -p $ideas_input_dir &&
+##set ideas_input_dir = 'ideas_input'
+##set ideas_matrix_input_file = $os.path.join($ideas_input_dir, 'r_matrix.txt')
+##mkdir -p $ideas_input_dir &&
 ##############################################
 ## Create the config file and prepare the data
 ##############################################
@@ -57,24 +55,25 @@ prepMat
     -norm
 #end if
 ##############################################
-## Conform the prepMat config output to the
+## Coerce the prepMat config output to the
 ## format expected by the R matrix builder.
 ##############################################
 && cut -d' ' $prep_input_config -f1,2 > file1.txt
-&& ls -p tmp/ | grep ".bed.gz" > file2.txt
+&& ls tmp/*.bed.gz > file2.txt
 && paste <(cat file1.txt) <(cat file2.txt) > $prep_output_config
 ##############################################
 ## Build the R matrix from the prepMat output
 ##############################################
-&& Rscript '$__tool_directory__/build_matrix.R'
--i $tmp_dir/*.bed.gz
--o $ideas_matrix_input_file
+##&& Rscript '$__tool_directory__/build_matrix.R'
+##-i $tmp_dir/*.bed.gz
+##-o $ideas_matrix_input_file
 ##-w $ideas_input_dir
 ##############################################
 ## Run IDEAS on the R matrix
 ##############################################
 && ideas
 '$prep_output_config'
+$tmp_dir/*.bed
 #set smoother_annotation = $smoother_annotation_cond.smoother_annotation
 #if str($smoother_annotation) == 'yes':
     -hp
@@ -125,10 +124,11 @@ prepMat
     -maxerr $set_max_standard_dev_cond.max_standard_dev
 #end if
 -thread \${GALAXY_SLOTS:-4}
--o $prep_output_dir
-&& mv $prep_output_dir/*.state $output_state
-&& mv $prep_output_dir/*.para $output_para
-&& mv $prep_output_dir/*cluster $output_cluster
+> $output_log
+&& mv *.cluster $output_cluster
+&& mv *.para $output_para
+&& mv *.profile $output_profile
+&& mv *.state $output_state
     ]]></command>
     <configfiles>
         <configfile name="prep_input_config"><![CDATA[#for $input_items in $input_type_cond.input_repeat:
@@ -288,9 +288,11 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
         </conditional>
     </inputs>
     <outputs>
-        <data name="output_state" format="txt" label="${tool.name} (epigenetic states and position classes) on ${on_string}"/>
-        <data name="output_para" format="txt" label="${tool.name} (epigenetic state frequency, mean and variance parameters) on ${on_string}"/>
+        <data name="output_log" format="txt" label="${tool.name} (ideas output log) on ${on_string}"/>
         <data name="output_cluster" format="txt" label="${tool.name} (local cell type clustering) on ${on_string}"/>
+        <data name="output_para" format="tabular" label="${tool.name} (epigenetic state frequency, mean and variance parameters) on ${on_string}"/>
+        <data name="output_profile" format="txt" label="${tool.name} (profile) on ${on_string}"/>
+        <data name="output_state" format="txt" label="${tool.name} (epigenetic states and position classes) on ${on_string}"/>
     </outputs>
     <tests>
     </tests>
