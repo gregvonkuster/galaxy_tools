@@ -46,9 +46,8 @@ prepMat
     -bychr
 #end if
 -c $reads_per_bp
-#set blacklist_regions = $blacklist_regions_cond.blacklist_regions
-#if str($blacklist_regions) == 'yes':
-    -exclude '$blacklist_regions_cond.blacklist_input'
+#if str($blacklist_input) not in ['None', '']:
+    -exclude '$blacklist_input'
 #end if
 #set standardize_datasets = $standardize_datasets_cond.standardize_datasets
 #if str($standardize_datasets) == 'yes':
@@ -69,7 +68,7 @@ prepMat
 ##-o $ideas_matrix_input_file
 ##-w $ideas_input_dir
 ##############################################
-## Run IDEAS on the R matrix
+## Run IDEAS
 ##############################################
 && ideas
 '$prep_output_config'
@@ -82,25 +81,14 @@ $tmp_dir/*.bed
 #if str($smoother_annotation) == 'yes':
     -hp
 #end if
-#set in_windows = $in_windows_cond.in_windows
-#if str($in_windows) == 'yes':
-    -inv $window_start $window_end
+#if str($log2_num) != '0.0':
+    -log2 $log2_num
 #end if
-#set log2_transformation = $log2_transformation_cond.log2_transformation
-#if str($log2_transformation) == 'yes':
-    #set log2_num = $log2_transformation.log2_num
-    -log2
-    #if str($log2_num) != '0':
-        $log2_num
-    #end if
+#if str($max_states) != '0.0':
+    -G $max_states
 #end if
-#set max_states_inferred = $max_states_inferred_cond.max_states_inferred
-#if str($max_states_inferred) == 'yes':
-    -G $max_states_inferred_cond.max_states
-#end if
-#set num_initial_states = $num_initial_states_cond.num_initial_states
-#if str($num_initial_states) == 'yes':
-    -C $num_initial_states_cond.initial_states
+#if str($initial_states) != '0.0':
+    -C $initial_states
 #end if
 #if str($max_position_classes) != '0':
     -P $max_position_classes
@@ -108,27 +96,22 @@ $tmp_dir/*.bed
 #if str($max_cell_type_clusters) != '0':
     -K $max_cell_type_clusters
 #end if
-#if str($prior_concentration) != '0':
+#if str($prior_concentration) != '0.0':
     -A $prior_concentration
 #end if
-#set burnin_max_steps = $burnin_max_steps_cond.burnin_max_steps
-#if str($burnin_max_steps) == 'yes':
-    -sample $burnin_max_steps_cond.burnin_num $burnin_max_steps_cond.mcmc_num
+-sample $burnin_num $mcmc_num
+#if str($min_standard_dev) != '0.0':
+    -minerr $min_standard_dev
 #end if
-#set set_min_standard_dev = $set_min_standard_dev_cond.set_min_standard_dev
-#if str($set_min_standard_dev) == 'yes':
-    -minerr $set_min_standard_dev_cond.min_standard_dev
-#end if
-#set set_max_standard_dev = $set_max_standard_dev_cond.set_max_standard_dev
-#if str($set_max_standard_dev) == 'yes':
-    -maxerr $set_max_standard_dev_cond.max_standard_dev
+#if str($max_standard_dev) != '0.0':
+    -maxerr $max_standard_dev
 #end if
 -thread \${GALAXY_SLOTS:-4}
 > $output_log
-&& mv *.cluster $output_cluster
-&& mv *.para $output_para
-&& mv *.profile $output_profile
-&& mv *.state $output_state
+&& mv ./*.cluster $output_cluster
+&& mv ./*.para $output_para
+&& mv ./*.profile $output_profile
+&& mv ./*.state $output_state
     ]]></command>
     <configfiles>
         <configfile name="prep_input_config"><![CDATA[#for $input_items in $input_type_cond.input_repeat:
@@ -189,17 +172,11 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
             <when value="no"/>
             <when value="yes"/>
         </conditional>
-        <param name="reads_per_bp" type="integer" value="1" min="1" max="8" label="Number of reads per base pair for calculating the average signal in each genomic window"/>
-        <conditional name="blacklist_regions_cond">
-            <param name="blacklist_regions" type="select" label="Select Bed file containing blacklist regions for exclusion">
-                <option value="no" selected="true">No</option>
-                <option value="yes">Yes</option>
-            </param>
-            <when value="no"/>
-            <when value="yes">
-                <param name="blacklist_input" type="data" format="bed" label="Bed file containing regions to exclude"/>
-            </when>
-        </conditional>
+        <param name="reads_per_bp" type="select" display="radio" label="Calculate the average signal in each genomic window using">
+            <option value="6" selected="true">mean</option>
+            <option value="8">max</option>
+        </param>
+        <param name="blacklist_input" type="data" format="bed" optional="True" multiple="True" label="Select file(s) containing regions to exclude"/>
         <conditional name="standardize_datasets_cond">
             <param name="standardize_datasets" type="select" display="radio" label="Standardize all datasets">
                 <option value="no" selected="true">No</option>
@@ -216,81 +193,16 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
             <when value="no"/>
             <when value="yes"/>
         </conditional>
-        <conditional name="in_windows_cond">
-            <param name="in_windows" type="select" display="radio" label="Run IDEAS only within defined windows in the input data">
-                <option value="no" selected="true">No</option>
-                <option value="yes">Yes</option>
-            </param>
-            <when value="no"/>
-            <when value="yes">
-                <param name="window_start" type="integer" value="0" min="0" label="Window start" help="Zero-based"/>
-                <param name="window_end" type="integer" value="0" min="0" label="Window end" help="Zero-based"/>
-            </when>
-        </conditional>
-        <conditional name="log2_transformation_cond">
-            <param name="log2_transformation" type="select" label="Perform Log2-transformation of the input data">
-                <option value="no" selected="true">No</option>
-                <option value="yes">Yes</option>
-            </param>
-            <when value="no"/>
-            <when value="yes">
-                <param name="log2_num" type="float" value="0" min="0" max="1" label="Enter a number to use log2(x+num) transformation" help="Zero value has no affect"/>
-            </when>
-        </conditional>
-        <conditional name="max_states_inferred_cond">
-            <param name="max_states_inferred" type="select" label="Set the maximum number of states to be inferred">
-                <option value="no" selected="true">No</option>
-                <option value="yes">Yes</option>
-            </param>
-            <when value="no"/>
-            <when value="yes">
-                <param name="max_states" type="float" value="1" min="1" label="Maximum number of states to be inferred"/>
-            </when>
-        </conditional>
-        <conditional name="num_initial_states_cond">
-            <param name="num_initial_states" type="select" label="Set the initial number of states">
-                <option value="no" selected="true">No</option>
-                <option value="yes">Yes</option>
-            </param>
-            <when value="no"/>
-            <when value="yes">
-                <param name="initial_states" type="integer" value="20" min="1" label="Initial number of states"/>
-            </when>
-        </conditional>
+        <param name="log2_num" type="float" value="0" min="0" label="Use log2(x+number) transformation" help="Zero value has no affect"/>
+        <param name="max_states" type="float" value="0" min="0" label="Maximum number of states to be inferred" help="Zero value has no affect"/>
+        <param name="initial_states" type="integer" value="20" min="1" label="Initial number of states" help="Zero value has no affect"/>
         <param name="max_position_classes" type="integer" value="0" min="0" label="Maximum number of position classes to be inferred" help="Zero value has no affect"/>
         <param name="max_cell_type_clusters" type="integer" value="0" min="0" label="Maximum number of cell type clusters allowed" help="Zero value has no affect"/>
-        <param name="prior_concentration" type="float" value="0" min="0" label="Prior concentration" help="Zero value results in the default value: sqrt(number of cell types)"/>
-        <conditional name="burnin_max_steps_cond">
-            <param name="burnin_max_steps" type="select" label="Set the the number of burnin and maximization steps">
-                <option value="no" selected="true">No</option>
-                <option value="yes">Yes</option>
-            </param>
-            <when value="no"/>
-            <when value="yes">
-                <param name="burnin_num" type="integer" value="50" min="1" label="Number of burnin steps"/>
-                <param name="mcmc_num" type="integer" value="50" min="1" label="Number of maximization steps"/>
-            </when>
-        </conditional>
-        <conditional name="set_min_standard_dev_cond">
-            <param name="set_min_standard_dev" type="select" label="Set the minimum standard deviation for the emission Gaussian distribution?">
-                <option value="no" selected="true">No</option>
-                <option value="yes">Yes</option>
-            </param>
-            <when value="no"/>
-            <when value="yes">
-                <param name="min_standard_dev" type="float" value="0.5" label="Minimum standard deviation for the emission Gaussian distribution"/>
-            </when>
-        </conditional>
-        <conditional name="set_max_standard_dev_cond">
-            <param name="set_max_standard_dev" type="select" label="Set the maximum standard deviation for the emission Gaussian distribution?">
-                <option value="no" selected="true">No</option>
-                <option value="yes">Yes</option>
-            </param>
-            <when value="no"/>
-            <when value="yes">
-                <param name="max_standard_dev" type="float" value="100000000" label="Maximum standard deviation for the emission Gaussian distribution"/>
-            </when>
-        </conditional>
+        <param name="prior_concentration" type="float" value="1" min="0" label="Prior concentration" help="Zero value results in the default value: sqrt(number of cell types)"/>
+        <param name="burnin_num" type="integer" value="20" min="1" label="Number of burnin steps"/>
+        <param name="mcmc_num" type="integer" value="20" min="1" label="Number of maximization steps"/>
+        <param name="min_standard_dev" type="float" value="0.5" min="0" label="Minimum standard deviation for the emission Gaussian distribution" help="Zero value results in the default value: 0.5"/>
+        <param name="max_standard_dev" type="float" value="1000000" min="0" label="Maximum standard deviation for the emission Gaussian distribution" help="Zero value results in the default value: 1000000"/>
     </inputs>
     <outputs>
         <data name="output_log" format="txt" label="${tool.name} (ideas output log) on ${on_string}"/>
@@ -335,29 +247,24 @@ still specify the number of states if desired.
 **Other options**
 
 * **Output chromosomes in seperate files** - select "Yes" to produce seperate files for each chromosome, allowing you to run IDEAS on different chromosomes separately.
-* **Select Bed file containing blacklist regions for exclusion** - select a Bed file that contains regions you'd like excluded from your datasets.
+* **Calculate the average signal in each genomic window using** - use the bigWigAverageOverBed utility from the UCSC genome browser to calculate average signal (number of reads per bp) in each genomic window.
+* **Select file(s) containing regions to exclude** - select one or more bed files that contains regions you'd like excluded from your datasets.
 * **Standardize all datasets** - select "Yes" to standardize all datasets (e.g., reads / total_reads * 20 million) so that the signals from different cell types become comparable - your datasets can be read counts, logp-values or fold change.
 
 * **Discourage state transition across chromosomes** - select "Yes" to produce similar states in adjacent windows, making the annotation smoother, but at risk of reducing precision.
-* **Run IDEAS only within defined windows in the input data** - select "Yes" to Run IDEAS only in windows between zero-based start and end indexes of windows in the input data.
-* **Perform Log2-transformation of the input data** - select "Yes" to perform Log2-transformation of the input data by log2(x+1) (recommended for read count data to reduce skewness). You can optionally enter a number less than 1 to direct IDEAS to produce log2(x+num) transformation. For example, if your input data is mean read count per window, then 1 may be too large, but using 0.1 may be more reasonable.
-* **Set the maximum number of states to be inferred** - select "Yes" to restrict the maximum number of states to be generated by IDEAS; the final number of inferred states may be smaller than the number you specified
-* **Set the initial number of states** - select "Yes" if the number of states you expect to generate is greater than 20. While IDEAS may infer 30 states or more by starting from just 20 states, it may not do so if it is trapped in a local mode. We recommend setting the initial number of states slightly larger than the number of states you expect.
+* **Use log2(x+number) transformation** - perform Log2-transformation of the input data by log2(x+number) (recommended for read count data to reduce skewness). You can enter a number less than 1. For example, if your input data is mean read count per window, using 0.1 may produce better results.
+* **Maximum number of states to be inferred** - restrict the maximum number of states to be generated by IDEAS; the final number of inferred states may be smaller than the number you specified
+* **Initial number of states** - while IDEAS may infer 30 states or more by starting from just 20 states, it may not do so if it is trapped in a local mode. We recommend setting the initial number of states slightly larger than the number of states you expect.
 * **Maximum number of position classes to be inferred** - Set this value only if:
 
-   * you do not want position classes (e.g., for testing purposes), in this case set the value t0 1
+   * you do not want position classes (e.g., for testing purposes), in this case set the value to 1
    * IDEAS runs slow because there are too many position classes, generally less than 100 position classes will run fine
 
 * **Maximum number of cell type clusters allowed** - Set this value only for testing.  If you set the value to 1, then all cell types will be clustered in one group.
 * **Prior concentration** - specify the prior concentration parameter; default is A=sqrt(number of cell types).  A smaller concentration parameter (e.g., 1 or less) will emphasize more on position specificity and a larger concentration parameter (e.g., 10 * number of cell types) will emphasize more on global homogeneity.
 * **Set the the number of burnin and maximization steps** - specify the number of burnin and maximization steps; default it is 50 50.  Increasing these two numbers will increase computing and only slightly increase accuracy.  Decreasing these two numbers will reduce computing but may also reduce accuracy.  We recommend to run IDEAS with at least 20 burnins and 20 maximizations.  IDEAS will not stop even if it reaches a maximum mode.
-* **Set the minimum standard deviation for the emission Gaussian distribution** - specify the minimum standard deviation for the emission Gaussian distribution.
-
-   * **Minimum standard deviation for the emission Gaussian distribution** - you should change the default minerr value of 0.5 if the standard deviation of your data is much smaller or much larger than 1. The first line of the output produced by IDEAS is **ysd=xxx**, which is the total standard deviation of your data. If that value is less than 0.5, you may set the minimum standard deviation to an even smaller number (e.g., xxx/2). If the standard deviation of your data is much greater than 1, (e.g., 20), you may set the minimum standard deviation to a larger value, (e.g., 5). Modifying the minimum standard deviation in the former case is more necessary than in the latter case because otherwise you may end up finding no interesting segmentations. We do not recommend setting the minimum standard deviation to be 0 or smaller, as doing so may capture some artificial and uninteresting states due to tightly clustered data, such as 0 in read counts.
-
-* **Set the maximum standard deviation for the emission Gaussian distribution** - specify the maximim standard deviation for the emission Gaussian distribution.
-
-   * **Maximim standard deviation for the emission Gaussian distribution** - if you want to find fine-grained states you may use this option (if not used, IDEAS uses infinity), but it is rearely used unless you need more states to be inferred. 
+* **Minimum standard deviation for the emission Gaussian distribution** - you should change the default value of 0.5 if the standard deviation of your data is much smaller or much larger than 1. The first line of the output produced by IDEAS is **ysd=xxx**, which is the total standard deviation of your data. If that value is less than 0.5, you may set the minimum standard deviation to an even smaller number (e.g., xxx/2). If the standard deviation of your data is much greater than 1, (e.g., 20), you may set the minimum standard deviation to a larger value, (e.g., 5). Modifying the minimum standard deviation in the former case is more necessary than in the latter case because otherwise you may end up finding no interesting segmentations. We do not recommend setting the minimum standard deviation to be 0 or smaller, as doing so may capture some artificial and uninteresting states due to tightly clustered data, such as 0 in read counts.
+* **Maximim standard deviation for the emission Gaussian distribution** - if you want to find fine-grained states you may use this option (if not used, IDEAS uses infinity), but it is rearely used unless you need more states to be inferred. 
 
     </help>
     <citations>
