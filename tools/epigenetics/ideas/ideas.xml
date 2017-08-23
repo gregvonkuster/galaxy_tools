@@ -26,7 +26,7 @@ prepMat
     #set specify_genomic_window_cond = $input_type_cond.specify_genomic_window_cond
     #set specify_genomic_window = $specify_genomic_window_cond.specify_genomic_window
     #if str($specify_genomic_window) == 'yes':
-        -bed '$bed_input'
+        -bed '$specify_genomic_window_cond.bed_input'
     #else:
         -gsz '$chromInfo'
         -wsz $specify_genomic_window_cond.window_size
@@ -41,18 +41,12 @@ prepMat
         #end if
     #end if
 #end if
-#set outputs_by_chr = $outputs_by_chr_cond.outputs_by_chr
-#if str($outputs_by_chr) == 'yes':
-    -bychr
-#end if
+$bychr
 -c $reads_per_bp
 #if str($blacklist_input) not in ['None', '']:
     -exclude '$blacklist_input'
 #end if
-#set standardize_datasets = $standardize_datasets_cond.standardize_datasets
-#if str($standardize_datasets) == 'yes':
-    -norm
-#end if
+$norm
 ##############################################
 ## Coerce the prepMat config output to the
 ## format expected by the R matrix builder.
@@ -72,22 +66,25 @@ prepMat
 ##############################################
 && ideas
 '$prep_output_config'
-$tmp_dir/*.bed
-#set smoother_annotation = $smoother_annotation_cond.smoother_annotation
-#if str($smoother_annotation) == 'yes':
-    -hp
+#if str($input_type) == 'datasets':
+    #set specify_genomic_window_cond = $input_type_cond.specify_genomic_window_cond
+    #set specify_genomic_window = $specify_genomic_window_cond.specify_genomic_window
+    #if str($specify_genomic_window) == 'yes':
+        '$specify_genomic_window_cond.bed_input'
+    #else:
+        $tmp_dir/*.bed
+    #end if
+#else:
+    $tmp_dir/*.bed
 #end if
-#set smoother_annotation = $smoother_annotation_cond.smoother_annotation
-#if str($smoother_annotation) == 'yes':
-    -hp
-#end if
-#if str($log2_num) != '0.0':
-    -log2 $log2_num
+$hp
+#if str($log2) != '0.0':
+    -log2 $log2
 #end if
 #if str($max_states) != '0.0':
     -G $max_states
 #end if
-#if str($initial_states) != '0.0':
+#if str($initial_states) != '0':
     -C $initial_states
 #end if
 #if str($max_position_classes) != '0':
@@ -100,11 +97,11 @@ $tmp_dir/*.bed
     -A $prior_concentration
 #end if
 -sample $burnin_num $mcmc_num
-#if str($min_standard_dev) != '0.0':
-    -minerr $min_standard_dev
+#if str($minerr) != '0.0':
+    -minerr $minerr
 #end if
-#if str($max_standard_dev) != '0.0':
-    -maxerr $max_standard_dev
+#if str($maxerr) != '0.0':
+    -maxerr $maxerr
 #end if
 -thread \${GALAXY_SLOTS:-4}
 > $output_log
@@ -164,45 +161,24 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
             </when>
             <when value="data_matrix"/>
         </conditional>
-        <conditional name="outputs_by_chr_cond">
-            <param name="outputs_by_chr" type="select" display="radio" label="Output chromosomes in seperate files">
-                <option value="no" selected="true">No</option>
-                <option value="yes">Yes</option>
-            </param>
-            <when value="no"/>
-            <when value="yes"/>
-        </conditional>
+        <param argument="-bychr" type="boolean" truevalue="-bychr" falsevalue="" checked="False" label="Output chromosomes in separate files"/>
         <param name="reads_per_bp" type="select" display="radio" label="Calculate the average signal in each genomic window using">
             <option value="6" selected="true">mean</option>
             <option value="8">max</option>
         </param>
         <param name="blacklist_input" type="data" format="bed" optional="True" multiple="True" label="Select file(s) containing regions to exclude"/>
-        <conditional name="standardize_datasets_cond">
-            <param name="standardize_datasets" type="select" display="radio" label="Standardize all datasets">
-                <option value="no" selected="true">No</option>
-                <option value="yes">Yes</option>
-            </param>
-            <when value="no"/>
-            <when value="yes"/>
-        </conditional>
-        <conditional name="smoother_annotation_cond">
-            <param name="smoother_annotation" type="select" display="radio" label="Discourage state transition across chromosomes">
-                <option value="no" selected="true">No</option>
-                <option value="yes">Yes</option>
-            </param>
-            <when value="no"/>
-            <when value="yes"/>
-        </conditional>
-        <param name="log2_num" type="float" value="0" min="0" label="Use log2(x+number) transformation" help="Zero value has no affect"/>
+        <param argument="-norm" type="boolean" truevalue="-norm" falsevalue="" checked="False" label="Standardize all datasets"/>
+        <param argument="-hp" type="boolean" truevalue="-hp" falsevalue="" checked="False" label="Discourage state transition across chromosomes"/>
+        <param name="log2" type="float" value="0" min="0" label="Use log2(x+number) transformation" help="Zero value has no affect"/>
         <param name="max_states" type="float" value="0" min="0" label="Maximum number of states to be inferred" help="Zero value has no affect"/>
-        <param name="initial_states" type="integer" value="20" min="1" label="Initial number of states" help="Zero value has no affect"/>
+        <param name="initial_states" type="integer" value="20" min="0" label="Initial number of states" help="Zero value has no affect"/>
         <param name="max_position_classes" type="integer" value="0" min="0" label="Maximum number of position classes to be inferred" help="Zero value has no affect"/>
         <param name="max_cell_type_clusters" type="integer" value="0" min="0" label="Maximum number of cell type clusters allowed" help="Zero value has no affect"/>
         <param name="prior_concentration" type="float" value="1" min="0" label="Prior concentration" help="Zero value results in the default value: sqrt(number of cell types)"/>
         <param name="burnin_num" type="integer" value="20" min="1" label="Number of burnin steps"/>
         <param name="mcmc_num" type="integer" value="20" min="1" label="Number of maximization steps"/>
-        <param name="min_standard_dev" type="float" value="0.5" min="0" label="Minimum standard deviation for the emission Gaussian distribution" help="Zero value results in the default value: 0.5"/>
-        <param name="max_standard_dev" type="float" value="1000000" min="0" label="Maximum standard deviation for the emission Gaussian distribution" help="Zero value results in the default value: 1000000"/>
+        <param name="minerr" type="float" value="0.5" min="0" label="Minimum standard deviation for the emission Gaussian distribution" help="Zero value results in the default value: 0.5"/>
+        <param name="maxerr" type="float" value="1000000" min="0" label="Maximum standard deviation for the emission Gaussian distribution" help="Zero value results in the default value: 1000000"/>
     </inputs>
     <outputs>
         <data name="output_log" format="txt" label="${tool.name} (ideas output log) on ${on_string}"/>
@@ -246,7 +222,7 @@ still specify the number of states if desired.
 
 **Other options**
 
-* **Output chromosomes in seperate files** - select "Yes" to produce seperate files for each chromosome, allowing you to run IDEAS on different chromosomes separately.
+* **Output chromosomes in separate files** - select "Yes" to produce separate files for each chromosome, allowing you to run IDEAS on different chromosomes separately.
 * **Calculate the average signal in each genomic window using** - use the bigWigAverageOverBed utility from the UCSC genome browser to calculate average signal (number of reads per bp) in each genomic window.
 * **Select file(s) containing regions to exclude** - select one or more bed files that contains regions you'd like excluded from your datasets.
 * **Standardize all datasets** - select "Yes" to standardize all datasets (e.g., reads / total_reads * 20 million) so that the signals from different cell types become comparable - your datasets can be read counts, logp-values or fold change.
