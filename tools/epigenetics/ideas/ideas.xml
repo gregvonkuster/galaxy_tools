@@ -9,29 +9,28 @@
         <requirement type="package" version="1.3.2">r-optparse</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
-#import os
-#set tmp_dir = 'tmp'
-#set prep_output_config = 'prep_output_config.txt'
-##set ideas_input_dir = 'ideas_input'
-##set ideas_matrix_input_file = $os.path.join($ideas_input_dir, 'r_matrix.txt')
-##mkdir -p $ideas_input_dir &&
+#set tmp_dir = "tmp"
+#set prep_input_config = "prep_input_config.txt"
+#set prep_output_config = "prep_output_config.txt"
 ##############################################
 ## Create the config file and prepare the data
 ##############################################
 #set input_type = $input_type_cond.input_type
-cp '$prep_input_config' 'prep_input_config.txt' &&
-prepMat
-#if str($input_type) == 'datasets':
-    '$prep_input_config'
+#if str($input_type) == "datasets":
+    #set cell_type_epigenetic_factor_cond = $input_type_cond.cell_type_epigenetic_factor_cond
+    #set cell_type_epigenetic_factor = $cell_type_epigenetic_factor_cond.cell_type_epigenetic_factor
     #set specify_genomic_window_cond = $input_type_cond.specify_genomic_window_cond
     #set specify_genomic_window = $specify_genomic_window_cond.specify_genomic_window
-    #if str($specify_genomic_window) == 'yes':
+    cp '$gen_prep_input_config' $prep_input_config &&
+    prepMat
+    $prep_input_config
+    #if str($specify_genomic_window) == "yes":
         -bed '$specify_genomic_window_cond.bed_input'
     #else:
         -gsz '$chromInfo'
         -wsz $specify_genomic_window_cond.window_size
         #set restrict_chromosomes = $specify_genomic_window_cond.restrict_chromosomes_cond.restrict_chromosomes
-        #if str($restrict_chromosomes) == 'yes':
+        #if str($restrict_chromosomes) == "yes":
             #set chroms = []
             #set chrom_repeat = $specify_genomic_window_cond.restrict_chromosomes_cond.chrom_repeat
             #for $i in $chrom_repeat.chrom
@@ -43,7 +42,7 @@ prepMat
 #end if
 $bychr
 -c $reads_per_bp
-#if str($blacklist_input) not in ['None', '']:
+#if str($blacklist_input) not in ["None", ""]:
     -exclude '$blacklist_input'
 #end if
 $norm
@@ -66,10 +65,10 @@ $norm
 ##############################################
 && ideas
 '$prep_output_config'
-#if str($input_type) == 'datasets':
+#if str($input_type) == "datasets":
     #set specify_genomic_window_cond = $input_type_cond.specify_genomic_window_cond
     #set specify_genomic_window = $specify_genomic_window_cond.specify_genomic_window
-    #if str($specify_genomic_window) == 'yes':
+    #if str($specify_genomic_window) == "yes":
         '$specify_genomic_window_cond.bed_input'
     #else:
         $tmp_dir/*.bed
@@ -78,29 +77,29 @@ $norm
     $tmp_dir/*.bed
 #end if
 $hp
-#if str($log2) != '0.0':
+#if str($log2) != "0.0":
     -log2 $log2
 #end if
-#if str($max_states) != '0.0':
+#if str($max_states) != "0.0":
     -G $max_states
 #end if
-#if str($initial_states) != '0':
+#if str($initial_states) != "0":
     -C $initial_states
 #end if
-#if str($max_position_classes) != '0':
+#if str($max_position_classes) != "0":
     -P $max_position_classes
 #end if
-#if str($max_cell_type_clusters) != '0':
+#if str($max_cell_type_clusters) != "0":
     -K $max_cell_type_clusters
 #end if
-#if str($prior_concentration) != '0.0':
+#if str($prior_concentration) != "0.0":
     -A $prior_concentration
 #end if
 -sample $burnin_num $mcmc_num
-#if str($minerr) != '0.0':
+#if str($minerr) != "0.0":
     -minerr $minerr
 #end if
-#if str($maxerr) != '0.0':
+#if str($maxerr) != "0.0":
     -maxerr $maxerr
 #end if
 -thread \${GALAXY_SLOTS:-4}
@@ -111,9 +110,30 @@ $hp
 && mv ./*.state $output_state
     ]]></command>
     <configfiles>
-        <configfile name="prep_input_config"><![CDATA[#for $input_items in $input_type_cond.input_repeat:
+        <configfile name="gen_prep_input_config"><![CDATA[#import os
+#if str($input_type_cond.input_type) == "datasets":
+    #if str($input_type_cond.cell_type_epigenetic_factor_cond.cell_type_epigenetic_factor) == "extract":
+        #set cell_type_epigenetic_factor_cond = $input_type_cond.cell_type_epigenetic_factor_cond
+        #set input_name_positions = $cell_type_epigenetic_factor_cond.input_name_positions
+        #for $i in $cell_type_epigenetic_factor_cond.input:
+            #set file_name_with_ext = $i.name
+            #assert str($file_name_with_ext).find("-") >= 0, "The selected input '%s' is invalid because it does not include the '-' character which is required when setting cell type and epigenetic factor names by extracting them from the input file names." % $file_name_with_ext
+            #set file_name = $file_name_with_ext.split(".")[0]
+            #if str($input_name_positions) == "cell_first":
+                #set cell_type_name = $file_name.split("-")[0]
+                #set epigenetic_factor_name = $file_name.split("-")[1]
+            #else:
+                #set cell_type_name = $file_name.split("-")[1]
+                #set epigenetic_factor_name = $file_name.split("-")[0]
+            #end if
+${cell_type_name} ${epigenetic_factor_name} ${i}
+        #end for
+    #else:
+        #for $input_items in $input_type_cond.cell_type_epigenetic_factor_cond.input_repeat:
 ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_items.input}
-#end for ]]></configfile>
+        #end for
+    #end if
+#end if]]></configfile>
     </configfiles>
     <inputs>
         <conditional name="input_type_cond">
@@ -122,18 +142,36 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
                 <option value="data_matrix">Data matrix</option>
             </param>
             <when value="datasets">
-                <repeat name="input_repeat" title="Cell type, Epigenetic factor and Input" min="1">
-                    <param name="cell_type_name" type="text" value="" label="Cell type name">
-                        <validator type="empty_field"/>
+                <conditional name="cell_type_epigenetic_factor_cond">
+                    <param name="cell_type_epigenetic_factor" type="select" label="Set cell type and epigenetic factor names by">
+                        <option value="extract" selected="true">extracting them from the selected input file names</option>
+                        <option value="manual">manually setting them for each selected input</option>
                     </param>
-                    <param name="epigenetic_factor_name" type="text" value="" label="Epigenetic factor name">
-                        <validator type="empty_field"/>
-                    </param>
-                    <param name="input" type="data" format="bigwig,bam" label="BAM or BigWig file">
-                        <validator type="empty_field"/>
-                        <validator type="unspecified_build"/>
-                    </param>
-                </repeat>
+                    <when value="extract">
+                        <param name="input" type="data" format="bigwig,bam" multiple="True" label="BAM or BigWig files">
+                            <validator type="empty_field"/>
+                            <validator type="unspecified_build"/>
+                        </param>
+                        <param name="input_name_positions" type="select" display="radio" label="Selected input file name pattern is" help="A '-' character must separate cell type and epigenetic factor names within the selected input file names">
+                            <option value="cell_first" selected="true">Cell type name - Epigenetic factor name</option>
+                            <option value="cell_last">Epigenetic factor name - Cell type name</option>
+                        </param>
+                    </when>
+                    <when value="manual">
+                        <repeat name="input_repeat" title="Cell type, Epigenetic factor and Input" min="1">
+                            <param name="cell_type_name" type="text" value="" label="Cell type name">
+                                <validator type="empty_field"/>
+                            </param>
+                            <param name="epigenetic_factor_name" type="text" value="" label="Epigenetic factor name">
+                                <validator type="empty_field"/>
+                            </param>
+                            <param name="input" type="data" format="bigwig,bam" label="BAM or BigWig file">
+                                <validator type="empty_field"/>
+                                <validator type="unspecified_build"/>
+                            </param>
+                        </repeat>
+                    </when>
+                </conditional>
                 <conditional name="specify_genomic_window_cond">
                     <param name="specify_genomic_window" type="select" label="Select Bed file that defines genomic windows on which to process the data">
                         <option value="no" selected="true">No</option>
@@ -201,26 +239,26 @@ still specify the number of states if desired.
 
 -----
 
-**Required options**
+**Options**
 
- * **Cell type, Epigenetic factor and Input** - specify any number of inputs with currently supported formats, either bam or bigwig.  The cell name + factor name must be unique for each input.  For example, if you have replicate data you may want to specify the cell name as "cell_rep1", "cell_rep2", etc and the factor name as "factor_rep1", "factor_rep2", etc.
+* **Select input type** - select a data matrix file produced in a previous run or one or more Bam or Bigwig datasets.
+* **Set cell type and epigenetic factor names by** - cell type and epigenetic factor names can be set manually or by extracting them from the names of the selected input datasets.  The latter case requires all selected datasets to have names that contain a "-" character.
+
+ * **BAM or BigWig files** - select one or more Bam or Bigwig files from yhour history, making sure that the name of every selected input include a "-" character.
+ * **Cell type, Epigenetic factor and Input** - manually select any number of inputs, setting the cell type and epigenetic factor name for each.  The combination of "cell type name" and "epigenetic factor name" must be unique for each input.  For example, if you have replicate data you may want to specify the cell name as "cell_rep1", "cell_rep2", etc and the factor name as "factor_rep1", "factor_rep2", etc.
  
-    * **Cell type name** - cell type name
-    * **Epigenetic factor name** - epigenetic factor name
-    * **BAM or BigWig file** - BAM or BigWig file
+  * **Cell type name** - cell type name
+  * **Epigenetic factor name** - epigenetic factor name
+  * **BAM or BigWig file** - BAM or BigWig file
 
- * **Set genomic windows on which to process the data** - if "No" is selected, IDEAS will run whole genome segmentation.  If "Yes" is selected, IDEAS will segment genomes in the unit of the windows defined by the bed file.  This file can be in BED3, BED4 or BED5 format, but only the first three columns (chr posst posed) will be used.
+* **Select Bed file that defines genomic windows on which to process the data** - if "No" is selected, IDEAS will run whole genome segmentation.  If "Yes" is selected, IDEAS will segment genomes in the unit of the windows defined by the bed file.  This file can be in BED3, BED4 or BED5 format, but only the first three columns (chr posst posed) will be used.
 
-    * **Window size in base pairs** - Window size in base pairs (if "No" is selected)
-    * **Restrict processing to specified chromosomes** - If "Yes" is selected, processing will be restricted to specified chromosomes
+ * **Window size in base pairs** - Window size in base pairs (if "No" is selected)
+ * **Restrict processing to specified chromosomes** - If "Yes" is selected, processing will be restricted to specified chromosomes
 
-       * **Chromosomes** - processing will be restricted to specified chromosomes (if "Yes" is selected)
+  * **Chromosomes** - processing will be restricted to specified chromosomes (if "Yes" is selected)
 
-         * **Chromosome** - specified chromosome
-
-    * **Bed file specifying the genomic windows** - bed file specifying the genomic windows (if "Yes" is selected)
-
-**Other options**
+ * **Bed file specifying the genomic windows** - bed file specifying the genomic windows (if "Yes" is selected)
 
 * **Output chromosomes in separate files** - select "Yes" to produce separate files for each chromosome, allowing you to run IDEAS on different chromosomes separately.
 * **Calculate the average signal in each genomic window using** - use the bigWigAverageOverBed utility from the UCSC genome browser to calculate average signal (number of reads per bp) in each genomic window.
@@ -233,8 +271,8 @@ still specify the number of states if desired.
 * **Initial number of states** - while IDEAS may infer 30 states or more by starting from just 20 states, it may not do so if it is trapped in a local mode. We recommend setting the initial number of states slightly larger than the number of states you expect.
 * **Maximum number of position classes to be inferred** - Set this value only if:
 
-   * you do not want position classes (e.g., for testing purposes), in this case set the value to 1
-   * IDEAS runs slow because there are too many position classes, generally less than 100 position classes will run fine
+ * you do not want position classes (e.g., for testing purposes), in this case set the value to 1
+ * IDEAS runs slow because there are too many position classes, generally less than 100 position classes will run fine
 
 * **Maximum number of cell type clusters allowed** - Set this value only for testing.  If you set the value to 1, then all cell types will be clustered in one group.
 * **Prior concentration** - specify the prior concentration parameter; default is A=sqrt(number of cell types).  A smaller concentration parameter (e.g., 1 or less) will emphasize more on position specificity and a larger concentration parameter (e.g., 10 * number of cell types) will emphasize more on global homogeneity.
