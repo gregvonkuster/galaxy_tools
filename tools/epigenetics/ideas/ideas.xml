@@ -103,7 +103,11 @@ $hp
     -maxerr $maxerr
 #end if
 -thread \${GALAXY_SLOTS:-4}
-> $output_log
+#if str($save_ideas_log) == "yes":
+    > $output_log
+#else:
+    > /dev/null
+#end if
 && mv ./*.cluster $output_cluster
 && mv ./*.para $output_para
 && mv ./*.profile $output_profile
@@ -217,9 +221,15 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
         <param name="mcmc_num" type="integer" value="20" min="1" label="Number of maximization steps"/>
         <param name="minerr" type="float" value="0.5" min="0" label="Minimum standard deviation for the emission Gaussian distribution" help="Zero value results in the default value: 0.5"/>
         <param name="maxerr" type="float" value="1000000" min="0" label="Maximum standard deviation for the emission Gaussian distribution" help="Zero value results in the default value: 1000000"/>
+        <param name="save_ideas_log" type="select" display="radio" label="Save IDEAS log in an additional history item">
+            <option value="no" selected="true">No</option>
+            <option value="yes">Yes</option>
+        </param>
     </inputs>
     <outputs>
-        <data name="output_log" format="txt" label="${tool.name} (ideas output log) on ${on_string}"/>
+        <data name="output_log" format="txt" label="${tool.name} (ideas output log) on ${on_string}">
+            <filter>save_ideas_log == 'yes'</filter>
+        </data>
         <data name="output_cluster" format="txt" label="${tool.name} (local cell type clustering) on ${on_string}"/>
         <data name="output_para" format="tabular" label="${tool.name} (epigenetic state frequency, mean and variance parameters) on ${on_string}"/>
         <data name="output_profile" format="txt" label="${tool.name} (profile) on ${on_string}"/>
