@@ -76,7 +76,6 @@ python '$__tool_directory__/gene_family_aligner.py'
         --output_dir '$output_aln.files_path'
     #end if
 #end if
-#set output_dataset_collection = $output_dataset_collection_cond.output_dataset_collection
 #if str($output_dataset_collection) == 'yes':
     --output_dataset_collection dataset_collection
 #end if
@@ -102,14 +101,10 @@ python '$__tool_directory__/gene_family_aligner.py'
             </when>
         </conditional>
         <expand macro="cond_remove_gappy_sequences" />
-        <conditional name="output_dataset_collection_cond">
-            <param name="output_dataset_collection" type="select" label="Output additional dataset collection of files?">
-                <option value="no" selected="true">No</option>
-                <option value="yes">Yes</option>
-            </param>
-            <when value="no" />
-            <when value="yes" />
-        </conditional>
+        <param name="output_dataset_collection" type="select" display="radio" label="Output additional dataset collection of files?">
+            <option value="no" selected="true">No</option>
+            <option value="yes">Yes</option>
+        </param>
     </inputs>
     <outputs>
         <data name="output_aln" format="ptalign" label="${tool.name} (proteins orthogroup alignments) on ${on_string}">
@@ -132,7 +127,7 @@ python '$__tool_directory__/gene_family_aligner.py'
         </data>
         <collection name="dataset_collection" type="list" label="${tool.name} (dataset collection) on ${on_string}">
             <discover_datasets pattern="__name__" directory="dataset_collection" format="fasta" />
-            <filter>output_dataset_collection_cond['output_dataset_collection'] == 'yes'</filter>
+            <filter>output_dataset_collection == 'yes'</filter>
         </collection>
     </outputs>
     <tests>

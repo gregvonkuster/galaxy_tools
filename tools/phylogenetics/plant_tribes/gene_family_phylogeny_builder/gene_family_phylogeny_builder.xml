@@ -59,7 +59,6 @@ python '$__tool_directory__/gene_family_phylogeny_builder.py'
 --min_orthogroup_size $min_orthogroup_size
 --max_orthogroup_size $max_orthogroup_size
 --num_threads \${GALAXY_SLOTS:-4}
-#set output_pttree_dir = $output_pttree_dir_cond.output_pttree_dir
 #if str($output_pttree_dir) == 'yes':
     --output_tree '$output_tree'
     --output_tree_dir '$output_tree.files_path'
@@ -133,21 +132,17 @@ python '$__tool_directory__/gene_family_phylogeny_builder.py'
         </conditional>
         <param name="max_orthogroup_size" type="integer" value="100" min="4" label="Maximum orthogroup size" />
         <param name="min_orthogroup_size" type="integer" value="4" min="4" label="Minimum orthogroup size" />
-        <conditional name="output_pttree_dir_cond">
-            <param name="output_pttree_dir" type="select" label="Output additional directory of phylogenetic tree files?">
-                <option value="no" selected="true">No</option>
-                <option value="yes">Yes</option>
-            </param>
-            <when value="no" />
-            <when value="yes" />
-        </conditional>
+        <param name="output_pttree_dir" type="select" label="Output additional directory of phylogenetic tree files?">
+            <option value="no" selected="true">No</option>
+            <option value="yes">Yes</option>
+        </param>
     </inputs>
     <outputs>
         <collection name="tree" type="list" label="${tool.name} (phylogenetic trees, dataset collection) on ${on_string}">
             <discover_datasets pattern="__name__" directory="geneFamilyPhylogenies_dir/orthogroups_tree" format="nhx" />
         </collection>
         <data name="output_tree" format="pttree" label="${tool.name} (phylogenetic trees, directory) on ${on_string}">
-            <filter>output_pttree_dir_cond['output_pttree_dir'] == 'yes'</filter>
+            <filter>output_pttree_dir == 'yes'</filter>
         </data>
         <data name="output_phylip" format="ptphylip" label="${tool.name} (orthogroup phylip multiple sequence alignments) on ${on_string}">
             <filter>tree_inference_cond['tree_inference'] == 'raxml'</filter>
