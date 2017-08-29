@@ -84,6 +84,7 @@ $hp
 #if str($maxerr) != "0.0":
     -maxerr $maxerr
 #end if
+-rseed 1234
 -thread \${GALAXY_SLOTS:-4}
 #if str($save_ideas_log) == "yes":
     > $output_log
