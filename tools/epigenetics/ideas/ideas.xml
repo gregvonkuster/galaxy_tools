@@ -84,7 +84,7 @@ $hp
 #if str($maxerr) != "0.0":
     -maxerr $maxerr
 #end if
--rseed 1234
+-rseed $rseed
 -thread \${GALAXY_SLOTS:-4}
 #if str($save_ideas_log) == "yes":
     > $output_log
@@ -150,6 +150,7 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
                 </repeat>
             </when>
         </conditional>
+        <param argument="-rseed" type="integer" value="1234" min="0" max="1000000" label="Seed for IDEAS model initialization" help="Zero value generates a random seed"/>
         <conditional name="specify_genomic_window_cond">
             <param name="specify_genomic_window" type="select" label="Select Bed file that defines genomic windows on which to process the data">
                 <option value="no" selected="true">No</option>
@@ -247,16 +248,16 @@ still specify the number of states if desired.
 
 **Options**
 
-* **Select input type** - select a data matrix file produced in a previous run or one or more Bam or Bigwig datasets.
 * **Set cell type and epigenetic factor names by** - cell type and epigenetic factor names can be set manually or by extracting them from the names of the selected input datasets.  The latter case requires all selected datasets to have names that contain a "-" character.
 
- * **BAM or BigWig files** - select one or more Bam or Bigwig files from yhour history, making sure that the name of every selected input include a "-" character.
+ * **BAM or BigWig files** - select one or more Bam or Bigwig files from your history, making sure that the name of every selected input include a "-" character (e.g., e001-h3k4me3.bigwig).
  * **Cell type, Epigenetic factor and Input** - manually select any number of inputs, setting the cell type and epigenetic factor name for each.  The combination of "cell type name" and "epigenetic factor name" must be unique for each input.  For example, if you have replicate data you may want to specify the cell name as "cell_rep1", "cell_rep2", etc and the factor name as "factor_rep1", "factor_rep2", etc.
  
   * **Cell type name** - cell type name
   * **Epigenetic factor name** - epigenetic factor name
   * **BAM or BigWig file** - BAM or BigWig file
 
+* **Seed for IDEAS model initialization** - enter an integer to be used as the seed for the IDEAS model initialization.
 * **Select Bed file that defines genomic windows on which to process the data** - if "No" is selected, IDEAS will run whole genome segmentation.  If "Yes" is selected, IDEAS will segment genomes in the unit of the windows defined by the bed file.  This file can be in BED3, BED4 or BED5 format, but only the first three columns (chr posst posed) will be used.
 
  * **Window size in base pairs** - Window size in base pairs (if "No" is selected)
