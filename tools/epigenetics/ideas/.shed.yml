@@ -1,0 +1,17 @@
+name: ideas
+owner: greg
+description: |
+  Contains a tool that employs the IDEAS (Integrative and Discriminative Epigenome Annotation System) method for jointly and
+  quantitatively characterizing multivariate epigenetic landscapes in many cell types, tissues or conditions
+homepage_url: http://sites.stat.psu.edu/~yzz2/IDEAS/
+long_description: |
+  Contains a tool that employs the IDEAS (Integrative and Discriminative Epigenome Annotation System) method for jointly and
+  quantitatively characterizing multivariate epigenetic landscapes in many cell types, tissues or conditions. The method
+  accounts for position dependent epigenetic events and detects local cell type relationships, which not only help to improve
+  the accuracy of annotating functional classes of DNA sequences, but also reveal cell type constitutive and specific loci.
+  The method utilizes Bayesian non-parametric techniques to automatically identify the best model size fitting to the data so
+  users do not have to specify the number of states. On the other hand, users can still specify the number of states if desired.
+remote_repository_url: 
+type: unrestricted
+categories:
+- Epigenetics
