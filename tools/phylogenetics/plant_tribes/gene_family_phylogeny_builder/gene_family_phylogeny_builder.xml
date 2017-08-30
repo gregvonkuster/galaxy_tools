@@ -1,4 +1,4 @@
-<tool id="plant_tribes_gene_family_phylogeny_builder" name="GeneFamilyPhylogenyBuilder" version="@WRAPPER_VERSION@.2">
+<tool id="plant_tribes_gene_family_phylogeny_builder" name="GeneFamilyPhylogenyBuilder" version="@WRAPPER_VERSION@.2.1">
     <description>builds phylogenetic trees of aligned orthologous gene family clusters</description>
     <macros>
         <import>macros.xml</import>
@@ -16,7 +16,7 @@
     #set bootstrap_replicates = $tree_inference_cond.bootstrap_replicates
 #end if
 
-python '$__tool_directory__/gene_family_phylogeny_builder.py'
+GeneFamilyPhylogenyBuilder
 #if str($input_format) == 'ptalign':
     --orthogroup_aln '$input_format_cond.input_ptalign.extra_files_path'
     --alignment_type aln
@@ -53,16 +53,10 @@ python '$__tool_directory__/gene_family_phylogeny_builder.py'
         ## configuration will be used if the --rooting_order flag is missing.
     #end if
     --bootstrap_replicates $bootstrap_replicates
-    --output_phylip '$output_phylip'
-    --output_phylip_dir '$output_phylip.files_path'
 #end if
 --min_orthogroup_size $min_orthogroup_size
 --max_orthogroup_size $max_orthogroup_size
 --num_threads \${GALAXY_SLOTS:-4}
-#if str($output_pttree_dir) == 'yes':
-    --output_tree '$output_tree'
-    --output_tree_dir '$output_tree.files_path'
-#end if
     ]]></command>
     <inputs>
         <conditional name="input_format_cond">
@@ -132,21 +126,15 @@ python '$__tool_directory__/gene_family_phylogeny_builder.py'
         </conditional>
         <param name="max_orthogroup_size" type="integer" value="100" min="4" label="Maximum orthogroup size" />
         <param name="min_orthogroup_size" type="integer" value="4" min="4" label="Minimum orthogroup size" />
-        <param name="output_pttree_dir" type="select" label="Output additional directory of phylogenetic tree files?">
-            <option value="no" selected="true">No</option>
-            <option value="yes">Yes</option>
-        </param>
     </inputs>
     <outputs>
-        <collection name="tree" type="list" label="${tool.name} (phylogenetic trees, dataset collection) on ${on_string}">
+        <collection name="tree" type="list" label="${tool.name} (phylogenetic trees) on ${on_string}">
             <discover_datasets pattern="__name__" directory="geneFamilyPhylogenies_dir/orthogroups_tree" format="nhx" />
         </collection>
-        <data name="output_tree" format="pttree" label="${tool.name} (phylogenetic trees, directory) on ${on_string}">
-            <filter>output_pttree_dir == 'yes'</filter>
-        </data>
-        <data name="output_phylip" format="ptphylip" label="${tool.name} (orthogroup phylip multiple sequence alignments) on ${on_string}">
+        <collection name="phylip" type="list" label="${tool.name} (orthogroup phylip multiple sequence alignments) on ${on_string}">
             <filter>tree_inference_cond['tree_inference'] == 'raxml'</filter>
-        </data>
+            <discover_datasets pattern="__name__" directory="geneFamilyPhylogenies_dir/phylip_aln" format="phylip" />
+        </collection>
     </outputs>
     <tests>
         <!-- Test framework does not currently support inputs whose associated extra_files_path contains files to be analyzed.
