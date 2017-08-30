@@ -8,7 +8,7 @@ long_description: |
   utilize objective classifications of complete protein sequences from sequenced plant genomes to perform
   comparative evolutionary studies.  This tool integrates classified post processed de novo transcriptome
   assembly sequences with the scaffold gene family sequences.
-remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/plant_tribes/gene_family_integrator
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/phylogenetics/plant_tribes/gene_family_integrator
 type: unrestricted
 categories:
 - Phylogenetics

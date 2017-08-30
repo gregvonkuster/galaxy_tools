@@ -8,7 +8,7 @@ long_description: |
   utilize objective classifications of complete protein sequences from sequenced plant genomes to perform
   comparative evolutionary studies.  This tool performs orthologous or paralogous ks analyses of coding sequences
   and amino acid sequences.
-remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/plant_tribes/kaks_analysis
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/phylogenetics/plant_tribes/kaks_analysis
 type: unrestricted
 categories:
 - Phylogenetics

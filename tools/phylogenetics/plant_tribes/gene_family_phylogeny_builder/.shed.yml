@@ -8,7 +8,7 @@ long_description: |
   complete protein sequences from sequenced plant genomes to perform comparative evolutionary studies. It performs phylogenomic
   analyses by creating multiple sequence alignments and inferred maximum likelihood phylogenies for orthogroups produced by the
   GeneFamilyAligner tool.
-remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/plant_tribes/gene_family_phylogeny_builder
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/phylogenetics/plant_tribes/gene_family_phylogeny_builder
 type: unrestricted
 categories:
 - Phylogenetics

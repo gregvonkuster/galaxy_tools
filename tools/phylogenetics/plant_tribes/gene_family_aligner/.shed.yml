@@ -7,7 +7,7 @@ long_description: |
   Contains a tool that tool is one of the PlantTribes collection of automated modular analysis pipelines that
   utilize objective classifications of complete protein sequences from sequenced plant genomes to perform
   comparative evolutionary studies.  This tool aligns gene family sequences.
-remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/plant_tribes/gene_family_aligner
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/phylogenetics/plant_tribes/gene_family_aligner
 type: unrestricted
 categories:
 - Phylogenetics

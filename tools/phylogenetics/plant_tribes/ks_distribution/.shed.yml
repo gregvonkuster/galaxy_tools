@@ -5,7 +5,7 @@ description: |
 homepage_url: https://github.com/dePamphilis/PlantTribes
 long_description: |
   Contains a tool that plots the distribution of synonymous substitution (Ks) rates and fits significant component(s).
-remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/plant_tribes/ks_distribution
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/phylogenetics/plant_tribes/ks_distribution
 type: unrestricted
 categories:
 - Phylogenetics

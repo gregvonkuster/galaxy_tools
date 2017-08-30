@@ -9,7 +9,7 @@ long_description: |
   utilize objective classifications of complete protein sequences from sequenced plant genomes to perform
   comparative evolutionary studies.  This tool classifies gene sequences into precomputed orthologous gene family
   clusters using either blastp (faster), HMMScan (slower but more sensitive to remote homologs) or both (more exhaustive).
-remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/plant_tribes/gene_family_classifier
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/phylogenetics/plant_tribes/gene_family_classifier
 type: unrestricted
 categories:
 - Phylogenetics
