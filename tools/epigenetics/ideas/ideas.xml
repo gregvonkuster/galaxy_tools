@@ -150,7 +150,7 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
                 </repeat>
             </when>
         </conditional>
-        <param argument="-rseed" type="integer" value="1234" min="0" max="1000000" label="Seed for IDEAS model initialization" help="Zero value generates a random seed"/>
+        <param argument="-rseed" type="integer" value="1234" min="0" max="1000000" label="Seed for IDEAS model initialization" help="Zero value generates a random seed, and this seed will be different for each job run."/>
         <conditional name="specify_genomic_window_cond">
             <param name="specify_genomic_window" type="select" label="Select Bed file that defines genomic windows on which to process the data">
                 <option value="no" selected="true">No</option>
@@ -166,7 +166,7 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
                     <when value="no"/>
                     <when value="yes">
                         <repeat name="chrom_repeat" title="Chromosomes" min="1">
-                            <param name="chrom" type="text" value="" label="Chromosome"/>
+                            <param name="chrom" type="text" value="" label="Chromosome" help="One chromosome (e.g., chr1, chr2, chrX) per text field"/>
                         </repeat>
                     </when>
                 </conditional>
@@ -176,7 +176,7 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
             </when>
         </conditional>
         <param argument="-bychr" type="boolean" truevalue="-bychr" falsevalue="" checked="False" label="Output chromosomes in separate files"/>
-        <param name="reads_per_bp" type="select" display="radio" label="Calculate the average signal in each genomic window using">
+        <param name="reads_per_bp" type="select" display="radio" label="Calculate the signal in each genomic window using">
             <option value="6" selected="true">mean</option>
             <option value="8">max</option>
         </param>
@@ -275,13 +275,13 @@ In addition to its improved power, IDEAS has two unique advantages:
 * **Set cell type and epigenetic factor names by** - cell type and epigenetic factor names can be set manually or by extracting them from the names of the selected input datasets.  The latter case requires all selected datasets to have names that contain a "-" character.
 
  * **BAM or BigWig files** - select one or more Bam or Bigwig files from your history, making sure that the name of every selected input include a "-" character (e.g., e001-h3k4me3.bigwig).
- * **Cell type, Epigenetic factor and Input** - manually select any number of inputs, setting the cell type and epigenetic factor name for each.  The combination of "cell type name" and "epigenetic factor name" must be unique for each input.  For example, if you have replicate data you may want to specify the cell name as "cell_rep1", "cell_rep2", etc and the factor name as "factor_rep1", "factor_rep2", etc.
+ * **Cell type, Epigenetic factor and Input** - manually select any number of inputs, setting the cell type and epigenetic factor name for each.  The combination of "cell type name" and "epigenetic factor name" must be unique for each input.  For example, if you have replicate data you may want to specify the cell name as "rep1", "rep2", etc and the factor name as "rep1", "rep2", etc.
  
   * **Cell type name** - cell type name
   * **Epigenetic factor name** - epigenetic factor name
   * **BAM or BigWig file** - BAM or BigWig file
 
-* **Seed for IDEAS model initialization** - enter an integer to be used as the seed for the IDEAS model initialization.
+* **Seed for IDEAS model initialization** - enter an integer to be used as the seed for the IDEAS model initialization.  A zero value causes IDEAS to automatically generate a random seed, and this seed will be different for each job run.
 * **Select Bed file that defines genomic windows on which to process the data** - if "No" is selected, IDEAS will run whole genome segmentation.  If "Yes" is selected, IDEAS will segment genomes in the unit of the windows defined by the bed file.  This file can be in BED3, BED4 or BED5 format, but only the first three columns (chr posst posed) will be used.
 
  * **Window size in base pairs** - Window size in base pairs (if "No" is selected)
@@ -292,12 +292,12 @@ In addition to its improved power, IDEAS has two unique advantages:
  * **Bed file specifying the genomic windows** - bed file specifying the genomic windows (if "Yes" is selected)
 
 * **Output chromosomes in separate files** - select "Yes" to produce separate files for each chromosome, allowing you to run IDEAS on different chromosomes separately.
-* **Calculate the average signal in each genomic window using** - use the bigWigAverageOverBed utility from the UCSC genome browser to calculate average signal (number of reads per bp) in each genomic window.
+* **Calculate the signal in each genomic window using** - use the bigWigAverageOverBed utility from the UCSC genome browser to calculate the signal (i.e., the number of reads per bp) in each genomic window.
 * **Select file(s) containing regions to exclude** - select one or more bed files that contains regions you'd like excluded from your datasets.
 * **Standardize all datasets** - select "Yes" to standardize all datasets (e.g., reads / total_reads * 20 million) so that the signals from different cell types become comparable - your datasets can be read counts, logp-values or fold change.
 
 * **Discourage state transition across chromosomes** - select "Yes" to produce similar states in adjacent windows, making the annotation smoother, but at risk of reducing precision.
-* **Use log2(x+number) transformation** - perform Log2-transformation of the input data by log2(x+number) (recommended for read count data to reduce skewness). You can enter a number less than 1. For example, if your input data is mean read count per window, using 0.1 may produce better results.
+* **Use log2(x+number) transformation** - perform Log2-transformation of the input data by log2(x+number) (recommended for read count data to reduce skewness). You can enter a number that is representative of the noise level in your data (e.g., a number less than 1). If this number is at a similar scale or larger than the signal in your data, it will lose power.  For example, if your input data is mean read count per window, using 0.1 may produce better results.
 * **Maximum number of states to be inferred** - restrict the maximum number of states to be generated by IDEAS; the final number of inferred states may be smaller than the number you specified
 * **Initial number of states** - while IDEAS may infer 30 states or more by starting from just 20 states, it may not do so if it is trapped in a local mode. We recommend setting the initial number of states slightly larger than the number of states you expect.
 * **Maximum number of position classes to be inferred** - Set this value only if:
@@ -305,10 +305,11 @@ In addition to its improved power, IDEAS has two unique advantages:
  * you do not want position classes (e.g., for testing purposes), in this case set the value to 1
  * IDEAS runs slow because there are too many position classes, generally less than 100 position classes will run fine
 
-* **Maximum number of cell type clusters allowed** - Set this value only for testing.  If you set the value to 1, then all cell types will be clustered in one group.
+* **Maximum number of cell type clusters allowed** - If you set the value to 1, then all cell types will be clustered in one group, which may be desirable if all cell types are homogeneous and you want IDEAS to use information in all cell types equally.
 * **Prior concentration** - specify the prior concentration parameter; default is A=sqrt(number of cell types).  A smaller concentration parameter (e.g., 1 or less) will emphasize more on position specificity and a larger concentration parameter (e.g., 10 * number of cell types) will emphasize more on global homogeneity.
-* **Set the the number of burnin and maximization steps** - specify the number of burnin and maximization steps; default it is 50 50.  Increasing these two numbers will increase computing and only slightly increase accuracy.  Decreasing these two numbers will reduce computing but may also reduce accuracy.  We recommend to run IDEAS with at least 20 burnins and 20 maximizations.  IDEAS will not stop even if it reaches a maximum mode.
-* **Minimum standard deviation for the emission Gaussian distribution** - you should change the default value of 0.5 if the standard deviation of your data is much smaller or much larger than 1. The first line of the output produced by IDEAS is **ysd=xxx**, which is the total standard deviation of your data. If that value is less than 0.5, you may set the minimum standard deviation to an even smaller number (e.g., xxx/2). If the standard deviation of your data is much greater than 1, (e.g., 20), you may set the minimum standard deviation to a larger value, (e.g., 5). Modifying the minimum standard deviation in the former case is more necessary than in the latter case because otherwise you may end up finding no interesting segmentations. We do not recommend setting the minimum standard deviation to be 0 or smaller, as doing so may capture some artificial and uninteresting states due to tightly clustered data, such as 0 in read counts.
+* **Number of burnin steps** - specify the number of burnin steps; default is 20.  Increasing the burnin and maximization steps will increase computing and only slightly increase accuracy, while decreasing them will reduce computing resources but may also reduce accuracy.  We recommend to run IDEAS with at least 20 burnins and 20 maximizations.  IDEAS will not stop even if it reaches a maximum mode.
+* **Number of maximization steps** - specify the number of maximization steps; default is 20.
+* **Minimum standard deviation for the emission Gaussian distribution** - This number multiplied by the overall standard deviation of your data will be used as a lower bound for the standard deviation for each factor in each epigenetic state (the default is 0.5). This number is useful for removing very subtle clusters in the data.  Setting this value near 0 will allow IDEAS to discover many subtle states, while setting it greater than 1 will result in IDEAS losing the ability to detect meaningful states.
 * **Maximim standard deviation for the emission Gaussian distribution** - if you want to find fine-grained states you may use this option (if not used, IDEAS uses infinity), but it is rearely used unless you need more states to be inferred. 
 
     </help>
