@@ -237,13 +237,13 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
     <help>
 **What it does**
 
-IDEAS (an **I**ntegrative and **D**iscriminative **E**pigenome **A**nnotation **S**ystem) identifies de novo
-regulatory functions from epigenetic data in multiple cell types jointly. It is a full probabilistic model
-defined on all data, and it combines signals across both the genome and cell types to boost power. The underlying
-assumption of IDEAS is that, because all cell types share the same underlying DNA sequences, **functions of each
-DNA segment should be correlated**. Also, cell type specific regulation is locus-dependent, and thus IDEAS uses
-local epigenetic landscape to **identify de novo and local cell type clusters** without assuming or requiring a
-known global cell type relationship.
+IDEAS (an **I**\ ntegrative and **D**\ iscriminative **E**\ pigenome **A**\ nnotation **S**\ ystem) identifies
+de novo regulatory functions from epigenetic data in multiple cell types jointly. It is a full probabilistic
+model defined on all data, and it combines signals across both the genome and cell types to boost power. The
+underlying assumption of IDEAS is that, because all cell types share the same underlying DNA sequences,
+**functions of each DNA segment should be correlated**. Also, cell type specific regulation is locus-dependent,
+and thus IDEAS uses local epigenetic landscape to **identify de novo and local cell type clusters** without
+assuming or requiring a known global cell type relationship.
 
 IDEAS takes as input a list of epigenetic data sets (histones, chromatin accessibility, CpG methylation, TFs, etc)
 or any other whole-genome data sets (e.g., scores). Currently the supported data formats include BigWig and BAM.
@@ -265,8 +265,8 @@ epigenetic states.
 
 In addition to its improved power, IDEAS has two unique advantages:
 
- 1) **linear time inference** with respect to the number of cell types, which allows it to study hundreds or more cell types jointly
- 2) use mini-batch training to **improve reproducibility** of the predicted epigenetic states, which is important because genome segmentation is not convex and hence cannot guarantee a global optimal solution.
+ 1) applies **linear time inference** with respect to the number of cell types, which allows it to study hundreds or more cell types jointly
+ 2) uses mini-batch training to **improve reproducibility** of the predicted epigenetic states, which is important because genome segmentation is not convex and hence cannot guarantee a global optimal solution.
 
 -----
 
