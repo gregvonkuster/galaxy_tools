@@ -237,12 +237,36 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
     <help>
 **What it does**
 
-Employs the IDEAS (Integrative and Discriminative Epigenome Annotation System) method for jointly and quantitatively characterizing
-multivariate epigenetic landscapes in many cell types, tissues or conditions. The method accounts for position dependent epigenetic
-events and detects local cell type relationships, which not only help to improve the accuracy of annotating functional classes of DNA
-sequences, but also reveal cell type constitutive and specific loci. The method utilizes Bayesian non-parametric techniques to automatically
-identify the best model size fitting to the data so users do not have to specify the number of states. On the other hand, users can
-still specify the number of states if desired.
+IDEAS (an **I**ntegrative and **D**iscriminative **E**pigenome **A**nnotation **S**ystem) identifies de novo
+regulatory functions from epigenetic data in multiple cell types jointly. It is a full probabilistic model
+defined on all data, and it combines signals across both the genome and cell types to boost power. The underlying
+assumption of IDEAS is that, because all cell types share the same underlying DNA sequences, **functions of each
+DNA segment should be correlated**. Also, cell type specific regulation is locus-dependent, and thus IDEAS uses
+local epigenetic landscape to **identify de novo and local cell type clusters** without assuming or requiring a
+known global cell type relationship.
+
+IDEAS takes as input a list of epigenetic data sets (histones, chromatin accessibility, CpG methylation, TFs, etc)
+or any other whole-genome data sets (e.g., scores). Currently the supported data formats include BigWig and BAM.
+All data sets will first be mapped by IDEAS to a common genomic coordinate in a selected assembly (200bp windows
+by default, or user-provided). The user can specify regions to be considered or removed from the analysis. The
+input data may come from one cell type/condition/individual/time point (although it does not fully utilize the
+advantage of IDEAS), or from multiple cell types/conditions/individuals/time points. The same set of epigenetic
+features may not be present in all cell types, for which IDEAS will do imputation of the missing tracks if
+specified.
+
+.. image:: $PATH_TO_IMAGES/ideas.png
+
+IDEAS predicts regulatory functions, denoted by epigenetic states, at each position in each cell type by
+**combining information simultaneously learned from other cell types** at the same positions in cell types with
+similar local epigenetic landscapes. Size of genomic intervals for determining the similarity are also learned.
+All of the inferences are done through parallel infinite-state hidden Markov models (iHMM), which is a Bayesian
+non-parametric technique to automatically determine the number of local cell type clusters and the number of
+epigenetic states.
+
+In addition to its improved power, IDEAS has two unique advantages:
+
+ 1) **linear time inference** with respect to the number of cell types, which allows it to study hundreds or more cell types jointly
+ 2) use mini-batch training to **improve reproducibility** of the predicted epigenetic states, which is important because genome segmentation is not convex and hence cannot guarantee a global optimal solution.
 
 -----
 
