@@ -1,64 +1,31 @@
-<tool id="plant_tribes_gene_family_integrator" name="GeneFamilyIntegrator" version="@WRAPPER_VERSION@.2">
+<tool id="plant_tribes_gene_family_integrator" name="GeneFamilyIntegrator" version="@WRAPPER_VERSION@.3.0">
     <description>integrates gene models in pre-computed orthologous gene family clusters with classified gene coding sequences</description>
     <macros>
         <import>macros.xml</import>
     </macros>
     <expand macro="requirements_gene_family_integrator" />
     <command detect_errors="exit_code"><![CDATA[
-#set input_format = $input_format_cond.input_format
-#set scaffold = $input_format_cond.scaffold
-#set method = $input_format_cond.method
-
-python '$__tool_directory__/gene_family_integrator.py'
+#set input_dir = 'input_dir'
+mkdir $input_dir &&
+#for $i in $input:
+    #set filename = $i.file_name
+    #set name = $i.name
+    ln -s $filename $input_dir/$name &&
+#end for
+GeneFamilyIntegrator
+--orthogroup_fasta '$input_dir'
 --scaffold '$scaffold.fields.path'
 --method $method
-#if str($input_format) == 'ptortho':
-    --orthogroup_faa '$input_format_cond.input_ptortho.extra_files_path'
-    --output '$output_ptortho'
-    --output_dir '$output_ptortho.files_path'
-#else:
-    ## str($input_format) == 'ptorthocs'
-    --orthogroup_faa '$input_format_cond.input_ptorthocs.extra_files_path'
-    #if str($input_format_cond.orthogroup_fna) == 'yes':
-        --orthogroup_fna true
-        --output '$output_ptorthocs'
-        --output_dir '$output_ptorthocs.files_path'
-    #else:
-        --output '$output_ptortho'
-        --output_dir '$output_ptortho.files_path'
-    #end if
-#end if
     ]]></command>
     <inputs>
-        <conditional name="input_format_cond">
-            <param name="input_format" type="select" label="Classified orthogroup fasta files">
-                <option value="ptortho">Proteins orthogroup fasta files</option>
-                <option value="ptorthocs">Protein and coding sequences orthogroup fasta files</option>
-            </param>
-            <when value="ptortho">
-                <param name="input_ptortho" format="ptortho" type="data" label="Proteins orthogroup fasta files">
-                    <validator type="empty_extra_files_path" />
-                </param>
-                <expand macro="param_scaffold" />
-                <expand macro="param_method" />
-            </when>
-            <when value="ptorthocs">
-                <param name="input_ptorthocs" format="ptorthocs" type="data" label="Protein and coding sequences orthogroup fasta files">
-                    <validator type="empty_extra_files_path" />
-                </param>
-                <expand macro="param_scaffold" />
-                <expand macro="param_method" />
-                <expand macro="param_orthogroup_fna" />
-            </when>
-        </conditional>
+        <param name="input" format="fasta" type="data_collection" collection_type="list" label="Proteins orthogroup fasta files" />
+        <expand macro="param_scaffold" />
+        <expand macro="param_method" />
     </inputs>
     <outputs>
-        <data name="output_ptortho" format="ptortho" label="${tool.name} (integrated gene family clusters) on ${on_string}">
-            <filter>input_format_cond['input_format'] == 'ptortho' or (input_format_cond['input_format'] == 'ptorthocs' and input_format_cond['orthogroup_fna'] == 'no')</filter>
-        </data>
-        <data name="output_ptorthocs" format="ptorthocs" label="${tool.name} (integrated gene family clusters) on ${on_string}">
-            <filter>input_format_cond['input_format'] == 'ptorthocs' and input_format_cond['orthogroup_fna'] == 'yes'</filter>
-        </data>
+        <collection name="output" type="list" label="${tool.name} (integrated gene family clusters) on ${on_string}">
+            <discover_datasets pattern="__name__" directory="integratedGeneFamilies_dir" format="fasta" />
+        </collection>
     </outputs>
     <tests>
         <!-- Test framework does not currently support inputs whose associated extra_files_path contains files to be analyzed.

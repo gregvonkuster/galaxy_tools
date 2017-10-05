@@ -1,4 +1,4 @@
-<tool id="plant_tribes_gene_family_classifier" name="GeneFamilyClassifier" version="@WRAPPER_VERSION@.2">
+<tool id="plant_tribes_gene_family_classifier" name="GeneFamilyClassifier" version="@WRAPPER_VERSION@.3.0">
     <description>classifies gene sequences into pre-computed orthologous gene family clusters</description>
     <macros>
         <import>macros.xml</import>
@@ -83,22 +83,7 @@ python '$__tool_directory__/gene_family_classifier.py'
 
 #if (str($save_hmmscan_log_cond.classifier) == 'hmmscan' or str($save_hmmscan_log_cond.classifier) == 'both') and str($save_hmmscan_log_cond.save_hmmscan_log) == 'yes':
     --save_hmmscan_log true
-    --hmmscan_log '$hmmscan_log'
-#end if
-#if $create_ortho_sequences:
-    #if $create_corresponding_coding_sequences:
-        --output_ptorthocs '$output_ptorthocs'
-        --output_ptorthocs_dir '$output_ptorthocs.files_path'
-    #else:
-        --output_ptortho '$output_ptortho'
-        --output_ptortho_dir '$output_ptortho.files_path'
-    #end if
-#end if
-#if $single_copy_orthogroup:
-    #if $create_ortho_sequences:
-        --output_ptsco '$output_ptsco'
-        --output_ptsco_dir '$output_ptsco.files_path'
-    #end if
+    --hmmscan_log '$output_hmmscan_log'
 #end if
     ]]></command>
     <inputs>
@@ -206,24 +191,19 @@ python '$__tool_directory__/gene_family_classifier.py'
         </conditional>
     </inputs>
     <outputs>
-        <data name="hmmscan_log" format="txt" label="${tool.name} (hmmscan.log) on ${on_string}">
+        <data name="output_hmmscan_log" format="txt" label="${tool.name} (hmmscan.log) on ${on_string}">
             <filter>save_hmmscan_log_cond['classifier'] in ['hmmscan', 'both'] and save_hmmscan_log_cond['save_hmmscan_log'] == 'yes'</filter>
         </data>
-        <data name="output_ptortho" format="ptortho" label="${tool.name} (gene family clusters) on ${on_string}">
-            <filter>options_type['options_type_selector'] == 'advanced' and options_type['create_orthogroup_cond']['create_orthogroup'] == 'yes' and options_type['create_orthogroup_cond']['create_corresponding_coding_sequences_cond']['create_corresponding_coding_sequences'] == 'no'</filter>
-        </data>
-        <data name="output_ptorthocs" format="ptorthocs" label="${tool.name} (gene family clusters) on ${on_string}">
-            <filter>options_type['options_type_selector'] == 'advanced' and options_type['create_orthogroup_cond']['create_orthogroup'] == 'yes' and options_type['create_orthogroup_cond']['create_corresponding_coding_sequences_cond']['create_corresponding_coding_sequences'] == 'yes'</filter>
-        </data>
-        <data name="output_ptsco" format="tabular" label="${tool.name} (single copy orthogroups) on ${on_string}">
-            <filter>options_type['options_type_selector'] == 'advanced' and options_type['create_orthogroup_cond']['create_orthogroup'] == 'yes' and options_type['specify_single_copy_cond']['specify_single_copy'] == 'yes'</filter>
-            <change_format>
-                <when input="options_type.create_orthogroup_cond.create_corresponding_coding_sequences_cond.create_corresponding_coding_sequences" value="no" format="ptortho" />
-                <when input="options_type.create_orthogroup_cond.create_corresponding_coding_sequences_cond.create_corresponding_coding_sequences" value="yes" format="ptorthocs" />
-            </change_format>
-        </data>
-        <collection name="orthos" type="list">
+        <collection name="output_orthos" type="list">
             <discover_datasets pattern="__name__" directory="geneFamilyClassification_dir" visible="false" ext="tabular" />
+        </collection>
+        <collection name="output_orthogroups_fasta" type="list">
+            <discover_datasets pattern="__name__" directory="output_orthogroups_fasta_dir" visible="false" ext="fasta" />
+            <filter>options_type['options_type_selector'] == 'advanced' and options_type['create_orthogroup_cond']['create_orthogroup'] == 'yes'</filter>
+        </collection>
+        <collection name="output_single_copy_fasta" type="list">
+            <discover_datasets pattern="__name__" directory="output_single_copy_fasta_dir" visible="false" ext="fasta" />
+            <filter>options_type['options_type_selector'] == 'advanced' and options_type['create_orthogroup_cond']['create_orthogroup'] == 'yes' and options_type['specify_single_copy_cond']['specify_single_copy'] == 'yes'</filter>
         </collection>
     </outputs>
     <tests>

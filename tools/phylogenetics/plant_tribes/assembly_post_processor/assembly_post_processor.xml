@@ -1,4 +1,4 @@
-<tool id="plant_tribes_assembly_post_processor" name="AssemblyPostProcessor" version="@WRAPPER_VERSION@.2">
+<tool id="plant_tribes_assembly_post_processor" name="AssemblyPostProcessor" version="@WRAPPER_VERSION@.3.0">
     <description>post-processes de novo transcriptome assembly</description>
     <macros>
         <import>macros.xml</import>

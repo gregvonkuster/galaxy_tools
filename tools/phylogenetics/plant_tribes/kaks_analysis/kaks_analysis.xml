@@ -1,4 +1,4 @@
-<tool id="plant_tribes_kaks_analysis" name="KaKsAnalysis" version="@WRAPPER_VERSION@.2">
+<tool id="plant_tribes_kaks_analysis" name="KaKsAnalysis" version="@WRAPPER_VERSION@.3.0">
     <description>estimates paralogous and orthologous pairwise synonymous (Ks) and non-synonymous (Ka) substitution rates</description>
     <macros>
         <import>macros.xml</import>

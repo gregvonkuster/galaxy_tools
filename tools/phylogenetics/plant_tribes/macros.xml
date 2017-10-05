@@ -55,22 +55,10 @@
             <option value="advanced">Advanced</option>
         </param>
     </xml>
-    <xml name="param_orthogroup_fna">
-        <param name="orthogroup_fna" type="select" label="Orthogroups coding sequences">
-            <option value="yes" selected="true">Yes</option>
-            <option value="no">No</option>
-        </param>
-    </xml>
     <xml name="param_scaffold">
         <param name="scaffold" type="select" label="Gene family scaffold">
             <options from_data_table="plant_tribes_scaffolds" />
             <validator type="no_options" message="No PlantTribes scaffolds are available.  Use the PlantTribes Scaffolds Download Data Manager tool in Galaxy to install and populate the PlantTribes scaffolds data table." />
-        </param>
-    </xml>
-    <xml name="param_sequence_type">
-        <param name="sequence_type" type="select" label="Sequence type used in the phylogenetic inference (dna)">
-            <option value="protein" selected="true">Amino acid based</option>
-            <option value="dna">Nucleotide based</option>
         </param>
     </xml>
     <xml name="cond_alignment_method">
@@ -114,6 +102,10 @@
                         <param name="iterative_realignment" type="integer" optional="true" min="0" label="Realignment iteration limit" />
                     </when>
                 </conditional>
+                <param name="output_pristine_alignments" type="select" display="radio" label="Output non-filtered, non-trimmed alignemnts?" help="In addition to trimmed/filtered alignments">
+                    <option value="no" selected="true">No</option>
+                    <option value="yes">Yes</option>
+                </param>
             </when>
         </conditional>
     </xml>

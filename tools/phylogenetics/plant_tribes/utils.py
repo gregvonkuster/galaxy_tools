@@ -27,7 +27,7 @@ def get_response_buffers():
     return fstderr, fherr, fstdout, fhout
 
 
-def move_directory_files(source_dir, destination_dir, copy=False):
+def move_directory_files(source_dir, destination_dir, copy=False, remove_source_dir=False):
     source_directory = os.path.abspath(source_dir)
     destination_directory = os.path.abspath(destination_dir)
     if not os.path.isdir(destination_directory):
@@ -38,6 +38,8 @@ def move_directory_files(source_dir, destination_dir, copy=False):
             shutil.copy(source_entry, destination_directory)
         else:
             shutil.move(source_entry, destination_directory)
+    if remove_source_dir:
+        os.rmdir(source_directory)
 
 
 def run_command(cmd):

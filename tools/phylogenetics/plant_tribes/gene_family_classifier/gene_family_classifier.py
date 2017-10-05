@@ -24,12 +24,6 @@ parser.add_argument('--orthogroup_fasta', dest='orthogroup_fasta', default=None,
 parser.add_argument('--coding_sequences', dest='coding_sequences', default=None, help='Flag to create orthogroup coding sequences')
 parser.add_argument('--save_hmmscan_log', dest='save_hmmscan_log', default=None, help='Flag to save the hmmscan log')
 parser.add_argument('--hmmscan_log', dest='hmmscan_log', default=None, help='hmmscan log file')
-parser.add_argument('--output_ptortho', dest='output_ptortho', default=None, help='Output for orthogroups')
-parser.add_argument('--output_ptortho_dir', dest='output_ptortho_dir', default=None, help='output_ptortho.files_path')
-parser.add_argument('--output_ptorthocs', dest='output_ptorthocs', default=None, help='Output for orthogroups with corresponding coding sequences')
-parser.add_argument('--output_ptorthocs_dir', dest='output_ptorthocs_dir', default=None, help='output_ptorthocs.files_path')
-parser.add_argument('--output_ptsco', dest='output_ptsco', default=None, help='Output for single copy orthogroups')
-parser.add_argument('--output_ptsco_dir', dest='output_ptsco_dir', default=None, help='output_ptsco.files_path')
 
 args = parser.parse_args()
 
@@ -74,22 +68,18 @@ if args.classifier in ['hmmscan', 'both']:
 
 # Handle orthogroups outputs.
 if create_ortho_sequences:
-    if create_corresponding_coding_sequences:
-        out_file = args.output_ptorthocs
-        orthogroups_fasta_dest_dir = args.output_ptorthocs_dir
-        title = 'Orthogroups and corresponding coding sequences files'
-    else:
-        out_file = args.output_ptortho
-        orthogroups_fasta_dest_dir = args.output_ptortho_dir
-        title = 'Orthogroups files'
     orthogroups_fasta_src_dir = os.path.join(OUTPUT_DIR, 'orthogroups_fasta')
-    utils.move_directory_files(orthogroups_fasta_src_dir, orthogroups_fasta_dest_dir)
-    utils.write_html_output(out_file, title, orthogroups_fasta_dest_dir)
+    orthogroups_fasta_dest_dir = 'output_orthogroups_fasta_dir'
+    if not os.path.isdir(orthogroups_fasta_dest_dir):
+        os.makedirs(orthogroups_fasta_dest_dir)
+    # Remove source direrctory so it won't break dataset collection handler.
+    utils.move_directory_files(orthogroups_fasta_src_dir, orthogroups_fasta_dest_dir, remove_source_dir=True)
 
 # Handle single copy orthogroup outputs.
-if args.output_ptsco is not None:
+if args.single_copy_custom is not None or args.single_copy_taxa != 0:
     single_copy_fasta_src_dir = os.path.join(OUTPUT_DIR, 'single_copy_fasta')
-    single_copy_fasta_dest_dir = args.output_ptsco_dir
-    title = 'Single copy orthogroups files'
-    utils.move_directory_files(single_copy_fasta_src_dir, single_copy_fasta_dest_dir)
-    utils.write_html_output(args.output_ptsco, title, single_copy_fasta_dest_dir)
+    single_copy_fasta_dest_dir = 'output_single_copy_fasta_dir'
+    if not os.path.isdir(single_copy_fasta_dest_dir):
+        os.makedirs(single_copy_fasta_dest_dir)
+    # Remove source direrctory so it won't break dataset collection handler.
+    utils.move_directory_files(single_copy_fasta_src_dir, single_copy_fasta_dest_dir, remove_source_dir=True)

@@ -1,11 +1,11 @@
-<tool id="plant_tribes_gene_family_phylogeny_builder" name="GeneFamilyPhylogenyBuilder" version="@WRAPPER_VERSION@.2.1">
+<tool id="plant_tribes_gene_family_phylogeny_builder" name="GeneFamilyPhylogenyBuilder" version="@WRAPPER_VERSION@.3.0">
     <description>builds phylogenetic trees of aligned orthologous gene family clusters</description>
     <macros>
         <import>macros.xml</import>
     </macros>
     <expand macro="requirements_gene_family_phylogeny_builder" />
     <command detect_errors="exit_code"><![CDATA[
-#set input_format = $input_format_cond.input_format
+#set input_dir = 'input_dir'
 #set tree_inference = $tree_inference_cond.tree_inference
 #if str($tree_inference) == 'raxml':
     #set rooting_order_file_cond = $tree_inference_cond.rooting_order_file_cond
@@ -15,33 +15,14 @@
     #end if
     #set bootstrap_replicates = $tree_inference_cond.bootstrap_replicates
 #end if
-
+mkdir $input_dir &&
+#for $i in $input:
+    #set filename = $i.file_name
+    #set name = $i.name
+    ln -s $filename $input_dir/$name &&
+#end for
 GeneFamilyPhylogenyBuilder
-#if str($input_format) == 'ptalign':
-    --orthogroup_aln '$input_format_cond.input_ptalign.extra_files_path'
-    --alignment_type aln
-    --sequence_type protein
-#else if str($input_format) == 'ptalignca':
-    --orthogroup_aln '$input_format_cond.input_ptalignca.extra_files_path'
-    --alignment_type aln
-    --sequence_type $input_format_cond.sequence_type
-#else if str($input_format) == 'ptalignfiltered':
-    --orthogroup_aln '$input_format_cond.input_ptalignfiltered.extra_files_path'
-    --alignment_type filter
-    --sequence_type protein
-#else if str($input_format) == 'ptalignfilteredca':
-    --orthogroup_aln '$input_format_cond.input_ptalignfilteredca.extra_files_path'
-    --alignment_type filter
-    --sequence_type $input_format_cond.sequence_type
-#else if str($input_format) == 'ptaligntrimmed':
-    --orthogroup_aln '$input_format_cond.input_ptaligntrimmed.extra_files_path'
-    --alignment_type trim
-    --sequence_type protein
-#else if str($input_format) == 'ptaligntrimmedca':
-    --orthogroup_aln '$input_format_cond.input_ptaligntrimmedca.extra_files_path'
-    --alignment_type trim
-    --sequence_type $input_format_cond.sequence_type
-#end if
+--orthogroup_aln '$input_dir'
 --scaffold '$scaffold.fields.path'
 --config_dir '$scaffold.fields.path'
 --method $method
@@ -59,49 +40,7 @@ GeneFamilyPhylogenyBuilder
 --num_threads \${GALAXY_SLOTS:-4}
     ]]></command>
     <inputs>
-        <conditional name="input_format_cond">
-            <param name="input_format" type="select" label="Orthogroup alignments">
-                <option value="ptalign">Proteins orthogroup alignments</option>
-                <option value="ptalignca">Protein and coding sequences orthogroup alignments</option>
-                <option value="ptalignfiltered">Filtered proteins orthogroup alignments</option>
-                <option value="ptalignfilteredca">Filtered protein and coding sequences orthogroup alignments</option>
-                <option value="ptaligntrimmed">Trimmed proteins orthogroup alignments</option>
-                <option value="ptaligntrimmedca">Trimmed protein and coding sequences orthogroup alignments</option>
-            </param>
-            <when value="ptalign">
-                <param name="input_ptalign" format="ptalign" type="data" label="Proteins orthogroup alignments">
-                    <validator type="empty_extra_files_path" />
-                </param>
-            </when>
-            <when value="ptalignca">
-                <param name="input_ptalignca" format="ptalignca" type="data" label="Protein and coding sequences orthogroup alignments">
-                    <validator type="empty_extra_files_path" />
-                </param>
-                <expand macro="param_sequence_type" />
-            </when>
-            <when value="ptalignfiltered">
-                <param name="input_ptalignfiltered" format="ptalignfiltered" type="data" label="Filtered proteins orthogroup alignments">
-                    <validator type="empty_extra_files_path" />
-                </param>
-            </when>
-            <when value="ptalignfilteredca">
-                <param name="input_ptalignfilteredca" format="ptalignfilteredca" type="data" label="Filtered protein and coding sequences orthogroup alignments">
-                    <validator type="empty_extra_files_path" />
-                </param>
-                <expand macro="param_sequence_type" />
-            </when>
-            <when value="ptaligntrimmed">
-                <param name="input_ptaligntrimmed" format="ptaligntrimmed" type="data" label="Trimmed proteins orthogroup alignments">
-                    <validator type="empty_extra_files_path" />
-                </param>
-            </when>
-            <when value="ptaligntrimmedca">
-                <param name="input_ptaligntrimmedca" format="ptaligntrimmedca" type="data" label="Trimmed protein and coding sequences orthogroup alignments">
-                    <validator type="empty_extra_files_path" />
-                </param>
-                <expand macro="param_sequence_type" />
-            </when>
-        </conditional>
+        <param name="input" format="fasta" type="data_collection" collection_type="list" label="Proteins orthogroup alignments" />
         <expand macro="param_scaffold" />
         <expand macro="param_method" />
         <conditional name="tree_inference_cond">
@@ -137,10 +76,8 @@ GeneFamilyPhylogenyBuilder
         </collection>
     </outputs>
     <tests>
-        <!-- Test framework does not currently support inputs whose associated extra_files_path contains files to be analyzed.
         <test>
         </test>
-        -->
     </tests>
     <help>
 This tool is one of the PlantTribes collection of automated modular analysis pipelines for comparative and evolutionary
