@@ -1,47 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <macros>
     <token name="@WRAPPER_VERSION@">1.0</token>
-    <xml name="requirements_assembly_post_processor">
-        <requirements>
-            <requirement type="package" version="1.0.2">plant_tribes_assembly_post_processor</requirement>
-        </requirements>
-    </xml>
-    <xml name="requirements_gene_family_aligner">
-        <requirements>
-            <requirement type="package" version="1.0.2">plant_tribes_gene_family_aligner</requirement>
-        </requirements>
-    </xml>
-    <xml name="requirements_gene_family_classifier">
-        <requirements>
-            <requirement type="package" version="1.0.2">plant_tribes_gene_family_classifier</requirement>
-        </requirements>
-    </xml>
-    <xml name="requirements_gene_family_integrator">
-        <requirements>
-            <requirement type="package" version="1.0.2">plant_tribes_gene_family_integrator</requirement>
-        </requirements>
-    </xml>
-    <xml name="requirements_kaks_analysis">
-        <requirements>
-            <requirement type="package" version="1.0.2">plant_tribes_kaks_analysis</requirement>
-        </requirements>
-    </xml>
-    <xml name="requirements_ks_distribution">
-        <requirements>
-            <requirement type="package" version="1.3.2">r-optparse</requirement>
-        </requirements>
-    </xml>
-    <xml name="requirements_gene_family_phylogeny_builder">
-        <requirements>
-            <requirement type="package" version="1.0.2">plant_tribes_gene_family_phylogeny_builder</requirement>
-        </requirements>
-    </xml>
-    <xml name="param_codon_alignments">
-        <param name="codon_alignments" type="select" label="Codon alignments">
-            <option value="yes" selected="true">Yes</option>
-            <option value="no">No</option>
-        </param>
-    </xml>
     <xml name="param_method">
         <param name="method" type="select" label="Protein clustering method">
             <option value="gfam" selected="true">GFam</option>
@@ -49,65 +8,11 @@
             <option value="orthomcl">OrthoMCL</option>
         </param>
     </xml>
-    <xml name="param_options_type">
-        <param name="options_type" type="select" label="Options Configuration">
-            <option value="basic" selected="true">Basic</option>
-            <option value="advanced">Advanced</option>
-        </param>
-    </xml>
     <xml name="param_scaffold">
         <param name="scaffold" type="select" label="Gene family scaffold">
             <options from_data_table="plant_tribes_scaffolds" />
             <validator type="no_options" message="No PlantTribes scaffolds are available.  Use the PlantTribes Scaffolds Download Data Manager tool in Galaxy to install and populate the PlantTribes scaffolds data table." />
         </param>
-    </xml>
-    <xml name="cond_alignment_method">
-        <conditional name="alignment_method_cond">
-            <param name="alignment_method" type="select" force_select="true" label="Multiple sequence alignment method">
-                <option value="mafft" selected="true">MAFFT</option>
-                <option value="pasta">PASTA</option>
-            </param>
-            <when value="mafft" />
-            <when value="pasta">
-                <param name="pasta_iter_limit" type="integer" value="3" min="1" label="PASTA iteration limit" />
-            </when>
-        </conditional>
-    </xml>
-    <xml name="cond_remove_gappy_sequences">
-        <conditional name="remove_gappy_sequences_cond">
-            <param name="remove_gappy_sequences" type="select" label="Alignment post-processing configuration">
-                <option value="no" selected="true">No</option>
-                <option value="yes">Yes</option>
-            </param>
-            <when value="no" />
-            <when value="yes">
-                <conditional name="trim_type_cond">
-                    <param name="trim_type" type="select" label="Trimming method">
-                        <option value="gap_trimming" selected="true">Gap score based trimming</option>
-                        <option value="automated_trimming">Automated heuristic trimming</option>
-                    </param>
-                    <when value="gap_trimming">
-                        <param name="gap_trimming" type="float" optional="true" min="0" max="1.0" label="Gap score" />
-                    </when>
-                    <when value="automated_trimming" />
-                </conditional>
-                <conditional name="remove_sequences_with_gaps_cond">
-                    <param name="remove_sequences_with_gaps" type="select" label="Remove sequences">
-                        <option value="no" selected="true">No</option>
-                        <option value="yes">Yes</option>
-                    </param>
-                    <when value="no" />
-                    <when value="yes">
-                        <param name="remove_sequences_with_gaps_of" type="float" optional="true" min="0" max="1" label="Coverage score" />
-                        <param name="iterative_realignment" type="integer" optional="true" min="0" label="Realignment iteration limit" />
-                    </when>
-                </conditional>
-                <param name="output_pristine_alignments" type="select" display="radio" label="Output non-filtered, non-trimmed alignemnts?" help="In addition to trimmed/filtered alignments">
-                    <option value="no" selected="true">No</option>
-                    <option value="yes">Yes</option>
-                </param>
-            </when>
-        </conditional>
     </xml>
     <xml name="citation1">
         <citation type="bibtex">

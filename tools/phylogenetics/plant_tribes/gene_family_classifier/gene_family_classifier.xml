@@ -3,7 +3,9 @@
     <macros>
         <import>macros.xml</import>
     </macros>
-    <expand macro="requirements_gene_family_classifier" />
+    <requirements>
+        <requirement type="package" version="1.0.3">plant_tribes_gene_family_classifier</requirement>
+    </requirements>
     <command detect_errors="exit_code"><![CDATA[
 #if str($options_type.options_type_selector) == 'advanced':
     #set specify_super_orthogroups_cond = $options_type.specify_super_orthogroups_cond
@@ -194,14 +196,14 @@ python '$__tool_directory__/gene_family_classifier.py'
         <data name="output_hmmscan_log" format="txt" label="${tool.name} (hmmscan.log) on ${on_string}">
             <filter>save_hmmscan_log_cond['classifier'] in ['hmmscan', 'both'] and save_hmmscan_log_cond['save_hmmscan_log'] == 'yes'</filter>
         </data>
-        <collection name="output_orthos" type="list">
+        <collection name="output_orthos" type="list" label="${tool.name} on ${on_string}">
             <discover_datasets pattern="__name__" directory="geneFamilyClassification_dir" visible="false" ext="tabular" />
         </collection>
-        <collection name="output_orthogroups_fasta" type="list">
+        <collection name="output_orthogroups_fasta" type="list" label="${tool.name} (gene family clusters) on ${on_string}">
             <discover_datasets pattern="__name__" directory="output_orthogroups_fasta_dir" visible="false" ext="fasta" />
             <filter>options_type['options_type_selector'] == 'advanced' and options_type['create_orthogroup_cond']['create_orthogroup'] == 'yes'</filter>
         </collection>
-        <collection name="output_single_copy_fasta" type="list">
+        <collection name="output_single_copy_fasta" type="list" label="${tool.name} (single copy orthogroups) on ${on_string}">
             <discover_datasets pattern="__name__" directory="output_single_copy_fasta_dir" visible="false" ext="fasta" />
             <filter>options_type['options_type_selector'] == 'advanced' and options_type['create_orthogroup_cond']['create_orthogroup'] == 'yes' and options_type['specify_single_copy_cond']['specify_single_copy'] == 'yes'</filter>
         </collection>

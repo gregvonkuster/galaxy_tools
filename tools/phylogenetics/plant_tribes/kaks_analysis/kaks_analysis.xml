@@ -3,7 +3,9 @@
     <macros>
         <import>macros.xml</import>
     </macros>
-    <expand macro="requirements_kaks_analysis" />
+    <requirements>
+        <requirement type="package" version="1.0.3">plant_tribes_kaks_analysis</requirement>
+    </requirements>
     <command detect_errors="exit_code"><![CDATA[
 #set output_dir = 'kaksAnalysis_dir'
 #set comparison = $comparison_cond.comparison

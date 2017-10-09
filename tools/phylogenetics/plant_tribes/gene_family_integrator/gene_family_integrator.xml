@@ -3,7 +3,9 @@
     <macros>
         <import>macros.xml</import>
     </macros>
-    <expand macro="requirements_gene_family_integrator" />
+    <requirements>
+        <requirement type="package" version="1.0.3">plant_tribes_gene_family_integrator</requirement>
+    </requirements>
     <command detect_errors="exit_code"><![CDATA[
 #set input_dir = 'input_dir'
 mkdir $input_dir &&
@@ -18,7 +20,7 @@ GeneFamilyIntegrator
 --method $method
     ]]></command>
     <inputs>
-        <param name="input" format="fasta" type="data_collection" collection_type="list" label="Proteins orthogroup fasta files" />
+        <param name="input" format="fasta" type="data_collection" collection_type="list" label="Classified orthogroup fasta files" />
         <expand macro="param_scaffold" />
         <expand macro="param_method" />
     </inputs>
@@ -46,11 +48,6 @@ gene models with gene coding sequences classified into the scaffold by the GeneF
 
  * **Gene family scaffold** - one of the PlantTribes gene family scaffolds installed into Galaxy by the PlantTribes Scaffold Data Manager tool.
  * **Protein clustering method** - gene family scaffold protein clustering method as described in the AssemblyPostProcessor tool.
-
-**Other options**
-
- * **Orthogroups coding sequences** - Select 'Yes' to create corresponding coding sequences orthogroup fasta files for the classified protein sequences.
-
     </help>
     <citations>
         <expand macro="citation1" />

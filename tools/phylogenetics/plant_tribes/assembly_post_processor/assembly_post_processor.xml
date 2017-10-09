@@ -3,7 +3,9 @@
     <macros>
         <import>macros.xml</import>
     </macros>
-    <expand macro="requirements_assembly_post_processor" />
+    <requirements>
+        <requirement type="package" version="1.0.3">plant_tribes_assembly_post_processor</requirement>
+    </requirements>
     <command detect_errors="exit_code"><![CDATA[
 python '$__tool_directory__/assembly_post_processor.py'
 --transcripts '$input'
