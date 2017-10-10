@@ -39,10 +39,16 @@ GeneFamilyIntegrator
                     <element name="3494.fna" value="3494.fna"/>
                     <element name="3722.faa" value="3722.faa"/>
                     <element name="3722.fna" value="3722.fna"/>
+                    <element name="38889.faa" value="38889.faa"/>
+                    <element name="38889.fna" value="38889.fna"/>
+                    <element name="39614.faa" value="39614.faa"/>
+                    <element name="39614.fna" value="39614.fna"/>
                     <element name="5235.faa" value="5235.faa"/>
                     <element name="5235.fna" value="5235.fna"/>
                 </collection>
             </param>
+            <param name="scaffold" value="22Gv1.1"/>
+            <param name="method" value="orthomcl"/>
             <output_collection name="output" type="list">
                 <element name="20.faa" file="20_integrated.faa" ftype="fasta"/>
                 <element name="20.fna" file="20_integrated.fna" ftype="fasta"/>
@@ -50,6 +56,10 @@ GeneFamilyIntegrator
                 <element name="3494.fna" file="3494_integrated.fna" ftype="fasta"/>
                 <element name="3722.faa" file="3722_integrated.faa" ftype="fasta"/>
                 <element name="3722.fna" file="3722_integrated.fna" ftype="fasta"/>
+                <element name="38889.faa" file="38889_integrated.faa" ftype="fasta"/>
+                <element name="38889.fna" file="38889_integrated.fna" ftype="fasta"/>
+                <element name="39614.faa" file="39614_integrated.faa" ftype="fasta"/>
+                <element name="39614.fna" file="39614_integrated.fna" ftype="fasta"/>
                 <element name="5235.faa" file="5235_integrated.faa" ftype="fasta"/>
                 <element name="5235.fna" file="5235_integrated.fna" ftype="fasta"/>
             </output_collection>
