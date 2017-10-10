@@ -217,14 +217,27 @@ python '$__tool_directory__/gene_family_classifier.py'
             <param name="options_type_selector" value="advanced"/>
             <param name="create_orthogroup" value="yes"/>
             <param name="create_corresponding_coding_sequences" value="yes"/>
-            <output name="output_ptorthocs" file="output.ptorthocs" ftype="ptorthocs"/>
-            <output_collection name="orthos" type="list">
+            <output_collection name="output_orthos" type="list">
                 <element name="proteins.blastp.22Gv1.1" file="proteins.blastp.22Gv1.1" ftype="tabular" compare="contains"/>
                 <element name="proteins.blastp.22Gv1.1.bestOrthos" file="proteins.blastp.22Gv1.1.bestOrthos" ftype="tabular" compare="contains"/>
                 <element name="proteins.both.22Gv1.1.bestOrthos" file="proteins.both.22Gv1.1.bestOrthos" ftype="tabular" compare="contains"/>
                 <element name="proteins.both.22Gv1.1.bestOrthos.summary" file="proteins.both.22Gv1.1.bestOrthos.summary" ftype="tabular" compare="contains"/>
                 <element name="proteins.hmmscan.22Gv1.1" file="proteins.hmmscan.22Gv1.1" ftype="tabular" compare="contains"/>
                 <element name="proteins.hmmscan.22Gv1.1.bestOrthos" file="proteins.hmmscan.22Gv1.1.bestOrthos" ftype="tabular" compare="contains"/>
+            </output_collection>
+            <output_collection name="output_orthogroups_fasta" type="list">
+                <element name="20.faa" file="20.faa" ftype="fasta"/>
+                <element name="20.fna" file="20.fna" ftype="fasta"/>
+                <element name="3494.faa" file="3494.faa" ftype="fasta"/>
+                <element name="3494.fna" file="3494.fna" ftype="fasta"/>
+                <element name="3722.faa" file="3722.faa" ftype="fasta"/>
+                <element name="3722.fna" file="3722.fna" ftype="fasta"/>
+                <element name="38889.faa" file="38889.faa" ftype="fasta"/>
+                <element name="38889.fna" file="38889.fna" ftype="fasta"/>
+                <element name="39614.faa" file="39614.faa" ftype="fasta"/>
+                <element name="39614.fna" file="39614.fna" ftype="fasta"/>
+                <element name="5235.faa" file="5235.faa" ftype="fasta"/>
+                <element name="5235.fna" file="5235.fna" ftype="fasta"/>
             </output_collection>
         </test>
     </tests>
