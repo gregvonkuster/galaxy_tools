@@ -217,6 +217,7 @@ python '$__tool_directory__/gene_family_classifier.py'
             <param name="options_type_selector" value="advanced"/>
             <param name="create_orthogroup" value="yes"/>
             <param name="create_corresponding_coding_sequences" value="yes"/>
+            <param name="coding_sequences" value="transcripts.cleaned.nr.cds" ftype="fasta"/>
             <output_collection name="output_orthos" type="list">
                 <element name="proteins.blastp.22Gv1.1" file="proteins.blastp.22Gv1.1" ftype="tabular" compare="contains"/>
                 <element name="proteins.blastp.22Gv1.1.bestOrthos" file="proteins.blastp.22Gv1.1.bestOrthos" ftype="tabular" compare="contains"/>
