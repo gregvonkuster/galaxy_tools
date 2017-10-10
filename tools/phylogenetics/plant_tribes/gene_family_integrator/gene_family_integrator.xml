@@ -30,10 +30,38 @@ GeneFamilyIntegrator
         </collection>
     </outputs>
     <tests>
-        <!-- Test framework does not currently support inputs whose associated extra_files_path contains files to be analyzed.
         <test>
+            <param name="input">
+                <collection type="list">
+                    <element name="20.faa" file="20.faa" ftype="fasta"/>
+                    <element name="20.fna" file="20.fna" ftype="fasta"/>
+                    <element name="3494.faa" file="3494.faa" ftype="fasta"/>
+                    <element name="3494.fna" file="3494.fna" ftype="fasta"/>
+                    <element name="3722.faa" file="3722.faa" ftype="fasta"/>
+                    <element name="3722.fna" file="3722.fna" ftype="fasta"/>
+                    <element name="38889.faa" file="38889.faa" ftype="fasta"/>
+                    <element name="38889.fna" file="38889.fna" ftype="fasta"/>
+                    <element name="39614.faa" file="39614.faa" ftype="fasta"/>
+                    <element name="39614.fna" file="39614.fna" ftype="fasta"/>
+                    <element name="5235.faa" file="5235.faa" ftype="fasta"/>
+                    <element name="5235.fna" file="5235.fna" ftype="fasta"/>
+                </collection>
+            <output_collection name="output" type="list">
+                <element name="20.faa" file="20_integrated.faa" ftype="fasta"/>
+                <element name="20.fna" file="20_integrated.fna" ftype="fasta"/>
+                <element name="3494.faa" file="3494_integrated.faa" ftype="fasta"/>
+                <element name="3494.fna" file="3494_integrated.fna" ftype="fasta"/>
+                <element name="3722.faa" file="3722_integrated.faa" ftype="fasta"/>
+                <element name="3722.fna" file="3722_integrated.fna" ftype="fasta"/>
+                <element name="38889.faa" file="38889_integrated.faa" ftype="fasta"/>
+                <element name="38889.fna" file="38889_integrated.fna" ftype="fasta"/>
+                <element name="39614.faa" file="39614_integrated.faa" ftype="fasta"/>
+                <element name="39614.fna" file="39614_integrated.fna" ftype="fasta"/>
+                <element name="5235.faa" file="5235_integrated.faa" ftype="fasta"/>
+                <element name="5235.fna" file="5235_integrated.fna" ftype="fasta"/>
+            </output_collection>
+            </param>
         </test>
-        -->
     </tests>
     <help>
 This tool is one of the PlantTribes collection of automated modular analysis pipelines for comparative and evolutionary
