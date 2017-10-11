@@ -135,6 +135,26 @@ GeneFamilyAligner
     </outputs>
     <tests>
         <test>
+            <param name="input">
+                <collection type="list">
+                <element name="3722.faa" value="3722_integrated.faa"/>
+                <element name="3722.fna" value="3722_integrated.fna"/>
+                <element name="38889.faa" value="38889_integrated.faa"/>
+                <element name="38889.fna" value="38889_integrated.fna"/>
+                <element name="39614.faa" value="39614_integrated.faa"/>
+                <element name="39614.fna" value="39614_integrated.fna"/>
+                </collection>
+            </param>
+            <output_collection name="primary_faa" type="list">
+                <element name="3722.faa.aln" file="3722.faa.aln" ftype="fasta"/>
+                <element name="38889.faa.aln" file="38889.faa.aln" ftype="fasta"/>
+                <element name="39614.faa.aln" file="39614.faa.aln" ftype="fasta"/>
+            </output_collection>
+            <output_collection name="primary_fna" type="list">
+                <element name="3722.fna.aln" file="3722.fna.aln" ftype="fasta"/>
+                <element name="38889.fna.aln" file="38889.fna.aln" ftype="fasta"/>
+                <element name="39614.fna.aln" file="39614.fna.aln" ftype="fasta"/>
+            </output_collection>
         </test>
     </tests>
     <help>
