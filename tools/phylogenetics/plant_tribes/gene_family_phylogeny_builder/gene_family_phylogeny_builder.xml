@@ -79,6 +79,17 @@ GeneFamilyPhylogenyBuilder
     </outputs>
     <tests>
         <test>
+            <param name="input">
+                <collection type="list">
+                    <element name="3722.faa.aln" value="3722.faa.aln"/>
+                </collection>
+            </param>
+            <param name="scaffold" value="22Gv1.1"/>
+            <param name="method" value="orthomcl"/>
+            <param name="tree_inference" value="fasttree"/>
+            <output_collection name="tree" type="list">
+                <element name="3722.faa.aln.tree" file="3722.faa.aln.tree" ftype="nxh"/>
+            </output_collection>
         </test>
     </tests>
     <help>
