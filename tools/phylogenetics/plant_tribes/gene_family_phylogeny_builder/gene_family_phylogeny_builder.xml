@@ -88,7 +88,7 @@ GeneFamilyPhylogenyBuilder
             <param name="method" value="orthomcl"/>
             <param name="tree_inference" value="fasttree"/>
             <output_collection name="tree" type="list">
-                <element name="3722.faa.aln.tree" file="3722.faa.aln.tree" ftype="nxh"/>
+                <element name="3722.faa.aln.tree" file="3722.faa.aln.tree" ftype="nhx"/>
             </output_collection>
         </test>
     </tests>
