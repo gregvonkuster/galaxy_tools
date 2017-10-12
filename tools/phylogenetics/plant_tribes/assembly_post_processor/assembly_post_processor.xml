@@ -17,8 +17,6 @@ python '$__tool_directory__/assembly_post_processor.py'
     #set target_gene_family_assembly_cond = $options_type.target_gene_family_assembly_cond
     #if str($target_gene_family_assembly_cond.target_gene_family_assembly) == 'yes':
         --gene_family_search '$target_gene_family_assembly_cond.orthogroups'
-        --output_pttgf '$output_pttgf'
-        --output_pttgf_dir '$output_pttgf.files_path'
         --scaffold '$target_gene_family_assembly_cond.scaffold.fields.path'
         --method '$target_gene_family_assembly_cond.method'
         --gap_trimming $target_gene_family_assembly_cond.gap_trimming
@@ -91,9 +89,10 @@ python '$__tool_directory__/assembly_post_processor.py'
         </conditional>
     </inputs>
     <outputs>
-        <data name="output_pttgf" format="pttgf" label="Targeted gene families: ${tool.name} on ${on_string}">
+        <collection name="output_targeted_gene_families" type="list" label="Targeted gene families: ${tool.name} on ${on_string}">
+            <discover_datasets pattern="__name__" directory="assemblyPostProcessing_dir/targeted_gene_family_assemblies" format="fasta" />
             <filter>options_type['options_type_selector'] == 'advanced' and options_type['target_gene_family_assembly_cond']['target_gene_family_assembly'] == 'yes'</filter>
-        </data>
+        </collection>
         <data name="output_pep" format="fasta" label="transcripts.pep: ${tool.name} on ${on_string}"/>
         <data name="output_cleaned_pep" format="fasta" label="transcripts.cleaned.pep: ${tool.name} on ${on_string}"/>
         <data name="output_cleaned_nr_pep" format="fasta" label="transcripts.cleaned.nr.pep: ${tool.name} on ${on_string}">
@@ -136,7 +135,11 @@ python '$__tool_directory__/assembly_post_processor.py'
             <param name="scaffold" value="22Gv1.1"/>
             <param name="method" value="orthomcl"/>
             <param name="dereplicate" value="yes"/>
-            <output name="output_pttgf" file="output.pttgf" ftype="pttgf"/>
+            <output_collection name="output_targeted_gene_families" type="list">
+                <element name="752.faa" file="752.faa" ftype="fasta"/>
+                <element name="752.fasta" file="752.fasta" ftype="fasta"/>
+                <element name="752.fna" file="752.fna" ftype="fasta"/>
+            </output_collection>
             <output name="output_cds" file="transcripts_tgf.cds" ftype="fasta"/>
             <output name="output_cleaned_cds" file="transcripts.cleaned_tgf.cds" ftype="fasta"/>
             <output name="output_cleaned_nr_cds" file="transcripts_tgf.cleaned.nr.cds" ftype="fasta"/>
