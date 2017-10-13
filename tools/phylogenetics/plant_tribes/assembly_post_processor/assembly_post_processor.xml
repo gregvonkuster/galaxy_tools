@@ -144,7 +144,7 @@ python '$__tool_directory__/assembly_post_processor.py'
                 <element name="752.fasta" file="752.fasta" ftype="fasta"/>
                 <element name="752.fna" file="752.fna" ftype="fasta"/>
             </output_collection>
-            <output name="output_targeted_gene_families_stats" file="output_targeted_gene_families.stats" ftype="tabular"/>
+            <output name="output_targeted_gene_families_stats" file="output_targeted_gene_families.tabular" ftype="tabular"/>
             <output name="output_cds" file="transcripts_tgf.cds" ftype="fasta"/>
             <output name="output_cleaned_cds" file="transcripts.cleaned_tgf.cds" ftype="fasta"/>
             <output name="output_cleaned_nr_cds" file="transcripts_tgf.cleaned.nr.cds" ftype="fasta"/>
