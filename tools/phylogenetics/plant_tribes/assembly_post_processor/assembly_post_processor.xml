@@ -20,6 +20,7 @@ python '$__tool_directory__/assembly_post_processor.py'
         --scaffold '$target_gene_family_assembly_cond.scaffold.fields.path'
         --method '$target_gene_family_assembly_cond.method'
         --gap_trimming $target_gene_family_assembly_cond.gap_trimming
+        --output_targeted_gene_families_stats '$output_targeted_gene_families_stats'
     #end if
     #if str($options_type.strand_specific) == 'yes':
         --strand_specific true
@@ -89,6 +90,9 @@ python '$__tool_directory__/assembly_post_processor.py'
         </conditional>
     </inputs>
     <outputs>
+        <data name="output_targeted_gene_families_stats" format="tabular" label="Targeted gene families statistics: ${tool.name} on ${on_string}">
+            <filter>options_type['options_type_selector'] == 'advanced' and options_type['target_gene_family_assembly_cond']['target_gene_family_assembly'] == 'yes'</filter>
+        </data>
         <collection name="output_targeted_gene_families" type="list" label="Targeted gene families: ${tool.name} on ${on_string}">
             <discover_datasets pattern="__name__" directory="assemblyPostProcessing_dir/targeted_gene_family_assemblies" format="fasta" />
             <filter>options_type['options_type_selector'] == 'advanced' and options_type['target_gene_family_assembly_cond']['target_gene_family_assembly'] == 'yes'</filter>
@@ -140,6 +144,7 @@ python '$__tool_directory__/assembly_post_processor.py'
                 <element name="752.fasta" file="752.fasta" ftype="fasta"/>
                 <element name="752.fna" file="752.fna" ftype="fasta"/>
             </output_collection>
+            <output name="output_targeted_gene_families_stats" file="output_targeted_gene_families.stats" ftype="tabular"/>
             <output name="output_cds" file="transcripts_tgf.cds" ftype="fasta"/>
             <output name="output_cleaned_cds" file="transcripts.cleaned_tgf.cds" ftype="fasta"/>
             <output name="output_cleaned_nr_cds" file="transcripts_tgf.cleaned.nr.cds" ftype="fasta"/>
@@ -168,7 +173,7 @@ de novo assembly.
 
  * **Perform targeted gene assembly?** - selecting 'Yes' enables local assembly of one or more targeted gene families in a specific scaffold.  Scaffolds are defined in PlantTribes as clusters of paralogous/orthologous sequences from a specified set of proteomes[5-7].
 
-   * **Targeted gene families** - select a history item containing a list of targeted orthogroup identifiers corresponding to the gene family classification from a specified scaffold.  Gene family identifiers can be obtained from the function annotation table ("Orthogroup ID" field of .summary file) of scaffold data installed into Galaxy via the PlantTribes Scaffolds Download Data Manager tool, and also available at the PlantTribes github repository (https://github.com/dePamphilis/PlantTribes/tree/master/config).
+   * **Targeted gene families** - select a history item containing a list of targeted orthogroup identifiers corresponding to the gene family classification from a specified scaffold. Gene family identifiers can be obtained from the function annotation table ("Orthogroup ID" field of .summary file) of scaffold data installed into Galaxy via the PlantTribes Scaffolds Download Data Manager tool, and are also available in the PlantTribes "annotation" directory of the scaffold data download.
    * **Gene family scaffold** - one of the PlantTribes gene family scaffolds (installed into Galaxy by the PlantTribes Scaffolds Download Data Manager tool) whose orthogroup(s) are targeted for the localized assembly.
    * **Protein clustering method** - gene family scaffold protein clustering method.  Each PlantTribes scaffold data has up to three sets of clusters - GFam[8] (clusters of consensus domain architecture), OrthoFinder[9] (broadly defined clusters) or OrthoMCL[10] (narrowly defined clusters).  You can also install your own data scaffold created using a different clustering method as long as it conforms to the PlantTribes scaffold data format.
    * **Trim alignments** - trim gene family multiple sequence alignments that include scaffold backbone genes and locally assembled transcripts to remove non-conserved regions (gappy sites)[11].  The trimmed alignments are used in assigning scores to locally assembled transcripts to determine how well they compare to the backbone gene models.  The default setting of 0.1 removes sites that have gaps in 90% or more of the sequences in the multiple sequence alignment.  This option is restricted to the range 0.0 - 1.0.

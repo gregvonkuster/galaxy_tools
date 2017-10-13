@@ -20,6 +20,7 @@ parser.add_argument('--output_cleaned_nr_cds', dest='output_cleaned_nr_cds', def
 parser.add_argument('--output_cleaned_nr_pep', dest='output_cleaned_nr_pep', default=None, help='Output transcripts.cleaned.nr.pep')
 parser.add_argument('--output_cleaned_pep', dest='output_cleaned_pep', help='Output transcripts.cleaned.pep')
 parser.add_argument('--output_pep', dest='output_pep', help='Output transcripts.pep')
+parser.add_argument('--output_targeted_gene_families_stats', dest='output_targeted_gene_families_stats', default=None, help='Targeted gene families statistics')
 parser.add_argument('--prediction_method', dest='prediction_method', help='Coding regions prediction method')
 parser.add_argument('--scaffold', dest='scaffold', default=None, help='Gene family scaffold')
 parser.add_argument('--score_matrices', dest='score_matrices', default=None, help='Scores matrices')
@@ -61,3 +62,5 @@ if args.output_cleaned_nr_pep is not None:
     shutil.move(os.path.join(OUTPUT_DIR, 'transcripts.cleaned.nr.pep'), args.output_cleaned_nr_pep)
 shutil.move(os.path.join(OUTPUT_DIR, 'transcripts.cleaned.pep'), args.output_cleaned_pep)
 shutil.move(os.path.join(OUTPUT_DIR, 'transcripts.pep'), args.output_pep)
+if args.output_targeted_gene_families_stats is not None:
+    shutil.move(os.path.join(OUTPUT_DIR, 'targeted_gene_family_assemblies.stats'), args.output_targeted_gene_families_stats)

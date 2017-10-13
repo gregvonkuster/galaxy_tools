@@ -1,0 +1,11 @@
+# seq_id = sequence identity
+# cov = sequence coverage in the orthogroup trimmed protein alignment
+# avg_cov = mean coverage of orthogroup backbone sequences in the trimmed protein alignment
+# sd_cov = standard deviation (for coverage mean) of orthogroup backbone sequences in the trimmed protein alignment
+# len = total-length of conserved regions of sequence in the orthogroup trimmed protein alignment
+# avg_len = mean total-lengths of conserved regions of backbone sequences in the trimmed orthogroup protein alignment
+# sd_len = standard deviation (for total-lengths mean) of conserved regions of backbone sequences in the trimmed orthogroup protein alignment
+
+################## Target Family - Orthogroup 752 ##################
+seq_id	cov	avg_cov	sd_cov	len	avg_len	sd_len
+22Gv1.1_orthomcl_752_1	0.18	0.92	0.07	129	656	51
