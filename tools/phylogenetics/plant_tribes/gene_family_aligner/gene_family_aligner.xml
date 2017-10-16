@@ -61,8 +61,8 @@ GeneFamilyAligner
             </when>
         </conditional>
         <param name="codon_alignments" type="select" label="Codon alignments">
-            <option value="yes" selected="true">Yes</option>
-            <option value="no">No</option>
+            <option value="no" selected="true">No</option>
+            <option value="yes">Yes</option>
         </param>
         <conditional name="remove_gappy_sequences_cond">
             <param name="remove_gappy_sequences" type="select" label="Alignment post-processing configuration">
@@ -106,11 +106,11 @@ GeneFamilyAligner
         </collection>
         <collection name="trimmed_faa" type="list" label="${tool.name} (trimmed orthogroup protein alignments) on ${on_string}">
             <discover_datasets pattern="__name__" directory="geneFamilyAlignments_dir/orthogroups_trimmed_aln_faa" format="fasta" />
-            <filter>remove_gappy_sequences_cond['remove_gappy_sequences'] == 'yes' and remove_gappy_sequences_cond['remove_sequences_with_gaps_cond']['remove_sequences_with_gaps'] == 'no'</filter>
+            <filter>codon_alignments == 'no' and remove_gappy_sequences_cond['remove_gappy_sequences'] == 'yes' and remove_gappy_sequences_cond['remove_sequences_with_gaps_cond']['remove_sequences_with_gaps'] == 'no'</filter>
         </collection>
         <collection name="filtered_faa" type="list" label="${tool.name} (filtered orthogroup protein alignments) on ${on_string}">
             <discover_datasets pattern="__name__" directory="geneFamilyAlignments_dir/orthogroups_filtered_aln_faa" format="fasta" />
-            <filter>remove_gappy_sequences_cond['remove_gappy_sequences'] == 'yes' and remove_gappy_sequences_cond['remove_sequences_with_gaps_cond']['remove_sequences_with_gaps'] == 'yes'</filter>
+            <filter>codon_alignments == 'no' and remove_gappy_sequences_cond['remove_gappy_sequences'] == 'yes' and remove_gappy_sequences_cond['remove_sequences_with_gaps_cond']['remove_sequences_with_gaps'] == 'yes'</filter>
         </collection>
         <collection name="pristine_faa" type="list" label="${tool.name} (primary orthogroup protein alignments) on ${on_string}">
             <discover_datasets pattern="__name__" directory="geneFamilyAlignments_dir/other_orthogroups_aln" format="fasta" />
@@ -172,7 +172,7 @@ of integrated orthologous gene family fasta files produced by the GeneFamilyInte
 
   - **PASTA iteration limit** - number of PASTA iterations. By default, PASTA performs 3 iterations.
 
- * **Codon alignments** - select 'Yes' to create codon multiple sequence alignments.  This option requires protein and their corresponding coding sequences to be provided as input data.
+ * **Codon alignments** - select 'Yes' to create codon multiple sequence alignments.  This option requires both protein and their corresponding coding sequence orthogroup fasta files to be present in the GeneFamilyAligner input data that was produced by the GeneFamilyIntegrator.
 
 **Other options**
 
