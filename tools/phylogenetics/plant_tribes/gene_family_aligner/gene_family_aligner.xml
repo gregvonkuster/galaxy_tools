@@ -108,17 +108,13 @@ GeneFamilyAligner
             <discover_datasets pattern="__name__" directory="geneFamilyAlignments_dir/orthogroups_aln_fna" format="fasta" />
             <filter>codon_alignments == 'yes' and remove_gappy_sequences_cond['remove_gappy_sequences'] == 'no'</filter>
         </collection>
-        <collection name="pristine_faa" type="list" label="${tool.name} (primary orthogroup protein alignments) on ${on_string}">
+        <collection name="pristine" type="list" label="${tool.name} (intermediate alignments) on ${on_string}">
             <discover_datasets pattern="__name__" directory="geneFamilyAlignments_dir/other_orthogroups_aln" format="fasta" />
             <filter>remove_gappy_sequences_cond['remove_gappy_sequences'] == 'yes' and remove_gappy_sequences_cond['output_pristine_alignments'] == 'yes'</filter>
         </collection>
-        <collection name="pristine_fna" type="list" label="${tool.name} (primary orthogroup protein and codon alignments) on ${on_string}">
-            <discover_datasets pattern="__name__" directory="geneFamilyAlignments_dir/other_orthogroups_aln" format="fasta" />
-            <filter>codon_alignments == 'yes' and remove_gappy_sequences_cond['remove_gappy_sequences'] == 'yes' and remove_gappy_sequences_cond['output_pristine_alignments'] == 'yes'</filter>
-        </collection>
         <collection name="trimmed_faa" type="list" label="${tool.name} (trimmed orthogroup protein alignments) on ${on_string}">
             <discover_datasets pattern="__name__" directory="geneFamilyAlignments_dir/orthogroups_trimmed_aln_faa" format="fasta" />
-            <filter>codon_alignments == 'no' and remove_gappy_sequences_cond['remove_gappy_sequences'] == 'yes' and remove_gappy_sequences_cond['remove_sequences_with_gaps_cond']['remove_sequences_with_gaps'] == 'no'</filter>
+            <filter>remove_gappy_sequences_cond['remove_gappy_sequences'] == 'yes' and remove_gappy_sequences_cond['remove_sequences_with_gaps_cond']['remove_sequences_with_gaps'] == 'no'</filter>
         </collection>
         <collection name="trimmed_fna" type="list" label="${tool.name} (trimmed orthogroup codon alignments) on ${on_string}">
             <discover_datasets pattern="__name__" directory="geneFamilyAlignments_dir/orthogroups_trimmed_aln_fna" format="fasta" />
@@ -126,7 +122,7 @@ GeneFamilyAligner
         </collection>
         <collection name="filtered_faa" type="list" label="${tool.name} (filtered orthogroup protein alignments) on ${on_string}">
             <discover_datasets pattern="__name__" directory="geneFamilyAlignments_dir/orthogroups_filtered_aln_faa" format="fasta" />
-            <filter>codon_alignments == 'no' and remove_gappy_sequences_cond['remove_gappy_sequences'] == 'yes' and remove_gappy_sequences_cond['remove_sequences_with_gaps_cond']['remove_sequences_with_gaps'] == 'yes'</filter>
+            <filter>remove_gappy_sequences_cond['remove_gappy_sequences'] == 'yes' and remove_gappy_sequences_cond['remove_sequences_with_gaps_cond']['remove_sequences_with_gaps'] == 'yes'</filter>
         </collection>
         <collection name="filtered_fna" type="list" label="${tool.name} (filtered orthogroup codon alignments) on ${on_string}">
             <discover_datasets pattern="__name__" directory="geneFamilyAlignments_dir/orthogroups_filtered_aln_fna" format="fasta" />
