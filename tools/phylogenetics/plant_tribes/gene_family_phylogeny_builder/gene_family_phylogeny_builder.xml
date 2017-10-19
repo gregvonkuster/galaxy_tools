@@ -86,9 +86,7 @@ GeneFamilyPhylogenyBuilder
                     <element name="3722.faa.aln" value="3722.faa.aln"/>
                 </collection>
             </param>
-            <param name="tree_inference" value="raxml"/>
-            <param name="scaffold" value="22Gv1.1"/>
-            <param name="method" value="orthomcl"/>
+            <param name="tree_inference" value="fasttree"/>
             <output_collection name="tree" type="list">
                 <element name="3722.faa.aln.tree" file="3722.faa.aln.tree" ftype="nhx"/>
             </output_collection>
@@ -104,9 +102,10 @@ multiple sequence alignments produced by the GeneFamilyAligner tool.
 **Required options**
 
  * **Orthogroup alignments** - orthogroup alignment fasta files produced by the GeneFamilyAligner tool selected from your history.  Depending on how the GeneFamilyAligner tool was executed, these could either be pre-processed alignments, trimmed alignments or both trimmed and filtered alignments.
- * **Gene family scaffold** - one of the PlantTribes gene family scaffolds installed into Galaxy by the PlantTribes Scaffold Download Data Manager tool.
- * **Protein clustering method** - gene family scaffold protein clustering method as described in the AssemblyPostProcessor tool.
  * **Phylogenetic inference method** - method for estimating orthogroup maximum likelihood (ML) phylogenetic trees.  PlantTribes estimates ML phylogenetic trees using either RAxML or FastTree algorithms.
+
+  - **Gene family scaffold** - one of the PlantTribes gene family scaffolds installed into Galaxy by the PlantTribes Scaffold Download Data Manager tool.  This is used only if RAxML is selected as the phylogenetic inference method.
+  - **Protein clustering method** - gene family scaffold protein clustering method as described in the AssemblyPostProcessor tool.    This is used only if RAxML is selected as the phylogenetic inference method.
 
 **Other options**
 
