@@ -10,6 +10,8 @@
 #set input_dir = 'input_dir'
 #set tree_inference = $tree_inference_cond.tree_inference
 #if str($tree_inference) == 'raxml':
+    #set scaffold = $tree_inference_cond.scaffold
+    #set method = $tree_inference_cond.method
     #set rooting_order_file_cond = $tree_inference_cond.rooting_order_file_cond
     #set rooting_order_file = $rooting_order_file_cond.rooting_order_file
     #if str($rooting_order_file) == 'yes':
@@ -25,11 +27,11 @@ mkdir $input_dir &&
 #end for
 GeneFamilyPhylogenyBuilder
 --orthogroup_aln '$input_dir'
---scaffold '$scaffold.fields.path'
---config_dir '$scaffold.fields.path'
---method $method
 --tree_inference $tree_inference
 #if str($tree_inference) == 'raxml':
+    --scaffold '$scaffold.fields.path'
+    --config_dir '$scaffold.fields.path'
+    --method $method
     #if str($rooting_order_file) == 'yes':
         --rooting_order '$rooting_order'
         ## No else block needed here because the default rooting_order
@@ -43,14 +45,14 @@ GeneFamilyPhylogenyBuilder
     ]]></command>
     <inputs>
         <param name="input" format="fasta" type="data_collection" collection_type="list" label="Proteins orthogroup alignments" />
-        <expand macro="param_scaffold" />
-        <expand macro="param_method" />
         <conditional name="tree_inference_cond">
             <param name="tree_inference" type="select" label="Phylogenetic inference method">
                 <option value="raxml" selected="true">RAxML</option>
                 <option value="fasttree">FastTree</option>
             </param>
             <when value="raxml">
+                <expand macro="param_scaffold" />
+                <expand macro="param_method" />
                 <conditional name="rooting_order_file_cond">
                     <param name="rooting_order_file" type="select" label="Rooting order configuration">
                         <option value="no" selected="true">No</option>
@@ -84,9 +86,9 @@ GeneFamilyPhylogenyBuilder
                     <element name="3722.faa.aln" value="3722.faa.aln"/>
                 </collection>
             </param>
+            <param name="tree_inference" value="raxml"/>
             <param name="scaffold" value="22Gv1.1"/>
             <param name="method" value="orthomcl"/>
-            <param name="tree_inference" value="fasttree"/>
             <output_collection name="tree" type="list">
                 <element name="3722.faa.aln.tree" file="3722.faa.aln.tree" ftype="nhx"/>
             </output_collection>
