@@ -1,0 +1,4 @@
+person: 90%
+dog: 86%
+horse: 71%
+sheep: 35%

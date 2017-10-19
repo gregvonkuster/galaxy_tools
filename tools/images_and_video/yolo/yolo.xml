@@ -1,0 +1,107 @@
+<tool id="yolo" name="YOLO" version="1.0">
+    <description>real-time object detection</description>
+    <requirements>
+        <requirement type="package" version="1.0">darknet</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+mkdir input_dir &&
+## Hack because darknet must be executed from the local directory.
+cp -R /home/greg/_conda/envs/__darknet@1.0/bin/* .
+#set input = $input_type_cond.input
+#if str($input_type_cond.input_type) == 'image':
+    #set input_filename = $input.file_name
+    #set full_name = $input.name
+    && ln -s $input_filename input_dir/$full_name
+    #if str($output_shape_confidence_log) == 'yes':
+        && darknet detect cfg/yolo.cfg yolo.weights 'input_dir/$full_name' -thresh $thresh > $output_shape_confidence 2>&1
+    #else:
+        && darknet detect cfg/yolo.cfg yolo.weights 'input_dir/$full_name' -thresh $thresh > /dev/null 2>&1
+    #end if
+    && mv ./predictions.png $output_shape
+#else:
+    && mkdir output_shape_confidence_dir
+    && mkdir output_png_dir
+    #for $i in $input:
+        #set input_filename = $i.file_name
+        #set full_name = $i.name
+        #set head = $full_name.split('.')[0]
+        #set output_filename_png = '%s_predictions.png' % $head
+        #set output_filename_shape_confidence = '%s_shape_detection_confidence.txt' % $head
+        && ln -s $input_filename input_dir/$full_name
+        && darknet detect cfg/yolo.cfg yolo.weights 'input_dir/$full_name' -thresh $thresh 2> output_shape_confidence_dir/$output_filename_shape_confidence
+        && mv ./predictions.png output_png_dir/$output_filename_png
+    #end for
+#end if
+    ]]></command>
+    <inputs>
+        <conditional name="input_type_cond">
+            <param name="input_type" type="select" label="Select">
+                <option value="image" selected="true">a single image</option>
+                <option value="images">a collection of images</option>
+            </param>
+            <when value="image">
+                <param name="input" format="jpg" type="data" label="Image"/>
+            </when>
+            <when value="images">
+                <param name="input" format="jpg" type="data_collection" collection_type="list" label="Collection of image files"/>
+            </when>
+        </conditional>
+        <param name="thresh" type="float" value="0.25" label="Object detection threshold"/>
+        <param name="output_shape_confidence_log" type="select" display="radio" label="Output shape detection confidence levels?">
+            <option value="yes" selected="true">Yes</option>
+            <option value="no">No</option>
+        </param>
+    </inputs>
+    <outputs>
+        <data name="output_shape_confidence" format="txt" label="${tool.name} (shape detection confidence) on ${on_string}">
+            <filter>input_type_cond['input_type'] == 'image' and output_shape_confidence_log == 'yes'</filter>
+        </data>
+        <data name="output_shape" format="png" label="${tool.name} (shapes) on ${on_string}">
+            <filter>input_type_cond['input_type'] == 'image'</filter>
+        </data>
+        <collection name="output_shape_confidences" type="list" label="${tool.name} (shape detection confidence) on ${on_string}">
+            <discover_datasets pattern="__name__" directory="output_shape_confidence_dir" format="txt"/>
+            <filter>input_type_cond['input_type'] == 'images' and output_shape_confidence_log == 'yes'</filter>
+        </collection>
+        <collection name="output_shapes" type="list" label="${tool.name} (shapes) on ${on_string}">
+            <discover_datasets pattern="__name__" directory="output_png_dir" format="png"/>
+            <filter>input_type_cond['input_type'] == 'images'</filter>
+        </collection>
+    </outputs>
+    <tests>
+        <test>
+            <param name="input_type" value="image"/>
+            <param name="input" value="person_small.jpg"/>
+            <param name="thresh" value="0.25"/>
+            <param name="output_shape_confidence_log" value="yes"/>
+            <output name="output_shape_confidence" file="output_shape_confidence.txt" ftype="txt" compare="contains"/>
+            <output name="output_shape" file="output_shape1.png" ftype="png"/>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+You only look once (YOLO) is a state-of-the-art, real-time object detection system.
+
+-----
+
+**Options**
+
+    </help>
+    <citations>
+        <citation type="bibtex">
+            @misc{darknet13,
+            author = {Joseph Redmon},
+            title = {Darknet: Open Source Neural Networks in C},
+            url = {http://pjreddie.com/darknet/},
+            year = {2013--2016}}
+        </citation>
+        <citation type="bibtex">
+            @article{redmon2016yolo9000,
+            title={YOLO9000: Better, Faster, Stronger},
+            author={Redmon, Joseph and Farhadi, Ali},
+            journal={arXiv preprint arXiv:1612.08242},
+            year={2016}}
+        </citation>
+    </citations>
+</tool>

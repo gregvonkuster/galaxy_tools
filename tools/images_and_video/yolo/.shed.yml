@@ -1,0 +1,14 @@
+name: yolo
+owner: greg
+description: |
+  Contains a tool that detects objects in images.
+homepage_url: https://pjreddie.com/darknet/yolo/
+long_description: |
+  Contains a tool that uses YOLO (You Only Look Once, a state-of-the-art, real-time object detection system) to detect
+  objects in images.  YOLO applies a single neural network to the full image. This network divides the image into regions
+  and predicts bounding boxes and probabilities for each region. These bounding boxes are weighted by the predicted
+  probabilities.
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/images_and_video/yolo
+type: unrestricted
+categories:
+- Imaging
