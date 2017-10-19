@@ -134,12 +134,12 @@ GeneFamilyAligner
         <test>
             <param name="input">
                 <collection type="list">
-                <element name="3722.faa" value="3722.faa"/>
-                <element name="3722.fna" value="3722.fna"/>
-                <element name="38889.faa" value="38889.faa"/>
-                <element name="38889.fna" value="38889.fna"/>
-                <element name="39614.faa" value="39614.faa"/>
-                <element name="39614.fna" value="39614.fna"/>
+                    <element name="3722.faa" value="3722.faa"/>
+                    <element name="3722.fna" value="3722.fna"/>
+                    <element name="38889.faa" value="38889.faa"/>
+                    <element name="38889.fna" value="38889.fna"/>
+                    <element name="39614.faa" value="39614.faa"/>
+                    <element name="39614.fna" value="39614.fna"/>
                 </collection>
             </param>
             <output_collection name="primary_faa" type="list">
