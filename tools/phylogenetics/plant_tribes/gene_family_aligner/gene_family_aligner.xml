@@ -92,7 +92,7 @@ GeneFamilyAligner
                         <param name="iterative_realignment" type="integer" optional="true" min="0" label="Realignment iteration limit" />
                     </when>
                 </conditional>
-                <param name="output_pristine_alignments" type="select" display="radio" label="Output primary and intermediate alignemnts?" help="In addition to trimmed/filtered alignments">
+                <param name="output_pristine_alignments" type="select" display="radio" label="Output primary and intermediate alignments?" help="In addition to trimmed/filtered alignments">
                     <option value="no" selected="true">No</option>
                     <option value="yes">Yes</option>
                 </param>
