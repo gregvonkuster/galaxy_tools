@@ -1,0 +1,93 @@
+<tool id="ffmpeg" name="FFMPEG" version="3.2.4">
+    <description> video / image converter</description>
+    <requirements>
+        <requirement type="package" version="3.2.4">ffmpeg</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+mkdir output &&
+#if str($conversion_cond.conversion) == "video":
+    #if str($output_process_log) == 'yes':
+        ffmpeg -i '$conversion_cond.input' -filter:v fps=fps=1/$conversion_cond.sbf 2>$output_log output/%05d.jpg
+    #else:
+        ffmpeg -i '$conversion_cond.input' -filter:v fps=fps=1/$conversion_cond.sbf 2>/dev/null output/%05d.jpg
+    #end if
+#else:
+    ## str($conversion_cond.conversion) == "images"
+    mkdir input_dir &&
+    #for $i in $conversion_cond.input:
+        #set input_filename = $i.file_name
+        #set full_name = $i.name
+        #set ext = $i.ext
+        cp $input_filename input_dir/$full_name &&
+    #end for
+    #if str($output_process_log) == 'yes':
+        ffmpeg -r $conversion_cond.frame_rate -s 1920x1080 -i input_dir/%05d_predictions.$ext -vcodec libx264 -crf $conversion_cond.quality -pix_fmt yuv420p output/out.mp4 2> $output_log &&
+    #else:
+        ffmpeg -r $conversion_cond.frame_rate -s 1920x1080 -i input_dir/%05d_predictions.$ext -vcodec libx264 -crf $conversion_cond.quality -pix_fmt yuv420p output/out.mp4 2> /dev/null &&
+    #end if
+    mv output/out.mp4  $output_video
+#end if
+    ]]></command>
+    <inputs>
+        <conditional name="conversion_cond">
+            <param name="conversion" type="select" label="Convert">
+                <option value="video" selected="true">video to images</option>
+                <option value="images">images to video</option>
+            </param>
+            <when value="video">
+                <param name="input" type="data" format="avi,mpg,mp4" label="Select input video"/>
+                <param name="sbf" type="integer" value="1" label="Number of seconds between frames"/>
+            </when>
+            <when value="images">
+                <param name="input" type="data_collection" collection_type="list" format="jpg,png" label="Select input images"/>
+                <param name="frame_rate" type="integer" value="60" label="Number of frames per second"/>
+                <param name="quality" type="integer" value="15" label="Image quality" help="Lower means better quality, 15-25 is usually good"/>
+            </when>
+        </conditional>
+        <param name="output_process_log" type="select" display="radio" label="Output process log?">
+            <option value="no" selected="true">No</option>
+            <option value="yes">Yes</option>
+        </param>
+    </inputs>
+    <outputs>
+        <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}">
+            <filter>output_process_log == 'yes'</filter>
+        </data>
+        <collection name="output_from_video" type="list" label="${tool.name} (images) on ${on_string}">
+            <discover_datasets pattern="__name__" directory="output" format="jpg"/>
+            <filter>conversion_cond['conversion'] == 'video'</filter>
+        </collection>
+        <data name="output_video" format="mp4" label="${tool.name} (video) on ${on_string}">
+            <filter>conversion_cond['conversion'] == 'images'</filter>
+        </data>
+    </outputs>
+    <tests>
+        <test>
+            <param name="conversion" value="images"/>
+            <param name="input">
+                <collection type="list">
+                    <element name="00001_predictions.jpg" value="00001_predictions.jpg"/>
+                    <element name="00002_predictions.jpg" value="00002_predictions.jpg"/>
+                    <element name="00003_predictions.jpg" value="00003_predictions.jpg"/>
+                </collection>
+            </param>
+            <param name="frame_rate" value="1"/>
+            <param name="quality" value="15"/>
+            <param name="output_process_log" value="yes"/>
+            <output name="output_video" file="output_video.mp4" ftype="mp4" compare="sim_size"/>
+            <output name="output_log" file="output_log.txt" ftype="txt" compare="contains"/>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+Converts video files to images and image files to video files.
+
+-----
+
+**Options**
+
+    </help>
+    <citations>
+    </citations>
+</tool>

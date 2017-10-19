@@ -1,0 +1,11 @@
+name: ffmpeg
+owner: greg
+description: |
+  Contains a tool that converts and audio and video.
+homepage_url: https://www.ffmpeg.org/
+long_description: |
+  Contains a tool that uses FFMPEG to convert audio and video files.
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/images_and_video/ffmpeg
+type: unrestricted
+categories:
+- Imaging
