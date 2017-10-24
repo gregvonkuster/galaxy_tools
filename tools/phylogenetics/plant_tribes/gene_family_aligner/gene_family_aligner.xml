@@ -142,6 +142,7 @@ GeneFamilyAligner
                     <element name="39614.fna" value="39614.fna"/>
                 </collection>
             </param>
+            <param name="codon_alignments" value="yes"/>
             <output_collection name="primary_faa" type="list">
                 <element name="3722.faa.aln" file="3722.faa.aln" ftype="fasta"/>
                 <element name="38889.faa.aln" file="38889.faa.aln" ftype="fasta"/>
