@@ -63,7 +63,7 @@ KaKsAnalysis
         --max_ks $set_upper_ks_limit_cond.max_ks
     #end if
 #end if
->/dev/null
+2>/dev/null
 && mv $output_dir/species1.fna '$output_species1_fna'
 && mv $output_dir/species1.faa '$output_species1_faa'
 #if str($comparison) == 'paralogs':
