@@ -198,7 +198,7 @@ KaKsAnalysis
             <filter>comparison_cond['comparison'] == 'orthologs'</filter>
         </data>
         <data name="output_kaks" format="tabular" label="${tool.name} (KaKs distribution) on ${on_string}" />
-        <data name="output_components" format=tabular label="${tool.name} (significant components in the KaKs distribution) on ${on_string}">
+        <data name="output_components" format="tabular" label="${tool.name} (significant components in the KaKs distribution) on ${on_string}">
             <filter>options_type['options_type_selector'] == 'advanced' and options_type['fit_components_cond']['fit_components'] == 'yes'</filter>
         </data>
     </outputs>
