@@ -181,11 +181,21 @@ KaKsAnalysis
         <data name="output_species2_faa" format="fasta" label="${tool.name} (amino acids species2) on ${on_string}">
             <filter>comparison_cond['comparison'] == 'orthologs'</filter>
         </data>
-        <data name="output_species1_para_ortho" format="tabular" label="${tool.name} (blastn results species1 vs species2) on ${on_string}"/>
+        <data name="output_species1_para_ortho" format="tabular" label="${tool.name} (blastn results species1 vs species1) on ${on_string}">
+            <filter>comparison_cond['comparison'] == 'paralogs'</filter>
+        </data>
+        <data name="output_species1_para_ortho" format="tabular" label="${tool.name} (blastn results species1 vs species2) on ${on_string}">
+            <filter>comparison_cond['comparison'] == 'orthologs'</filter>
+        </data>
         <data name="output_species2_ortholog" format="tabular" label="${tool.name} (blastn results species2 vs species1) on ${on_string}">
             <filter>comparison_cond['comparison'] == 'orthologs'</filter>
         </data>
-        <data name="output_rbhb" format="tabular" label="${tool.name} (orthologous pairs) on ${on_string}" />
+        <data name="output_rbhb" format="tabular" label="${tool.name} (paralogous pairs) on ${on_string}">
+            <filter>comparison_cond['comparison'] == 'paralogs'</filter>
+        </data>
+        <data name="output_rbhb" format="tabular" label="${tool.name} (orthologous pairs) on ${on_string}">
+            <filter>comparison_cond['comparison'] == 'orthologs'</filter>
+        </data>
         <data name="output_kaks" format="tabular" label="${tool.name} (KaKs distribution) on ${on_string}" />
         <data name="output_components" format="ptkscmp" label="${tool.name} (significant components in the KaKs distribution) on ${on_string}">
             <filter>options_type['options_type_selector'] == 'advanced' and options_type['fit_components_cond']['fit_components'] == 'yes'</filter>
