@@ -67,14 +67,15 @@ KaKsAnalysis
 && mv $output_dir/species1.fna '$output_species1_fna'
 && mv $output_dir/species1.faa '$output_species1_faa'
 #if str($comparison) == 'paralogs':
-    && mv $output_dir/species1.fna.blastn.paralogs '$output_species1_para_ortho'
+    && mv $output_dir/species1.fna.blastn.paralogs '$output_species1_paralog'
+    && mv $output_dir/*.rbhb '$output_rbhb_paralog'
 #else:
     && mv $output_dir/species2.faa '$output_species2_faa'
     && mv $output_dir/species2.fna '$output_species2_fna'
-    && mv $output_dir/species1.fna.blastn.orthologs '$output_species1_para_ortho'
+    && mv $output_dir/species1.fna.blastn.orthologs '$output_species1_ortholog'
     && mv $output_dir/species2.fna.blastn.orthologs '$output_species2_ortholog'
+    && mv $output_dir/*.rbhb '$output_rbhb_ortholog'
 #end if
-&& mv $output_dir/*.rbhb '$output_rbhb'
 && mv $output_dir/*.kaks '$output_kaks'
 #if str($fit_components) == 'yes':
     && mv $output_dir/*.components '$output_components'
@@ -181,19 +182,19 @@ KaKsAnalysis
         <data name="output_species2_faa" format="fasta" label="${tool.name} (amino acids species2) on ${on_string}">
             <filter>comparison_cond['comparison'] == 'orthologs'</filter>
         </data>
-        <data name="output_species1_para_ortho" format="tabular" label="${tool.name} (blastn results species1 vs species1) on ${on_string}">
+        <data name="output_species1_paralog" format="tabular" label="${tool.name} (blastn results species1 vs species1) on ${on_string}">
             <filter>comparison_cond['comparison'] == 'paralogs'</filter>
         </data>
-        <data name="output_species1_para_ortho" format="tabular" label="${tool.name} (blastn results species1 vs species2) on ${on_string}">
+        <data name="output_species1_ortholog" format="tabular" label="${tool.name} (blastn results species1 vs species2) on ${on_string}">
             <filter>comparison_cond['comparison'] == 'orthologs'</filter>
         </data>
         <data name="output_species2_ortholog" format="tabular" label="${tool.name} (blastn results species2 vs species1) on ${on_string}">
             <filter>comparison_cond['comparison'] == 'orthologs'</filter>
         </data>
-        <data name="output_rbhb" format="tabular" label="${tool.name} (paralogous pairs) on ${on_string}">
+        <data name="output_rbhb_paralog" format="tabular" label="${tool.name} (paralogous pairs) on ${on_string}">
             <filter>comparison_cond['comparison'] == 'paralogs'</filter>
         </data>
-        <data name="output_rbhb" format="tabular" label="${tool.name} (orthologous pairs) on ${on_string}">
+        <data name="output_rbhb_ortholog" format="tabular" label="${tool.name} (orthologous pairs) on ${on_string}">
             <filter>comparison_cond['comparison'] == 'orthologs'</filter>
         </data>
         <data name="output_kaks" format="tabular" label="${tool.name} (KaKs distribution) on ${on_string}" />
@@ -208,8 +209,8 @@ KaKsAnalysis
             <param name="non_commercial_use" value="True"/>
             <output name="output_species1_fna" file="species1_cds.fasta" ftype="fasta" compare="contains"/>
             <output name="output_species1_faa" file="species1_pep.fasta" ftype="fasta" compare="contains"/>
-            <output name="output_species1_para_ortho" file="output_blastn_results1.tabular" ftype="tabular" compare="contains"/>
-            <output name="output_rbhb" file="output_paralogous_pairs.tabular" ftype="tabular"/>
+            <output name="output_species1_paralog" file="output_blastn_results1.tabular" ftype="tabular" compare="contains"/>
+            <output name="output_rbhb_paralog" file="output_paralogous_pairs.tabular" ftype="tabular"/>
             <output name="output_kaks" file="output1.tabular" ftype="tabular"/>
         </test>
     </tests>
