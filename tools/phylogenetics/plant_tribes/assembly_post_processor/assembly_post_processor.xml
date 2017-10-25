@@ -20,6 +20,7 @@ python '$__tool_directory__/assembly_post_processor.py'
         --scaffold '$target_gene_family_assembly_cond.scaffold.fields.path'
         --method '$target_gene_family_assembly_cond.method'
         --gap_trimming $target_gene_family_assembly_cond.gap_trimming
+        --min_coverage $target_gene_family_assembly_cond.min_coverage
         --output_targeted_gene_families_stats '$output_targeted_gene_families_stats'
     #end if
     #if str($options_type.strand_specific) == 'yes':
@@ -75,6 +76,7 @@ python '$__tool_directory__/assembly_post_processor.py'
                             <option value="orthomcl">OrthoMCL</option>
                         </param>
                         <param name="gap_trimming" type="float" value="0.1" min="0" max="1.0" label="Trim alignments"/>
+                        <param name="min_coverage" type="float" value="0.5" min="0.3" max="1.0" label="Minimum alignment coverage"/>
                     </when>
                 </conditional>
                 <param name="strand_specific" type="select" label="Strand-specific assembly?">
@@ -177,6 +179,7 @@ de novo assembly.
    * **Gene family scaffold** - one of the PlantTribes gene family scaffolds (installed into Galaxy by the PlantTribes Scaffolds Download Data Manager tool) whose orthogroup(s) are targeted for the localized assembly.
    * **Protein clustering method** - gene family scaffold protein clustering method.  Each PlantTribes scaffold data has up to three sets of clusters - GFam[8] (clusters of consensus domain architecture), OrthoFinder[9] (broadly defined clusters) or OrthoMCL[10] (narrowly defined clusters).  You can also install your own data scaffold created using a different clustering method as long as it conforms to the PlantTribes scaffold data format.
    * **Trim alignments** - trim gene family multiple sequence alignments that include scaffold backbone genes and locally assembled transcripts to remove non-conserved regions (gappy sites)[11].  The trimmed alignments are used in assigning scores to locally assembled transcripts to determine how well they compare to the backbone gene models.  The default setting of 0.1 removes sites that have gaps in 90% or more of the sequences in the multiple sequence alignment.  This option is restricted to the range 0.0 - 1.0.
+   * **Minimum alignment coverage** - allowable sequence coverage in the orthogroup trimmed protein multiple sequence alignments.  The default setting of 0.5 reports assembled targeted gene family transcripts with at least 50% coverage of the conserved regions in the trimmed multiple sequence alignment.
 
  * **Strand-specific assembly?** - select 'Yes' if transcriptome library sequences were strand-specific.  If 'Yes" is selected, transcripts from the minority strand (antisense) are removed.
  * **Remove duplicate sequences?** - select 'Yes' to remove duplicated and exact subsequences[12].
