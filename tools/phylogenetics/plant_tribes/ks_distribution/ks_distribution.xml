@@ -50,7 +50,7 @@ Rscript '$__tool_directory__/ks_distribution.R'
     <tests>
         <test>
             <param name="input" value="kaks_input1.tabular" ftype="tabular" />
-            <param name="components" value="components.tabular" ftype="tabular" />
+            <param name="components" value="components.ptkscmp" ftype="ptkscmp" />
             <output name="output" file="output.pdf" ftype="pdf" compare="contains" />
         </test>
     </tests>
