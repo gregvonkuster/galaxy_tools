@@ -32,7 +32,7 @@ AssemblyPostProcessor
     --min_length $options_type.min_length
 #end if
 --num_threads \${GALAXY_SLOTS:-4}
-&>proc.log
+1>&2
 && mv $output_dir/transcripts.cds '$output_cds'
 && mv $output_dir/transcripts.pep '$output_pep'
 && mv $output_dir/transcripts.cleaned.cds '$output_cleaned_cds'

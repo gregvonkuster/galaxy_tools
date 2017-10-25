@@ -42,7 +42,7 @@ GeneFamilyPhylogenyBuilder
 --min_orthogroup_size $min_orthogroup_size
 --max_orthogroup_size $max_orthogroup_size
 --num_threads \${GALAXY_SLOTS:-4}
-&>proc.log
+1>&2
     ]]></command>
     <inputs>
         <param name="input" format="fasta" type="data_collection" collection_type="list" label="Proteins orthogroup alignments" />
