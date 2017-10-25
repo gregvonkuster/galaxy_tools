@@ -47,7 +47,7 @@ GeneFamilyAligner
         #end if
     #end if
 #end if
-2>&1
+&>proc.log
     ]]></command>
     <inputs>
         <param name="input" format="fasta" type="data_collection" collection_type="list" label="Integrated orthogroup fasta files" />
