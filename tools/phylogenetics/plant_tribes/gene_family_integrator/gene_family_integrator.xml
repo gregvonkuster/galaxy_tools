@@ -18,6 +18,7 @@ GeneFamilyIntegrator
 --orthogroup_fasta '$input_dir'
 --scaffold '$scaffold.fields.path'
 --method $method
+2>&1
     ]]></command>
     <inputs>
         <param name="input" format="fasta" type="data_collection" collection_type="list" label="Classified orthogroup fasta files" />
