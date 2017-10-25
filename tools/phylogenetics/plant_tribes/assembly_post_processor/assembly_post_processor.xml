@@ -32,6 +32,7 @@ AssemblyPostProcessor
     --min_length $options_type.min_length
 #end if
 --num_threads \${GALAXY_SLOTS:-4}
+2>/dev/null
 && mv $output_dir/transcripts.cds '$output_cds'
 && mv $output_dir/transcripts.pep '$output_pep'
 && mv $output_dir/transcripts.cleaned.cds '$output_cleaned_cds'
@@ -148,6 +149,7 @@ AssemblyPostProcessor
             <param name="scaffold" value="22Gv1.1"/>
             <param name="method" value="orthomcl"/>
             <param name="dereplicate" value="yes"/>
+            <param name="min_coverage" value="0.3"/>
             <output_collection name="output_targeted_gene_families" type="list">
                 <element name="752.faa" file="752.faa" ftype="fasta"/>
                 <element name="752.fasta" file="752.fasta" ftype="fasta"/>
