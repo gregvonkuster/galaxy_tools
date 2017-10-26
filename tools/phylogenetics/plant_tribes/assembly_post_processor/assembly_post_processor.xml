@@ -21,7 +21,7 @@ AssemblyPostProcessor
         --scaffold '$target_gene_family_assembly_cond.scaffold.fields.path'
         --method '$target_gene_family_assembly_cond.method'
         --gap_trimming $target_gene_family_assembly_cond.gap_trimming
-        #if $target_gene_family_assembly_cond.min_coverage > 0:
+        #if str($target_gene_family_assembly_cond.min_coverage) != '0.0':
             --min_coverage $target_gene_family_assembly_cond.min_coverage
         #end if
     #end if
@@ -151,7 +151,6 @@ AssemblyPostProcessor
             <param name="scaffold" value="22Gv1.1"/>
             <param name="method" value="orthomcl"/>
             <param name="dereplicate" value="yes"/>
-            <param name="min_coverage" value="0"/>
             <output_collection name="output_targeted_gene_families" type="list">
                 <element name="752.faa" file="752.faa" ftype="fasta"/>
                 <element name="752.fasta" file="752.fasta" ftype="fasta"/>
