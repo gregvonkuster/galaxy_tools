@@ -26,10 +26,10 @@ AssemblyPostProcessor
         #end if
     #end if
     #if str($options_type.strand_specific) == 'yes':
-        --strand_specific true
+        --strand_specific
     #end if
     #if str($options_type.dereplicate) == 'yes':
-        --dereplicate true
+        --dereplicate
     #end if
     --min_length $options_type.min_length
 #end if
@@ -152,9 +152,6 @@ AssemblyPostProcessor
             <param name="method" value="orthomcl"/>
             <param name="dereplicate" value="yes"/>
             <output_collection name="output_targeted_gene_families" type="list">
-                <element name="752.faa" file="752.faa" ftype="fasta"/>
-                <element name="752.fasta" file="752.fasta" ftype="fasta"/>
-                <element name="752.fna" file="752.fna" ftype="fasta"/>
             </output_collection>
             <output name="output_targeted_gene_families_stats" file="output_targeted_gene_families_stats.tabular" ftype="tabular"/>
             <output name="output_cds" file="transcripts_tgf.cds" ftype="fasta"/>
