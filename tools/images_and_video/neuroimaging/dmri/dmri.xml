@@ -1,0 +1,33 @@
+<tool id="dmri" name="Download dMRI" version="0.13.0">
+    <description>dataset</description>
+    <requirements>
+        <requirement type="package" version="0.13.0">dipy</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+python '$__tool_directory__/dmri.py'
+--input '$input'
+--output_png '$output_png'
+--output_nifti1 '$output_nifti1'
+    ]]></command>
+    <inputs>
+        <param name="input" type="text" value="sherbrooke_3shell" label="dRMI dataset"/>
+    </inputs>
+    <outputs>
+        <data name="output_png" format="png" label="${tool.name}: middle axial slice without (left) and with (right) diffusion weighting" />
+        <data name="output_nifti1" format="nifti1" label="${tool.name}: Nifti1 image" />
+    </outputs>
+    <tests>
+        <test>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+-----
+
+**Options**
+
+    </help>
+    <citations>
+    </citations>
+</tool>
