@@ -5,12 +5,15 @@
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
 python '$__tool_directory__/dmri.py'
---input '$input'
+--drmi_dataset $drmi_dataset
 --output_png '$output_png'
 --output_nifti1 '$output_nifti1'
     ]]></command>
     <inputs>
-        <param name="input" type="text" value="sherbrooke_3shell" label="dRMI dataset"/>
+        <param name="drmi_dataset" type="select" label="dRMI dataset">
+            <option value="sherbrooke_3shell" selected="true">sherbrooke_3shell</option>
+            <option value="stanford_hardi">stanford_hardi</option>
+        </param>
     </inputs>
     <outputs>
         <data name="output_png" format="png" label="${tool.name}: middle axial slice without (left) and with (right) diffusion weighting" />
