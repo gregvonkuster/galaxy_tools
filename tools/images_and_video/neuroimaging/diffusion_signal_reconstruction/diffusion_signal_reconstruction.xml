@@ -1,0 +1,49 @@
+<tool id="diffusion_signal_reconstruction" name="Reconstruct diffusion signal" version="0.13.0">
+    <description>with Tensor model</description>
+    <requirements>
+        <requirement type="package" version="0.13.0">dipy</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+python '$__tool_directory__/diffusion_signal_reconstruction.py'
+--drmi_dataset $drmi_dataset
+--output_nifti1_evecs '$output_nifti1_evecs'
+--output_nifti1_fa '$output_nifti1_fa'
+--output_nifti1_md '$output_nifti1_md'
+--output_nifti1_rgb '$output_nifti1_rgb'
+--output_png_ellipsoids '$output_png_ellipsoids'
+--output_png_middle_axial_slice '$output_png_middle_axial_slice'
+--output_png_odfs '$output_png_odfs'
+    ]]></command>
+    <inputs>
+        <param name="drmi_dataset" type="select" label="dRMI dataset">
+            <option value="stanford_hardi" selected="true">stanford_hardi</option>
+            <option value="sherbrooke_3shell">sherbrooke_3shell</option>
+        </param>
+    </inputs>
+    <outputs>
+        <data name="output_nifti1_evecs" format="nifti1" label="${tool.name}: eigen vectors" />
+        <data name="output_nifti1_fa" format="nifti1" label="${tool.name}: fractional anisotropy" />
+        <data name="output_nifti1_md" format="nifti1" label="${tool.name}: mean diffusivity" />
+        <data name="output_nifti1_rgb" format="nifti1" label="${tool.name}: RGB-mape" />
+        <data name="output_png_middle_axial_slice" format="png" label="${tool.name}: middle axial slice without (left) and with (right) diffusion weighting" />
+        <data name="output_png_odfs" format="png" label="${tool.name}: orientation distribution functions" />
+        <data name="output_png_ellipsoids" format="png" label="${tool.name}: colored ellipsoids" />
+    </outputs>
+    <tests>
+        <test>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+The diffusion tensor model is a model that describes the diffusion within a voxel. It demonstrates
+the utility of diffusion MRI in characterizing the micro-structure of white matter tissue and of the
+biophysical properties of tissue, inferred from local diffusion properties.
+-----
+
+**Options**
+
+    </help>
+    <citations>
+    </citations>
+</tool>
