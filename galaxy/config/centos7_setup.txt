@@ -1,0 +1,336 @@
+# To find out if anything is running on port 8080 and 8081
+netstat -antp | grep 8080
+netstat -antp | grep 8081
+
+# ===============================================================
+# Request Katherine Gerhart or vmhosts support to open  ports 8080 and 8081
+# ===============================================================
+
+# ===============================================================
+# Perform all of the following as root.  This assumes you are
+# installing Python in /usr/local/bin, /usr/local/lib, etc since
+# the system Python is install in /usr/bin, /usr/lib, etc
+# ===============================================================
+
+# Make sure what version of the OS we are running
+cat /etc/*release
+
+# ===============================================================
+# Upgrade the system
+# ===============================================================
+yum check-update
+yum -y update
+
+# Install development tools
+yum groupinstall -y development
+
+# Install additional handy development tools
+yum install -y zlib-devel openssl-devel sqlite-devel bzip2-devel
+
+# ===============================================================
+# Download Python
+# ===============================================================
+wget https://www.python.org/ftp/python/2.7.13/Python-2.7.13.tgz
+tar -xzf Python-2.7.13.tgz
+
+#Configure and install into /usr/local/bin
+cd Python-2.7.13
+./configure --prefix=/usr/local --enable-unicode=ucs4
+make -j6
+make altinstall
+ln -s /usr/local/bin/python2.7 /usr/local/bin/python
+
+# ===============================================================
+# Install setuptools from source
+# ===============================================================
+cd
+wget —no-check-certificate https://github.com/pypa/setuptools/archive/v36.0.1.tar.gz
+tar -xzf v36.0.1.tar.gz
+cd setuptools-36.0.1
+/usr/local/bin/python bootstrap.py
+/usr/local/bin/python setup.py install
+
+# ===============================================================
+# Install pip
+# ===============================================================
+cd
+curl https://bootstrap.pypa.io/get-pip.py | /usr/local/bin/python
+
+# ===============================================================
+# Install virtualenv
+# ===============================================================
+/usr/local/bin/pip install virtualenv
+
+# ===============================================================
+# Install git
+# ===============================================================
+yum install git
+
+# ===============================================================
+# Install munge
+# http://www.slothparadise.com/how-to-install-slurm-on-centos-7-cluster/
+# ===============================================================
+# Create the global users
+# Slurm and Munge require consistent UID and GID across every
+# node in the cluster.  For all the nodes, before you install
+# Slurm or Munge:
+
+export MUNGEUSER=991
+groupadd -f -g $MUNGEUSER munge
+useradd  -m -c "MUNGE Uid 'N' Gid Emporium" -d /var/lib/munge -u $MUNGEUSER -g munge  -s /sbin/nologin munge
+export SLURMUSER=992
+groupadd -f -g $SLURMUSER slurm
+useradd  -m -c "SLURM workload manager" -d /var/lib/slurm -u $SLURMUSER -g slurm  -s /bin/bash slurm
+yum install munge munge-libs munge-devel
+rngd -r /dev/urandom
+/usr/sbin/create-munge-key -r
+dd if=/dev/urandom bs=1 count=1024 > /etc/munge/munge.key
+chown munge: /etc/munge/munge.key
+chmod 400 /etc/munge/munge.key
+systemctl enable munge
+systemctl start munge
+
+# Test munge
+munge -n
+
+# ===============================================================
+# Install slurm
+# see https://slurm.schedmd.com/quickstart_admin.html
+# ===============================================================
+yum install openssl openssl-devel pam-devel numactl numactl-devel hwloc hwloc-devel lua lua-devel readline-devel rrdtool-devel ncurses-devel man2html libibmad libibumad -y
+
+# Download slurm workflow manager from https://www.schedmd.com/downloads.php into the home directory for root
+wget https://download.schedmd.com/slurm/slurm-17.11.0-0rc2.tar.bz2
+bunzip2 slurm-17.11.0-0rc2.tar.bz2
+tar -xvf slurm-17.11.0-0rc2.tar
+cd slurm-17.11.0-0rc2
+
+export CFLAGS='-Wl,-rpath,\$$ORIGIN/../lib -Wl,-rpath,/usr/local/lib'
+# This will configure it to be installed into the default location /usr/local
+./configure --with-slurm-lib=/usr/local/lib --with-slurm-inc=/usr/local/include/slurm
+make -j6
+make install
+
+# ===============================================================
+# Create the slurm config file by visiting
+# http://slurm.schedmd.com/configurator.easy.html
+# Put this file on all nodes of your cluster.
+# See the slurm.conf man page for more information.
+# Note that machine name is case sensitive!!
+# ===============================================================
+
+ControlMachine=ARTEMIS-DHIS-2
+ControlAddr=128.118.137.51
+# 
+#MailProg=/bin/mail 
+MpiDefault=none
+#MpiParams=ports=#-# 
+ProctrackType=proctrack/cgroup
+ReturnToService=1
+SlurmctldPidFile=/var/run/slurmctld.pid
+#SlurmctldPort=6817 
+SlurmdPidFile=/var/run/slurmd.pid
+#SlurmdPort=6818 
+SlurmdSpoolDir=/var/spool/slurmd
+SlurmUser=slurm
+#SlurmdUser=root 
+StateSaveLocation=/var/spool/slurmctld
+SwitchType=switch/none
+TaskPlugin=task/none
+# 
+# 
+# TIMERS 
+#KillWait=30 
+#MinJobAge=300 
+#SlurmctldTimeout=120 
+#SlurmdTimeout=300 
+# 
+# 
+# SCHEDULING 
+FastSchedule=1
+SchedulerType=sched/backfill
+SelectType=select/linear
+# 
+# 
+# LOGGING AND ACCOUNTING 
+AccountingStorageType=accounting_storage/none
+#ClusterName=
+#JobAcctGatherFrequency=30 
+JobAcctGatherType=jobacct_gather/none
+#SlurmctldDebug=3 
+SlurmctldLogFile=/var/log/slurmctld.log
+#SlurmdDebug=3 
+SlurmdLogFile=/var/log/slurmd.log
+# 
+# 
+# COMPUTE NODES 
+NodeName=ARTEMIS-DHIS-2 CPUs=4 State=UNKNOWN 
+PartitionName=debug Nodes=ARTEMIS-DHIS-2 Default=YES MaxTime=INFINITE State=UP
+
+# ===============================================================
+# Copy the file from the form and place it in /usr/local/etc/slurm.conf
+# ===============================================================
+
+# After placing the file into /usr/local/etc/slurm.conf, edit the file and change this line:
+NodeName=artemis-dhis-2 CPUs=4 State=UNKNOWN 
+
+to be:
+
+NodeName=artemis-dhis-2 NodeAddr=127.0.0.1 CPUs=4 State=UNKNOWN 
+
+# ===============================================================
+# Make sure directories are writable by the slurm user for all process id files, log files, etc
+# ===============================================================
+mkdir /var/spool/slurmctld
+chown slurm /var/spool/slurmctld
+chmod 755 /var/spool/slurmctld
+touch /var/log/slurmctld.log
+chown slurm /var/log/slurmctld.log
+touch /var/spool/slurmctld/job_state
+chown slurm /var/spool/slurmctld/job_state
+touch /var/log/slurm_jobacct.log /var/log/slurm_jobcomp.log
+chown slurm /var/log/slurm_jobacct.log /var/log/slurm_jobcomp.log
+
+# ===============================================================
+# Make sure /usr/local/etc/cgroup.conf exists
+# ===============================================================
+cat /usr/local/etc/cgroup.conf 
+###
+# Slurm cgroup support configuration file
+###
+CgroupAutomount=yes
+ConstrainCores=yes
+#
+
+# ===============================================================
+# Make sure slurm is configured properly
+# ===============================================================
+cp ~/slurm-17.11.0-0rc2/etc/*.service /usr/lib/systemd/system/
+systemctl enable slurmd.service && systemctl enable slurmctld.service
+systemctl start slurmd.service && systemctl start slurmctld.service
+slurmd -c
+
+# ===============================================================
+# Make sure firewalld is enabled and running and then reopen
+# port 1855 for access.  This is a bit scary, so have at least
+# 2 terminal windows open to the VM as user root.
+# ==============================================================
+# The following command may cause the terminal window to hang for a while...
+systemctl enable firewalld
+systemctl start firewalld
+systemctl status firewalld
+firewall-cmd --permanent --zone=public --add-port=1855/udp
+firewall-cmd --permanent --zone=public --add-port=1855/tcp
+firewall-cmd --reload
+
+# ===============================================================
+# Open ports in the firewall for Galaxy and Galaxy reports
+# ===============================================================
+firewall-cmd --permanent --zone=public --add-port=8080/udp
+firewall-cmd --permanent --zone=public --add-port=8080/tcp
+firewall-cmd --permanent --zone=public --add-port=8081/udp
+firewall-cmd --permanent --zone=public --add-port=8081/tcp
+
+# ===============================================================
+# Open ports in the firewall for slurm
+# ===============================================================
+firewall-cmd --permanent --zone=public --add-port=6817/udp
+firewall-cmd --permanent --zone=public --add-port=6817/tcp
+firewall-cmd --permanent --zone=public --add-port=6818/udp
+firewall-cmd --permanent --zone=public --add-port=6818/tcp
+firewall-cmd --permanent --zone=public --add-port=7321/udp
+firewall-cmd --permanent --zone=public --add-port=7321/tcp
+firewall-cmd --reload
+
+yum install ntp -y
+chkconfig ntpd on
+ntpdate pool.ntp.org
+systemctl start ntpd
+
+ldconfig -n /usr/local/lib
+
+# ===============================================================
+# Download slurm-drmaa-1.0.7.tar.gz (or latest) from
+# http://apps.man.poznan.pl/trac/slurm-drmaa/downloads
+# into the home directory for root
+# ===============================================================
+cd
+wget http://apps.man.poznan.pl/trac/slurm-drmaa/downloads/slurm-drmaa-1.0.7.tar.gz
+tar -xzf slurm-drmaa-1.0.7.tar.gz
+cd slurm-drmaa-1.0.7
+
+# This will configure it to be installed into the default location /usr/local
+./configure --with-slurm-inc=/usr/local/include/slurm --with-slurm-lib=/usr/local/lib --prefix=/usr/local
+make -j6
+make install
+
+# ===============================================================
+# Add the interface to the public zone.
+# ===============================================================
+# To get the active zones, public should be active
+firewall-cmd --get-active-zones
+# To get the interface, something like eno16780032
+ifconfig
+firewall-cmd --add-interface=eno16780032 --permanent --zone=public
+firewall-cmd --reload
+
+# ===============================================================
+# Install Postgres
+# https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-centos-7
+# ===============================================================
+yum install postgresql-server postgresql-contrib
+postgresql-setup initdb
+
+vim /var/lib/pgsql/data/pg_hba.conf
+# Find the lines that looks like this, near the bottom of the file:
+pg_hba.conf excerpt (original)
+host    all             all             127.0.0.1/32            ident
+host    all             all             ::1/128                 ident
+
+# Then replace "ident" with "md5", so they look like this:
+pg_hba.conf excerpt (updated)
+host    all             all             127.0.0.1/32            trust
+host    all             all             ::1/128                 md5
+# Save and exit - now Postgresql is configured to allow password authentication.
+
+# ===============================================================
+# Start and enable Postgresql
+# ===============================================================
+systemctl start postgresql
+systemctl enable postgresql
+
+# ===============================================================
+# Create the “galaxy” account
+# ===============================================================
+adduser galaxy
+# Make the passowrd for the galaxy account to be "galaxy".
+passwd galaxy
+
+# ===============================================================
+# Perform all of the following as the “postgres” user (sudo -iu postgres)
+# ===============================================================
+# Add the “galaxy” user, allowing it to create / drop databases
+sudo -iu postgres
+createuser --interactive
+Enter name of role to add: galaxy
+Shall the new role be a superuser? (y/n) n
+Shall the new role be allowed to create databases? (y/n) y
+Shall the new role be allowed to create more new roles? (y/n) n
+# Make the password for the postgres user to be "postgres"
+psql
+alter user postgres password postgres
+# Make the password for the galaxy user to be "galaxy"
+alter user galaxy password galaxy
+
+# ===============================================================
+# Perform all of the following as the “galaxy” user (sudo -iu galaxy)
+# ===============================================================
+
+# Make sure PATH points to the correct Python
+# Install galaxy
+# Activate the Galaxy virtual env (.venv)
+# Make sure using correct Python and pip
+pip install drmaa
+pip install supervisor
+pip install uwsgi
+
