@@ -183,16 +183,16 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
         <param name="blacklist_input" type="data" format="bed" optional="True" multiple="True" label="Select file(s) containing regions to exclude"/>
         <param argument="-norm" type="boolean" truevalue="-norm" falsevalue="" checked="False" label="Standardize all datasets"/>
         <param argument="-hp" type="boolean" truevalue="-hp" falsevalue="" checked="False" label="Discourage state transition across chromosomes"/>
-        <param name="log2" type="float" value="0" min="0" label="Use log2(x+number) transformation" help="Zero value has no affect"/>
-        <param name="max_states" type="float" value="0" min="0" label="Maximum number of states to be inferred" help="Zero value has no affect"/>
-        <param name="initial_states" type="integer" value="20" min="0" label="Initial number of states" help="Zero value has no affect"/>
-        <param name="max_position_classes" type="integer" value="0" min="0" label="Maximum number of position classes to be inferred" help="Zero value has no affect"/>
-        <param name="max_cell_type_clusters" type="integer" value="0" min="0" label="Maximum number of cell type clusters allowed" help="Zero value has no affect"/>
-        <param name="prior_concentration" type="float" value="1" min="0" label="Prior concentration" help="Zero value results in the default value: sqrt(number of cell types)"/>
+        <param name="log2" type="float" value="0" min="0" label="Use log2(x+number) transformation" help="Zero means no log2 transformation"/>
+        <param name="max_states" type="float" value="0" min="0" label="Maximum number of states to be inferred" help="Zero sets the maximum to a large number"/>
+        <param name="initial_states" type="integer" value="20" min="0" label="Initial number of states" help="Positive integer"/>
+        <param name="max_position_classes" type="integer" value="0" min="0" label="Maximum number of position classes to be inferred" help="Zero sets the maximum to a large number"/>
+        <param name="max_cell_type_clusters" type="integer" value="0" min="0" label="Maximum number of cell type clusters allowed" help="Zero sets the maximum to a large number"/>
+        <param name="prior_concentration" type="float" value="1" min="0" label="Prior concentration" help="Zero value results in the default: sqrt(number of cell types)"/>
         <param name="burnin_num" type="integer" value="20" min="1" label="Number of burnin steps"/>
         <param name="mcmc_num" type="integer" value="20" min="1" label="Number of maximization steps"/>
-        <param name="minerr" type="float" value="0.5" min="0" label="Minimum standard deviation for the emission Gaussian distribution" help="Zero value results in the default value: 0.5"/>
-        <param name="maxerr" type="float" value="1000000" min="0" label="Maximum standard deviation for the emission Gaussian distribution" help="Zero value results in the default value: 1000000"/>
+        <param name="minerr" type="float" value="0.5" min="0" label="Minimum standard deviation for the emission Gaussian distribution" help="Zero value results in the default: 0.5"/>
+        <param name="maxerr" type="float" value="1000000" min="0" label="Maximum standard deviation for the emission Gaussian distribution" help="Zero sets the maximum to a large number"/>
         <param name="save_ideas_log" type="select" display="radio" label="Save IDEAS log in an additional history item">
             <option value="no" selected="true">No</option>
             <option value="yes">Yes</option>
