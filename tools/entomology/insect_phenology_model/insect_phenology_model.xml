@@ -1,34 +1,31 @@
 <?xml version="."?>
-<tool id="insect_phenology_model" name="Insect phenology model" version="1.0.0">
+<tool id="insect_phenology_model" name="Insect phenology model" version="1.1.0">
     <description>expressing stage-specific phenology and population dynamics</description>
     <requirements>
-         <requirement type="package" version="1.3.2">r-optparse</requirement>
+         <requirement type="package" version="1.4.4">r-optparse</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
 Rscript '$__tool_directory__/insect_phenology_model.R'
 -a $adult_mort
 -b $adult_accum
 -c $egg_mort
--d $latitude
 -e '$location'
 -f $max_clutch_size
 -i $min_clutch_size
 -j $nymph_mort
 -k $old_nymph_accum
+-n $input.metadata.data_lines
 -o '$output'
 -p $oviposition
 -q $photoperiod
 -s $replications
 -t $se_plot
--u $year
--v '$temperature_data'
+-v '$input'
 -y $young_nymph_accum
     ]]></command>
     <inputs>
         <param name="location" type="text" value="" optional="false" label="Location" />
-        <param name="latitude" type="float" value="0.0" label="Latitude of selected location" />
-        <param name="temperature_data" type="data" format="csv" label="Temperature data" />
-        <param name="year" type="integer" value="2017" min="1995" label="Temperature data year" />
+        <param name="input" type="data" format="csv" label="Temperature data" />
         <param name="replications" type="integer" value="10" min="1" label="Number of replications" />
         <param name="photoperiod" type="float" value="13.5" min="0" label="Critical photoperiod for diapause induction/termination" />
         <param name="egg_mort" type="integer" value="1" min="0" label="Adjustment rate for egg mortality" />
@@ -46,14 +43,13 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
         </param>
     </inputs>
     <outputs>
-        <data name="output" format="pdf" label="${tool.name} ${location}, ${year} lat:${latitude} on ${on_string}" />
+        <data name="output" format="pdf" label="${tool.name} ${location}, on ${on_string}" />
     </outputs>
     <tests>
         <test>
-            <param name="temperature_data" value="asheville2014.csv" ftype="csv" />
-            <param name="location" value="asheville:35.58" />
-            <param name="year" value="2014" />
-            <param name="replications" value="3" />
+            <param name="input" value="state_college.csv" ftype="csv" />
+            <param name="location" value="State College PA" />
+            <param name="replications" value="10" />
             <output name="output" file="output.pdf" ftype="pdf" compare="contains" />
         </test>
     </tests>
@@ -68,7 +64,6 @@ Provides an agent-based stochastic model expressing stage-specific phenology and
 
  * **Location** - the location associated with the selected temperature data.
  * **Temperature data** - select the dataset from your history containing the temperature data.
- * **Temperature data year** - the year during which the temperature data was recorded.
  * **Number of replications** - number of replications.
  * **Critical photoperiod for diapause induction/termination** - critical photoperiod for diapause induction/termination.
  * **Adjustment rate for egg mortality** - adjustment rate for egg mortality.
@@ -85,5 +80,7 @@ Provides an agent-based stochastic model expressing stage-specific phenology and
     </help>
     <citations>
         <citation type="doi">10.3389/fphys.2016.00165</citation>
+        <citation type="doi">10.1175/JTECH-D-11-00103.1</citation>
+        <citation type="doi">10.7289/V5D21VHZ</citation>
     </citations>
 </tool>

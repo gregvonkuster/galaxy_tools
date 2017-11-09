@@ -1,8 +1,5 @@
-%PDF-1.4
-%Å‚Å„ÅœÅ”\r
 1 0 obj
 <<
-/Title (R Graphics Output)
 /Creator (R)
 >>
 endobj
@@ -11,8 +8,6 @@ endobj
 endobj
 7 0 obj
 << /Type /Page /Parent 3 0 R /Contents 8 0 R /Resources 4 0 R >>
-endobj
-8 0 obj
 endobj
 3 0 obj
 << /Type /Pages /Kids [ 7 0 R ] /Count 1 /MediaBox [0 0 1440 1440] >>
@@ -28,7 +23,8 @@ endobj
 5 0 obj
 [/ICCBased 6 0 R]
 endobj
-6 0 obj
+9 0 obj
+<<
 /Type /Encoding /BaseEncoding /WinAnsiEncoding
 /Differences [ 45/minus 96/quoteleft
 144/dotlessi /grave /acute /circumflex /tilde /macron /breve /dotaccent
@@ -43,8 +39,6 @@ endobj
 << /Type /Font /Subtype /Type1 /Name /F3 /BaseFont /Helvetica-Bold
 /Encoding 9 0 R >>
 endobj
-xref
-0 12
 trailer
 << /Size 12 /Info 1 0 R /Root 2 0 R >>
 startxref
