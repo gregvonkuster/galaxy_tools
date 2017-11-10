@@ -1,4 +1,3 @@
-<?xml version="."?>
 <tool id="insect_phenology_model" name="Insect phenology model" version="1.1.0">
     <description>expressing stage-specific phenology and population dynamics</description>
     <requirements>
