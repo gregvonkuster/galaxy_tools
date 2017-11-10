@@ -1,0 +1,50 @@
+<tool id="create_genome_tracks" name="Create genome tracks" version="1.0.0">
+    <description>from IDEAS statistics</description>
+    <requirements>
+        <requirement type="package" version="2.4.27">bedops</requirement>
+        <requirement type="package" version="1.10.4">r-data.table</requirement>
+         <requirement type="package" version="1.4.4">r-optparse</requirement>
+         <requirement type="package" version="332">ucsc-bedtobigbed</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+Rscript '$__tool_directory__/create_genome_tracks.R'
+-b $parameter_file.metadata.dbkey
+-c '$chromInfo'
+-f test
+-p '$parameter_file'
+-s '$state_file'
+-t 'http://bx.psu.edu/~yuzhang/tmp/'
+-u '$output_track_db'
+-v '$output_build'
+-w '$output_hub']]></command>
+    <inputs>
+        <param name="state_file" type="data" format="txt" label="IDEAS epigenetic states and position classes dataset">
+            <validator type="empty_field"/>
+            <validator type="unspecified_build"/>
+        </param>
+        <param name="parameter_file" type="data" format="tabular" label="IDEAS epigenetic state frequency, mean and variance parameters dataset">
+            <validator type="empty_field"/>
+            <validator type="unspecified_build"/>
+        </param>
+    </inputs>
+    <outputs>
+        <data name="output_track_db" format="bigbed" label="${tool.name} (track db) on ${on_string}"/>
+        <data name="output_build" format="txt" label="${tool.name} (genome build) on ${on_string}"/>
+        <data name="output_hub" format="txt" label="${tool.name} (hub) on ${on_string}"/>
+    </outputs>
+    <tests>
+        <test>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+-----
+
+**Required options**
+ 
+    </help>
+    <citations>
+        <citation type="doi">10.1093/nar/gkw278</citation>
+    </citations>
+</tool>
