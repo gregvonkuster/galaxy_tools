@@ -1,5 +1,6 @@
 1 0 obj
 <<
+/Title (R Graphics Output)
 /Creator (R)
 >>
 endobj
@@ -9,8 +10,12 @@ endobj
 7 0 obj
 << /Type /Page /Parent 3 0 R /Contents 8 0 R /Resources 4 0 R >>
 endobj
+8 0 obj
+<<
+>>
+stream
 3 0 obj
-<< /Type /Pages /Kids [ 7 0 R ] /Count 1 /MediaBox [0 0 1440 1440] >>
+<< /Type /Pages /Kids [ 7 0 R ] /Count 1 /MediaBox [0 0 1440 2160] >>
 endobj
 4 0 obj
 <<
@@ -22,6 +27,10 @@ endobj
 endobj
 5 0 obj
 [/ICCBased 6 0 R]
+endobj
+6 0 obj
+<< /Alternate /DeviceRGB /N 3 /Length 2596 /Filter /FlateDecode >>
+stream
 endobj
 9 0 obj
 <<
@@ -39,7 +48,7 @@ endobj
 << /Type /Font /Subtype /Type1 /Name /F3 /BaseFont /Helvetica-Bold
 /Encoding 9 0 R >>
 endobj
+xref
 trailer
 << /Size 12 /Info 1 0 R /Root 2 0 R >>
 startxref
-%%EOF

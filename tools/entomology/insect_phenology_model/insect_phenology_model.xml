@@ -1,7 +1,7 @@
 <tool id="insect_phenology_model" name="Insect phenology model" version="1.1.0">
     <description>expressing stage-specific phenology and population dynamics</description>
     <requirements>
-         <requirement type="package" version="1.4.4">r-optparse</requirement>
+        <requirement type="package" version="1.4.4">r-optparse</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
 Rscript '$__tool_directory__/insect_phenology_model.R'
@@ -20,11 +20,10 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
 -s $replications
 -t $se_plot
 -v '$input'
--y $young_nymph_accum
-    ]]></command>
+-y $young_nymph_accum]]></command>
     <inputs>
-        <param name="location" type="text" value="" optional="false" label="Location" />
         <param name="input" type="data" format="csv" label="Temperature data" />
+        <param name="location" type="text" value="" optional="false" label="Location" />
         <param name="replications" type="integer" value="10" min="1" label="Number of replications" />
         <param name="photoperiod" type="float" value="13.5" min="0" label="Critical photoperiod for diapause induction/termination" />
         <param name="egg_mort" type="integer" value="1" min="0" label="Adjustment rate for egg mortality" />

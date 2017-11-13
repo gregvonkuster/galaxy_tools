@@ -25,63 +25,58 @@ parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
 args <- parse_args(parser, positional_arguments=TRUE)
 opt <- args$options
 
-convert_csv_to_rdata=function(temperature_data, data_matrix)
+get_daylight_length = function(latitude, temperature_data, num_days)
 {
-    # Integer day of the year.
-    data_matrix[,1] <- c(1:opt$num_days)
-    # Minimum
-    data_matrix[,2] <- temperature_data[c(1:opt$num_days), 5]
-    # Maximum
-    data_matrix[,3] <- temperature_data[c(1:opt$num_days), 6]
-    namedat <- "tempdata.Rdat"
-    save(data_matrix, file=namedat)
-    namedat
-}
-
-daylength=function(latitude, num_days)
-{
-    # From Forsythe 1995.
-    p=0.8333
-    dl <- NULL
+    # Return a vector of daylight length (photoperido profile) for
+    # the number of days specified in the input temperature data
+    # (from Forsythe 1995).
+    p = 0.8333
+    daylight_length_vector <- NULL
     for (i in 1:num_days) {
-        theta <- 0.2163108 + 2 * atan(0.9671396 * tan(0.00860 * (i - 186)))
+        # Get the day of the year from the current row
+        # of the temperature data for computation.
+        doy <- temperature_data[i, 4]
+        theta <- 0.2163108 + 2 * atan(0.9671396 * tan(0.00860 * (doy - 186)))
         phi <- asin(0.39795 * cos(theta))
-        dl[i] <- 24 - 24 / pi * acos((sin(p * pi / 180) + sin(latitude * pi / 180) * sin(phi)) / (cos(latitude * pi / 180) * cos(phi)))
+        # Compute the length of daylight for the day of the year.
+        daylight_length_vector[i] <- 24 - (24 / pi * acos((sin(p * pi / 180) + sin(latitude * pi / 180) * sin(phi)) / (cos(latitude * pi / 180) * cos(phi))))
     }
-    # Return a vector of daylength for the number of
-    # days specified in the input temperature data.
-    dl
+    daylight_length_vector
 }
 
-hourtemp=function(latitude, date, temperature_file_path, num_days)
+get_temperature_at_hour = function(latitude, temperature_data, daylight_length_vector, row, num_days)
 {
-    load(temperature_file_path)
     # Base development threshold for Brown Marmolated Stink Bug
     # insect phenology model.
+    # TODO: Pass insect on the command line to accomodate more
+    # the just the Brown Marmolated Stink Bub.
     threshold <- 14.17
-    dnp <- data_matrix[date, 2]  # daily minimum
-    dxp <- data_matrix[date, 3]  # daily maximum
-    dmean <- 0.5 * (dnp + dxp)
-    dd <- 0  # initialize degree day accumulation
 
-    if (dxp<threshold) {
+    # Input temperature currently has the following columns.
+    # # LATITUDE, LONGITUDE, DATE, DOY, TMIN, TMAX
+    # Minimum temperature for current row.
+    dnp <- temperature_data[row, 5]
+    # Maximum temperature for current row.
+    dxp <- temperature_data[row, 6]
+    # Mean temperature for current row.
+    dmean <- 0.5 * (dnp + dxp)
+    # Initialize degree day accumulation
+    dd <- 0
+    if (dxp < threshold) {
         dd <- 0
     }
     else {
-        # Extract daylength data for the number of
-        # days specified in the input temperature data.
-        dlprofile <- daylength(latitude, num_days)
         # Initialize hourly temperature.
         T <- NULL
         # Initialize degree hour vector.
         dh <- NULL
-        # Calculate daylength in given date.
-        y <- dlprofile[date]
-        # Night length.
+        # Daylight length for current row.
+        y <- daylight_length_vector[row]
+        # Darkness length.
         z <- 24 - y
         # Lag coefficient.
         a <- 1.86
-        # Night coefficient.
+        # Darkness coefficient.
         b <- 2.20
         # Sunrise time.
         risetime <- 12 - y / 2
@@ -89,11 +84,11 @@ hourtemp=function(latitude, date, temperature_file_path, num_days)
         settime <- 12 + y / 2
         ts <- (dxp - dnp) * sin(pi * (settime - 5) / (y + 2 * a)) + dnp
         for (i in 1:24) {
-            if (i > risetime && i<settime) {
+            if (i > risetime && i < settime) {
                 # Number of hours after Tmin until sunset.
                 m <- i - 5
-                T[i]=(dxp - dnp) * sin(pi * m / (y + 2 * a)) + dnp
-                if (T[i]<8.4) {
+                T[i] = (dxp - dnp) * sin(pi * m / (y + 2 * a)) + dnp
+                if (T[i] < 8.4) {
                     dh[i] <- 0
                 }
                 else {
@@ -102,8 +97,8 @@ hourtemp=function(latitude, date, temperature_file_path, num_days)
             }
             else if (i > settime) { 
                 n <- i - settime
-                T[i]=dnp + (ts - dnp) * exp( - b * n / z)
-                if (T[i]<8.4) {
+                T[i] = dnp + (ts - dnp) * exp( - b * n / z)
+                if (T[i] < 8.4) {
                     dh[i] <- 0
                 }
                 else {
@@ -113,7 +108,7 @@ hourtemp=function(latitude, date, temperature_file_path, num_days)
             else {
                 n <- i + 24 - settime
                 T[i]=dnp + (ts - dnp) * exp( - b * n / z)
-                if (T[i]<8.4) {
+                if (T[i] < 8.4) {
                     dh[i] <- 0
                 }
                 else {
@@ -199,12 +194,13 @@ mortality.adult = function(temperature)
 }
 
 # Read in the input temperature datafile into a Data Frame object.
-temperature_data <- read.csv(file=opt$input, header=T, sep=",")
-start_date <- temperature_data[c(1:1), 3]
-end_date <- temperature_data[c(opt$num_days:opt$num_days), 3]
-raw_data_matrix <- matrix(rep(0, opt$num_days * 6), nrow=opt$num_days)
-temperature_file_path <- convert_csv_to_rdata(temperature_data, raw_data_matrix)
+# The input data currently must have 6 columns:
+# LATITUDE, LONGITUDE, DATE, DOY, TMIN, TMAX
+temperature_data <- read.csv(file=opt$input, header=T, strip.white=TRUE, sep=",")
+start_date <- temperature_data[1, 3]
+end_date <- temperature_data[opt$num_days, 3]
 latitude <- temperature_data[1, 1]
+daylight_length_vector <- get_daylight_length(latitude, temperature_data, opt$num_days)
 
 cat("Number of days: ", opt$num_days, "\n")
 
@@ -223,9 +219,6 @@ for (N.rep in 1:opt$replications) {
     vec.mat <- rep(vec.ini, n)
     # Complete matrix for the population.
     vec.mat <- base::t(matrix(vec.mat, nrow=5))
-    # Complete photoperiod profile in a year, requires daylength function.
-    ph.p <- daylength(latitude, opt$num_days)
-
     # Time series of population size.
     tot.pop <- NULL
     gen0.pop <- rep(0, opt$num_days)
@@ -237,13 +230,15 @@ for (N.rep in 1:opt$replications) {
     dd.day <- rep(0, opt$num_days)
 
     # All the days included in the input temperature dataset.
-    for (day in 1:opt$num_days) {
+    for (row in 1:opt$num_days) {
+        # Get the integer day of the year for the current row.
+        doy <- temperature_data[row, 4]
         # Photoperiod in the day.
-        photoperiod <- ph.p[day]
-        temp.profile <- hourtemp(latitude, day, temperature_file_path, opt$num_days)
+        photoperiod <- daylight_length_vector[row]
+        temp.profile <- get_temperature_at_hour(latitude, temperature_data, daylight_length_vector, row, opt$num_days)
         mean.temp <- temp.profile[1]
         dd.temp <- temp.profile[2]
-        dd.day[day] <- dd.temp
+        dd.day[row] <- dd.temp
         # Trash bin for death.
         death.vec <- NULL
         # Newborn.
@@ -272,7 +267,7 @@ for (N.rep in 1:opt$replications) {
             }
             else if (vec.ind[2] == 3 | vec.ind[2] == 4 | vec.ind[2] == 5) {
                 # For adult.
-                if (day < day.kill) {
+                if (doy < day.kill) {
                     death.prob = opt$adult_mort * mortality.adult(mean.temp)
                 }
                 else {
@@ -290,7 +285,7 @@ for (N.rep in 1:opt$replications) {
                 # Event 1 end of diapause.
                 if (vec.ind[1] == 0 && vec.ind[2] == 3) {
                     # Overwintering adult (previttelogenic).
-                    if (photoperiod > opt$photoperiod && vec.ind[3] > 68 && day < 180) {
+                    if (photoperiod > opt$photoperiod && vec.ind[3] > 68 && doy < 180) {
                         # Add 68C to become fully reproductively matured.
                         # Transfer to vittelogenic.
                         vec.ind <- c(0, 4, 0, 0, 0)
@@ -356,7 +351,7 @@ for (N.rep in 1:opt$replications) {
                 }
 
                 # Event 2 oviposition -- for gen 1.
-                if (vec.ind[2] == 4 && vec.ind[1] == 1 && mean.temp > 12.5 && day < 222) {
+                if (vec.ind[2] == 4 && vec.ind[1] == 1 && mean.temp > 12.5 && doy < 222) {
                     # Vittelogenic stage, 1st generation
                     if (vec.ind[4] == 0) {
                         # Just turned in vittelogenic stage.
@@ -417,7 +412,7 @@ for (N.rep in 1:opt$replications) {
                         current.gen <- vec.ind[1]
                         # Transfer to old nym stage.
                         vec.ind <- c(current.gen, 2, 0, 0, 0)
-                        if (photoperiod < opt$photoperiod && day > 180) {
+                        if (photoperiod < opt$photoperiod && doy > 180) {
                             vec.ind[5] <- 1
                         } # Prepare for diapausing.
                     }
@@ -495,26 +490,30 @@ for (N.rep in 1:opt$replications) {
         gen2 <- sum(vec.mat[,1] == 2)
         # Sum of all adults.
         n.adult <- sum(vec.mat[,2] == 3) + sum(vec.mat[,2] == 4) + sum(vec.mat[,2] == 5)
-        # Gen eration 0 pop size.
-        gen0.pop[day] <- gen0
-        gen1.pop[day] <- gen1
-        gen2.pop[day] <- gen2
-        S0[day] <- s0
-        S1[day] <- s1
-        S2[day] <- s2
-        S3[day] <- s3
-        S4[day] <- s4
-        S5[day] <- s5
-        g0.adult[day] <- sum(vec.mat[,1] == 0)
-        g1.adult[day] <- sum((vec.mat[,1] == 1 & vec.mat[,2] == 3) | (vec.mat[,1] == 1 & vec.mat[,2] == 4) | (vec.mat[,1] == 1 & vec.mat[,2] == 5))
-        g2.adult[day] <- sum((vec.mat[,1]== 2 & vec.mat[,2] == 3) | (vec.mat[,1] == 2 & vec.mat[,2] == 4) | (vec.mat[,1] == 2 & vec.mat[,2] == 5))
 
-        N.newborn[day] <- n.newborn
-        N.death[day] <- n.death
-        N.adult[day] <- n.adult
+        # Generation 0 pop size.
+        gen0.pop[row] <- gen0
+        gen1.pop[row] <- gen1
+        gen2.pop[row] <- gen2
+
+        S0[row] <- s0
+        S1[row] <- s1
+        S2[row] <- s2
+        S3[row] <- s3
+        S4[row] <- s4
+        S5[row] <- s5
+
+        g0.adult[row] <- sum(vec.mat[,1] == 0)
+        g1.adult[row] <- sum((vec.mat[,1] == 1 & vec.mat[,2] == 3) | (vec.mat[,1] == 1 & vec.mat[,2] == 4) | (vec.mat[,1] == 1 & vec.mat[,2] == 5))
+        g2.adult[row] <- sum((vec.mat[,1]== 2 & vec.mat[,2] == 3) | (vec.mat[,1] == 2 & vec.mat[,2] == 4) | (vec.mat[,1] == 2 & vec.mat[,2] == 5))
+
+        N.newborn[row] <- n.newborn
+        N.death[row] <- n.death
+        N.adult[row] <- n.adult
     }   # end of days specified in the input temperature data
 
     dd.cum <- cumsum(dd.day)
+
     # Collect all the outputs.
     S0.rep[,N.rep] <- S0
     S1.rep[,N.rep] <- S1
@@ -534,9 +533,9 @@ for (N.rep in 1:opt$replications) {
     g2a.rep[,N.rep] <- g2.adult
 }
 
-# Data analysis and visualization
-# default: plot 1 year of result
-# but can be expanded to accommodate multiple years
+# Data analysis and visualization can currently
+# plot only within a single calendar year.
+# TODO: enhance this to accomodate multiple calendar years.
 n.yr <- 1
 day.all <- c(1:opt$num_days * n.yr)
 
@@ -578,79 +577,79 @@ g1a.se <- apply(g1a.rep, 1, sd) / sqrt(opt$replications)
 # SE for F2 adult
 g2a.se <- apply(g2a.rep, 1, sd) / sqrt(opt$replications)
 
-dev.new(width=20, height=20)
+dev.new(width=20, height=30)
 
 # Start PDF device driver to save charts to output.
-pdf(file=opt$output, height=20, width=20, bg="white")
+pdf(file=opt$output, width=20, height=30, bg="white")
 
 par(mar = c(5, 6, 4, 4), mfrow=c(3, 1))
 
-# Subfigure 2: population size by life stage
-title <- paste("BSMB Total Population Size by Life Stage:", opt$location, ", Latitude:", latitude, ", Temperature Dates:", start_date, "to", end_date, sep=" ")
-plot(day.all, sa, main=title, type="l", ylim=c(0, max(se + se.se, sn + sn.se, sa + sa.se)), axes=F, lwd=2, xlab="", ylab="Number", cex=2, cex.lab=2, cex.axis=2, cex.main=2)
+# Subfigure 1: population size by life stage
+title <- paste("BSMB total population by life stage :", opt$location, ": Lat:", latitude, ":", start_date, "to", end_date, sep=" ")
+plot(day.all, sa, main=title, type="l", ylim=c(0, max(se + se.se, sn + sn.se, sa + sa.se)), axes=F, lwd=2, xlab="", ylab="", cex=3, cex.lab=3, cex.axis=3, cex.main=3)
 # Young and old nymphs.
 lines(day.all, sn, lwd=2, lty=1, col=2)
 # Eggs
 lines(day.all, se, lwd=2, lty=1, col=4)
-axis(1, at = c(1:12) * 30 - 15, cex.axis=2, labels=c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
-axis(2, cex.axis = 2)
+axis(1, at=c(1:12) * 30 - 15, cex.axis=3, labels=c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
+axis(2, cex.axis=3)
 leg.text <- c("Egg", "Nymph", "Adult")
-legend("topleft", leg.text, lty=c(1, 1, 1), col=c(4, 2, 1), cex=2)
+legend("topleft", leg.text, lty=c(1, 1, 1), col=c(4, 2, 1), cex=3)
 if (opt$se_plot == 1) {
-    # add SE lines to plot
+    # Add SE lines to plot
     # SE for adults
     lines (day.all, sa + sa.se, lty=2)
     lines (day.all, sa - sa.se, lty=2) 
     # SE for nymphs
     lines (day.all, sn + sn.se, col=2, lty=2)
-    lines (day.all, sn - sn.se, col=2, lty=2) 
+    lines (day.all, sn - sn.se, col=2, lty=2)
     # SE for eggs
     lines (day.all, se + se.se, col=4, lty=2)
-    lines (day.all, se - se.se, col=4, lty=2) 
+    lines (day.all, se - se.se, col=4, lty=2)
 }
 
-# Subfigure 3: population size by generation
-title <- paste("BSMB Total Population Size by Generation:", opt$location, ", Latitude:", latitude, ", Temperature Dates:", start_date, "to", end_date, sep=" ")
-plot(day.all, g0, main=title, type="l", ylim=c(0, max(g2)), axes=F, lwd=2, xlab="", ylab="Number", cex=2, cex.lab=2, cex.axis=2, cex.main=2)
-lines(day.all, g1, lwd = 2, lty = 1, col = 2)
-lines(day.all, g2, lwd = 2, lty = 1, col = 4)
-axis(1, at = c(1:12) * 30 - 15, cex.axis = 2, labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
-axis(2, cex.axis = 2)
+# Subfigure 2: population size by generation
+title <- paste("BSMB total population by generation :", opt$location, ": Lat:", latitude, ":", start_date, "to", end_date, sep=" ")
+plot(day.all, g0, main=title, type="l", ylim=c(0, max(g2)), axes=F, lwd=2, xlab="", ylab="", cex=3, cex.lab=3, cex.axis=3, cex.main=3)
+lines(day.all, g1, lwd = 2, lty = 1, col=2)
+lines(day.all, g2, lwd = 2, lty = 1, col=4)
+axis(1, at=c(1:12) * 30 - 15, cex.axis=3, labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
+axis(2, cex.axis=3)
 leg.text <- c("P", "F1", "F2")
-legend("topleft", leg.text, lty = c(1, 1, 1), col =c(1, 2, 4), cex = 2)
+legend("topleft", leg.text, lty=c(1, 1, 1), col=c(1, 2, 4), cex=3)
 if (opt$se_plot == 1) {
-    # add SE lines to plot
+    # Add SE lines to plot
     # SE for adults
-    lines (day.all, g0 + g0.se, lty = 2)
-    lines (day.all, g0 - g0.se, lty = 2) 
+    lines (day.all, g0+g0.se, lty=2)
+    lines (day.all, g0-g0.se, lty=2) 
     # SE for nymphs
-    lines (day.all, g1 + g1.se, col = 2, lty = 2)
-    lines (day.all, g1 - g1.se, col = 2, lty = 2) 
+    lines (day.all, g1+g1.se, col=2, lty=2)
+    lines (day.all, g1-g1.se, col=2, lty=2)
     # SE for eggs
-    lines (day.all, g2 + g2.se, col = 4, lty = 2)
-    lines (day.all, g2 - g2.se, col = 4, lty = 2) 
+    lines (day.all, g2+g2.se, col=4, lty=2)
+    lines (day.all, g2-g2.se, col=4, lty=2)
 }
 
-# Subfigure 4: adult population size by generation
-title <- paste("BSMB Adult Population Size by Generation:", opt$location, ", Latitude:", latitude, ", Temperature Dates:", start_date, "to", end_date, sep=" ")
-plot(day.all, g0a, ylim=c(0, max(g2a) + 100), main=title, type="l", axes=F, lwd=2, xlab="Year", ylab="Number", cex=2, cex.lab=2, cex.axis=2, cex.main=2)
-lines(day.all, g1a, lwd = 2, lty = 1, col = 2)
-lines(day.all, g2a, lwd = 2, lty = 1, col = 4)
-axis(1, at = c(1:12) * 30 - 15, cex.axis = 2, labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
-axis(2, cex.axis = 2)
+# Subfigure 3: adult population size by generation
+title <- paste("BSMB adult population by generation :", opt$location, ": Lat:", latitude, ":", start_date, "to", end_date, sep=" ")
+plot(day.all, g0a, ylim=c(0, max(g2a) + 100), main=title, type="l", axes=F, lwd=2, xlab="", ylab="", cex=3, cex.lab=3, cex.axis=3, cex.main=3)
+lines(day.all, g1a, lwd = 2, lty = 1, col=2)
+lines(day.all, g2a, lwd = 2, lty = 1, col=4)
+axis(1, at=c(1:12) * 30 - 15, cex.axis=3, labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
+axis(2, cex.axis=3)
 leg.text <- c("P", "F1", "F2")
-legend("topleft", leg.text, lty = c(1, 1, 1), col = c(1, 2, 4), cex = 2)
+legend("topleft", leg.text, lty=c(1, 1, 1), col=c(1, 2, 4), cex=3)
 if (opt$se_plot == 1) {
-    # add SE lines to plot
+    # Add SE lines to plot
     # SE for adults
-    lines (day.all, g0a + g0a.se, lty = 2)
-    lines (day.all, g0a - g0a.se, lty = 2) 
+    lines (day.all, g0a+g0a.se, lty=2)
+    lines (day.all, g0a-g0a.se, lty=2) 
     # SE for nymphs
-    lines (day.all, g1a + g1a.se, col = 2, lty = 2)
-    lines (day.all, g1a - g1a.se, col = 2, lty = 2) 
+    lines (day.all, g1a+g1a.se, col=2, lty=2)
+    lines (day.all, g1a-g1a.se, col=2, lty=2)
     # SE for eggs
-    lines (day.all, g2a + g2a.se, col = 4, lty = 2)
-    lines (day.all, g2a - g2a.se, col = 4, lty = 2) 
+    lines (day.all, g2a+g2a.se, col=4, lty=2)
+    lines (day.all, g2a-g2a.se, col=4, lty=2)
 }
 
 # Turn off device driver to flush output.
