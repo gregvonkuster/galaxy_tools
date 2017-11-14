@@ -25,27 +25,42 @@ parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
 args <- parse_args(parser, positional_arguments=TRUE)
 opt <- args$options
 
-get_daylight_length = function(latitude, temperature_data, num_days)
-{
+parse_input_data = function(input_file, num_rows) {
+    # Read in the input temperature datafile into a data frame.
+    temperature_data_frame <- read.csv(file=input_file, header=T, strip.white=TRUE, sep=",")
+    if (dim(temperature_data_frame)[2] == 6) {
+        # The input data has the following 6 columns:
+        # LATITUDE, LONGITUDE, DATE, DOY, TMIN, TMAX
+        # Add a column containing the daylight length for each day.
+        temperature_data_frame <- add_daylight_length(temperature_data_frame, num_rows)
+    }
+    # Return the temperature_data_frame.
+    temperature_data_frame
+}
+
+add_daylight_length = function(temperature_data_frame, num_rows) {
     # Return a vector of daylight length (photoperido profile) for
     # the number of days specified in the input temperature data
     # (from Forsythe 1995).
     p = 0.8333
+    latitude <- temperature_data_frame[1, 1]
     daylight_length_vector <- NULL
-    for (i in 1:num_days) {
+    for (i in 1:num_rows) {
         # Get the day of the year from the current row
         # of the temperature data for computation.
-        doy <- temperature_data[i, 4]
+        doy <- temperature_data_frame[i, 4]
         theta <- 0.2163108 + 2 * atan(0.9671396 * tan(0.00860 * (doy - 186)))
         phi <- asin(0.39795 * cos(theta))
         # Compute the length of daylight for the day of the year.
         daylight_length_vector[i] <- 24 - (24 / pi * acos((sin(p * pi / 180) + sin(latitude * pi / 180) * sin(phi)) / (cos(latitude * pi / 180) * cos(phi))))
     }
-    daylight_length_vector
+    # Append daylight_length_vector as a new column to temperature_data_frame.
+    temperature_data_frame[, 7] <- daylight_length_vector
+    # Return the temperature_data_frame.
+    temperature_data_frame
 }
 
-get_temperature_at_hour = function(latitude, temperature_data, daylight_length_vector, row, num_days)
-{
+get_temperature_at_hour = function(latitude, temperature_data_frame, row, num_days) {
     # Base development threshold for Brown Marmolated Stink Bug
     # insect phenology model.
     # TODO: Pass insect on the command line to accomodate more
@@ -55,9 +70,9 @@ get_temperature_at_hour = function(latitude, temperature_data, daylight_length_v
     # Input temperature currently has the following columns.
     # # LATITUDE, LONGITUDE, DATE, DOY, TMIN, TMAX
     # Minimum temperature for current row.
-    dnp <- temperature_data[row, 5]
+    dnp <- temperature_data_frame[row, 5]
     # Maximum temperature for current row.
-    dxp <- temperature_data[row, 6]
+    dxp <- temperature_data_frame[row, 6]
     # Mean temperature for current row.
     dmean <- 0.5 * (dnp + dxp)
     # Initialize degree day accumulation
@@ -71,7 +86,7 @@ get_temperature_at_hour = function(latitude, temperature_data, daylight_length_v
         # Initialize degree hour vector.
         dh <- NULL
         # Daylight length for current row.
-        y <- daylight_length_vector[row]
+        y <- temperature_data_frame[row, 7]
         # Darkness length.
         z <- 24 - y
         # Lag coefficient.
@@ -122,15 +137,13 @@ get_temperature_at_hour = function(latitude, temperature_data, daylight_length_v
     return
 }
 
-dev.egg = function(temperature)
-{
+dev.egg = function(temperature) {
     dev.rate= -0.9843 * temperature + 33.438
     return = dev.rate
     return
 }
 
-dev.young = function(temperature)
-{
+dev.young = function(temperature) {
     n12 <- -0.3728 * temperature + 14.68
     n23 <- -0.6119 * temperature + 25.249
     dev.rate = mean(n12 + n23)
@@ -138,8 +151,7 @@ dev.young = function(temperature)
     return
 }
 
-dev.old = function(temperature)
-{
+dev.old = function(temperature) {
     n34 <- -0.6119 * temperature + 17.602
     n45 <- -0.4408 * temperature + 19.036
     dev.rate = mean(n34 + n45)
@@ -147,15 +159,13 @@ dev.old = function(temperature)
     return
 }
 
-dev.emerg = function(temperature)
-{
+dev.emerg = function(temperature) {
     emerg.rate <- -0.5332 * temperature + 24.147
     return = emerg.rate
     return
 }
 
-mortality.egg = function(temperature)
-{
+mortality.egg = function(temperature) {
     if (temperature < 12.7) {
         mort.prob = 0.8
     }
@@ -169,8 +179,7 @@ mortality.egg = function(temperature)
     return
 }
 
-mortality.nymph = function(temperature)
-{
+mortality.nymph = function(temperature) {
     if (temperature < 12.7) {
         mort.prob = 0.03
     }
@@ -181,8 +190,7 @@ mortality.nymph = function(temperature)
     return
 }
 
-mortality.adult = function(temperature)
-{
+mortality.adult = function(temperature) {
     if (temperature < 12.7) {
         mort.prob = 0.002
     }
@@ -193,14 +201,8 @@ mortality.adult = function(temperature)
     return
 }
 
-# Read in the input temperature datafile into a Data Frame object.
-# The input data currently must have 6 columns:
-# LATITUDE, LONGITUDE, DATE, DOY, TMIN, TMAX
-temperature_data <- read.csv(file=opt$input, header=T, strip.white=TRUE, sep=",")
-start_date <- temperature_data[1, 3]
-end_date <- temperature_data[opt$num_days, 3]
-latitude <- temperature_data[1, 1]
-daylight_length_vector <- get_daylight_length(latitude, temperature_data, opt$num_days)
+temperature_data_frame <- parse_input_data(opt$input, opt$num_days)
+latitude <- temperature_data_frame[1, 1]
 
 cat("Number of days: ", opt$num_days, "\n")
 
@@ -232,10 +234,10 @@ for (N.rep in 1:opt$replications) {
     # All the days included in the input temperature dataset.
     for (row in 1:opt$num_days) {
         # Get the integer day of the year for the current row.
-        doy <- temperature_data[row, 4]
+        doy <- temperature_data_frame[row, 4]
         # Photoperiod in the day.
-        photoperiod <- daylight_length_vector[row]
-        temp.profile <- get_temperature_at_hour(latitude, temperature_data, daylight_length_vector, row, opt$num_days)
+        photoperiod <- temperature_data_frame[row, 7]
+        temp.profile <- get_temperature_at_hour(latitude, temperature_data_frame, row, opt$num_days)
         mean.temp <- temp.profile[1]
         dd.temp <- temp.profile[2]
         dd.day[row] <- dd.temp
@@ -536,6 +538,9 @@ for (N.rep in 1:opt$replications) {
 # Data analysis and visualization can currently
 # plot only within a single calendar year.
 # TODO: enhance this to accomodate multiple calendar years.
+start_date <- temperature_data_frame[1, 3]
+end_date <- temperature_data_frame[opt$num_days, 3]
+
 n.yr <- 1
 day.all <- c(1:opt$num_days * n.yr)
 
