@@ -202,10 +202,10 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
         <data name="output_log" format="txt" label="${tool.name} (ideas output log) on ${on_string}">
             <filter>save_ideas_log == 'yes'</filter>
         </data>
-        <data name="output_cluster" format="txt" label="${tool.name} (local cell type clustering) on ${on_string}"/>
-        <data name="output_para" format="tabular" label="${tool.name} (epigenetic state frequency, mean and variance parameters) on ${on_string}"/>
-        <data name="output_profile" format="txt" label="${tool.name} (profile) on ${on_string}"/>
-        <data name="output_state" format="txt" label="${tool.name} (epigenetic states and position classes) on ${on_string}"/>
+        <data name="output_cluster" format="txt" label="${tool.name} Results: (cell type cluster) on ${on_string}"/>
+        <data name="output_para" format="txt" label="${tool.name} Results: (epigenetic state parameters) on ${on_string}"/>
+        <data name="output_profile" format="txt" label="${tool.name} Results: (position profile) on ${on_string}"/>
+        <data name="output_state" format="txt" label="${tool.name} Results: (epigenetic states) on ${on_string}"/>
     </outputs>
     <tests>
         <test>
@@ -216,7 +216,7 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
             <param name="bed_input" value="genomic_windows.bed" ftype="bed" dbkey="hg19"/>
             <output name="output_state" file="output_state.txt" ftype="txt"/>
             <output name="output_profile" file="output_profile.txt" ftype="txt"/>
-            <output name="output_para" file="output_para.tabular" ftype="tabular"/>
+            <output name="output_para" file="output_para.txt" ftype="txt"/>
             <output name="output_cluster" file="output_cluster.txt" ftype="txt"/>
         </test>
         <test>
@@ -230,7 +230,7 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
             <param name="bed_input" value="genomic_windows.bed" ftype="bed" dbkey="hg19"/>
             <output name="output_state" file="output_state.txt" ftype="txt"/>
             <output name="output_profile" file="output_profile.txt" ftype="txt"/>
-            <output name="output_para" file="output_para.tabular" ftype="tabular"/>
+            <output name="output_para" file="output_para.txt" ftype="txt"/>
             <output name="output_cluster" file="output_cluster.txt" ftype="txt"/>
         </test>
     </tests>

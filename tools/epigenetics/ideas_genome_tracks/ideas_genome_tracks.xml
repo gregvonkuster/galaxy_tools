@@ -1,5 +1,5 @@
-<tool id="create_genome_tracks" name="Create genome tracks" version="1.0.0">
-    <description>from IDEAS statistics</description>
+<tool id="ideas_genome_tracks" name="IDEAS genome tracks" version="1.0.0">
+    <description></description>
     <requirements>
         <requirement type="package" version="2.4.27">bedops</requirement>
         <requirement type="package" version="1.10.4">r-data.table</requirement>
@@ -7,7 +7,7 @@
          <requirement type="package" version="332">ucsc-bedtobigbed</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
-Rscript '$__tool_directory__/create_genome_tracks.R'
+Rscript '$__tool_directory__/ideas_genome_tracks.R'
 -b $parameter_file.metadata.dbkey
 -c '$chromInfo'
 -f test
@@ -18,11 +18,11 @@ Rscript '$__tool_directory__/create_genome_tracks.R'
 -v '$output_build'
 -w '$output_hub']]></command>
     <inputs>
-        <param name="state_file" type="data" format="txt" label="IDEAS epigenetic states and position classes dataset">
+        <param name="state_file" type="data" format="txt" label="IDEAS epigenetic states file">
             <validator type="empty_field"/>
             <validator type="unspecified_build"/>
         </param>
-        <param name="parameter_file" type="data" format="tabular" label="IDEAS epigenetic state frequency, mean and variance parameters dataset">
+        <param name="parameter_file" type="data" format="tabular" label="IDEAS epigenetic state parameters file">
             <validator type="empty_field"/>
             <validator type="unspecified_build"/>
         </param>
