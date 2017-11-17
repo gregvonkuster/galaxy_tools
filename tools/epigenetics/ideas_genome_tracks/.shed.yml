@@ -1,4 +1,4 @@
-name: create_genome_tracks
+name: ideas_genome_tracks
 owner: greg
 description: |
   Contains a tool that creates genome track visualizations from IDEAS state files.
