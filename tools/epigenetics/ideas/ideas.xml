@@ -6,9 +6,11 @@
         <requirement type="package" version="332">ucsc-bedsort</requirement>
         <requirement type="package" version="332">ucsc-bigwigaverageoverbed</requirement>
         <requirement type="package" version="1.20">ideas</requirement>
-        <requirement type="package" version="1.3.2">r-optparse</requirement>
+        <requirement type="package" version="1.4.4">r-optparse</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
+#set output_pdf_dir = "output_pdf_dir"
+#set output_txt_dir = "output_txt_dir"
 #set tmp_dir = "tmp"
 #set prep_input_config = "prep_input_config.txt"
 #set prep_output_config = "prep_output_config.txt"
@@ -16,6 +18,8 @@
 ## Create the config file and prepare the data
 ##############################################
 #set specify_genomic_window = $specify_genomic_window_cond.specify_genomic_window
+mkdir '$output_pdf_dir' &&
+mkdir '$output_txt_dir' &&
 cp '$gen_prep_input_config' $prep_input_config &&
 prepMat
 $prep_input_config
@@ -86,19 +90,22 @@ $hp
 #end if
 -rseed $rseed
 -thread \${GALAXY_SLOTS:-4}
+-o '$project_name'
 #if str($save_ideas_log) == "yes":
     > $output_log
 #else:
     > /dev/null
 #end if
-&& mv ./*.cluster $output_cluster
-&& mv ./*.para $output_para
-&& mv ./*.profile $output_profile
-&& mv ./*.state $output_state
+&& mv ./*.cluster '$output_txt_dir'
+&& mv ./*.para '$output_txt_dir'
+&& mv ./*.profile '$output_txt_dir'
+&& mv ./*.state '$output_txt_dir'
+&& Rscript '$__tool_directory__/create_heatmap.R'
+-i '$output_txt_dir'
+-o '$output_pdf_dir'
     ]]></command>
     <configfiles>
-        <configfile name="gen_prep_input_config"><![CDATA[#import os
-#if str($cell_type_epigenetic_factor_cond.cell_type_epigenetic_factor) == "extract":
+        <configfile name="gen_prep_input_config"><![CDATA[#if str($cell_type_epigenetic_factor_cond.cell_type_epigenetic_factor) == "extract":
     #set input_name_positions = $cell_type_epigenetic_factor_cond.input_name_positions
     #for $i in $cell_type_epigenetic_factor_cond.input:
         #set file_name_with_ext = $i.name
@@ -150,6 +157,9 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
                 </repeat>
             </when>
         </conditional>
+        <param name="project_name" type="text" value="myProject" label="Project name" help="Outputs will have this base name">
+            <validator type="empty_field"/>
+        </param>
         <param argument="-rseed" type="integer" value="1234" min="0" max="1000000" label="Seed for IDEAS model initialization" help="Zero value generates a random seed, and this seed will be different for each job run."/>
         <conditional name="specify_genomic_window_cond">
             <param name="specify_genomic_window" type="select" label="Select Bed file that defines genomic windows on which to process the data">
@@ -199,13 +209,15 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
         </param>
     </inputs>
     <outputs>
-        <data name="output_log" format="txt" label="${tool.name} (ideas output log) on ${on_string}">
+        <data name="output_log" format="txt" label="${tool.name} (output log) on ${on_string}">
             <filter>save_ideas_log == 'yes'</filter>
         </data>
-        <data name="output_cluster" format="txt" label="${tool.name} Results: (cell type cluster) on ${on_string}"/>
-        <data name="output_para" format="txt" label="${tool.name} Results: (epigenetic state parameters) on ${on_string}"/>
-        <data name="output_profile" format="txt" label="${tool.name} Results: (position profile) on ${on_string}"/>
-        <data name="output_state" format="txt" label="${tool.name} Results: (epigenetic states) on ${on_string}"/>
+        <collection name="output_pdf_collection" type="list" label="${tool.name} (heatmaps on ${on_string}">
+            <discover_datasets pattern="__name__" directory="output_pdf_dir" format="pdf"/>
+        </collection>
+        <collection name="output_txt_collection" type="list">
+            <discover_datasets pattern="__name__" directory="output_txt_dir" format="txt"/>
+        </collection>
     </outputs>
     <tests>
         <test>
@@ -214,10 +226,16 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
             <param name="input_name_positions" value="cell_first"/>
             <param name="specify_genomic_window" value="yes"/>
             <param name="bed_input" value="genomic_windows.bed" ftype="bed" dbkey="hg19"/>
-            <output name="output_state" file="output_state.txt" ftype="txt"/>
-            <output name="output_profile" file="output_profile.txt" ftype="txt"/>
-            <output name="output_para" file="output_para.txt" ftype="txt"/>
-            <output name="output_cluster" file="output_cluster.txt" ftype="txt"/>
+            <param name="project_name" value="IDEAS_out"/>
+            <output_collection name="output_txt_collection" type="list">
+                <element name="IDEAS_out.cluster" file="IDEAS_out.cluster" ftype="txt"/>
+                <element name="IDEAS_out.para" file="IDEAS_out.para" ftype="txt"/>
+                <element name="IDEAS_out.profile" file="IDEAS_out.profile" ftype="txt"/>
+                <element name="IDEAS_out.state" file="IDEAS_out.state" ftype="txt"/>
+            </output_collection>
+            <output_collection name="output_pdf_collection" type="list">
+                <element name="IDEAS_out.pdf" file="IDEAS_out.pdf" compare="contains"/>
+            </output_collection>
         </test>
         <test>
             <param name="cell_type_epigenetic_factor" value="manual"/>
@@ -228,10 +246,16 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
             </repeat>
             <param name="specify_genomic_window" value="yes"/>
             <param name="bed_input" value="genomic_windows.bed" ftype="bed" dbkey="hg19"/>
-            <output name="output_state" file="output_state.txt" ftype="txt"/>
-            <output name="output_profile" file="output_profile.txt" ftype="txt"/>
-            <output name="output_para" file="output_para.txt" ftype="txt"/>
-            <output name="output_cluster" file="output_cluster.txt" ftype="txt"/>
+            <param name="project_name" value="IDEAS_out"/>
+            <output_collection name="output_txt_collection" type="list">
+                <element name="IDEAS_out.cluster" file="IDEAS_out.cluster" ftype="txt"/>
+                <element name="IDEAS_out.para" file="IDEAS_out.para" ftype="txt"/>
+                <element name="IDEAS_out.profile" file="IDEAS_out.profile" ftype="txt"/>
+                <element name="IDEAS_out.state" file="IDEAS_out.state" ftype="txt"/>
+            </output_collection>
+            <output_collection name="output_pdf_collection" type="list">
+                <element name="IDEAS_out.pdf" file="IDEAS_out.pdf" compare="contains"/>
+            </output_collection>
         </test>
     </tests>
     <help>
@@ -281,6 +305,7 @@ In addition to its improved power, IDEAS has two unique advantages:
   * **Epigenetic factor name** - epigenetic factor name
   * **BAM or BigWig file** - BAM or BigWig file
 
+* **Project name** - datasets produced by IDEAS will have this base name.
 * **Seed for IDEAS model initialization** - enter an integer to be used as the seed for the IDEAS model initialization.  A zero value causes IDEAS to automatically generate a random seed, and this seed will be different for each job run.
 * **Select Bed file that defines genomic windows on which to process the data** - if "No" is selected, IDEAS will run whole genome segmentation.  If "Yes" is selected, IDEAS will segment genomes in the unit of the windows defined by the bed file.  This file can be in BED3, BED4 or BED5 format, but only the first three columns (chr posst posed) will be used.
 
