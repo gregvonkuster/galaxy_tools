@@ -6,14 +6,12 @@ suppressPackageStartupMessages(library("optparse"))
 option_list <- list(
     make_option(c("-b", "--build"), action="store", dest="build", help="Genome build"),
     make_option(c("-c", "--chrom_len_file"), action="store", dest="chrom_len_file", help="Chromosome length file"),
-    make_option(c("-d", "--header"),  action="store", dest="header", default=NULL, help="Track header"),
-    make_option(c("-e", "--state_name"),  action="store", dest="state_name", help="State name"),
-    make_option(c("-f", "--hub_id"),  action="store", dest="hub_id", help="Not sure what this is"),
-    make_option(c("-g", "--email"),  action="store", dest="email", help="User email address"),
-    make_option(c("-i", "--cell_info"),  action="store", dest="cell_info", default=NULL, help="Not sure what this is"),
-    make_option(c("-n", "--hub_name"),  action="store", dest="hub_name", default=NULL, help="Not sure what this is"),
+    make_option(c("-e", "--email"),  action="store", dest="email", help="User email address"),
+    make_option(c("-l", "--long_label"), action="store", dest="long_label", help="Hub long label"),
+    make_option(c("-n", "--hub_name"),  action="store", dest="hub_name", default=NULL, help="Hub name without spaces"),
     make_option(c("-p", "--input_dir_para"), action="store", dest="input_dir_para", help="Directory containing .para outputs from IDEAS"),
     make_option(c("-q", "--input_dir_state"), action="store", dest="input_dir_state", help="Directory containing .state outputs from IDEAS"),
+    make_option(c("-s", "--short_label"), action="store", dest="short_label", help="Hub short label"),
     make_option(c("-u", "--output_track_db"),  action="store", dest="output_track_db", help="Output track db file"),
     make_option(c("-w", "--output_trackhub"),  action="store", dest="output_trackhub", help="Output hub file"),
     make_option(c("-x", "--output_trackhub_files_path"),  action="store", dest="output_trackhub_files_path", help="Output hub extra files path")
@@ -42,17 +40,36 @@ create_color_scheme = function(input_dir_para) {
     return(state_color);
 }
 
-get_state_color = function(statemean, markcolor=NULL)
-{   
+get_hue = function(val, min=0, max=1) {
+    if (is.null(val)) {
+        val = max;
+    } else if (is.na(val)) {
+        val = max;
+    } else if (val < min) {
+        val = min;
+    } else if (val > max) {
+        val = max;
+    }
+    return(val);
+}
+
+get_track_file_name = function(base_track_file_name, index, ext) {
+    track_file_name <- paste(base_track_file_name, index, ext, sep=".");
+    return(track_file_name);
+}
+
+get_state_color = function(statemean, markcolor=NULL) {   
+    sm_width = dim(statemean)[1];
+    sm_height = dim(statemean)[2];
     if (length(markcolor) == 0) {
-        markcolor = rep("", dim(statemean)[2]);
-        markcolor[order(apply(statemean, 2, sd), decreasing=T)] = hsv((1:dim(statemean)[2]-1)/dim(statemean)[2], 1, 1);
+        markcolor = rep("", sm_height);
+        markcolor[order(apply(statemean, 2, sd), decreasing=T)] = hsv((1:sm_height-1)/sm_height, 1, 1);
         markcolor = t(col2rgb(markcolor));
     }
     rg = apply(statemean, 1, range);
     mm = NULL;
-    for(i in 1:dim(statemean)[1]) {
-       mm = rbind(mm, (statemean[i,]-rg[1,i])+1e-10)/(rg[2,i]-rg[1,i]+1e-10));
+    for (i in 1:sm_width) {
+       mm = rbind(mm, statemean[i,] - rg[1,i] + 1e-10 / rg[2,i] - rg[1,i]  + 1e-10);
     }
     mm = mm^6;
     if(dim(mm)[2] > 1) {
@@ -61,14 +78,25 @@ get_state_color = function(statemean, markcolor=NULL)
     mycol = mm%*%markcolor;
     s = apply(statemean, 1, max);
     s = (s - min(s)) / (max(s) - min(s) + 1e-10);
-    h = t(apply(mycol, 1, function(x) {rgb2hsv(x[1], x[2], x[3])}));
+    h = t(apply(mycol, 1, function(x) {rgb2hsv(r=get_hue(x[1]), g=get_hue(x[2]), b=get_hue(x[3]))}));
     h[,2] = h[,2] * s;
     h = apply(h, 1, function(x) {hsv(x[1], x[2], x[3])});
     rt = cbind(apply(t(col2rgb(h)), 1, function(x) {paste(x, collapse=",")}), h);
     return(rt);
 }
 
-create_track = function(input_dir_state, chrom_len_file, base_track_file_name, state_color, state_name, header) {
+create_primary_html = function(output_trackhub, tracks_dir) {
+    track_files <- list.files(path=tracks_dir);
+    s <- paste('<html>\n<head>\n</head>\n<body>\n<ul>\n', sep="");
+        for (i in 1:length(track_files)) {
+            track_file <- paste("tracks", track_files[i], sep="/");
+            s <- paste(s, '<li>\n<a href="', track_file, '">', track_file, '</a>\n</li>', sep="");
+        }
+    s <- paste(s, '</ul>\n</body>\n</html>', sep="");
+    cat(s, file=output_trackhub);
+}
+
+create_track = function(input_dir_state, chrom_len_file, base_track_file_name, state_color) {
     state_files <- list.files(path=input_dir_state, full.names=TRUE);
     genome_size = read.table(chrom_len_file);
     g = NULL;
@@ -98,14 +126,9 @@ create_track = function(input_dir_state, chrom_len_file, base_track_file_name, s
     posst = as.numeric(g1[,3]);
     posed = as.numeric(g1[,4]);
     state = as.matrix(g1[,5:(dim(g1)[2]-1)]);
-    if (length(state_name)==0) {
-        state_name=0:max(state);
-    }
+    state_name = 0:max(state);
     L = dim(g1)[1];
     n = dim(state)[2];
-    if (length(header) > 0) {
-        colnames(g1) = header;
-    }
     cells = as.character(colnames(g1)[5:(dim(g1)[2]-1)]);
     g1 = NULL;
     options(scipen=999);
@@ -120,8 +143,8 @@ create_track = function(input_dir_state, chrom_len_file, base_track_file_name, s
         t = c(t, L);
         np = cbind(chr[t], posst[t0], posed[t], tstate[t]);
         x = cbind(np[,1:3], state_name[as.integer(np[,4])+1], 1000, ".", np[,2:3], state_color[as.numeric(np[,4])+1]);
-        track_file_name_bed <- paste(base_track_file_name, i, "bed", sep=".")
-        track_file_name_bigbed <- paste(base_track_file_name, i, "bigbed", sep=".")
+        track_file_name_bed <- get_track_file_name(base_track_file_name, i, "bed");
+        track_file_name_bigbed <- get_track_file_name(base_track_file_name, i, "bigbed");
         write.table(as.matrix(x), track_file_name_bed, quote=F, row.names=F, col.names=F);
         system(paste("bedToBigBed ", track_file_name_bed, chrom_len_file, " ", track_file_name_bigbed));
         system(paste("rm ", track_file_name_bed));
@@ -129,63 +152,59 @@ create_track = function(input_dir_state, chrom_len_file, base_track_file_name, s
     return(cells);
 }
 
-create_track_db = function(input_dir_state, chrom_len_file, header, tracks_dir, hub_id, hub_name, state_color, state_name, cell_info) {
-    base_track_file_name <- paste(tracks_dir, hub_id, sep="");
-    cells = create_track(input_dir_state, chrom_len_file, base_track_file_name, state_color, state_name, header);
-    if (length(cell_info) == 0) {
-        cell_info = cbind(cells, cells, cells, "#000000");
-        cell_info = array(cell_info, dim=c(length(cells), 4));
-    }
+create_track_db = function(input_dir_state, chrom_len_file, tracks_dir, hub_name, short_label, long_label, state_color) {
+    base_track_file_name <- paste(tracks_dir, hub_name, sep="");
+    cells = create_track(input_dir_state, chrom_len_file, base_track_file_name, state_color);
+    cell_info = cbind(cells, cells, cells, "#000000");
+    cell_info = array(cell_info, dim=c(length(cells), 4));
     cell_info = as.matrix(cell_info);
     track_db = NULL;
     for(i in 1:length(cells)) {
+
         ii = which(cells[i] == cell_info[,1]);
         if (length(ii) == 0) {
             next;
         }
         ii = ii[1];
-        track_db = c(track_db, paste("track bigBed", i, sep=""));
+        # trackDb.txt track entry.
+        track_db = c(track_db, paste(hub_name, "_track_", i, sep=""));
+        track_db = c(track_db, "type bigBed");
+        track_db = c(track_db, paste("bigDataUrl", get_track_file_name(base_track_file_name, i, "bigbed"), sep=" "));
+        track_db = c(track_db, paste("shortLabel", short_label, sep=" "));
+        track_db = c(track_db, paste("longLabel", long_label, sep=" "));
         track_db = c(track_db, paste("priority", ii));
-        track_db = c(track_db, "type bigBed 9 .");
         track_db = c(track_db, "itemRgb on");
         track_db = c(track_db, "maxItems 100000");
-        track_db = c(track_db, paste("bigDataUrl ", targetURL, hubid,".",i,".bb",sep=""));
-        track_db = c(track_db, paste("shortLabel", cell_info[ii, 2]));
-        track_db = c(track_db, paste("longLabel", paste(hub_name, cell_info[ii, 3])));
-        track_db = c(track_db, paste("color", paste(c(col2rgb(cell_info[ii, 4])), collapse=",")));
+        track_db = c(track_db, paste("color", paste(c(col2rgb(cell_info[ii,4])), collapse=","), sep=" "));
         track_db = c(track_db, "visibility dense");
         track_db = c(track_db, ""); 
     }
     return(track_db);
 }
 
-if (length(opt$hub_name) == 0) {
-    hub_name <- opt$hub_id;
-} else {
-    hub_name <- opt$hub_name;
-}
-
 # Create the color scheme.
 state_color <- create_color_scheme(opt$input_dir_para);
+
+# Create the hub.txt output.
+contents <- c(paste("hub", opt$hub_name), paste("shortLabel",opt$short_label), paste("longLabel", opt$long_label), paste("genomesFile genomes.txt", sep=""), paste("email", opt$email));
+hub_dir <- paste(opt$output_trackhub_files_path, "/", "myHub", "/", sep="");
+dir.create(hub_dir, showWarnings=FALSE);
+hub_file_path <- paste(hub_dir, "hub.txt", sep="/");
+write.table(contents, file=hub_file_path, quote=F, row.names=F, col.names=F);
+
+# Create the genomes.txt output.
+contents <- c(paste("genome", opt$build), paste("trackDb ", opt$build, "/", "trackDb.txt", sep=""));
+genomes_file_path <- paste(opt$output_trackhub_files_path, "/", "genomes.txt", sep="");
+write.table(contents, file=genomes_file_path, quote=F, row.names=F, col.names=F);
 
 # Create the tracks.
 tracks_dir <- paste(opt$output_trackhub_files_path, "/", "tracks", "/", sep="");
 dir.create(tracks_dir, showWarnings=FALSE);
-track_db <- create_track_db(opt$input_dir_state, opt$chrom_len_file, opt$header, tracks_dir, opt$hub_id, hub_name, state_color, opt$state_name, opt$cell_info);
-
-# Create the primary HTML dataset.
-
+track_db <- create_track_db(opt$input_dir_state, opt$chrom_len_file, tracks_dir, opt$hub_name, opt$short_label, opt$long_label, state_color);
 
 # Create the trackDb.txt output.
-track_db_file_path <- paste(tracks_dir, "/", paste("trackDb.txt", sep=""), sep="")
+track_db_file_path <- paste(tracks_dir, "trackDb.txt", sep="");
 write.table(track_db, file=track_db_file_path, quote=F, row.names=F, col.names=F);
 
-# Create the genomes.txt output.
-contents <- c(paste("genome", opt$build), paste("trackDb ", opt$build, "/", "trackDb.txt", sep=""))
-genomes_file_path <- paste(opt$output_trackhub_files_path, "/", "genomes.txt", sep="")
-write.table(contents, file=genomes_file_path, quote=F, row.names=F, col.names=F);
-
-# Create the hub.txt output.
-contents <- c(paste("hub", opt$hub_id), paste("shortLabel", opt$hub_id), paste("longLabel", hub_name), paste("genomesFile genomes.txt", sep=""), paste("email", opt$email))
-hub_file_path <- paste(opt$output_trackhub_files_path, "/", "hub.txt", sep="")
-write.table(contents, file=hub_file_path, quote=F, row.names=F, col.names=F);
+# Create the primary HTML dataset.
+create_primary_html(opt$output_trackhub, tracks_dir);

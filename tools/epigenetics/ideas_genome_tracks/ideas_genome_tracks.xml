@@ -7,7 +7,11 @@
          <requirement type="package" version="332">ucsc-bedtobigbed</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
+#import re
 #set dbkey = None
+#set sanitized_hub_name = $re.sub('\s+', '', str($hub_name), flags=re.UNICODE)
+#set sanitized_long_label = str($long_label)[:79]
+#set sanitized_short_label = str($short_label)[:16]
 #if str($__user__.email) == 'None':
     #set email = "foo@bar.net"
 #else:
@@ -33,16 +37,27 @@ mkdir '$output_trackhub.files_path' &&
 Rscript '$__tool_directory__/ideas_genome_tracks.R'
 -b $dbkey
 -c '$chromInfo'
--f test
--g '$email'
+-e '$email'
+-l '$sanitized_long_label'
+-n '$hub_name'
 -p '$input_dir_para'
 -q '$input_dir_state'
+-s '$sanitized_short_label'
 -w '$output_trackhub'
 -x '$output_trackhub.files_path'
 &>/dev/null
     ]]></command>
     <inputs>
         <param name="input" format="txt" type="data_collection" collection_type="list" label="IDEAS files" />
+        <param name="hub_name" type="text" value="" label="Hub name" help="All white space characters will be eliminated">
+            <validator type="empty_field"/>
+        </param>
+        <param name="short_label" type="text" value="short label" label="Short label" help="Limit to 17 characters">
+            <validator type="empty_field"/>
+        </param>
+        <param name="long_label" type="text" value="long label" label="Long label" help="Limit to 80 characters">
+            <validator type="empty_field"/>
+        </param>
     </inputs>
     <outputs>
         <data name="output_trackhub" format="trackhub"/>
