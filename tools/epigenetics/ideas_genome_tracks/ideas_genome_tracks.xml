@@ -43,12 +43,15 @@ Rscript '$__tool_directory__/ideas_genome_tracks.R'
 -p '$input_dir_para'
 -q '$input_dir_state'
 -s '$sanitized_short_label'
+#if str($set_track_color_cond.set_track_color) == "yes":
+    -t '$set_track_color_cond.track_color'
+#end if
 -w '$output_trackhub'
 -x '$output_trackhub.files_path'
-&>/dev/null
+&>proc.log
     ]]></command>
     <inputs>
-        <param name="input" format="txt" type="data_collection" collection_type="list" label="IDEAS files" />
+        <param name="input" format="txt" type="data_collection" collection_type="list" label="IDEAS files"/>
         <param name="hub_name" type="text" value="" label="Hub name" help="All white space characters will be eliminated">
             <validator type="empty_field"/>
         </param>
@@ -58,12 +61,36 @@ Rscript '$__tool_directory__/ideas_genome_tracks.R'
         <param name="long_label" type="text" value="long label" label="Long label" help="Limit to 80 characters">
             <validator type="empty_field"/>
         </param>
+        <conditional name="set_track_color_cond">
+            <param name="set_track_color" type="select" label="Select track color?">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no"/>
+            <when value="yes">
+                <param name="track_color" type="color" label="Track color"/>
+            </when>
+        </conditional>
     </inputs>
     <outputs>
         <data name="output_trackhub" format="trackhub"/>
     </outputs>
     <tests>
         <test>
+            <param name="input">
+                <collection type="list">
+                    <element name="IDEAS_out.cluster" value="IDEAS_out.cluster" ftype="txt"/>
+                    <element name="IDEAS_out.para" value="IDEAS_out.para" ftype="txt"/>
+                    <element name="IDEAS_out.profile" value="IDEAS_out.profile" ftype="txt"/>
+                    <element name="IDEAS_out.state" value="IDEAS_out.state" ftype="txt"/>
+                </collection>
+            </param>
+            <param name="hub_name" value="MyHub"/>
+            <param name="short_label" value="my short label"/>
+            <param name="long_label" value="my long label"/>
+            <param name="set_track_color" value="yes"/>
+            <param name="track_color" value="#ff0000"/>
+            <output name="output_trackhub" file="output_trackhub.html" ftype="trackhub"/>
         </test>
     </tests>
     <help>

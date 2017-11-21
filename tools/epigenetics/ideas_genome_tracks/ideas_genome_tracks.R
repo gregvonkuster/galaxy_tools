@@ -12,6 +12,7 @@ option_list <- list(
     make_option(c("-p", "--input_dir_para"), action="store", dest="input_dir_para", help="Directory containing .para outputs from IDEAS"),
     make_option(c("-q", "--input_dir_state"), action="store", dest="input_dir_state", help="Directory containing .state outputs from IDEAS"),
     make_option(c("-s", "--short_label"), action="store", dest="short_label", help="Hub short label"),
+    make_option(c("-t", "--track_color"), action="store", dest="track_color", default=NULL, help="User specified track color"),
     make_option(c("-u", "--output_track_db"),  action="store", dest="output_track_db", help="Output track db file"),
     make_option(c("-w", "--output_trackhub"),  action="store", dest="output_trackhub", help="Output hub file"),
     make_option(c("-x", "--output_trackhub_files_path"),  action="store", dest="output_trackhub_files_path", help="Output hub extra files path")
@@ -36,8 +37,8 @@ create_color_scheme = function(input_dir_para) {
     }
     p = x[,1] / sum(x[,1]);
     m = array(as.matrix(x[,1:l+1] / x[,1]), dim=c(dim(x)[1], l));
-    state_color <- get_state_color(m, mc);
-    return(state_color);
+    track_color <- get_track_color(m, mc);
+    return(track_color);
 }
 
 get_hue = function(val, min=0, max=1) {
@@ -58,7 +59,7 @@ get_track_file_name = function(base_track_file_name, index, ext) {
     return(track_file_name);
 }
 
-get_state_color = function(statemean, markcolor=NULL) {   
+get_track_color = function(statemean, markcolor=NULL) {   
     sm_width = dim(statemean)[1];
     sm_height = dim(statemean)[2];
     if (length(markcolor) == 0) {
@@ -87,16 +88,16 @@ get_state_color = function(statemean, markcolor=NULL) {
 
 create_primary_html = function(output_trackhub, tracks_dir) {
     track_files <- list.files(path=tracks_dir);
-    s <- paste('<html>\n<head>\n</head>\n<body>\n<ul>\n', sep="");
+    s <- paste('<html>\n    <head>\n    </head>\n    <body>\n        <ul>\n', sep="");
         for (i in 1:length(track_files)) {
             track_file <- paste("tracks", track_files[i], sep="/");
-            s <- paste(s, '<li>\n<a href="', track_file, '">', track_file, '</a>\n</li>', sep="");
+            s <- paste(s, '            <li><a href="', track_file, '">', track_file, '</a></li>\n', sep="");
         }
-    s <- paste(s, '</ul>\n</body>\n</html>', sep="");
+    s <- paste(s, '        </ul>\n    </body>\n</html>', sep="");
     cat(s, file=output_trackhub);
 }
 
-create_track = function(input_dir_state, chrom_len_file, base_track_file_name, state_color) {
+create_track = function(input_dir_state, chrom_len_file, base_track_file_name, track_color) {
     state_files <- list.files(path=input_dir_state, full.names=TRUE);
     genome_size = read.table(chrom_len_file);
     g = NULL;
@@ -142,7 +143,7 @@ create_track = function(input_dir_state, chrom_len_file, base_track_file_name, s
         t0 = c(0, t) + 1;
         t = c(t, L);
         np = cbind(chr[t], posst[t0], posed[t], tstate[t]);
-        x = cbind(np[,1:3], state_name[as.integer(np[,4])+1], 1000, ".", np[,2:3], state_color[as.numeric(np[,4])+1]);
+        x = cbind(np[,1:3], state_name[as.integer(np[,4])+1], 1000, ".", np[,2:3], track_color[as.numeric(np[,4])+1]);
         track_file_name_bed <- get_track_file_name(base_track_file_name, i, "bed");
         track_file_name_bigbed <- get_track_file_name(base_track_file_name, i, "bigbed");
         write.table(as.matrix(x), track_file_name_bed, quote=F, row.names=F, col.names=F);
@@ -152,14 +153,14 @@ create_track = function(input_dir_state, chrom_len_file, base_track_file_name, s
     return(cells);
 }
 
-create_track_db = function(input_dir_state, chrom_len_file, tracks_dir, hub_name, short_label, long_label, state_color) {
+create_track_db = function(input_dir_state, chrom_len_file, tracks_dir, hub_name, short_label, long_label, track_color) {
     base_track_file_name <- paste(tracks_dir, hub_name, sep="");
-    cells = create_track(input_dir_state, chrom_len_file, base_track_file_name, state_color);
+    cells = create_track(input_dir_state, chrom_len_file, base_track_file_name, track_color);
     cell_info = cbind(cells, cells, cells, "#000000");
     cell_info = array(cell_info, dim=c(length(cells), 4));
     cell_info = as.matrix(cell_info);
     track_db = NULL;
-    for(i in 1:length(cells)) {
+    for (i in 1:length(cells)) {
 
         ii = which(cells[i] == cell_info[,1]);
         if (length(ii) == 0) {
@@ -183,7 +184,11 @@ create_track_db = function(input_dir_state, chrom_len_file, tracks_dir, hub_name
 }
 
 # Create the color scheme.
-state_color <- create_color_scheme(opt$input_dir_para);
+if (length(opt$track_color) == 0) {
+    track_color <- create_color_scheme(opt$input_dir_para);
+} else {
+    track_color <- col2rgb(opt$track_color);
+}
 
 # Create the hub.txt output.
 contents <- c(paste("hub", opt$hub_name), paste("shortLabel",opt$short_label), paste("longLabel", opt$long_label), paste("genomesFile genomes.txt", sep=""), paste("email", opt$email));
@@ -200,7 +205,7 @@ write.table(contents, file=genomes_file_path, quote=F, row.names=F, col.names=F)
 # Create the tracks.
 tracks_dir <- paste(opt$output_trackhub_files_path, "/", "tracks", "/", sep="");
 dir.create(tracks_dir, showWarnings=FALSE);
-track_db <- create_track_db(opt$input_dir_state, opt$chrom_len_file, tracks_dir, opt$hub_name, opt$short_label, opt$long_label, state_color);
+track_db <- create_track_db(opt$input_dir_state, opt$chrom_len_file, tracks_dir, opt$hub_name, opt$short_label, opt$long_label, track_color);
 
 # Create the trackDb.txt output.
 track_db_file_path <- paste(tracks_dir, "trackDb.txt", sep="");

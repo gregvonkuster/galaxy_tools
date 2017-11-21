@@ -129,7 +129,6 @@ GeneFamilyAligner
             <discover_datasets pattern="__name__" directory="geneFamilyAlignments_dir/orthogroups_filtered_aln_fna" format="fasta" />
             <filter>codon_alignments == 'yes' and remove_gappy_sequences_cond['remove_gappy_sequences'] == 'yes' and remove_gappy_sequences_cond['remove_sequences_with_gaps_cond']['remove_sequences_with_gaps'] == 'yes'</filter>
         </collection>
-
     </outputs>
     <tests>
         <test>
