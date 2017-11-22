@@ -52,49 +52,105 @@ $norm
 && ls tmp/*.bed.gz > file2.txt
 && paste <(cat file1.txt) <(cat file2.txt) -d' ' > $prep_output_config
 ##############################################
-## Run IDEAS
+## If using a genomic window bed file, categorize
+## the window positions by chromosome to enable
+## the IDEAS -inv option.
 ##############################################
-&& ideas
-'$prep_output_config'
-#set specify_genomic_window = $specify_genomic_window_cond.specify_genomic_window
 #if str($specify_genomic_window) == "yes":
-    '$specify_genomic_window_cond.bed_input'
+    #import collections
+    #set window_positions_by_chroms = collections.OrderedDict()
+    #for count, line in enumerate(open($specify_genomic_window_cond.bed_input.file_name, 'r')):
+        #set $line = $line.strip()
+        #if not $line or $line.startswith('#'):
+            #continue
+        #end if
+        #set items = $line.split('\t')
+        #if $items[0] in $window_positions_by_chroms:
+            #set tup = $window_positions_by_chroms[$items[0]]
+            #set $tup[1] += 1
+            #set $window_positions_by_chroms[$items[0]] = $tup
+        #else:
+            #set $window_positions_by_chroms[$items[0]] = [$count, $count+1]
+        #end if
+    #end for
+    #for chrom, tup in $window_positions_by_chroms.items():
+        && ideas
+        '$prep_output_config'
+        '$specify_genomic_window_cond.bed_input'
+        $hp
+        -inv $tup[0] $tup[1]
+        #if str($log2) != "0.0":
+            -log2 $log2
+        #end if
+        #if str($max_states) != "0.0":
+            -G $max_states
+        #end if
+        #if str($initial_states) != "0":
+            -C $initial_states
+        #end if
+        #if str($max_position_classes) != "0":
+            -P $max_position_classes
+        #end if
+        #if str($max_cell_type_clusters) != "0":
+            -K $max_cell_type_clusters
+        #end if
+        #if str($prior_concentration) != "0.0":
+            -A $prior_concentration
+        #end if
+        -sample $burnin_num $mcmc_num
+        #if str($minerr) != "0.0":
+            -minerr $minerr
+        #end if
+        #if str($maxerr) != "0.0":
+            -maxerr $maxerr
+        #end if
+        -rseed $rseed
+        -thread \${GALAXY_SLOTS:-4}
+        -o '$project_name.$chrom'
+        #if str($save_ideas_log) == "yes":
+            >> $output_log
+        #else:
+            > /dev/null
+        #end if
+    #end for
 #else:
+    && ideas
+    '$prep_output_config'
     $tmp_dir/*.bed
-#end if
-$hp
-#if str($log2) != "0.0":
-    -log2 $log2
-#end if
-#if str($max_states) != "0.0":
-    -G $max_states
-#end if
-#if str($initial_states) != "0":
-    -C $initial_states
-#end if
-#if str($max_position_classes) != "0":
-    -P $max_position_classes
-#end if
-#if str($max_cell_type_clusters) != "0":
-    -K $max_cell_type_clusters
-#end if
-#if str($prior_concentration) != "0.0":
-    -A $prior_concentration
-#end if
--sample $burnin_num $mcmc_num
-#if str($minerr) != "0.0":
-    -minerr $minerr
-#end if
-#if str($maxerr) != "0.0":
-    -maxerr $maxerr
-#end if
--rseed $rseed
--thread \${GALAXY_SLOTS:-4}
--o '$project_name'
-#if str($save_ideas_log) == "yes":
-    > $output_log
-#else:
-    > /dev/null
+    $hp
+    #if str($log2) != "0.0":
+        -log2 $log2
+    #end if
+    #if str($max_states) != "0.0":
+        -G $max_states
+    #end if
+    #if str($initial_states) != "0":
+        -C $initial_states
+    #end if
+    #if str($max_position_classes) != "0":
+        -P $max_position_classes
+    #end if
+    #if str($max_cell_type_clusters) != "0":
+        -K $max_cell_type_clusters
+    #end if
+    #if str($prior_concentration) != "0.0":
+        -A $prior_concentration
+    #end if
+    -sample $burnin_num $mcmc_num
+    #if str($minerr) != "0.0":
+        -minerr $minerr
+    #end if
+    #if str($maxerr) != "0.0":
+        -maxerr $maxerr
+    #end if
+    -rseed $rseed
+    -thread \${GALAXY_SLOTS:-4}
+    -o '$project_name'
+    #if str($save_ideas_log) == "yes":
+        > $output_log
+    #else:
+        > /dev/null
+    #end if
 #end if
 && mv ./*.cluster '$output_txt_dir'
 && mv ./*.para '$output_txt_dir'
