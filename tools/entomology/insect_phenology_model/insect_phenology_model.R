@@ -18,7 +18,8 @@ option_list <- list(
     make_option(c("-s", "--replications"), action="store", dest="replications", type="integer", help="Number of replications"),
     make_option(c("-t", "--se_plot"), action="store", dest="se_plot", help="Plot SE"),
     make_option(c("-v", "--input"), action="store", dest="input", help="Temperature data for selected location"),
-    make_option(c("-y", "--young_nymph_accum"), action="store", dest="young_nymph_accum", type="integer", help="Adjustment of DD accumulation (egg->young nymph)")
+    make_option(c("-y", "--young_nymph_accum"), action="store", dest="young_nymph_accum", type="integer", help="Adjustment of DD accumulation (egg->young nymph)"),
+    make_option(c("-x", "--insect"), action="store", dest="insect", help="Insect name")
 )
 
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
@@ -28,36 +29,39 @@ opt <- args$options
 parse_input_data = function(input_file, num_rows) {
     # Read in the input temperature datafile into a data frame.
     temperature_data_frame <- read.csv(file=input_file, header=T, strip.white=TRUE, sep=",")
-    if (dim(temperature_data_frame)[2] == 6) {
+    num_columns <- dim(temperature_data_frame)[2]
+    if (num_columns == 6) {
         # The input data has the following 6 columns:
         # LATITUDE, LONGITUDE, DATE, DOY, TMIN, TMAX
+        # Set the column names for access when adding daylight length..
+        colnames(temperature_data_frame) <- c("LATITUDE","LONGITUDE", "DATE", "DOY", "TMIN", "TMAX")
         # Add a column containing the daylight length for each day.
-        temperature_data_frame <- add_daylight_length(temperature_data_frame, num_rows)
+        temperature_data_frame <- add_daylight_length(temperature_data_frame, num_columns, num_rows)
+        # Reset the column names with the additional column for later access.
+        colnames(temperature_data_frame) <- c("LATITUDE","LONGITUDE", "DATE", "DOY", "TMIN", "TMAX", "DAYLEN")
     }
-    # Return the temperature_data_frame.
-    temperature_data_frame
+    return(temperature_data_frame)
 }
 
-add_daylight_length = function(temperature_data_frame, num_rows) {
+add_daylight_length = function(temperature_data_frame, num_columns, num_rows) {
     # Return a vector of daylight length (photoperido profile) for
     # the number of days specified in the input temperature data
     # (from Forsythe 1995).
     p = 0.8333
-    latitude <- temperature_data_frame[1, 1]
+    latitude <- temperature_data_frame$LATITUDE[1]
     daylight_length_vector <- NULL
     for (i in 1:num_rows) {
         # Get the day of the year from the current row
         # of the temperature data for computation.
-        doy <- temperature_data_frame[i, 4]
+        doy <- temperature_data_frame$DOY[i]
         theta <- 0.2163108 + 2 * atan(0.9671396 * tan(0.00860 * (doy - 186)))
         phi <- asin(0.39795 * cos(theta))
         # Compute the length of daylight for the day of the year.
         daylight_length_vector[i] <- 24 - (24 / pi * acos((sin(p * pi / 180) + sin(latitude * pi / 180) * sin(phi)) / (cos(latitude * pi / 180) * cos(phi))))
     }
     # Append daylight_length_vector as a new column to temperature_data_frame.
-    temperature_data_frame[, 7] <- daylight_length_vector
-    # Return the temperature_data_frame.
-    temperature_data_frame
+    temperature_data_frame[, num_columns+1] <- daylight_length_vector
+    return(temperature_data_frame)
 }
 
 get_temperature_at_hour = function(latitude, temperature_data_frame, row, num_days) {
@@ -66,13 +70,10 @@ get_temperature_at_hour = function(latitude, temperature_data_frame, row, num_da
     # TODO: Pass insect on the command line to accomodate more
     # the just the Brown Marmolated Stink Bub.
     threshold <- 14.17
-
-    # Input temperature currently has the following columns.
-    # # LATITUDE, LONGITUDE, DATE, DOY, TMIN, TMAX
     # Minimum temperature for current row.
-    dnp <- temperature_data_frame[row, 5]
+    dnp <- temperature_data_frame$TMIN[row]
     # Maximum temperature for current row.
-    dxp <- temperature_data_frame[row, 6]
+    dxp <- temperature_data_frame$TMAX[row]
     # Mean temperature for current row.
     dmean <- 0.5 * (dnp + dxp)
     # Initialize degree day accumulation
@@ -86,7 +87,7 @@ get_temperature_at_hour = function(latitude, temperature_data_frame, row, num_da
         # Initialize degree hour vector.
         dh <- NULL
         # Daylight length for current row.
-        y <- temperature_data_frame[row, 7]
+        y <- temperature_data_frame$DAYLEN[row]
         # Darkness length.
         z <- 24 - y
         # Lag coefficient.
@@ -133,36 +134,31 @@ get_temperature_at_hour = function(latitude, temperature_data_frame, row, num_da
         }
         dd <- sum(dh) / 24
     }
-    return=c(dmean, dd)
-    return
+    return(c(dmean, dd))
 }
 
 dev.egg = function(temperature) {
     dev.rate= -0.9843 * temperature + 33.438
-    return = dev.rate
-    return
+    return(dev.rate)
 }
 
 dev.young = function(temperature) {
     n12 <- -0.3728 * temperature + 14.68
     n23 <- -0.6119 * temperature + 25.249
     dev.rate = mean(n12 + n23)
-    return = dev.rate
-    return
+    return(dev.rate)
 }
 
 dev.old = function(temperature) {
     n34 <- -0.6119 * temperature + 17.602
     n45 <- -0.4408 * temperature + 19.036
     dev.rate = mean(n34 + n45)
-    return = dev.rate
-    return
+    return(dev.rate)
 }
 
 dev.emerg = function(temperature) {
     emerg.rate <- -0.5332 * temperature + 24.147
-    return = emerg.rate
-    return
+    return(emerg.rate)
 }
 
 mortality.egg = function(temperature) {
@@ -175,8 +171,7 @@ mortality.egg = function(temperature) {
             mort.prob = 0.01
         }
     }
-    return = mort.prob
-    return
+    return(mort.prob)
 }
 
 mortality.nymph = function(temperature) {
@@ -186,8 +181,7 @@ mortality.nymph = function(temperature) {
     else {
         mort.prob = temperature * 0.0008 + 0.03
     }
-    return = mort.prob
-    return
+    return(mort.prob)
 }
 
 mortality.adult = function(temperature) {
@@ -197,12 +191,13 @@ mortality.adult = function(temperature) {
     else {
         mort.prob = temperature * 0.0005 + 0.02
     }
-    return = mort.prob
-    return
+    return(mort.prob)
 }
 
 temperature_data_frame <- parse_input_data(opt$input, opt$num_days)
-latitude <- temperature_data_frame[1, 1]
+# All latitude values are the same,
+# so get the value from the first row.
+latitude <- temperature_data_frame$LATITUDE[1]
 
 cat("Number of days: ", opt$num_days, "\n")
 
@@ -210,7 +205,7 @@ cat("Number of days: ", opt$num_days, "\n")
 S0.rep <- S1.rep <- S2.rep <- S3.rep <- S4.rep <- S5.rep <- matrix(rep(0, opt$num_days * opt$replications), ncol = opt$replications)
 newborn.rep <- death.rep <- adult.rep <- pop.rep <- g0.rep <- g1.rep <- g2.rep <- g0a.rep <- g1a.rep <- g2a.rep <- matrix(rep(0, opt$num_days * opt$replications), ncol=opt$replications)
 
-# loop through replications
+# Loop through replications.
 for (N.rep in 1:opt$replications) {
     # During each replication start with 1000 individuals.
     # TODO: user definable as well?
@@ -230,13 +225,12 @@ for (N.rep in 1:opt$replications) {
     g0.adult <- g1.adult <- g2.adult <- rep(0, opt$num_days)
     N.newborn <- N.death <- N.adult <- rep(0, opt$num_days)
     dd.day <- rep(0, opt$num_days)
-
     # All the days included in the input temperature dataset.
     for (row in 1:opt$num_days) {
         # Get the integer day of the year for the current row.
-        doy <- temperature_data_frame[row, 4]
+        doy <- temperature_data_frame$DOY[row]
         # Photoperiod in the day.
-        photoperiod <- temperature_data_frame[row, 7]
+        photoperiod <- temperature_data_frame$DAYLEN[row]
         temp.profile <- get_temperature_at_hour(latitude, temperature_data_frame, row, opt$num_days)
         mean.temp <- temp.profile[1]
         dd.temp <- temp.profile[2]
@@ -245,7 +239,6 @@ for (N.rep in 1:opt$replications) {
         death.vec <- NULL
         # Newborn.
         birth.vec <- NULL
-
         # All individuals.
         for (i in 1:n) {
             # Find individual record.
@@ -318,7 +311,6 @@ for (N.rep in 1:opt$replications) {
                         vec.mat[i,] <- vec.ind
                     }
                 }
-
                 # Event 2 oviposition -- where population dynamics comes from.
                 if (vec.ind[2] == 4 && vec.ind[1] == 0 && mean.temp > 10) {
                     # Vittelogenic stage, overwintering generation.
@@ -351,8 +343,7 @@ for (N.rep in 1:opt$replications) {
                         birth.vec <- rbind(birth.vec, new.vec)
                     }
                 }
-
-                # Event 2 oviposition -- for gen 1.
+                # Event 2 oviposition -- for generation 1.
                 if (vec.ind[2] == 4 && vec.ind[1] == 1 && mean.temp > 12.5 && doy < 222) {
                     # Vittelogenic stage, 1st generation
                     if (vec.ind[4] == 0) {
@@ -384,7 +375,6 @@ for (N.rep in 1:opt$replications) {
                         birth.vec <- rbind(birth.vec, new.vec)
                     }
                 }
-
                 # Event 3 development (with diapause determination).
                 # Event 3.1 egg development to young nymph (vec.ind[2]=0 -> egg).
                 if (vec.ind[2] == 0) {
@@ -403,7 +393,6 @@ for (N.rep in 1:opt$replications) {
                     }
                     vec.mat[i,] <- vec.ind
                 }
-
                 # Event 3.2 young nymph to old nymph (vec.ind[2]=1 -> young nymph: determines diapause).
                 if (vec.ind[2] == 1) {
                     # young nymph stage.
@@ -424,7 +413,6 @@ for (N.rep in 1:opt$replications) {
                     }
                     vec.mat[i,] <- vec.ind
                 }  
-
                 # Event 3.3 old nymph to adult: previttelogenic or diapausing?
                 if (vec.ind[2] == 2) {
                     # Old nymph stage.
@@ -448,7 +436,6 @@ for (N.rep in 1:opt$replications) {
                     }
                     vec.mat[i,] <- vec.ind
                 }
-
                 # Event 4 growing of diapausing adult (unimportant, but still necessary).
                 if (vec.ind[2] == 5) {
                     vec.ind[3] <- vec.ind[3] + dd.temp
@@ -457,7 +444,6 @@ for (N.rep in 1:opt$replications) {
                 }
             } # Else if it is still alive.
         } # End of the individual bug loop.
-
         # Find how many died.
         n.death <- length(death.vec)
         if (n.death > 0) {
@@ -538,8 +524,8 @@ for (N.rep in 1:opt$replications) {
 # Data analysis and visualization can currently
 # plot only within a single calendar year.
 # TODO: enhance this to accomodate multiple calendar years.
-start_date <- temperature_data_frame[1, 3]
-end_date <- temperature_data_frame[opt$num_days, 3]
+start_date <- temperature_data_frame$DATE[1]
+end_date <- temperature_data_frame$DATE[opt$num_days]
 
 n.yr <- 1
 day.all <- c(1:opt$num_days * n.yr)
@@ -590,7 +576,7 @@ pdf(file=opt$output, width=20, height=30, bg="white")
 par(mar = c(5, 6, 4, 4), mfrow=c(3, 1))
 
 # Subfigure 1: population size by life stage
-title <- paste("BSMB total population by life stage :", opt$location, ": Lat:", latitude, ":", start_date, "to", end_date, sep=" ")
+title <- paste(opt$insect, ": Total pop. by life stage :", opt$location, ": Lat:", latitude, ":", start_date, "-", end_date, sep=" ")
 plot(day.all, sa, main=title, type="l", ylim=c(0, max(se + se.se, sn + sn.se, sa + sa.se)), axes=F, lwd=2, xlab="", ylab="", cex=3, cex.lab=3, cex.axis=3, cex.main=3)
 # Young and old nymphs.
 lines(day.all, sn, lwd=2, lty=1, col=2)
@@ -614,7 +600,7 @@ if (opt$se_plot == 1) {
 }
 
 # Subfigure 2: population size by generation
-title <- paste("BSMB total population by generation :", opt$location, ": Lat:", latitude, ":", start_date, "to", end_date, sep=" ")
+title <- paste(opt$insect, ": Total pop. by generation :", opt$location, ": Lat:", latitude, ":", start_date, "-", end_date, sep=" ")
 plot(day.all, g0, main=title, type="l", ylim=c(0, max(g2)), axes=F, lwd=2, xlab="", ylab="", cex=3, cex.lab=3, cex.axis=3, cex.main=3)
 lines(day.all, g1, lwd = 2, lty = 1, col=2)
 lines(day.all, g2, lwd = 2, lty = 1, col=4)
@@ -636,7 +622,7 @@ if (opt$se_plot == 1) {
 }
 
 # Subfigure 3: adult population size by generation
-title <- paste("BSMB adult population by generation :", opt$location, ": Lat:", latitude, ":", start_date, "to", end_date, sep=" ")
+title <- paste(opt$insect, ": Adult pop. by generation :", opt$location, ": Lat:", latitude, ":", start_date, "-", end_date, sep=" ")
 plot(day.all, g0a, ylim=c(0, max(g2a) + 100), main=title, type="l", axes=F, lwd=2, xlab="", ylab="", cex=3, cex.lab=3, cex.axis=3, cex.main=3)
 lines(day.all, g1a, lwd = 2, lty = 1, col=2)
 lines(day.all, g2a, lwd = 2, lty = 1, col=4)
