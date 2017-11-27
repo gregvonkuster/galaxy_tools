@@ -168,7 +168,7 @@ create_track_db = function(input_dir_state, chrom_len_file, tracks_dir, hub_name
         }
         ii = ii[1];
         # trackDb.txt track entry.
-        track_db = c(track_db, paste(hub_name, "_track_", i, sep=""));
+        track_db = c(track_db, paste("hub ", hub_name, "_track_", i, sep=""));
         track_db = c(track_db, "type bigBed");
         track_db = c(track_db, paste("bigDataUrl", get_track_file_name(base_track_file_name, i, "bigbed"), sep=" "));
         track_db = c(track_db, paste("shortLabel", short_label, sep=" "));
@@ -194,16 +194,16 @@ if (length(opt$track_color) == 0) {
 contents <- c(paste("hub", opt$hub_name), paste("shortLabel",opt$short_label), paste("longLabel", opt$long_label), paste("genomesFile genomes.txt", sep=""), paste("email", opt$email));
 hub_dir <- paste(opt$output_trackhub_files_path, "/", "myHub", "/", sep="");
 dir.create(hub_dir, showWarnings=FALSE);
-hub_file_path <- paste(hub_dir, "hub.txt", sep="/");
+hub_file_path <- paste(hub_dir, "hub.txt", sep="");
 write.table(contents, file=hub_file_path, quote=F, row.names=F, col.names=F);
 
 # Create the genomes.txt output.
 contents <- c(paste("genome", opt$build), paste("trackDb ", opt$build, "/", "trackDb.txt", sep=""));
-genomes_file_path <- paste(opt$output_trackhub_files_path, "/", "genomes.txt", sep="");
+genomes_file_path <- paste(hub_dir, "genomes.txt", sep="");
 write.table(contents, file=genomes_file_path, quote=F, row.names=F, col.names=F);
 
 # Create the tracks.
-tracks_dir <- paste(opt$output_trackhub_files_path, "/", "tracks", "/", sep="");
+tracks_dir <- paste(hub_dir, opt$build, "/", sep="");
 dir.create(tracks_dir, showWarnings=FALSE);
 track_db <- create_track_db(opt$input_dir_state, opt$chrom_len_file, tracks_dir, opt$hub_name, opt$short_label, opt$long_label, track_color);
 
