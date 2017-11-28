@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<tool name="Temperature data" id="ipm_temperature_data" tool_type="data_source" version="1.0.0">
+    <description>(year-to-date) for insect phenology model</description>
+    <command detect_errors="exit_code"><![CDATA[
+python '$__tool_directory__/temperature.py'
+--datatypes_config '$__datatypes_config__'
+--galaxy_root '$__root_dir__'
+--latitude ${station.fields.latitude}
+--longitude ${station.fields.longitude}
+--output '$output']]></command>
+    <inputs action="http://www.pestwatch.psu.edu/minmax/" check_values="false" method="get" target="_top">
+        <display>go to PestWatch $GALAXY_URL</display>
+        <param name="GALAXY_URL" type="baseurl" value="/tool_runner/ipm_temperature_data" />
+    </inputs>
+    <request_param_translation>
+        <request_param galaxy_name="URL" remote_name="URL" missing="">
+            <append_param separator="&amp;" first_separator="?" join="=">
+                <value name="GALAXY_URL" missing="0" />
+            </append_param>
+        </request_param>
+        <request_param galaxy_name="latitude" remote_name="lat" missing="" />
+        <request_param galaxy_name="longitude" remote_name="lon" missing="" />
+    </request_param_translation>
+    <uihints minwidth="800"/>
+    <outputs>
+        <data name="output" format="csv" label="${tool.name}"/>
+    </outputs>
+    <options sanitize="False" refresh="True"/>
+</tool>
