@@ -1,0 +1,44 @@
+<tool id="linear_fascile_evaluation" name="Linear fascicle evaluation" version="0.13.0">
+    <description>(LiFE) for tractography results</description>
+    <requirements>
+        <requirement type="package" version="0.13.0">dipy</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+python '$__tool_directory__/linear_fascile_evaluation.py'
+--candidates '$candidates'
+--output_life_candidates '$output_life_candidates'
+--output_life_optimized '$output_life_optimized'
+--output_error_histograms '$output_error_histograms'
+--output_beta_histogram '$output_beta_histogram'
+--output_spatial_errors 'output_spatial_errors'
+    ]]></command>
+    <inputs>
+        <param name="candidates" type="select" label="Candidates">
+            <option value="lr-superiorfrontal.trk" selected="true">lr-superiorfrontal.trk</option>
+        </param>
+    </inputs>
+    <outputs>
+        <data name="output_spatial_errors" format="png" label="${tool.name}: Spatial Errors" />
+        <data name="output_beta_histogram" format="png" label="${tool.name}: Beta Histogram" />
+        <data name="output_error_histograms" format="png" label="${tool.name}: Error Histograms" />
+        <data name="output_life_optimized" format="png" label="${tool.name}: LiFE Optimized Streamlines" />
+        <data name="output_life_candidates" format="png" label="${tool.name}: LiFE Candidates" />
+    </outputs>
+    <tests>
+        <test>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+Uses a forward model that predicts the signal from each of a set of streamlines, and fits a
+linear model to these simultaneous predictions for evaluation of tractography results.
+
+-----
+
+**Options**
+
+    </help>
+    <citations>
+    </citations>
+</tool>
