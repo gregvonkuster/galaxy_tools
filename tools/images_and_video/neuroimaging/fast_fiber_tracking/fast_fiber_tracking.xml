@@ -1,0 +1,42 @@
+<tool id="fast_fiber_tracking" name="Fiber tracking" version="0.13.0">
+    <description>using constrained spherical deconvolution </description>
+    <requirements>
+        <requirement type="package" version="0.13.0">dipy</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+python '$__tool_directory__/fast_fiber_tracking.py'
+--drmi_dataset $drmi_dataset
+--output_csd_direction_field '$output_csd_direction_field'
+--output_det_streamlines '$output_det_streamlines'
+--output_fa_map '$output_fa_map'
+    ]]></command>
+    <inputs>
+        <param name="drmi_dataset" type="select" label="dRMI dataset">
+            <option value="stanford_hardi" selected="true">stanford_hardi</option>
+            <option value="sherbrooke_3shell">sherbrooke_3shell</option>
+        </param>
+    </inputs>
+    <outputs>
+        <data name="output_csd_direction_field" format="png" label="${tool.name}: CSD direction field" />
+        <data name="output_det_streamlines" format="png" label="${tool.name}: streamlines" />
+        <data name="output_fa_map" format="nifti1" label="${tool.name}: fractional anisotropic" />
+    </outputs>
+    <tests>
+        <test>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+Performs fast fiber tracking using constrained spherical deconvolution (CSD) for local reconstruction and generates
+deterministic streamlines using the fiber directions (peaks) from CSD and fractional anisotropic (FA) from DTI as a
+stopping criteria for the tracking.
+
+-----
+
+**Options**
+
+    </help>
+    <citations>
+    </citations>
+</tool>
