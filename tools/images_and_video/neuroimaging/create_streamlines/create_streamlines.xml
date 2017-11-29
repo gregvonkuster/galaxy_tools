@@ -7,9 +7,6 @@
 python '$__tool_directory__/create_streamlines.py'
 --output_trackvis_header '$output_trackvis_header'
 --output_superiorfrontal_nifti '$output_superiorfrontal_nifti'
---output_connectivity '$output_connectivity'
---output_corpuscallosum_sagittal '$output_corpuscallosum_sagittal'
---output_corpuscallosum_axial 'output_corpuscallosum_axial'
     ]]></command>
     <inputs>
         <param name="drmi_dataset" type="select" label="dRMI dataset">
@@ -17,9 +14,6 @@ python '$__tool_directory__/create_streamlines.py'
         </param>
     </inputs>
     <outputs>
-        <data name="output_corpuscallosum_axial" format="png" label="${tool.name}: Corpuscallosum Axial" />
-        <data name="output_corpuscallosum_sagittal" format="png" label="${tool.name}: Corpuscallosum Sagittal" />
-        <data name="output_connectivity" format="png" label="${tool.name}: Connectivity" />
         <data name="output_superiorfrontal_nifti" format="nifti1" label="${tool.name}: Superiorfrontal" />
         <data name="output_trackvis_header" format="txt" label="${tool.name}: Superiorfrontal Track Visualization Header" />
     </outputs>

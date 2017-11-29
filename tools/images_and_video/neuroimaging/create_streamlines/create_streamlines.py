@@ -17,9 +17,6 @@ import numpy as np
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--drmi_dataset', dest='drmi_dataset', help='Input dataset')
-parser.add_argument('--output_corpuscallosum_axial', dest='output_corpuscallosum_axial', help='Output corpuscallosum axial dataset')
-parser.add_argument('--output_corpuscallosum_sagittal', dest='output_corpuscallosum_sagittal', help='Output corpuscallosum sagittal dataset')
-parser.add_argument('--output_connectivity', dest='output_connectivity', help='Output connectivity dataset')
 parser.add_argument('--output_superiorfrontal_nifti', dest='output_superiorfrontal_nifti', help='Output superiorfrontal nifti1 dataset')
 parser.add_argument('--output_trackvis_header', dest='output_trackvis_header', help='Output superiorfrontal track visualization header dataset')
 
@@ -30,9 +27,9 @@ data = hardi_img.get_data()
 labels = labels_img.get_data()
 
 # For possible later use: if args.drmi_dataset == 'stanford_t1':
-fetch_stanford_t1()
-t1 = read_stanford_t1()
-t1_data = t1.get_data()
+#fetch_stanford_t1()
+#t1 = read_stanford_t1()
+#t1_data = t1.get_data()
 white_matter = (labels == 1) | (labels == 2)
 csamodel = shm.CsaOdfModel(gtab, 6)
 csapeaks = peaks.peaks_from_model(model=csamodel, data=data, sphere=peaks.default_sphere, relative_peak_threshold=.8, min_separation_angle=45, mask=white_matter)
@@ -43,35 +40,35 @@ streamlines = list(streamline_generator)
 cc_slice = labels == 2
 cc_streamlines = utils.target(streamlines, cc_slice, affine=affine)
 cc_streamlines = list(cc_streamlines)
-other_streamlines = utils.target(streamlines, cc_slice, affine=affine, include=False)
-other_streamlines = list(other_streamlines)
-assert len(other_streamlines) + len(cc_streamlines) == len(streamlines)
-# Make display objects
-color = line_colors(cc_streamlines)
-cc_streamlines_actor = fvtk.line(cc_streamlines, line_colors(cc_streamlines))
-cc_ROI_actor = fvtk.contour(cc_slice, levels=[1], colors=[(1., 1., 0.)], opacities=[1.])
-vol_actor = fvtk.slicer(t1_data)
-vol_actor.display(40, None, None)
-vol_actor2 = vol_actor.copy()
-vol_actor2.display(None, None, 35)
-# Add display objects to canvas
-r = fvtk.ren()
-fvtk.add(r, vol_actor)
-fvtk.add(r, vol_actor2)
-fvtk.add(r, cc_streamlines_actor)
-fvtk.add(r, cc_ROI_actor)
-# Save figures
-fvtk.record(r, n_frames=1, out_path="corpuscallosum_axial.png", size=(800, 800))
-shutil.move("corpuscallosum_axial.png", args.output_corpuscallosum_axial)
-fvtk.camera(r, [-1, 0, 0], [0, 0, 0], viewup=[0, 0, 1])
-fvtk.record(r, n_frames=1, out_path="corpuscallosum_sagittal.png", size=(800, 800))
-shutil.move("corpuscallosum_sagittal.png", args.output_corpuscallosum_sagittal)
+#other_streamlines = utils.target(streamlines, cc_slice, affine=affine, include=False)
+#other_streamlines = list(other_streamlines)
+#assert len(other_streamlines) + len(cc_streamlines) == len(streamlines)
+## Make display objects
+#color = line_colors(cc_streamlines)
+#cc_streamlines_actor = fvtk.line(cc_streamlines, line_colors(cc_streamlines))
+#cc_ROI_actor = fvtk.contour(cc_slice, levels=[1], colors=[(1., 1., 0.)], opacities=[1.])
+#vol_actor = fvtk.slicer(t1_data)
+#vol_actor.display(40, None, None)
+#vol_actor2 = vol_actor.copy()
+#vol_actor2.display(None, None, 35)
+## Add display objects to canvas
+#r = fvtk.ren()
+#fvtk.add(r, vol_actor)
+#fvtk.add(r, vol_actor2)
+#fvtk.add(r, cc_streamlines_actor)
+#fvtk.add(r, cc_ROI_actor)
+## Save figures
+#fvtk.record(r, n_frames=1, out_path="corpuscallosum_axial.png", size=(800, 800))
+#shutil.move("corpuscallosum_axial.png", args.output_corpuscallosum_axial)
+#fvtk.camera(r, [-1, 0, 0], [0, 0, 0], viewup=[0, 0, 1])
+#fvtk.record(r, n_frames=1, out_path="corpuscallosum_sagittal.png", size=(800, 800))
+#shutil.move("corpuscallosum_sagittal.png", args.output_corpuscallosum_sagittal)
 M, grouping = utils.connectivity_matrix(cc_streamlines, labels, affine=affine, return_mapping=True, mapping_as_streamlines=True)
-M[:3, :] = 0
-M[:, :3] = 0
-plt.imshow(np.log1p(M), interpolation='nearest')
-plt.savefig("connectivity.png")
-shutil.move("connectivity.png", args.output_connectivity)
+#M[:3, :] = 0
+#M[:, :3] = 0
+#plt.imshow(np.log1p(M), interpolation='nearest')
+#plt.savefig("connectivity.png")
+#shutil.move("connectivity.png", args.output_connectivity)
 lr_superiorfrontal_track = grouping[11, 54]
 shape = labels.shape
 dm = utils.density_map(lr_superiorfrontal_track, shape, affine=affine)
