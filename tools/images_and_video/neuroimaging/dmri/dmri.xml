@@ -8,6 +8,7 @@ python '$__tool_directory__/dmri.py'
 --drmi_dataset $drmi_dataset
 --output_png '$output_png'
 --output_nifti1 '$output_nifti1'
+&>/dev/null
     ]]></command>
     <inputs>
         <param name="drmi_dataset" type="select" label="dRMI dataset">

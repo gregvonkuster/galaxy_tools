@@ -9,6 +9,7 @@ python '$__tool_directory__/fast_fiber_tracking.py'
 --output_csd_direction_field '$output_csd_direction_field'
 --output_det_streamlines '$output_det_streamlines'
 --output_fa_map '$output_fa_map'
+&>/dev/null
     ]]></command>
     <inputs>
         <param name="drmi_dataset" type="select" label="dRMI dataset">

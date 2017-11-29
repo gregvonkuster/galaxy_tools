@@ -13,6 +13,7 @@ python '$__tool_directory__/diffusion_signal_reconstruction.py'
 --output_png_ellipsoids '$output_png_ellipsoids'
 --output_png_middle_axial_slice '$output_png_middle_axial_slice'
 --output_png_odfs '$output_png_odfs'
+&>/dev/null
     ]]></command>
     <inputs>
         <param name="drmi_dataset" type="select" label="dRMI dataset">

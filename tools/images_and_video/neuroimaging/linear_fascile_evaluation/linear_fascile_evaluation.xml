@@ -5,23 +5,20 @@
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
 python '$__tool_directory__/linear_fascile_evaluation.py'
---candidates '$candidates'
+--input '$input'
 --output_life_candidates '$output_life_candidates'
---output_life_optimized '$output_life_optimized'
 --output_error_histograms '$output_error_histograms'
 --output_beta_histogram '$output_beta_histogram'
 --output_spatial_errors 'output_spatial_errors'
+&>/dev/null
     ]]></command>
     <inputs>
-        <param name="candidates" type="select" label="Candidates">
-            <option value="lr-superiorfrontal.trk" selected="true">lr-superiorfrontal.trk</option>
-        </param>
+        <param name="input" format="trackvis" type="data" label="Track Visualization Header"/>
     </inputs>
     <outputs>
         <data name="output_spatial_errors" format="png" label="${tool.name}: Spatial Errors" />
         <data name="output_beta_histogram" format="png" label="${tool.name}: Beta Histogram" />
         <data name="output_error_histograms" format="png" label="${tool.name}: Error Histograms" />
-        <data name="output_life_optimized" format="png" label="${tool.name}: LiFE Optimized Streamlines" />
         <data name="output_life_candidates" format="png" label="${tool.name}: LiFE Candidates" />
     </outputs>
     <tests>

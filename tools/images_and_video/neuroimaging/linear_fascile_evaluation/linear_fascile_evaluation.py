@@ -1,22 +1,25 @@
 #!/usr/bin/env python
 import argparse
-import numpy as np
-import os.path as op
-import nibabel as nib
+import shutil
+
 import dipy.core.optimize as opt
 import dipy.tracking.life as life
-import matplotlib.pyplot as plt
-import matplotlib
-
-from dipy.viz.colormap import line_colors
+from dipy.data import fetch_stanford_t1, read_stanford_labels, read_stanford_t1
 from dipy.viz import fvtk
+from dipy.viz.colormap import line_colors
+
+import matplotlib
+import matplotlib.pyplot as plt
+
 from mpl_toolkits.axes_grid1 import AxesGrid
-from dipy.data import read_stanford_labels, fetch_stanford_t1, read_stanford_t1
+
+import nibabel as nib
+
+import numpy as np
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--candidates', dest='candidates', help='Candidates selection')
+parser.add_argument('--input', dest='input', help='Track Visualization Header dataset')
 parser.add_argument('--output_life_candidates', dest='output_life_candidates', help='Output life candidates')
-parser.add_argument('--output_life_optimized', dest='output_life_optimized', help='Output life optimized streamlines')
 parser.add_argument('--output_beta_histogram', dest='output_beta_histogram', help='Output beta histogram')
 parser.add_argument('--output_error_histograms', dest='output_error_histograms', help='Output error histograms')
 parser.add_argument('--output_spatial_errors', dest='output_spatial_errors', help='Output spatial errors')
@@ -33,7 +36,7 @@ t1_data = t1.get_data()
 data = hardi_img.get_data()
 
 # Read the candidates from file in voxel space:
-candidate_sl = [s[0] for s in nib.trackvis.read(args.candidates, points_space='voxel')[0]]
+candidate_sl = [s[0] for s in nib.trackvis.read(args.input, points_space='voxel')[0]]
 # Visualize the initial candidate group of streamlines
 # in 3D, relative to the anatomical structure of this brain.
 candidate_streamlines_actor = fvtk.streamtube(candidate_sl, line_colors(candidate_sl))
@@ -56,21 +59,6 @@ fiber_model = life.FiberModel(gtab)
 # that stores the data, as well as the results of the
 # fitting procedure.
 fiber_fit = fiber_model.fit(data, candidate_sl, affine=np.eye(4))
-fig, ax = plt.subplots(1)
-ax.hist(fiber_fit.beta, bins=100, histtype='step')
-ax.set_xlabel('Fiber weights')
-ax.set_ylabel('# fibers')
-fig.savefig("beta_histogram.png")
-shutil.move("beta_histogram.png", args.output_beta_histogram)
-# Filter out these redundant streamlines and
-# generate an optimized group of streamlines.
-optimized_sl = list(np.array(candidate_sl)[np.where(fiber_fit.beta>0)[0]])
-ren = fvtk.ren()
-fvtk.add(ren, fvtk.streamtube(optimized_sl, line_colors(optimized_sl)))
-fvtk.add(ren, cc_ROI_actor)
-fvtk.add(ren, vol_actor)
-fvtk.record(ren, n_frames=1, out_path="optimized.png", size=(800, 800))
-shutil.move("optimized.png", args.output_life_optimized)
 model_predict = fiber_fit.predict()
 # Focus on the error in prediction of the diffusion-weighted
 # data, and calculate the root of the mean squared error.
@@ -93,8 +81,8 @@ mean_rmse = np.sqrt(np.mean(mean_error ** 2, -1))
 # between these two alternative models of the ROI.
 fig, ax = plt.subplots(1)
 ax.hist(mean_rmse - model_rmse, bins=100, histtype='step')
-ax.text(0.2, 0.9,'Median RMSE, mean model: %.2f' % np.median(mean_rmse), horizontalalignment='left', verticalalignment='center', transform=ax.transAxes)
-ax.text(0.2, 0.8,'Median RMSE, LiFE: %.2f' % np.median(model_rmse), horizontalalignment='left', verticalalignment='center', transform=ax.transAxes)
+ax.text(0.2, 0.9, 'Median RMSE, mean model: %.2f' % np.median(mean_rmse), horizontalalignment='left', verticalalignment='center', transform=ax.transAxes)
+ax.text(0.2, 0.8, 'Median RMSE, LiFE: %.2f' % np.median(model_rmse), horizontalalignment='left', verticalalignment='center', transform=ax.transAxes)
 ax.set_xlabel('RMS Error')
 ax.set_ylabel('# voxels')
 fig.savefig("error_histograms.png")
@@ -110,7 +98,7 @@ vol_improve[fiber_fit.vox_coords[:, 0], fiber_fit.vox_coords[:, 1], fiber_fit.vo
 sl_idx = 49
 fig = plt.figure()
 fig.subplots_adjust(left=0.05, right=0.95)
-ax = AxesGrid(fig, 111, nrows_ncols = (1, 3), label_mode = "1", share_all = True, cbar_location="top", cbar_mode="each", cbar_size="10%", cbar_pad="5%")
+ax = AxesGrid(fig, 111, nrows_ncols=(1, 3), label_mode="1", share_all=True, cbar_location="top", cbar_mode="each", cbar_size="10%", cbar_pad="5%")
 ax[0].matshow(np.rot90(t1_data[sl_idx, :, :]), cmap=matplotlib.cm.bone)
 im = ax[0].matshow(np.rot90(vol_model[sl_idx, :, :]), cmap=matplotlib.cm.hot)
 ax.cbar_axes[0].colorbar(im)

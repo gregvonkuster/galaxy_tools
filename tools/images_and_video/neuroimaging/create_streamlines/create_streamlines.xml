@@ -7,6 +7,7 @@
 python '$__tool_directory__/create_streamlines.py'
 --output_trackvis_header '$output_trackvis_header'
 --output_superiorfrontal_nifti '$output_superiorfrontal_nifti'
+&>/dev/null
     ]]></command>
     <inputs>
         <param name="drmi_dataset" type="select" label="dRMI dataset">
@@ -15,7 +16,7 @@ python '$__tool_directory__/create_streamlines.py'
     </inputs>
     <outputs>
         <data name="output_superiorfrontal_nifti" format="nifti1" label="${tool.name}: Superiorfrontal" />
-        <data name="output_trackvis_header" format="txt" label="${tool.name}: Superiorfrontal Track Visualization Header" />
+        <data name="output_trackvis_header" format="trackvis" label="${tool.name}: Superiorfrontal Track Visualization Header" />
     </outputs>
     <tests>
         <test>
