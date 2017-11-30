@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import argparse
+import os
 import shutil
 
 from dipy.data import fetch_sherbrooke_3shell
@@ -20,23 +21,38 @@ from dipy.viz import actor, window
 import numpy as np
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--drmi_dataset', dest='drmi_dataset', help='Input dataset')
+parser.add_argument('--input', dest='input', help='Input dataset')
+parser.add_argument('--input_extra_files_path', dest='input_extra_files_path', help='Input dataset extra files paths')
 parser.add_argument('--output_csd_direction_field', dest='output_csd_direction_field', help='Output csd direction field dataset')
 parser.add_argument('--output_det_streamlines', dest='output_det_streamlines', help='Output det streamlines dataset')
 parser.add_argument('--output_fa_map', dest='output_fa_map', help='Output fa map dataset')
+parser.add_argument('--output_fa_map_files_path', dest='output_fa_map_files_path', help='Output fa map extra files path')
 
 args = parser.parse_args()
+
+def move_directory_files(source_dir, destination_dir, copy=False, remove_source_dir=False):
+    source_directory = os.path.abspath(source_dir)
+    destination_directory = os.path.abspath(destination_dir)
+    if not os.path.isdir(destination_directory):
+        os.makedirs(destination_directory)
+    for dir_entry in os.listdir(source_directory):
+        source_entry = os.path.join(source_directory, dir_entry)
+        if copy:
+            shutil.copy(source_entry, destination_directory)
+        else:
+            shutil.move(source_entry, destination_directory)
+    if remove_source_dir:
+        os.rmdir(source_directory)
 
 interactive = False
 
 # Get input data.
-input_dir = args.drmi_dataset
-if input_dir == 'sherbrooke_3shell':
-    fetch_sherbrooke_3shell()
-    img, gtab = read_sherbrooke_3shell()
-elif input_dir == 'stanford_hardi':
-    fetch_stanford_hardi()
-    img, gtab = read_stanford_hardi()
+# TODO: do not hard-code 'stanford_hardi'
+input_dir = 'stanford_hardi'
+os.mkdir(input_dir)
+for f in os.listdir(args.input_extra_files_path):
+    shutil.copy(os.path.join(args.input_extra_files_path, f), input_dir)
+img, gtab = read_stanford_hardi()
 
 data = img.get_data()
 maskdata, mask = median_otsu(data, 3, 1, False, vol_idx=range(10, 50), dilate=2)
@@ -68,3 +84,4 @@ shutil.move('det_streamlines.png', args.output_det_streamlines)
 
 save_nifti('fa_map.nii', fa, img.affine)
 shutil.move('fa_map.nii', args.output_fa_map)
+move_directory_files(input_dir, args.output_fa_map_files_path, copy=True)

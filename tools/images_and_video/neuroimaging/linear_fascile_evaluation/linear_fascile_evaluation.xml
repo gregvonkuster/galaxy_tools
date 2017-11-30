@@ -5,12 +5,18 @@
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
 python '$__tool_directory__/linear_fascile_evaluation.py'
---input '$input'
+--input_nifti1 '$input_nifti1'
+--input_nifti1_files_path '$input_nifti1.extra_files_path'
+--input_nifti2 '$input_nifti2'
+--input_nifti2_files_path '$input_nifti2.extra_files_path'
+--input_trackvis '$input_trackvis'
 --output_life_candidates '$output_life_candidates'
 &>/dev/null
     ]]></command>
     <inputs>
-        <param name="input" format="trackvis" type="data" label="Track Visualization Header"/>
+        <param name="input_nifti1" format="nifti1" type="data" label="dRMI dataset"/>
+        <param name="input_nifti2" format="nifti1" type="data" label="dRMI dataset and label map"/>
+        <param name="input_trackvis" format="trackvis" type="data" label="Track Visualization Header"/>
     </inputs>
     <outputs>
         <data name="output_life_candidates" format="png" label="${tool.name}: LiFE Candidates" />

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import argparse
+import os
 import shutil
 
 from dipy.data import fetch_sherbrooke_3shell
@@ -19,25 +20,43 @@ import numpy
 
 # http://nipy.org/dipy/examples_built/reconst_dti.html#example-reconst-dti
 parser = argparse.ArgumentParser()
-parser.add_argument('--drmi_dataset', dest='drmi_dataset', help='Input dataset')
+parser.add_argument('--input', dest='input', help='Input dataset')
+parser.add_argument('--input_extra_files_path', dest='input_extra_files_path', help='Input dataset extra files path')
 parser.add_argument('--output_nifti1_fa', dest='output_nifti1_fa', help='Output fractional anisotropy Nifti1 dataset')
+parser.add_argument('--output_nifti1_fa_files_path', dest='output_nifti1_fa_files_path', help='Output fractional anisotropy Nifti1 extra files path')
 parser.add_argument('--output_nifti1_evecs', dest='output_nifti1_evecs', help='Output eigen vectors Nifti1 dataset')
+parser.add_argument('--output_nifti1_evecs_files_path', dest='output_nifti1_evecs_files_path', help='Output eigen vectors Nifti1 extra files path')
 parser.add_argument('--output_nifti1_md', dest='output_nifti1_md', help='Output mean diffusivity Nifti1 dataset')
+parser.add_argument('--output_nifti1_md_files_path', dest='output_nifti1_md_files_path', help='Output mean diffusivity Nifti1 extra files path')
 parser.add_argument('--output_nifti1_rgb', dest='output_nifti1_rgb', help='Output RGB-map Nifti1 dataset')
+parser.add_argument('--output_nifti1_rgb_files_path', dest='output_nifti1_rgb_files_path', help='Output RGB-map Nifti1 extra files path')
 parser.add_argument('--output_png_ellipsoids', dest='output_png_ellipsoids', help='Output ellipsoids PNG dataset')
 parser.add_argument('--output_png_odfs', dest='output_png_odfs', help='Output orientation distribution functions PNG dataset')
 parser.add_argument('--output_png_middle_axial_slice', dest='output_png_middle_axial_slice', help='Output middle axial slice PNG dataset')
 
 args = parser.parse_args()
 
+def move_directory_files(source_dir, destination_dir, copy=False, remove_source_dir=False):
+    source_directory = os.path.abspath(source_dir)
+    destination_directory = os.path.abspath(destination_dir)
+    if not os.path.isdir(destination_directory):
+        os.makedirs(destination_directory)
+    for dir_entry in os.listdir(source_directory):
+        source_entry = os.path.join(source_directory, dir_entry)
+        if copy:
+            shutil.copy(source_entry, destination_directory)
+        else:
+            shutil.move(source_entry, destination_directory)
+    if remove_source_dir:
+        os.rmdir(source_directory)
+
 # Get input data.
-input_dir = args.drmi_dataset
-if input_dir == 'sherbrooke_3shell':
-    fetch_sherbrooke_3shell()
-    img, gtab = read_sherbrooke_3shell()
-elif input_dir == 'stanford_hardi':
-    fetch_stanford_hardi()
-    img, gtab = read_stanford_hardi()
+# TODO: do not hard-code 'stanford_hardi'
+input_dir = 'stanford_hardi'
+os.mkdir(input_dir)
+for f in os.listdir(args.input_extra_files_path):
+    shutil.copy(os.path.join(args.input_extra_files_path, f), input_dir)
+img, gtab = read_stanford_hardi()
 
 data = img.get_data()
 maskdata, mask = median_otsu(data, 3, 1, True, vol_idx=range(10, 50), dilate=2)
@@ -58,19 +77,23 @@ fa[numpy.isnan(fa)] = 0
 fa_img = nibabel.Nifti1Image(fa.astype(numpy.float32), img.affine)
 nibabel.save(fa_img, 'output_fa.nii')
 shutil.move('output_fa.nii', args.output_nifti1_fa)
+move_directory_files(input_dir, args.output_nifti1_fa_files_path, copy=True)
 
 evecs_img = nibabel.Nifti1Image(tenfit.evecs.astype(numpy.float32), img.affine)
 nibabel.save(evecs_img, 'output_evecs.nii')
 shutil.move('output_evecs.nii', args.output_nifti1_evecs)
+move_directory_files(input_dir, args.output_nifti1_evecs_files_path, copy=True)
 
 md1 = dti.mean_diffusivity(tenfit.evals)
 nibabel.save(nibabel.Nifti1Image(md1.astype(numpy.float32), img.affine), 'output_md.nii')
 shutil.move('output_md.nii', args.output_nifti1_md)
+move_directory_files(input_dir, args.output_nifti1_md_files_path, copy=True)
 
 fa = numpy.clip(fa, 0, 1)
 rgb = color_fa(fa, tenfit.evecs)
 nibabel.save(nibabel.Nifti1Image(numpy.array(255 * rgb, 'uint8'), img.affine), 'output_rgb.nii')
 shutil.move('output_rgb.nii', args.output_nifti1_rgb)
+move_directory_files(input_dir, args.output_nifti1_rgb_files_path, copy=True)
 
 sphere = get_sphere('symmetric724')
 ren = fvtk.ren()

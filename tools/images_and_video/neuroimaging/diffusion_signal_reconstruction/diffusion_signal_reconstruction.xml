@@ -5,21 +5,23 @@
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
 python '$__tool_directory__/diffusion_signal_reconstruction.py'
---drmi_dataset $drmi_dataset
+--input $input
+--input_extra_files_path '$input.extra_files_path'
 --output_nifti1_evecs '$output_nifti1_evecs'
+--output_nifti1_evecs_files_path '$output_nifti1_evecs.files_path'
 --output_nifti1_fa '$output_nifti1_fa'
+--output_nifti1_fa_files_path '$output_nifti1_fa.files_path'
 --output_nifti1_md '$output_nifti1_md'
+--output_nifti1_md_files_path '$output_nifti1_md.files_path'
 --output_nifti1_rgb '$output_nifti1_rgb'
+--output_nifti1_rgb_files_path '$output_nifti1_rgb.files_path'
 --output_png_ellipsoids '$output_png_ellipsoids'
 --output_png_middle_axial_slice '$output_png_middle_axial_slice'
 --output_png_odfs '$output_png_odfs'
 &>/dev/null
     ]]></command>
     <inputs>
-        <param name="drmi_dataset" type="select" label="dRMI dataset">
-            <option value="stanford_hardi" selected="true">stanford_hardi</option>
-            <option value="sherbrooke_3shell">sherbrooke_3shell</option>
-        </param>
+        <param name="input" type="data" format="nifti1" label="dRMI dataset"/>
     </inputs>
     <outputs>
         <data name="output_nifti1_evecs" format="nifti1" label="${tool.name}: eigen vectors" />

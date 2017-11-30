@@ -5,20 +5,34 @@
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
 python '$__tool_directory__/dmri.py'
+--drmi_dataset_type '$drmi_dataset_type_cond.drmi_dataset_type'
 --drmi_dataset $drmi_dataset
---output_png '$output_png'
+#if str($drmi_dataset) == "stanford_hardi":
+    --output_png '$output_png'
+#end if
 --output_nifti1 '$output_nifti1'
+--output_nifti1_extra_files '$output_nifti1.files_path'
 &>/dev/null
     ]]></command>
     <inputs>
+        <conditional name="drmi_dataset_type_cond">
+            <param name="drmi_dataset_type" type="select" label="Select download type">
+                <option value="dataset" selected="true">Dataset only</option>
+                <option value="dataset and label map">Dataset and label map</option>
+            </param>
+            <when option="dataset"/>
+            <when option="map"/>
+        </conditional>
         <param name="drmi_dataset" type="select" label="dRMI dataset">
-            <option value="sherbrooke_3shell" selected="true">sherbrooke_3shell</option>
-            <option value="stanford_hardi">stanford_hardi</option>
+            <option value="stanford_hardi" selected="true">stanford_hardi</option>
+            <option value="stanford_t1">stanford_t1</option>
         </param>
     </inputs>
     <outputs>
-        <data name="output_png" format="png" label="${tool.name}: middle axial slice without (left) and with (right) diffusion weighting" />
-        <data name="output_nifti1" format="nifti1" label="${tool.name}: Nifti1 image" />
+        <data name="output_png" format="png" label="${tool.name}: middle axial slice without (left) and with (right) diffusion weighting">
+            <filter>drmi_dataset == 'stanford_hardi'</filter>
+        </data>
+        <data name="output_nifti1" format="nifti1" label="dRMI dataset $drmi_dataset: ($drmi_dataset_type_cond['drmi_dataset_type']) Nifti1 image" />
     </outputs>
     <tests>
         <test>

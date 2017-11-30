@@ -5,14 +5,15 @@
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
 python '$__tool_directory__/create_streamlines.py'
+--input $input
+--input_extra_files_path '$input.extra_files_path'
 --output_trackvis_header '$output_trackvis_header'
 --output_superiorfrontal_nifti '$output_superiorfrontal_nifti'
+--output_superiorfrontal_nifti_files_path '$output_superiorfrontal_nifti.files_path'
 &>/dev/null
     ]]></command>
     <inputs>
-        <param name="drmi_dataset" type="select" label="dRMI dataset">
-            <option value="stanford_t1" selected="true">stanford_t1</option>
-        </param>
+        <param name="input" type="data" format="nifti1" label="dRMI dataset and label map"/>
     </inputs>
     <outputs>
         <data name="output_superiorfrontal_nifti" format="nifti1" label="${tool.name}: Superiorfrontal" />
