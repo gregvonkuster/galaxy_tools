@@ -18,7 +18,7 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
 -p $oviposition
 -q $photoperiod
 -s $replications
--t $se_plot
+-t $std_error_plot
 -v '$input'
 -y $young_nymph_accum
 -x '$insect']]></command>
@@ -39,7 +39,7 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
         <param name="young_nymph_accum" type="integer" value="0" min="0" label="Adjustment of DD accumulation (egg->young nymph)" />
         <param name="old_nymph_accum" type="integer" value="0" min="0" label="Adjustment of DD accumulation (young nymph->old nymph)" />
         <param name="adult_accum" type="integer" value="0" min="0" label="Adjustment of DD accumulation (old nymph->adult)" />
-        <param name="se_plot" type="select" label="Plot SE?">
+        <param name="std_error_plot" type="select" label="Plot standard error?">
             <option value="1" selected="True">Yes</option>
             <option value="0">No</option>
         </param>

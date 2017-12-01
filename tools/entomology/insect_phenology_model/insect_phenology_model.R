@@ -4,21 +4,21 @@ suppressPackageStartupMessages(library("optparse"))
 
 option_list <- list(
     make_option(c("-a", "--adult_mort"), action="store", dest="adult_mort", type="integer", help="Adjustment rate for adult mortality"),
-    make_option(c("-b", "--adult_accum"), action="store", dest="adult_accum", type="integer", help="Adjustment of DD accumulation (old nymph->adult)"),
+    make_option(c("-b", "--adult_accum"), action="store", dest="adult_accum", type="integer", help="Adjustment of degree-days accumulation (old nymph->adult)"),
     make_option(c("-c", "--egg_mort"), action="store", dest="egg_mort", type="integer", help="Adjustment rate for egg mortality"),
     make_option(c("-e", "--location"), action="store", dest="location", help="Selected location"),
     make_option(c("-f", "--min_clutch_size"), action="store", dest="min_clutch_size", type="integer", help="Adjustment of minimum clutch size"),
     make_option(c("-i", "--max_clutch_size"), action="store", dest="max_clutch_size", type="integer", help="Adjustment of maximum clutch size"),
     make_option(c("-j", "--nymph_mort"), action="store", dest="nymph_mort", type="integer", help="Adjustment rate for nymph mortality"),
-    make_option(c("-k", "--old_nymph_accum"), action="store", dest="old_nymph_accum", type="integer", help="Adjustment of DD accumulation (young nymph->old nymph)"),
+    make_option(c("-k", "--old_nymph_accum"), action="store", dest="old_nymph_accum", type="integer", help="Adjustment of degree-days accumulation (young nymph->old nymph)"),
     make_option(c("-n", "--num_days"), action="store", dest="num_days", type="integer", help="Total number of days in the temperature dataset"),
     make_option(c("-o", "--output"), action="store", dest="output", help="Output dataset"),
     make_option(c("-p", "--oviposition"), action="store", dest="oviposition", type="integer", help="Adjustment for oviposition rate"),
     make_option(c("-q", "--photoperiod"), action="store", dest="photoperiod", type="double", help="Critical photoperiod for diapause induction/termination"),
     make_option(c("-s", "--replications"), action="store", dest="replications", type="integer", help="Number of replications"),
-    make_option(c("-t", "--se_plot"), action="store", dest="se_plot", help="Plot SE"),
+    make_option(c("-t", "--std_error_plot"), action="store", dest="std_error_plot", help="Plot Standard error"),
     make_option(c("-v", "--input"), action="store", dest="input", help="Temperature data for selected location"),
-    make_option(c("-y", "--young_nymph_accum"), action="store", dest="young_nymph_accum", type="integer", help="Adjustment of DD accumulation (egg->young nymph)"),
+    make_option(c("-y", "--young_nymph_accum"), action="store", dest="young_nymph_accum", type="integer", help="Adjustment of degree-days accumulation (egg->young nymph)"),
     make_option(c("-x", "--insect"), action="store", dest="insect", help="Insect name")
 )
 
@@ -77,9 +77,9 @@ get_temperature_at_hour = function(latitude, temperature_data_frame, row, num_da
     # Mean temperature for current row.
     dmean <- 0.5 * (dnp + dxp)
     # Initialize degree day accumulation
-    dd <- 0
+    degree_days <- 0
     if (dxp < threshold) {
-        dd <- 0
+        degree_days <- 0
     }
     else {
         # Initialize hourly temperature.
@@ -132,9 +132,9 @@ get_temperature_at_hour = function(latitude, temperature_data_frame, row, num_da
                 }
             }
         }
-        dd <- sum(dh) / 24
+        degree_days <- sum(dh) / 24
     }
-    return(c(dmean, dd))
+    return(c(dmean, degree_days))
 }
 
 dev.egg = function(temperature) {
@@ -209,11 +209,11 @@ newborn.rep <- death.rep <- adult.rep <- pop.rep <- g0.rep <- g1.rep <- g2.rep <
 for (N.rep in 1:opt$replications) {
     # During each replication start with 1000 individuals.
     # TODO: user definable as well?
-    n <- 1000
-    # Generation, Stage, DD, T, Diapause.
+    num_insects <- 1000
+    # Generation, Stage, degree-days, T, Diapause.
     vec.ini <- c(0, 3, 0, 0, 0)
-    # Overwintering, previttelogenic, DD=0, T=0, no-diapause.
-    vec.mat <- rep(vec.ini, n)
+    # Overwintering, previttelogenic, degree-days=0, T=0, no-diapause.
+    vec.mat <- rep(vec.ini, num_insects)
     # Complete matrix for the population.
     vec.mat <- base::t(matrix(vec.mat, nrow=5))
     # Time series of population size.
@@ -224,7 +224,7 @@ for (N.rep in 1:opt$replications) {
     S0 <- S1 <- S2 <- S3 <- S4 <- S5 <- rep(0, opt$num_days)
     g0.adult <- g1.adult <- g2.adult <- rep(0, opt$num_days)
     N.newborn <- N.death <- N.adult <- rep(0, opt$num_days)
-    dd.day <- rep(0, opt$num_days)
+    degree_days.day <- rep(0, opt$num_days)
     # All the days included in the input temperature dataset.
     for (row in 1:opt$num_days) {
         # Get the integer day of the year for the current row.
@@ -233,14 +233,14 @@ for (N.rep in 1:opt$replications) {
         photoperiod <- temperature_data_frame$DAYLEN[row]
         temp.profile <- get_temperature_at_hour(latitude, temperature_data_frame, row, opt$num_days)
         mean.temp <- temp.profile[1]
-        dd.temp <- temp.profile[2]
-        dd.day[row] <- dd.temp
+        degree_days.temp <- temp.profile[2]
+        degree_days.day[row] <- degree_days.temp
         # Trash bin for death.
         death.vec <- NULL
         # Newborn.
         birth.vec <- NULL
         # All individuals.
-        for (i in 1:n) {
+        for (i in 1:num_insects) {
             # Find individual record.
             vec.ind <- vec.mat[i,]
             # First of all, still alive?
@@ -287,8 +287,8 @@ for (N.rep in 1:opt$replications) {
                         vec.mat[i,] <- vec.ind
                     }
                     else {
-                        # Add to dd.
-                        vec.ind[3] <- vec.ind[3] + dd.temp
+                        # Add to degree_days.
+                        vec.ind[3] <- vec.ind[3] + degree_days.temp
                         # Add 1 day in current stage.
                         vec.ind[4] <- vec.ind[4] + 1
                         vec.mat[i,] <- vec.ind
@@ -304,8 +304,8 @@ for (N.rep in 1:opt$replications) {
                         vec.mat[i,] <- vec.ind
                     }
                     else {
-                        # Add to dd.
-                        vec.ind[3] <- vec.ind[3] + dd.temp
+                        # Add to degree_days.
+                        vec.ind[3] <- vec.ind[3] + degree_days.temp
                         # Add 1 day in current stage.
                         vec.ind[4] <- vec.ind[4] + 1
                         vec.mat[i,] <- vec.ind
@@ -316,27 +316,27 @@ for (N.rep in 1:opt$replications) {
                     # Vittelogenic stage, overwintering generation.
                     if (vec.ind[4] == 0) {
                         # Just turned in vittelogenic stage.
-                        n.birth=round(runif(1, 2 + opt$min_clutch_size, 8 + opt$max_clutch_size))
+                        num_insects.birth = round(runif(1, 2 + opt$min_clutch_size, 8 + opt$max_clutch_size))
                     }
                     else {
                         # Daily probability of birth.
                         p.birth = opt$oviposition * 0.01
                         u1 <- runif(1)
                         if (u1 < p.birth) {
-                            n.birth=round(runif(1, 2, 8))
+                            num_insects.birth = round(runif(1, 2, 8))
                         }
                     }
-                    # Add to dd.
-                    vec.ind[3] <- vec.ind[3] + dd.temp
+                    # Add to degree_days.
+                    vec.ind[3] <- vec.ind[3] + degree_days.temp
                     # Add 1 day in current stage.
                     vec.ind[4] <- vec.ind[4] + 1
                     vec.mat[i,] <- vec.ind
-                    if (n.birth > 0) {
+                    if (num_insects.birth > 0) {
                         # Add new birth -- might be in different generations.
                         new.gen <- vec.ind[1] + 1
                         # Egg profile.
                         new.ind <- c(new.gen, 0, 0, 0, 0)
-                        new.vec <- rep(new.ind, n.birth)
+                        new.vec <- rep(new.ind, num_insects.birth)
                         # Update batch of egg profile.
                         new.vec <- t(matrix(new.vec, nrow=5))
                         # Group with total eggs laid in that day.
@@ -348,27 +348,27 @@ for (N.rep in 1:opt$replications) {
                     # Vittelogenic stage, 1st generation
                     if (vec.ind[4] == 0) {
                         # Just turned in vittelogenic stage.
-                        n.birth=round(runif(1, 2 + opt$min_clutch_size, 8 + opt$max_clutch_size))
+                        num_insects.birth=round(runif(1, 2 + opt$min_clutch_size, 8 + opt$max_clutch_size))
                     }
                     else {
                         # Daily probability of birth.
                         p.birth = opt$oviposition * 0.01
                         u1 <- runif(1)
                         if (u1 < p.birth) {
-                            n.birth = round(runif(1, 2, 8))
+                            num_insects.birth = round(runif(1, 2, 8))
                         }
                     }
-                    # Add to dd.
-                    vec.ind[3] <- vec.ind[3] + dd.temp
+                    # Add to degree_days.
+                    vec.ind[3] <- vec.ind[3] + degree_days.temp
                     # Add 1 day in current stage.
                     vec.ind[4] <- vec.ind[4] + 1
                     vec.mat[i,] <- vec.ind
-                    if (n.birth > 0) {
+                    if (num_insects.birth > 0) {
                         # Add new birth -- might be in different generations.
                         new.gen <- vec.ind[1] + 1
                         # Egg profile.
                         new.ind <- c(new.gen, 0, 0, 0, 0)
-                        new.vec <- rep(new.ind, n.birth)
+                        new.vec <- rep(new.ind, num_insects.birth)
                         # Update batch of egg profile.
                         new.vec <- t(matrix(new.vec, nrow=5))
                         # Group with total eggs laid in that day.
@@ -379,10 +379,10 @@ for (N.rep in 1:opt$replications) {
                 # Event 3.1 egg development to young nymph (vec.ind[2]=0 -> egg).
                 if (vec.ind[2] == 0) {
                     # Egg stage.
-                    # Add to dd.
-                    vec.ind[3] <- vec.ind[3] + dd.temp
+                    # Add to degree_days.
+                    vec.ind[3] <- vec.ind[3] + degree_days.temp
                     if (vec.ind[3] >= (68 + opt$young_nymph_accum)) {
-                        # From egg to young nymph, DD requirement met.
+                        # From egg to young nymph, degree-days requirement met.
                         current.gen <- vec.ind[1]
                         # Transfer to young nymph stage.
                         vec.ind <- c(current.gen, 1, 0, 0, 0)
@@ -395,11 +395,11 @@ for (N.rep in 1:opt$replications) {
                 }
                 # Event 3.2 young nymph to old nymph (vec.ind[2]=1 -> young nymph: determines diapause).
                 if (vec.ind[2] == 1) {
-                    # young nymph stage.
-                    # add to dd.
-                    vec.ind[3] <- vec.ind[3] + dd.temp
+                    # Young nymph stage.
+                    # Add to degree_days.
+                    vec.ind[3] <- vec.ind[3] + degree_days.temp
                     if (vec.ind[3] >= (250 + opt$old_nymph_accum)) {
-                        # From young to old nymph, dd requirement met.
+                        # From young to old nymph, degree_days requirement met.
                         current.gen <- vec.ind[1]
                         # Transfer to old nym stage.
                         vec.ind <- c(current.gen, 2, 0, 0, 0)
@@ -416,10 +416,10 @@ for (N.rep in 1:opt$replications) {
                 # Event 3.3 old nymph to adult: previttelogenic or diapausing?
                 if (vec.ind[2] == 2) {
                     # Old nymph stage.
-                    # add to dd.
-                    vec.ind[3] <- vec.ind[3] + dd.temp
+                    # Add to degree_days.
+                    vec.ind[3] <- vec.ind[3] + degree_days.temp
                     if (vec.ind[3] >= (200 + opt$adult_accum)) {
-                        # From old to adult, dd requirement met.
+                        # From old to adult, degree_days requirement met.
                         current.gen <- vec.ind[1]
                         if (vec.ind[5] == 0) {
                             # Non-diapausing adult -- previttelogenic.
@@ -438,26 +438,26 @@ for (N.rep in 1:opt$replications) {
                 }
                 # Event 4 growing of diapausing adult (unimportant, but still necessary).
                 if (vec.ind[2] == 5) {
-                    vec.ind[3] <- vec.ind[3] + dd.temp
+                    vec.ind[3] <- vec.ind[3] + degree_days.temp
                     vec.ind[4] <- vec.ind[4] + 1
                     vec.mat[i,] <- vec.ind
                 }
             } # Else if it is still alive.
         } # End of the individual bug loop.
         # Find how many died.
-        n.death <- length(death.vec)
-        if (n.death > 0) {
+        num_insects.death <- length(death.vec)
+        if (num_insects.death > 0) {
             vec.mat <- vec.mat[-death.vec, ]
         }
         # Remove record of dead.
         # Find how many new born.
-        n.newborn <- length(birth.vec[,1])
+        num_insects.newborn <- length(birth.vec[,1])
         vec.mat <- rbind(vec.mat, birth.vec)
         # Update population size for the next day.
-        n <- n - n.death + n.newborn 
+        num_insects <- num_insects - num_insects.death + num_insects.newborn 
 
         # Aggregate results by day.
-        tot.pop <- c(tot.pop, n) 
+        tot.pop <- c(tot.pop, num_insects) 
         # Egg.
         s0 <- sum(vec.mat[,2] == 0)
         # Young nymph.
@@ -477,7 +477,7 @@ for (N.rep in 1:opt$replications) {
         # Second generation.
         gen2 <- sum(vec.mat[,1] == 2)
         # Sum of all adults.
-        n.adult <- sum(vec.mat[,2] == 3) + sum(vec.mat[,2] == 4) + sum(vec.mat[,2] == 5)
+        num_insects.adult <- sum(vec.mat[,2] == 3) + sum(vec.mat[,2] == 4) + sum(vec.mat[,2] == 5)
 
         # Generation 0 pop size.
         gen0.pop[row] <- gen0
@@ -495,12 +495,12 @@ for (N.rep in 1:opt$replications) {
         g1.adult[row] <- sum((vec.mat[,1] == 1 & vec.mat[,2] == 3) | (vec.mat[,1] == 1 & vec.mat[,2] == 4) | (vec.mat[,1] == 1 & vec.mat[,2] == 5))
         g2.adult[row] <- sum((vec.mat[,1]== 2 & vec.mat[,2] == 3) | (vec.mat[,1] == 2 & vec.mat[,2] == 4) | (vec.mat[,1] == 2 & vec.mat[,2] == 5))
 
-        N.newborn[row] <- n.newborn
-        N.death[row] <- n.death
-        N.adult[row] <- n.adult
+        N.newborn[row] <- num_insects.newborn
+        N.death[row] <- num_insects.death
+        N.adult[row] <- num_insects.adult
     }   # end of days specified in the input temperature data
 
-    dd.cum <- cumsum(dd.day)
+    degree_days.cum <- cumsum(degree_days.day)
 
     # Collect all the outputs.
     S0.rep[,N.rep] <- S0
@@ -521,82 +521,79 @@ for (N.rep in 1:opt$replications) {
     g2a.rep[,N.rep] <- g2.adult
 }
 
-# Data analysis and visualization can currently
-# plot only within a single calendar year.
-# TODO: enhance this to accomodate multiple calendar years.
-start_date <- temperature_data_frame$DATE[1]
-end_date <- temperature_data_frame$DATE[opt$num_days]
-
-n.yr <- 1
-day.all <- c(1:opt$num_days * n.yr)
-
-# mean value for adults
-sa <- apply((S3.rep + S4.rep + S5.rep), 1, mean)
-# mean value for nymphs
-sn <- apply((S1.rep + S2.rep), 1,mean)
-# mean value for eggs
-se <- apply(S0.rep, 1, mean)
-# mean value for P
+# Mean value for adults
+mean_value_adult <- apply((S3.rep + S4.rep + S5.rep), 1, mean)
+# Mean value for nymphs
+mean_value_nymph <- apply((S1.rep + S2.rep), 1, mean)
+# Mean value for eggs
+mean_value_egg <- apply(S0.rep, 1, mean)
+# Mean value for P
 g0 <- apply(g0.rep, 1, mean)
-# mean value for F1
+# Mean value for F1
 g1 <- apply(g1.rep, 1, mean)
-# mean value for F2
+# Mean value for F2
 g2 <- apply(g2.rep, 1, mean)
-# mean value for P adult
+# Mean value for P adult
 g0a <- apply(g0a.rep, 1, mean)
-# mean value for F1 adult
+# Mean value for F1 adult
 g1a <- apply(g1a.rep, 1, mean)
-# mean value for F2 adult
+# Mean value for F2 adult
 g2a <- apply(g2a.rep, 1, mean)
 
-# SE for adults
-sa.se <- apply((S3.rep + S4.rep + S5.rep), 1, sd) / sqrt(opt$replications)
-# SE for nymphs
-sn.se <- apply((S1.rep + S2.rep) / sqrt(opt$replications), 1, sd)
-# SE for eggs
-se.se <- apply(S0.rep, 1, sd) / sqrt(opt$replications)
-# SE value for P
-g0.se <- apply(g0.rep, 1, sd) / sqrt(opt$replications)
-# SE for F1
-g1.se <- apply(g1.rep, 1, sd) / sqrt(opt$replications)
-# SE for F2
-g2.se <- apply(g2.rep, 1, sd) / sqrt(opt$replications)
-# SE for P adult
-g0a.se <- apply(g0a.rep, 1, sd) / sqrt(opt$replications)
-# SE for F1 adult
-g1a.se <- apply(g1a.rep, 1, sd) / sqrt(opt$replications)
-# SE for F2 adult
-g2a.se <- apply(g2a.rep, 1, sd) / sqrt(opt$replications)
+# Standard error for adults
+mean_value_adult.std_error <- apply((S3.rep + S4.rep + S5.rep), 1, sd) / sqrt(opt$replications)
+# Standard error for nymphs
+mean_value_nymph.std_error <- apply((S1.rep + S2.rep) / sqrt(opt$replications), 1, sd)
+# Standard error for eggs
+mean_value_egg.std_error <- apply(S0.rep, 1, sd) / sqrt(opt$replications)
+# Standard error value for P
+g0.std_error <- apply(g0.rep, 1, sd) / sqrt(opt$replications)
+# Standard error for F1
+g1.std_error <- apply(g1.rep, 1, sd) / sqrt(opt$replications)
+# Standard error for F2
+g2.std_error <- apply(g2.rep, 1, sd) / sqrt(opt$replications)
+# Standard error for P adult
+g0a.std_error <- apply(g0a.rep, 1, sd) / sqrt(opt$replications)
+# Standard error for F1 adult
+g1a.std_error <- apply(g1a.rep, 1, sd) / sqrt(opt$replications)
+# Standard error for F2 adult
+g2a.std_error <- apply(g2a.rep, 1, sd) / sqrt(opt$replications)
 
 dev.new(width=20, height=30)
 
 # Start PDF device driver to save charts to output.
 pdf(file=opt$output, width=20, height=30, bg="white")
 
-par(mar = c(5, 6, 4, 4), mfrow=c(3, 1))
+par(mar=c(5, 6, 4, 4), mfrow=c(3, 1))
+
+# Data analysis and visualization plots
+# only within a single calendar year.
+day.all <- c(1:opt$num_days)
+start_date <- temperature_data_frame$DATE[1]
+end_date <- temperature_data_frame$DATE[opt$num_days]
 
 # Subfigure 1: population size by life stage
 title <- paste(opt$insect, ": Total pop. by life stage :", opt$location, ": Lat:", latitude, ":", start_date, "-", end_date, sep=" ")
-plot(day.all, sa, main=title, type="l", ylim=c(0, max(se + se.se, sn + sn.se, sa + sa.se)), axes=F, lwd=2, xlab="", ylab="", cex=3, cex.lab=3, cex.axis=3, cex.main=3)
+plot(day.all, mean_value_adult, main=title, type="l", ylim=c(0, max(mean_value_egg + mean_value_egg.std_error, mean_value_nymph + mean_value_nymph.std_error, mean_value_adult + mean_value_adult.std_error)), axes=F, lwd=2, xlab="", ylab="", cex=3, cex.lab=3, cex.axis=3, cex.main=3)
 # Young and old nymphs.
-lines(day.all, sn, lwd=2, lty=1, col=2)
+lines(day.all, mean_value_nymph, lwd=2, lty=1, col=2)
 # Eggs
-lines(day.all, se, lwd=2, lty=1, col=4)
+lines(day.all, mean_value_egg, lwd=2, lty=1, col=4)
 axis(1, at=c(1:12) * 30 - 15, cex.axis=3, labels=c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 axis(2, cex.axis=3)
 leg.text <- c("Egg", "Nymph", "Adult")
 legend("topleft", leg.text, lty=c(1, 1, 1), col=c(4, 2, 1), cex=3)
 if (opt$se_plot == 1) {
-    # Add SE lines to plot
-    # SE for adults
-    lines (day.all, sa + sa.se, lty=2)
-    lines (day.all, sa - sa.se, lty=2) 
-    # SE for nymphs
-    lines (day.all, sn + sn.se, col=2, lty=2)
-    lines (day.all, sn - sn.se, col=2, lty=2)
-    # SE for eggs
-    lines (day.all, se + se.se, col=4, lty=2)
-    lines (day.all, se - se.se, col=4, lty=2)
+    # Add Standard error lines to plot
+    # Standard error for adults
+    lines (day.all, mean_value_adult+mean_value_adult.std_error, lty=2)
+    lines (day.all, mean_value_adult-mean_value_adult.std_error, lty=2) 
+    # Standard error for nymphs
+    lines (day.all, mean_value_nymph+mean_value_nymph.std_error, col=2, lty=2)
+    lines (day.all, mean_value_nymph-mean_value_nymph.std_error, col=2, lty=2)
+    # Standard error for eggs
+    lines (day.all, mean_value_egg+mean_value_egg.std_error, col=4, lty=2)
+    lines (day.all, mean_value_egg-mean_value_egg.std_error, col=4, lty=2)
 }
 
 # Subfigure 2: population size by generation
@@ -609,16 +606,16 @@ axis(2, cex.axis=3)
 leg.text <- c("P", "F1", "F2")
 legend("topleft", leg.text, lty=c(1, 1, 1), col=c(1, 2, 4), cex=3)
 if (opt$se_plot == 1) {
-    # Add SE lines to plot
-    # SE for adults
-    lines (day.all, g0+g0.se, lty=2)
-    lines (day.all, g0-g0.se, lty=2) 
-    # SE for nymphs
-    lines (day.all, g1+g1.se, col=2, lty=2)
-    lines (day.all, g1-g1.se, col=2, lty=2)
-    # SE for eggs
-    lines (day.all, g2+g2.se, col=4, lty=2)
-    lines (day.all, g2-g2.se, col=4, lty=2)
+    # Add Standard error lines to plot
+    # Standard error for adults
+    lines (day.all, g0+g0.std_error, lty=2)
+    lines (day.all, g0-g0.std_error, lty=2) 
+    # Standard error for nymphs
+    lines (day.all, g1+g1.std_error, col=2, lty=2)
+    lines (day.all, g1-g1.std_error, col=2, lty=2)
+    # Standard error for eggs
+    lines (day.all, g2+g2.std_error, col=4, lty=2)
+    lines (day.all, g2-g2.std_error, col=4, lty=2)
 }
 
 # Subfigure 3: adult population size by generation
@@ -630,17 +627,17 @@ axis(1, at=c(1:12) * 30 - 15, cex.axis=3, labels = c("Jan", "Feb", "Mar", "Apr",
 axis(2, cex.axis=3)
 leg.text <- c("P", "F1", "F2")
 legend("topleft", leg.text, lty=c(1, 1, 1), col=c(1, 2, 4), cex=3)
-if (opt$se_plot == 1) {
-    # Add SE lines to plot
-    # SE for adults
-    lines (day.all, g0a+g0a.se, lty=2)
-    lines (day.all, g0a-g0a.se, lty=2) 
-    # SE for nymphs
-    lines (day.all, g1a+g1a.se, col=2, lty=2)
-    lines (day.all, g1a-g1a.se, col=2, lty=2)
-    # SE for eggs
-    lines (day.all, g2a+g2a.se, col=4, lty=2)
-    lines (day.all, g2a-g2a.se, col=4, lty=2)
+if (opt$std_error_plot == 1) {
+    # Add Standard error lines to plot
+    # Standard error for adults
+    lines (day.all, g0a+g0a.std_error, lty=2)
+    lines (day.all, g0a-g0a.std_error, lty=2) 
+    # Standard error for nymphs
+    lines (day.all, g1a+g1a.std_error, col=2, lty=2)
+    lines (day.all, g1a-g1a.std_error, col=2, lty=2)
+    # Standard error for eggs
+    lines (day.all, g2a+g2a.std_error, col=4, lty=2)
+    lines (day.all, g2a-g2a.std_error, col=4, lty=2)
 }
 
 # Turn off device driver to flush output.
