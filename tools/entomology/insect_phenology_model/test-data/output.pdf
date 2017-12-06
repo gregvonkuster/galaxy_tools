@@ -1,19 +1,16 @@
+%PDF
 1 0 obj
 <<
+/CreationDate
+/ModDate
 /Title (R Graphics Output)
+/Producer
 /Creator (R)
->>
-endobj
-2 0 obj
 << /Type /Catalog /Pages 3 0 R >>
 endobj
 7 0 obj
 << /Type /Page /Parent 3 0 R /Contents 8 0 R /Resources 4 0 R >>
 endobj
-8 0 obj
-<<
->>
-stream
 3 0 obj
 << /Type /Pages /Kids [ 7 0 R ] /Count 1 /MediaBox [0 0 1440 2160] >>
 endobj
@@ -52,3 +49,4 @@ xref
 trailer
 << /Size 12 /Info 1 0 R /Root 2 0 R >>
 startxref
+%%EOF
