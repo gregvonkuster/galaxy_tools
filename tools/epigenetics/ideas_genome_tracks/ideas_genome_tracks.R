@@ -59,7 +59,7 @@ get_track_file_name = function(base_track_file_name, index, ext) {
     return(track_file_name);
 }
 
-get_track_color = function(statemean, markcolor=NULL) {   
+get_track_color = function(statemean, markcolor=NULL) {
     sm_width = dim(statemean)[1];
     sm_height = dim(statemean)[2];
     if (length(markcolor) == 0) {
@@ -86,13 +86,12 @@ get_track_color = function(statemean, markcolor=NULL) {
     return(rt);
 }
 
-create_primary_html = function(output_trackhub, tracks_dir) {
+create_primary_html = function(output_trackhub, tracks_dir, build) {
     track_files <- list.files(path=tracks_dir);
     s <- paste('<html>\n    <head>\n    </head>\n    <body>\n        <ul>\n', sep="");
-        for (i in 1:length(track_files)) {
-            track_file <- paste("tracks", track_files[i], sep="/");
-            s <- paste(s, '            <li><a href="', track_file, '">', track_file, '</a></li>\n', sep="");
-        }
+    for (i in 1:length(track_files)) {
+        s <- paste(s, '            <li><a href="', 'myHub/', build, "/", track_files[i], '">', track_files[i], '</a></li>\n', sep="");
+    }
     s <- paste(s, '        </ul>\n    </body>\n</html>', sep="");
     cat(s, file=output_trackhub);
 }
@@ -106,7 +105,7 @@ create_track = function(input_dir_state, chrom_len_file, base_track_file_name, t
         t = NULL;
         for(j in 1:dim(genome_size)[1]) {
             t = c(t, which(tg[,2]==as.character(genome_size[j, 1]) & as.numeric(tg[,4]) > as.numeric(genome_size[j, 2])));
-        }   
+        }
         if (length(t) > 0) {
             tg = tg[-t,];
         }
@@ -153,7 +152,7 @@ create_track = function(input_dir_state, chrom_len_file, base_track_file_name, t
     return(cells);
 }
 
-create_track_db = function(input_dir_state, chrom_len_file, tracks_dir, hub_name, short_label, long_label, track_color) {
+create_track_db = function(input_dir_state, build, chrom_len_file, tracks_dir, hub_name, short_label, long_label, track_color) {
     base_track_file_name <- paste(tracks_dir, hub_name, sep="");
     cells = create_track(input_dir_state, chrom_len_file, base_track_file_name, track_color);
     cell_info = cbind(cells, cells, cells, "#000000");
@@ -161,7 +160,6 @@ create_track_db = function(input_dir_state, chrom_len_file, tracks_dir, hub_name
     cell_info = as.matrix(cell_info);
     track_db = NULL;
     for (i in 1:length(cells)) {
-
         ii = which(cells[i] == cell_info[,1]);
         if (length(ii) == 0) {
             next;
@@ -170,7 +168,7 @@ create_track_db = function(input_dir_state, chrom_len_file, tracks_dir, hub_name
         # trackDb.txt track entry.
         track_db = c(track_db, paste("hub ", hub_name, "_track_", i, sep=""));
         track_db = c(track_db, "type bigBed");
-        track_db = c(track_db, paste("bigDataUrl", get_track_file_name(base_track_file_name, i, "bigbed"), sep=" "));
+        track_db = c(track_db, paste("bigDataUrl myHub/", build, "/", base_track_file_name, i, "bigbed"), sep="");
         track_db = c(track_db, paste("shortLabel", short_label, sep=" "));
         track_db = c(track_db, paste("longLabel", long_label, sep=" "));
         track_db = c(track_db, paste("priority", ii));
@@ -178,7 +176,7 @@ create_track_db = function(input_dir_state, chrom_len_file, tracks_dir, hub_name
         track_db = c(track_db, "maxItems 100000");
         track_db = c(track_db, paste("color", paste(c(col2rgb(cell_info[ii,4])), collapse=","), sep=" "));
         track_db = c(track_db, "visibility dense");
-        track_db = c(track_db, ""); 
+        track_db = c(track_db, "");
     }
     return(track_db);
 }
@@ -191,25 +189,32 @@ if (length(opt$track_color) == 0) {
 }
 
 # Create the hub.txt output.
-contents <- c(paste("hub", opt$hub_name), paste("shortLabel",opt$short_label), paste("longLabel", opt$long_label), paste("genomesFile genomes.txt", sep=""), paste("email", opt$email));
+hub_name_line <- paste("hub ", opt$hub_name, sep = "");
+short_label_line <- paste("shortLabel ", opt$short_label, sep = "");
+long_label_line <- paste("longLabel ", opt$longLabel, sep = "");
+genomes_txt_line <- paste("genomesFile genomes.txt", sep="");
+email_line <- paste("email ", opt$email, sep = "");
+contents <- c(paste(hub_name_line, short_label_line, long_label_line, genomes_txt_line, email_line), sep="");
 hub_dir <- paste(opt$output_trackhub_files_path, "/", "myHub", "/", sep="");
 dir.create(hub_dir, showWarnings=FALSE);
 hub_file_path <- paste(hub_dir, "hub.txt", sep="");
 write.table(contents, file=hub_file_path, quote=F, row.names=F, col.names=F);
 
 # Create the genomes.txt output.
-contents <- c(paste("genome", opt$build), paste("trackDb ", opt$build, "/", "trackDb.txt", sep=""));
+genome_line <- paste("genome", opt$build, sep="");
+track_db_line <- paste("trackDb ", opt$build, "/", "trackDb.txt", sep="");
+contents <- c(paste(genome_line, track_db_line), sep="");
 genomes_file_path <- paste(hub_dir, "genomes.txt", sep="");
 write.table(contents, file=genomes_file_path, quote=F, row.names=F, col.names=F);
 
 # Create the tracks.
 tracks_dir <- paste(hub_dir, opt$build, "/", sep="");
 dir.create(tracks_dir, showWarnings=FALSE);
-track_db <- create_track_db(opt$input_dir_state, opt$chrom_len_file, tracks_dir, opt$hub_name, opt$short_label, opt$long_label, track_color);
+track_db <- create_track_db(opt$input_dir_state, opt$build, opt$chrom_len_file, tracks_dir, opt$hub_name, opt$short_label, opt$long_label, track_color);
 
 # Create the trackDb.txt output.
 track_db_file_path <- paste(tracks_dir, "trackDb.txt", sep="");
 write.table(track_db, file=track_db_file_path, quote=F, row.names=F, col.names=F);
 
 # Create the primary HTML dataset.
-create_primary_html(opt$output_trackhub, tracks_dir);
+create_primary_html(opt$output_trackhub, tracks_dir, opt$build);
