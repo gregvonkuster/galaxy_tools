@@ -34,21 +34,37 @@ AssemblyPostProcessor
     --min_length $options_type.min_length
 #end if
 --num_threads \${GALAXY_SLOTS:-4}
-&>proc.log
-&& mv $output_dir/transcripts.cds '$output_cds'
-&& mv $output_dir/transcripts.pep '$output_pep'
-&& mv $output_dir/transcripts.cleaned.cds '$output_cleaned_cds'
-&& mv $output_dir/transcripts.cleaned.pep '$output_cleaned_pep'
-#if str($options_type.options_type_selector) == 'advanced':
-    #if str($target_gene_family_assembly_cond.target_gene_family_assembly) == 'yes':
-        && mv $output_dir/targeted_gene_family_assemblies.stats '$output_targeted_gene_families_stats'
+&>proc.log;
+if [[ $? -ne 0 ]]; then
+    cp proc.log '$output_cds';
+    cp proc.log '$output_pep';
+    cp proc.log '$output_cleaned_cds';
+    cp proc.log '$output_cleaned_pep';
+    #if str($options_type.options_type_selector) == 'advanced':
+        #if str($target_gene_family_assembly_cond.target_gene_family_assembly) == 'yes':
+            cp proc.log '$output_targeted_gene_families_stats';
+        #end if
+        #if str($options_type.dereplicate) == 'yes':
+            cp proc.log '$output_cleaned_nr_cds';
+            cp proc.log '$output_cleaned_nr_pep';
+        #end if
     #end if
-    #if str($options_type.dereplicate) == 'yes':
-        && mv $output_dir/transcripts.cleaned.nr.cds '$output_cleaned_nr_cds'
-        && mv $output_dir/transcripts.cleaned.nr.pep '$output_cleaned_nr_pep'
+    exit 1;
+else
+    mv $output_dir/transcripts.cds '$output_cds';
+    mv $output_dir/transcripts.pep '$output_pep';
+    mv $output_dir/transcripts.cleaned.cds '$output_cleaned_cds';
+    mv $output_dir/transcripts.cleaned.pep '$output_cleaned_pep';
+    #if str($options_type.options_type_selector) == 'advanced':
+        #if str($target_gene_family_assembly_cond.target_gene_family_assembly) == 'yes':
+            mv $output_dir/targeted_gene_family_assemblies.stats '$output_targeted_gene_families_stats';
+        #end if
+        #if str($options_type.dereplicate) == 'yes':
+            mv $output_dir/transcripts.cleaned.nr.cds '$output_cleaned_nr_cds';
+            mv $output_dir/transcripts.cleaned.nr.pep '$output_cleaned_nr_pep';
+        #end if
     #end if
-#end if
-    ]]></command>
+fi]]></command>
     <inputs>
         <param name="input" format="fasta" type="data" label="Transcriptome assembly fasta file"/>
         <conditional name="prediction_method_cond">
@@ -168,7 +184,7 @@ evolutionary analyses of genome-scale gene families and transcriptomes.  This to
 assembled transcripts into putative coding sequences and their corresponding amino acid translations and
 optionally assigns transcripts to circumscribed gene families ("orthogroups")[2].  After transcripts have been
 assigned to gene families, overlapping contigs can be identified and merged to reduce fragmentation in the
-de novo assembly.  
+de novo assembly.
 
 -----
 
