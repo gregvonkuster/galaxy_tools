@@ -165,6 +165,9 @@ $norm
     #set input_name_positions = $cell_type_epigenetic_factor_cond.input_name_positions
     #for $i in $cell_type_epigenetic_factor_cond.input:
         #set file_name_with_ext = $i.name
+        #if str($file_name_with_ext).find("http") >= 0 or str($file_name_with_ext).find("ftp") >= 0:
+             #set file_name_with_ext = $file_name_with_ext.split('/')[-1]
+        #end if
         #assert str($file_name_with_ext).find("-") >= 0, "The selected input '%s' is invalid because it does not include the '-' character which is required when setting cell type and epigenetic factor names by extracting them from the input file names." % $file_name_with_ext
         #set file_name = $file_name_with_ext.split(".")[0]
         #if str($input_name_positions) == "cell_first":
@@ -356,7 +359,7 @@ In addition to its improved power, IDEAS has two unique advantages:
 
  * **BAM or BigWig files** - select one or more Bam or Bigwig files from your history, making sure that the name of every selected input include a "-" character (e.g., e001-h3k4me3.bigwig).
  * **Cell type, Epigenetic factor and Input** - manually select any number of inputs, setting the cell type and epigenetic factor name for each.  The combination of "cell type name" and "epigenetic factor name" must be unique for each input.  For example, if you have replicate data you may want to specify the cell name as "rep1", "rep2", etc and the factor name as "rep1", "rep2", etc.
- 
+
   * **Cell type name** - cell type name
   * **Epigenetic factor name** - epigenetic factor name
   * **BAM or BigWig file** - BAM or BigWig file
@@ -391,7 +394,7 @@ In addition to its improved power, IDEAS has two unique advantages:
 * **Number of burnin steps** - specify the number of burnin steps; default is 20.  Increasing the burnin and maximization steps will increase computing and only slightly increase accuracy, while decreasing them will reduce computing resources but may also reduce accuracy.  We recommend to run IDEAS with at least 20 burnins and 20 maximizations.  IDEAS will not stop even if it reaches a maximum mode.
 * **Number of maximization steps** - specify the number of maximization steps; default is 20.
 * **Minimum standard deviation for the emission Gaussian distribution** - This number multiplied by the overall standard deviation of your data will be used as a lower bound for the standard deviation for each factor in each epigenetic state (the default is 0.5). This number is useful for removing very subtle clusters in the data.  Setting this value near 0 will allow IDEAS to discover many subtle states, while setting it greater than 1 will result in IDEAS losing the ability to detect meaningful states.
-* **Maximim standard deviation for the emission Gaussian distribution** - if you want to find fine-grained states you may use this option (if not used, IDEAS uses infinity), but it is rearely used unless you need more states to be inferred. 
+* **Maximim standard deviation for the emission Gaussian distribution** - if you want to find fine-grained states you may use this option (if not used, IDEAS uses infinity), but it is rearely used unless you need more states to be inferred.
 
     </help>
     <citations>

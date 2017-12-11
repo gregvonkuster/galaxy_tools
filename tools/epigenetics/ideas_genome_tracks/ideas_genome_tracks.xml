@@ -35,22 +35,23 @@ mkdir '$output_trackhub.files_path' &&
     #end if
 #end for
 Rscript '$__tool_directory__/ideas_genome_tracks.R'
--b $dbkey
--c '$chromInfo'
--e '$email'
--l '$sanitized_long_label'
--n '$hub_name'
--p '$input_dir_para'
--q '$input_dir_state'
--s '$sanitized_short_label'
+--build $dbkey
+--chrom_len_file '$chromInfo'
+--email '$email'
+--galaxy_url $galaxy_url
+--hub_name '$hub_name'
+--input_dir_para '$input_dir_para'
+--input_dir_state '$input_dir_state'
+--long_label '$sanitized_long_label'
+--output_trackhub '$output_trackhub'
+--output_trackhub_files_path '$output_trackhub.files_path'
+--output_trackhub_id '$__app__.security.encode_id($output_trackhub.id)'
 #if str($set_track_color_cond.set_track_color) == "yes":
-    -t '$set_track_color_cond.track_color'
+    --track_color '$set_track_color_cond.track_color'
 #end if
--w '$output_trackhub'
--x '$output_trackhub.files_path'
-&>proc.log
-    ]]></command>
+--short_label '$sanitized_short_label']]></command>
     <inputs>
+        <param name="galaxy_url" type="baseurl" value="/"/>
         <param name="input" format="txt" type="data_collection" collection_type="list" label="IDEAS files"/>
         <param name="hub_name" type="text" value="" label="Hub name" help="All white space characters will be eliminated">
             <validator type="empty_field"/>
@@ -99,7 +100,7 @@ Rscript '$__tool_directory__/ideas_genome_tracks.R'
 -----
 
 **Required options**
- 
+
     </help>
     <citations>
         <citation type="doi">10.1093/nar/gkw278</citation>
