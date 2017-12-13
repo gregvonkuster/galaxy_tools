@@ -18,7 +18,11 @@ GeneFamilyIntegrator
 --orthogroup_fasta '$input_dir'
 --scaffold '$scaffold.fields.path'
 --method $method
-&>proc.log
+&>gene_family_integrator_log.txt;
+if [[ $? -ne 0 ]]; then
+    cp gene_family_integrator_log.txt integratedGeneFamilies_dir;
+    exit 1;
+fi
     ]]></command>
     <inputs>
         <param name="input" format="fasta" type="data_collection" collection_type="list" label="Classified orthogroup fasta files" />

@@ -47,7 +47,11 @@ GeneFamilyAligner
         #end if
     #end if
 #end if
-&>proc.log
+&>gene_family_aligner_log.txt;
+if [[ $? -ne 0 ]]; then
+    find geneFamilyAlignments_dir -type d -maxdepth 1 -exec cp gene_family_aligner_log.txt {} \;
+    exit 1;
+fi
     ]]></command>
     <inputs>
         <param name="input" format="fasta" type="data_collection" collection_type="list" label="Integrated orthogroup fasta files" />
