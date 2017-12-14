@@ -4,6 +4,7 @@
         <requirement type="package" version="2.4.27">bedops</requirement>
         <requirement type="package" version="1.10.4">r-data.table</requirement>
          <requirement type="package" version="1.4.4">r-optparse</requirement>
+         <requirement type="package" version="0.2.0">r-viridislite</requirement>
          <requirement type="package" version="332">ucsc-bedtobigbed</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
@@ -13,6 +14,7 @@
 #set sanitized_long_label = str($long_label)[:79]
 #set sanitized_short_label = str($short_label)[:16]
 #if str($__user__.email) == 'None':
+    ## This is needed only if the user is not logged in.
     #set email = "foo@bar.net"
 #else:
     #set email = $__user__.email
@@ -46,10 +48,13 @@ Rscript '$__tool_directory__/ideas_genome_tracks.R'
 --output_trackhub '$output_trackhub'
 --output_trackhub_files_path '$output_trackhub.files_path'
 --output_trackhub_id '$__app__.security.encode_id($output_trackhub.id)'
-#if str($set_track_color_cond.set_track_color) == "yes":
-    --track_color '$set_track_color_cond.track_color'
-#end if
---short_label '$sanitized_short_label']]></command>
+--short_label '$sanitized_short_label'
+&>ideas_genome_tracks.log;
+if [[ $? -ne 0 ]]; then
+    cp ideas_log.txt '$output_trackhub'
+    exit 1;
+fi
+    ]]></command>
     <inputs>
         <param name="galaxy_url" type="baseurl" value="/"/>
         <param name="input" format="txt" type="data_collection" collection_type="list" label="IDEAS files"/>
@@ -62,16 +67,6 @@ Rscript '$__tool_directory__/ideas_genome_tracks.R'
         <param name="long_label" type="text" value="long label" label="Long label" help="Limit to 80 characters">
             <validator type="empty_field"/>
         </param>
-        <conditional name="set_track_color_cond">
-            <param name="set_track_color" type="select" label="Select track color?">
-                <option value="no" selected="true">No</option>
-                <option value="yes">Yes</option>
-            </param>
-            <when value="no"/>
-            <when value="yes">
-                <param name="track_color" type="color" label="Track color"/>
-            </when>
-        </conditional>
     </inputs>
     <outputs>
         <data name="output_trackhub" format="trackhub"/>
@@ -89,8 +84,6 @@ Rscript '$__tool_directory__/ideas_genome_tracks.R'
             <param name="hub_name" value="MyHub"/>
             <param name="short_label" value="my short label"/>
             <param name="long_label" value="my long label"/>
-            <param name="set_track_color" value="yes"/>
-            <param name="track_color" value="#ff0000"/>
             <output name="output_trackhub" file="output_trackhub.html" ftype="trackhub"/>
         </test>
     </tests>
