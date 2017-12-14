@@ -18,7 +18,9 @@
 ## Create the config file and prepare the data
 ##############################################
 #set specify_genomic_window = $specify_genomic_window_cond.specify_genomic_window
-mkdir '$output_pdf_dir' &&
+#if str($output_heatmaps) == "yes":
+    mkdir '$output_pdf_dir' &&
+#end if
 mkdir '$output_txt_dir' &&
 cp '$gen_prep_input_config' $prep_input_config &&
 prepMat
@@ -44,6 +46,11 @@ $bychr
     -exclude '$blacklist_input'
 #end if
 $norm
+&>prepmat.log;
+if [[ $? -ne 0 ]]; then
+    cp prepmat.log '$output_txt_dir';
+    exit 1;
+fi
 ##############################################
 ## Coerce the prepMat config output to the
 ## format expected by IDEAS.
@@ -51,12 +58,12 @@ $norm
 && cut -d' ' $prep_input_config -f1,2 > file1.txt
 && ls tmp/*.bed.gz > file2.txt
 && paste <(cat file1.txt) <(cat file2.txt) -d' ' > $prep_output_config
-##############################################
-## If using a genomic window bed file, categorize
-## the window positions by chromosome to enable
-## the IDEAS -inv option.
-##############################################
 #if str($specify_genomic_window) == "yes":
+    ##############################################
+    ## Using a genomic window bed file, so categorize
+    ## the window positions by chromosome to enable
+    ## the IDEAS -inv option.
+    ##############################################
     #import collections
     #set window_positions_by_chroms = collections.OrderedDict()
     #for count, line in enumerate(open($specify_genomic_window_cond.bed_input.file_name, 'r')):
@@ -108,12 +115,23 @@ $norm
         -thread \${GALAXY_SLOTS:-4}
         -o '$project_name.$chrom'
         #if str($save_ideas_log) == "yes":
-            >> $output_log
+            &>>'$output_log';
+            if [[ $? -ne 0 ]]; then
+                exit 1;
+            fi
         #else:
-            > /dev/null
+            &>>ideas_log.txt;
+            if [[ $? -ne 0 ]]; then
+                cp ideas_log.txt '$output_txt_dir'
+                exit 1;
+            fi
         #end if
+
     #end for
 #else:
+    ##############################################
+    ## Not using a genomic window bed file.
+    ##############################################
     && ideas
     '$prep_output_config'
     $tmp_dir/*.bed
@@ -147,18 +165,27 @@ $norm
     -thread \${GALAXY_SLOTS:-4}
     -o '$project_name'
     #if str($save_ideas_log) == "yes":
-        > $output_log
+        &>'$output_log';
+        if [[ $? -ne 0 ]]; then
+            exit 1;
+        fi
     #else:
-        > /dev/null
+        &>ideas_log.txt;
+        if [[ $? -ne 0 ]]; then
+            cp ideas_log.txt '$output_txt_dir'
+            exit 1;
+        fi
     #end if
 #end if
 && mv ./*.cluster '$output_txt_dir'
 && mv ./*.para '$output_txt_dir'
 && mv ./*.profile '$output_txt_dir'
 && mv ./*.state '$output_txt_dir'
-&& Rscript '$__tool_directory__/create_heatmap.R'
--i '$output_txt_dir'
--o '$output_pdf_dir'
+#if str($output_heatmaps) == "yes":
+    && Rscript '$__tool_directory__/create_heatmap.R'
+    -i '$output_txt_dir'
+    -o '$output_pdf_dir'
+#end if
     ]]></command>
     <configfiles>
         <configfile name="gen_prep_input_config"><![CDATA[#if str($cell_type_epigenetic_factor_cond.cell_type_epigenetic_factor) == "extract":
@@ -262,6 +289,10 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
         <param name="mcmc_num" type="integer" value="20" min="1" label="Number of maximization steps"/>
         <param name="minerr" type="float" value="0.5" min="0" label="Minimum standard deviation for the emission Gaussian distribution" help="Zero value results in the default: 0.5"/>
         <param name="maxerr" type="float" value="1000000" min="0" label="Maximum standard deviation for the emission Gaussian distribution" help="Zero sets the maximum to a large number"/>
+        <param name="output_heatmaps" type="select" display="radio" label="Output heatmaps?">
+            <option value="no" selected="true">No</option>
+            <option value="yes">Yes</option>
+        </param>
         <param name="save_ideas_log" type="select" display="radio" label="Save IDEAS log in an additional history item">
             <option value="no" selected="true">No</option>
             <option value="yes">Yes</option>
@@ -271,8 +302,9 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
         <data name="output_log" format="txt" label="${tool.name} (output log) on ${on_string}">
             <filter>save_ideas_log == 'yes'</filter>
         </data>
-        <collection name="output_pdf_collection" type="list" label="${tool.name} (heatmaps on ${on_string}">
+        <collection name="output_pdf_collection" type="list" label="${tool.name} (heatmaps) on ${on_string}">
             <discover_datasets pattern="__name__" directory="output_pdf_dir" format="pdf"/>
+            <filter>output_heatmaps == 'yes'</filter>
         </collection>
         <collection name="output_txt_collection" type="list">
             <discover_datasets pattern="__name__" directory="output_txt_dir" format="txt"/>
