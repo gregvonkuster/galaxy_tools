@@ -19,9 +19,7 @@
 #else:
     #set email = $__user__.email
 #end if
-#set input_dir_para = "input_dir_para"
 #set input_dir_state = "input_dir_state"
-mkdir $input_dir_para &&
 mkdir $input_dir_state &&
 mkdir '$output_trackhub.files_path' &&
 #for $i in $input:
@@ -30,9 +28,7 @@ mkdir '$output_trackhub.files_path' &&
     #end if
     #set filename = $i.file_name
     #set name = $i.name
-    #if $name.endswith(".para"):
-        ln -s $filename $input_dir_para/$name &&
-    #else if $name.endswith(".state"):
+    #if $name.endswith(".state"):
         ln -s $filename $input_dir_state/$name &&
     #end if
 #end for
@@ -42,7 +38,6 @@ Rscript '$__tool_directory__/ideas_genome_tracks.R'
 --email '$email'
 --galaxy_url $galaxy_url
 --hub_name '$hub_name'
---input_dir_para '$input_dir_para'
 --input_dir_state '$input_dir_state'
 --long_label '$sanitized_long_label'
 --output_trackhub '$output_trackhub'
