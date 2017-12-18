@@ -81,12 +81,15 @@ create_track = function(input_dir_state, chrom_len_file, base_track_file_name) {
         t0 = c(0, t) + 1;
         t = c(t, L);
         np = cbind(chr[t], posst[t0], posed[t], tstate[t]);
-        track_file_name_bed <- get_track_file_name(base_track_file_name, i, "bed");
+        track_file_name_bed_unsorted <- get_track_file_name(base_track_file_name, i, "bed_unsorted");
+		track_file_name_bed <- get_track_file_name(base_track_file_name, i, "bed");
         track_file_name_bigbed <- get_track_file_name(base_track_file_name, i, "bigbed");
         x = cbind(np[, 1:3], state_name[as.integer(np[,4])+1], 1000, ".", np[,2:3]);
-        write.table(as.matrix(x), track_file_name_bed, quote=F, row.names=F, col.names=F);
+        write.table(as.matrix(x), track_file_name_bed_unsorted, quote=F, row.names=F, col.names=F);
+		system(paste("LC_COLLATE=C sort -k1,1 -k2,2n <", track_file_name_bed_unsorted, "> track_file_name_bed"), sep=" ");
         system(paste("bedToBigBed ", track_file_name_bed, chrom_len_file, " ", track_file_name_bigbed));
-        system(paste("rm ", track_file_name_bed));
+		system(paste("rm ", track_file_name_bed_unsorted));
+		system(paste("rm ", track_file_name_bed));
     }
     return(cells);
 }
