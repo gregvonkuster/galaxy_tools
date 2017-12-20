@@ -5,17 +5,19 @@ suppressPackageStartupMessages(library("optparse"))
 suppressPackageStartupMessages(library("viridisLite"))
 
 option_list <- list(
-        make_option(c("--build"), action="store", dest="build", help="Genome build"),
-        make_option(c("--chrom_len_file"), action="store", dest="chrom_len_file", help="Chromosome length file"),
-        make_option(c("--email"),  action="store", dest="email", help="User email address"),
-        make_option(c("--galaxy_url"),  action="store", dest="galaxy_url", help="Galaxy instance base URL"),
-        make_option(c("--hub_name"),  action="store", dest="hub_name", default=NULL, help="Hub name without spaces"),
-        make_option(c("--input_dir_state"), action="store", dest="input_dir_state", help="Directory containing .state outputs from IDEAS"),
-        make_option(c("--long_label"), action="store", dest="long_label", help="Hub long label"),
-        make_option(c("--output_trackhub"),  action="store", dest="output_trackhub", help="Output hub file"),
-        make_option(c("--output_trackhub_files_path"),  action="store", dest="output_trackhub_files_path", help="Output hub extra files path"),
-        make_option(c("--output_trackhub_id"),  action="store", dest="output_trackhub_id", help="Encoded output_trackhub dataset id"),
-        make_option(c("--short_label"), action="store", dest="short_label", help="Hub short label")
+    make_option(c("--build"), action="store", dest="build", help="Genome build"),
+    make_option(c("--chrom_len_file"), action="store", dest="chrom_len_file", help="Chromosome length file"),
+    make_option(c("--email"),  action="store", dest="email", help="User email address"),
+    make_option(c("--galaxy_url"),  action="store", dest="galaxy_url", help="Galaxy instance base URL"),
+    make_option(c("--hub_name"),  action="store", dest="hub_name", default=NULL, help="Hub name without spaces"),
+    make_option(c("--input_dir_state"), action="store", dest="input_dir_state", help="Directory containing .state outputs from IDEAS"),
+    make_option(c("--long_label"), action="store", dest="long_label", help="Hub long label"),
+    make_option(c("--output_trackhub"),  action="store", dest="output_trackhub", help="Output hub file"),
+    make_option(c("--output_trackhub_files_path"),  action="store", dest="output_trackhub_files_path", help="Output hub extra files path"),
+    make_option(c("--output_trackhub_id"),  action="store", dest="output_trackhub_id", help="Encoded output_trackhub dataset id"),
+    make_option(c("--short_label"), action="store", dest="short_label", help="Hub short label"),
+    make_option(c("--state_colors"), action="store", dest="state_colors", default=NULL, help="List of state_colors"),
+    make_option(c("--state_indexes"), action="store", dest="state_indexes", default=NULL, help="List of state_indexes")
 )
 
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
@@ -90,32 +92,55 @@ create_track = function(input_dir_state, chrom_len_file, base_track_file_name) {
         system(cmd);
         cmd = paste("bedToBigBed ", track_file_name_bed, chrom_len_file, " ", track_file_name_bigbed);
         system(cmd);
-        #system(paste("rm ", track_file_name_bed_unsorted));
-        #system(paste("rm ", track_file_name_bed));
+        system(paste("rm ", track_file_name_bed_unsorted));
+        system(paste("rm ", track_file_name_bed));
     }
     return(cells);
 }
 
-create_track_db = function(galaxy_url, encoded_dataset_id, input_dir_state, build, chrom_len_file, tracks_dir, hub_name, short_label, long_label) {
+create_track_db = function(galaxy_url, encoded_dataset_id, input_dir_state, build, chrom_len_file, tracks_dir, hub_name, short_label, long_label, state_indexes, state_colors) {
     # Create a trackDb.txt file that includes each state.
     base_track_file_name <- paste(tracks_dir, hub_name, sep="");
     cells = create_track(input_dir_state, chrom_len_file, base_track_file_name);
     # Create a a character vector of 1024 viridis color hex codes.
+    # This vector could be used even if the state_colors were received
+    # since colors may not have been chosen for all states.
     viridis_vector <- viridis(1024, alpha=1, begin=0, end=1, direction=1, option="D");
     colors_used <- vector();
+    if (!is.null(state_indexes)) {
+        # Split state_indexes into a list of integers.
+        s_indexes <- c();
+        index_str <- as.character(state_indexes);
+        items <- strsplit(index_str, ",")
+        for (item in items) {
+            s_indexes <- c(s_indexes, as.integer(item));
+        }
+        # Split state_colors into a list of strings.
+        s_colors <- c();
+        color_str <- as.character(state_colors);
+        items <- strsplit(color_str, ",");
+        for (item in items) {
+            s_colors <- c(s_colors, item);
+        }
+    }
     track_db = NULL;
     for (i in 1:length(cells)) {
-        # Generate a random number between 1 and 1024 as
-        # the viridis_vector index for the next state color.
-        color_index <- sample(1:1024, 1)
-        # Make sure the color was not previously chosen.
-        while(is.element(color_index, colors_used)) {
-            color_index <- sample(1:1024, 1)
+        if (is.null(state_indexes) || !is.element(i, s_indexes)) {
+            # Generate a random number between 1 and 1024 as
+            # the viridis_vector index for the next state color.
+            color_index <- sample(1:1024, 1);
+            # Make sure the color was not previously chosen.
+            while(is.element(color_index, colors_used)) {
+                color_index <- sample(1:1024, 1);
+            }
+            # Append the color to our list of chosen colors.
+            append(colors_used, color_index);
+            # Get the hex code from viridis_vector.
+            color_hex_code <- viridis_vector[color_index];
+        } else {
+            # Use the selected color for the current state.
+            color_hex_code <- s_colors[i];
         }
-        # Append the color to our list of chosen colors.
-        append(colors_used, color_index)
-        # Get the hex code from viridis_vector.
-        viridis_color_hex_code <- viridis_vector[color_index]
         big_data_url <- get_big_data_url(galaxy_url, encoded_dataset_id, tracks_dir, i, build);
         # trackDb.txt track entry.
         track_db = c(track_db, paste("track ", hub_name, "_track_", i, sep=""));
@@ -126,7 +151,7 @@ create_track_db = function(galaxy_url, encoded_dataset_id, input_dir_state, buil
         track_db = c(track_db, paste("priority", i));
         track_db = c(track_db, "itemRgb on");
         track_db = c(track_db, "maxItems 100000");
-        track_db = c(track_db, paste("color", paste(c(col2rgb(viridis_color_hex_code)), collapse=","), sep=" "));
+        track_db = c(track_db, paste("color", paste(c(col2rgb(color_hex_code)), collapse=","), sep=" "));
         track_db = c(track_db, "visibility dense");
         track_db = c(track_db, "");
     }
@@ -166,7 +191,7 @@ write.table(contents, file=genomes_file_path, quote=F, row.names=F, col.names=F)
 # Create the tracks.
 tracks_dir <- paste(hub_dir, opt$build, "/", sep="");
 dir.create(tracks_dir, showWarnings=FALSE);
-track_db <- create_track_db(opt$galaxy_url, opt$output_trackhub_id, opt$input_dir_state, opt$build, opt$chrom_len_file, tracks_dir, opt$hub_name, opt$short_label, opt$long_label);
+track_db <- create_track_db(opt$galaxy_url, opt$output_trackhub_id, opt$input_dir_state, opt$build, opt$chrom_len_file, tracks_dir, opt$hub_name, opt$short_label, opt$long_label, opt$state_indexes, opt$state_colors);
 
 # Create the trackDb.txt output.
 track_db_file_path <- paste(tracks_dir, "trackDb.txt", sep="");

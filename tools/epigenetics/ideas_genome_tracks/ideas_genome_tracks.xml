@@ -20,6 +20,18 @@
     #set email = $__user__.email
 #end if
 #set input_dir_state = "input_dir_state"
+#set select_state_color = $select_state_color_cond.select_state_color
+#if str($select_state_color) == 'yes':
+    #set state_color_repeat = $select_state_color_cond.state_color_repeat
+    #set state_indexes = list()
+    #set state_colors = list()
+    #for $items in $state_color_repeat:
+        $state_indexes.append(str($items.state_index))
+        $state_colors.append(str($items.state_color))
+    #end for
+    #set state_indexes = ",".join($state_indexes)
+    #set state_colors = ",".join($state_colors)
+#end if
 mkdir $input_dir_state &&
 mkdir '$output_trackhub.files_path' &&
 #for $i in $input:
@@ -44,6 +56,10 @@ Rscript '$__tool_directory__/ideas_genome_tracks.R'
 --output_trackhub_files_path '$output_trackhub.files_path'
 --output_trackhub_id '$__app__.security.encode_id($output_trackhub.id)'
 --short_label '$sanitized_short_label'
+#if str($select_state_color) == 'yes':
+    --state_indexes '$state_indexes'
+    --state_colors '$state_colors'
+#end if
 &>ideas_genome_tracks.log;
 if [[ $? -ne 0 ]]; then
     cp ideas_log.txt '$output_trackhub'
@@ -53,6 +69,21 @@ fi
     <inputs>
         <param name="galaxy_url" type="baseurl" value="/"/>
         <param name="input" format="txt" type="data_collection" collection_type="list" label="IDEAS files"/>
+        <conditional name="select_state_color_cond">
+            <param name="select_state_color" type="select" label="Select colors for one or more states?">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no" />
+            <when value="yes">
+                <repeat name="state_color_repeat" title="state color" min="1">
+                    <param name="state_index" type="integer" value="" min="1" label="State index" help="Enter the integer index of the desired state">
+                        <validator type="empty_field"/>
+                    </param>
+                    <param name="state_color" type="color" label="State color"/>
+                </repeat>
+            </when>
+        </conditional>
         <param name="hub_name" type="text" value="" label="Hub name" help="All white space characters will be eliminated">
             <validator type="empty_field"/>
         </param>
