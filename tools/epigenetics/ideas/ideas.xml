@@ -23,6 +23,7 @@
 #end if
 mkdir '$output_txt_dir' &&
 cp '$gen_prep_input_config' $prep_input_config &&
+sort $prep_input_config -o $prep_input_config &&
 prepMat
 $prep_input_config
 #if str($specify_genomic_window) == "yes":
@@ -46,9 +47,9 @@ $bychr
     -exclude '$blacklist_input'
 #end if
 $norm
-&>prepmat.log;
+&>prepmat_log.txt;
 if [[ $? -ne 0 ]]; then
-    cp prepmat.log '$output_txt_dir';
+    cp prepmat_log.txt '$output_txt_dir';
     exit 1;
 fi
 ##############################################
