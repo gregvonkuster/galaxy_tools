@@ -11,7 +11,7 @@ parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
 args <- parse_args(parser, positional_arguments=TRUE)
 opt <- args$options
 
-create_heatmap<-function(data_frame, output_file_name) {
+create_heatmap<-function(data_frame, output_file_name=NULL) {
     # Plot a heatmap for a .para / .state combination
     # based on the received data_frame which was created
     # by reading the .para file.
@@ -22,8 +22,10 @@ create_heatmap<-function(data_frame, output_file_name) {
     colnames(data_matrix) = colnames(data_frame)[1+1:p];
     histone_marks = colnames(data_matrix);
     rownames(data_matrix) = paste(1:num_rows-1, " (", round(data_frame[,1]/sum(data_frame[,1])*10000)/100, "%)", sep="");
-    # Open the output PDF file.
-    pdf(file=output_file_name);
+    if (!is.null(output_file_name)) {
+        # Open the output PDF file.
+        pdf(file=output_file_name);
+    }
     # Set graphical parameters.
     par(mar=c(6, 1, 1, 6));
     # Create a vector containing the minimum and maximum values in data_matrix.
@@ -87,7 +89,10 @@ create_heatmap<-function(data_frame, output_file_name) {
     }
     rect(rep(p+0.2, num_rows), 1:num_rows-0.8, rep(p+0.8, num_rows), 1:num_rows-0.2, col=state_color);
     palette(defpalette);
-    dev.off();
+    if (!is.null(output_file_name)) {
+        dev.off();
+    }
+    return(state_color);
 }
 
 get_state_color <- function(data_matrix, histone_mark_color) {
