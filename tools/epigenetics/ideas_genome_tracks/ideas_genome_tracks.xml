@@ -18,7 +18,7 @@
 #else:
     #set email = $__user__.email
 #end if
-#set input_dir_state = "input_dir_para"
+#set input_dir_para = "input_dir_para"
 #set input_dir_state = "input_dir_state"
 #set select_state_color = $select_state_color_cond.select_state_color
 #if str($select_state_color) == 'yes':
@@ -59,6 +59,7 @@ Rscript '$__tool_directory__/ideas_genome_tracks.R'
 --output_trackhub '$output_trackhub'
 --output_trackhub_files_path '$output_trackhub.files_path'
 --output_trackhub_id '$__app__.security.encode_id($output_trackhub.id)'
+--script_dir '$__tool_directory__'
 --short_label '$sanitized_short_label'
 #if str($select_state_color) == 'yes':
     --state_indexes '$state_indexes'

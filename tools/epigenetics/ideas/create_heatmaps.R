@@ -3,15 +3,17 @@
 suppressPackageStartupMessages(library("optparse"))
 
 option_list <- list(
-    make_option(c("-i", "--input_dir"), action="store", dest="input_dir", help="IDEAS para files directory"),
-    make_option(c("-o", "--output_dir"), action="store", dest="output_dir", help="PDF output directory")
+            make_option(c("--input_dir"), action="store", dest="input_dir", help="IDEAS para files directory"),
+            make_option(c("--output_dir"), action="store", dest="output_dir", help="PDF output directory"),
+            make_option(c("--script_dir"), action="store", dest="script_dir", help="R script source directory")
 )
 
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list);
 args <- parse_args(parser, positional_arguments=TRUE);
 opt <- args$options;
 
-source("create_heatmap.R");
+heatmap_path <- paste(opt$script_dir, "create_heatmap.R", sep="/");
+source(heatmap_path);
 
 para_files <- list.files(path=opt$input_dir, pattern="\\.para$", full.names=TRUE);
 for (i in 1:length(para_files)) {

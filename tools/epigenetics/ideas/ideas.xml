@@ -183,8 +183,9 @@ fi
 && mv ./*.state '$output_txt_dir'
 #if str($output_heatmaps) == "yes":
     && Rscript '$__tool_directory__/create_heatmaps.R'
-    -i '$output_txt_dir'
-    -o '$output_pdf_dir'
+    --input_dir '$output_txt_dir'
+    --output_dir '$output_pdf_dir'
+    --script_dir '$__tool_directory__'
 #end if
     ]]></command>
     <configfiles>

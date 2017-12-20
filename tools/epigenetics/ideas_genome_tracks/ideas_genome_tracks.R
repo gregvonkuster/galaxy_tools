@@ -15,6 +15,7 @@ option_list <- list(
     make_option(c("--output_trackhub"),  action="store", dest="output_trackhub", help="Output hub file"),
     make_option(c("--output_trackhub_files_path"),  action="store", dest="output_trackhub_files_path", help="Output hub extra files path"),
     make_option(c("--output_trackhub_id"),  action="store", dest="output_trackhub_id", help="Encoded output_trackhub dataset id"),
+    make_option(c("--script_dir"), action="store", dest="script_dir", help="R script source directory"),
     make_option(c("--short_label"), action="store", dest="short_label", help="Hub short label"),
     make_option(c("--state_colors"), action="store", dest="state_colors", default=NULL, help="List of state_colors"),
     make_option(c("--state_indexes"), action="store", dest="state_indexes", default=NULL, help="List of state_indexes")
@@ -122,16 +123,18 @@ create_track_db = function(galaxy_url, encoded_dataset_id, input_dir_para, input
     }
     track_db = NULL;
     for (i in 1:length(cells)) {
+        # Get the color for the current state.
         if (is.null(state_indexes) || !is.element(i, s_indexes)) {
             data_frame <- read.table(para_files[i], comment="!", header=T);
-            color <- create_heatmap(data_frame);
+            color_hex_code <- create_heatmap(data_frame);
         } else {
             # Use the selected color for the current state.
             color_hex_code <- s_colors[i];
-            color <- paste(c(col2rgb(color_hex_code)), collapse=",");
         }
+        color <- paste(c(col2rgb(color_hex_code)), collapse=",");
+        # Get the bigDataUrl.
         big_data_url <- get_big_data_url(galaxy_url, encoded_dataset_id, tracks_dir, i, build);
-        # trackDb.txt track entry.
+        # trackDb.txt track hub entry.
         track_db = c(track_db, paste("track ", hub_name, "_track_", i, sep=""));
         track_db = c(track_db, "type bigBed");
         track_db = c(track_db, paste("bigDataUrl", big_data_url, sep=" "));
@@ -178,10 +181,11 @@ genomes_file_path <- paste(hub_dir, "genomes.txt", sep="");
 write.table(contents, file=genomes_file_path, quote=F, row.names=F, col.names=F);
 
 # Create the tracks.
-source("create_heatmap.R");
+heatmap_path <- paste(opt$script_dir, "create_heatmap.R", sep="/");
+source(heatmap_path);
 tracks_dir <- paste(hub_dir, opt$build, "/", sep="");
 dir.create(tracks_dir, showWarnings=FALSE);
-track_db <- create_track_db(opt$galaxy_url, opt$output_trackhub_id, opt$input_dir_state, opt$input_dir_state, opt$build,
+track_db <- create_track_db(opt$galaxy_url, opt$output_trackhub_id, opt$input_dir_para, opt$input_dir_state, opt$build,
         opt$chrom_len_file, tracks_dir, opt$hub_name, opt$short_label, opt$long_label, opt$state_indexes, opt$state_colors);
 
 # Create the trackDb.txt output.
