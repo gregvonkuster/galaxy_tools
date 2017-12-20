@@ -119,7 +119,8 @@ para_files <- list.files(path=opt$input_dir, pattern="\\.para$", full.names=TRUE
 for (i in 1:length(para_files)) {
     para_file <- para_files[i];
     para_file_base_name <- strsplit(para_file, split="/")[[1]][2]
-    output_file_name <- gsub(".para", ".pdf", para_file_base_name)
+    output_file_base_name <- gsub(".para", "", para_file_base_name)
+    output_file_name <- paste(output_file_base_name, "state", i, "pdf", sep=".")
     output_file_path <- paste(opt$output_dir, output_file_name, sep="/");
     data_frame <- read.table(para_file, comment="!", header=T);
     create_heatmap(data_frame, output_file_path);
