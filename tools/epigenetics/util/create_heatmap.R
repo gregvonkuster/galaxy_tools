@@ -1,16 +1,5 @@
 #!/usr/bin/env Rscript
 
-suppressPackageStartupMessages(library("optparse"))
-
-option_list <- list(
-    make_option(c("-i", "--input_dir"), action="store", dest="input_dir", help="IDEAS para files directory"),
-    make_option(c("-o", "--output_dir"), action="store", dest="output_dir", help="PDF output directory")
-)
-
-parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
-args <- parse_args(parser, positional_arguments=TRUE)
-opt <- args$options
-
 create_heatmap<-function(data_frame, output_file_name=NULL) {
     # Plot a heatmap for a .para / .state combination
     # based on the received data_frame which was created
@@ -99,8 +88,8 @@ get_state_color <- function(data_matrix, histone_mark_color) {
     range_vector = apply(data_matrix, 1, range);
     mm = NULL;
     for(i in 1:dim(data_matrix)[1]) {
-        range_val1 = range_vector[1, i] + 1e-10
-        range_val2 = range_vector[2, i]
+        range_val1 = range_vector[1, i] + 1e-10;
+        range_val2 = range_vector[2, i];
         mm = rbind(mm, (data_matrix[i,] - range_val1) / (range_val2 - range_val1));
     }
     mm = mm^5;
@@ -117,16 +106,4 @@ get_state_color <- function(data_matrix, histone_mark_color) {
     h = apply(h, 1, function(x){hsv(x[1], x[2], x[3])});
     rt = cbind(rt, h);
     return(rt);
-}
-
-# Read the inputs.
-para_files <- list.files(path=opt$input_dir, pattern="\\.para$", full.names=TRUE);
-for (i in 1:length(para_files)) {
-    para_file <- para_files[i];
-    para_file_base_name <- strsplit(para_file, split="/")[[1]][2]
-    output_file_base_name <- gsub(".para", "", para_file_base_name)
-    output_file_name <- paste(output_file_base_name, "state", i, "pdf", sep=".")
-    output_file_path <- paste(opt$output_dir, output_file_name, sep="/");
-    data_frame <- read.table(para_file, comment="!", header=T);
-    create_heatmap(data_frame, output_file_path);
 }

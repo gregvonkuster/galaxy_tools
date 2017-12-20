@@ -182,7 +182,7 @@ fi
 && mv ./*.profile '$output_txt_dir'
 && mv ./*.state '$output_txt_dir'
 #if str($output_heatmaps) == "yes":
-    && Rscript '$__tool_directory__/create_heatmap.R'
+    && Rscript '$__tool_directory__/create_heatmaps.R'
     -i '$output_txt_dir'
     -o '$output_pdf_dir'
 #end if
