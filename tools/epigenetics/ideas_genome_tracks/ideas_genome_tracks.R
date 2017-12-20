@@ -10,6 +10,7 @@ option_list <- list(
     make_option(c("--email"),  action="store", dest="email", help="User email address"),
     make_option(c("--galaxy_url"),  action="store", dest="galaxy_url", help="Galaxy instance base URL"),
     make_option(c("--hub_name"),  action="store", dest="hub_name", default=NULL, help="Hub name without spaces"),
+    make_option(c("--input_dir_para"), action="store", dest="input_dir_para", help="Directory containing .para outputs from IDEAS"),
     make_option(c("--input_dir_state"), action="store", dest="input_dir_state", help="Directory containing .state outputs from IDEAS"),
     make_option(c("--long_label"), action="store", dest="long_label", help="Hub long label"),
     make_option(c("--output_trackhub"),  action="store", dest="output_trackhub", help="Output hub file"),
@@ -37,7 +38,7 @@ create_primary_html = function(output_trackhub, tracks_dir, build) {
 }
 
 create_track = function(input_dir_state, chrom_len_file, base_track_file_name) {
-    # Create everythin needed, including the bigbed file,
+    # Create everything needed, including the bigbed file,
     # to render the tracks within the UCSC track hub.
     state_files <- list.files(path=input_dir_state, full.names=TRUE);
     genome_size = read.table(chrom_len_file);
