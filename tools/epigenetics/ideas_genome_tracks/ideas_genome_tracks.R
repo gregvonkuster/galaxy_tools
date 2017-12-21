@@ -108,6 +108,7 @@ create_track_db = function(galaxy_url, encoded_dataset_id, input_dir_para, input
     # are multiple .para files.  See the comments in the for loop
     # below.
     data_frame <- read.table(para_files[1], comment="!", header=T);
+	color_hex_code <- create_heatmap(data_frame);
     ######
     base_track_file_name <- paste(tracks_dir, hub_name, sep="");
     cells = create_track(input_dir_state, chrom_len_file, base_track_file_name);
@@ -134,7 +135,7 @@ create_track_db = function(galaxy_url, encoded_dataset_id, input_dir_para, input
             ######
             # This is for future use since there is currently only a single .para file.
             # data_frame <- read.table(para_files[i], comment="!", header=T);
-            color_hex_code <- create_heatmap(data_frame);
+            # color_hex_code <- create_heatmap(data_frame);
         } else {
             # Use the selected color for the current state.
             color_hex_code <- s_colors[i];
