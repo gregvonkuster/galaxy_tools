@@ -103,6 +103,12 @@ create_track_db = function(galaxy_url, encoded_dataset_id, input_dir_para, input
         chrom_len_file, tracks_dir, hub_name, short_label, long_label, state_indexes, state_colors) {
     # Create a trackDb.txt file that includes each state.
     para_files <- list.files(path=input_dir_para, full.names=TRUE);
+    ######
+    # The following is temporary and will be eliminated when there
+    # are multiple .para files.  See the comments in the for loop
+    # below.
+    data_frame <- read.table(para_files[1], comment="!", header=T);
+    ######
     base_track_file_name <- paste(tracks_dir, hub_name, sep="");
     cells = create_track(input_dir_state, chrom_len_file, base_track_file_name);
     if (!is.null(state_indexes)) {
@@ -125,7 +131,9 @@ create_track_db = function(galaxy_url, encoded_dataset_id, input_dir_para, input
     for (i in 1:length(cells)) {
         # Get the color for the current state.
         if (is.null(state_indexes) || !is.element(i, s_indexes)) {
-            data_frame <- read.table(para_files[i], comment="!", header=T);
+            ######
+            # This is for future use since there is currently only a single .para file.
+            # data_frame <- read.table(para_files[i], comment="!", header=T);
             color_hex_code <- create_heatmap(data_frame);
         } else {
             # Use the selected color for the current state.
@@ -194,3 +202,4 @@ write.table(track_db, file=track_db_file_path, quote=F, row.names=F, col.names=F
 
 # Create the primary HTML dataset.
 create_primary_html(opt$output_trackhub, tracks_dir, opt$build);
+
