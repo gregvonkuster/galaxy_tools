@@ -3,9 +3,9 @@
 suppressPackageStartupMessages(library("optparse"))
 
 option_list <- list(
-            make_option(c("--input_dir"), action="store", dest="input_dir", help="IDEAS para files directory"),
-            make_option(c("--output_dir"), action="store", dest="output_dir", help="PDF output directory"),
-            make_option(c("--script_dir"), action="store", dest="script_dir", help="R script source directory")
+    make_option(c("--input_dir"), action="store", dest="input_dir", help="IDEAS para files directory"),
+    make_option(c("--output_dir"), action="store", dest="output_dir", help="PDF output directory"),
+    make_option(c("--script_dir"), action="store", dest="script_dir", help="R script source directory")
 )
 
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list);

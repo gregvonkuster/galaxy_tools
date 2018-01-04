@@ -4,21 +4,22 @@ suppressPackageStartupMessages(library("data.table"))
 suppressPackageStartupMessages(library("optparse"))
 
 option_list <- list(
-    make_option(c("--build"), action="store", dest="build", help="Genome build"),
-    make_option(c("--chrom_len_file"), action="store", dest="chrom_len_file", help="Chromosome length file"),
-    make_option(c("--email"),  action="store", dest="email", help="User email address"),
-    make_option(c("--galaxy_url"),  action="store", dest="galaxy_url", help="Galaxy instance base URL"),
-    make_option(c("--hub_name"),  action="store", dest="hub_name", default=NULL, help="Hub name without spaces"),
-    make_option(c("--input_dir_para"), action="store", dest="input_dir_para", help="Directory containing .para outputs from IDEAS"),
-    make_option(c("--input_dir_state"), action="store", dest="input_dir_state", help="Directory containing .state outputs from IDEAS"),
-    make_option(c("--long_label"), action="store", dest="long_label", help="Hub long label"),
-    make_option(c("--output_trackhub"),  action="store", dest="output_trackhub", help="Output hub file"),
-    make_option(c("--output_trackhub_files_path"),  action="store", dest="output_trackhub_files_path", help="Output hub extra files path"),
-    make_option(c("--output_trackhub_id"),  action="store", dest="output_trackhub_id", help="Encoded output_trackhub dataset id"),
-    make_option(c("--script_dir"), action="store", dest="script_dir", help="R script source directory"),
-    make_option(c("--short_label"), action="store", dest="short_label", help="Hub short label"),
-    make_option(c("--state_colors"), action="store", dest="state_colors", default=NULL, help="List of state_colors"),
-    make_option(c("--state_indexes"), action="store", dest="state_indexes", default=NULL, help="List of state_indexes")
+            make_option(c("--build"), action="store", dest="build", help="Genome build"),
+            make_option(c("--chrom_len_file"), action="store", dest="chrom_len_file", help="Chromosome length file"),
+            make_option(c("--email"),  action="store", dest="email", help="User email address"),
+            make_option(c("--galaxy_url"),  action="store", dest="galaxy_url", help="Galaxy instance base URL"),
+            make_option(c("--hub_long_label"), action="store", dest="hub_long_label", help="Hub long label"),
+            make_option(c("--hub_name"),  action="store", dest="hub_name", default=NULL, help="Hub name without spaces"),
+            make_option(c("--hub_short_label"), action="store", dest="hub_short_label", help="Hub short label"),
+            make_option(c("--input_dir_para"), action="store", dest="input_dir_para", help="Directory containing .para outputs from IDEAS"),
+            make_option(c("--input_dir_state"), action="store", dest="input_dir_state", help="Directory containing .state outputs from IDEAS"),
+            make_option(c("--output_trackhub"),  action="store", dest="output_trackhub", help="Output hub file"),
+            make_option(c("--output_trackhub_files_path"),  action="store", dest="output_trackhub_files_path", help="Output hub extra files path"),
+            make_option(c("--output_trackhub_id"),  action="store", dest="output_trackhub_id", help="Encoded output_trackhub dataset id"),
+            make_option(c("--script_dir"), action="store", dest="script_dir", help="R script source directory"),
+            make_option(c("--state_colors"), action="store", dest="state_colors", default=NULL, help="List of state colors"),
+            make_option(c("--state_indexes"), action="store", dest="state_indexes", default=NULL, help="List of state indexes"),
+            make_option(c("--state_names"), action="store", dest="state_names", default=NULL, help="List of state names")
 )
 
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
@@ -37,10 +38,11 @@ create_primary_html = function(output_trackhub, tracks_dir, build) {
     cat(s, file=output_trackhub);
 }
 
-create_track = function(input_dir_state, chrom_len_file, base_track_file_name) {
+create_cells = function(input_dir_state, chrom_len_file, base_track_file_name, state_indexes, state_names, state_colors) {
     # Create everything needed, including the bigbed file,
     # to render the tracks within the UCSC track hub.
-    state_files <- list.files(path=input_dir_state, full.names=TRUE);
+    state_files = list.files(path=input_dir_state, full.names=TRUE);
+    cell_type_names = get_cell_type_names(state_files[1]);
     genome_size = read.table(chrom_len_file);
     g = NULL;
     for(i in state_files) {
@@ -69,8 +71,9 @@ create_track = function(input_dir_state, chrom_len_file, base_track_file_name) {
     posst = as.numeric(g1[,3]);
     posed = as.numeric(g1[,4]);
     state = as.matrix(g1[,5:(dim(g1)[2]-1)]);
-    state_name = 0:max(state);
     L = dim(g1)[1];
+    # Here n will be the same length as the
+    # list of cell_type_names defined above.
     n = dim(state)[2];
     cells = as.character(colnames(g1)[5:(dim(g1)[2]-1)]);
     options(scipen=999);
@@ -78,6 +81,7 @@ create_track = function(input_dir_state, chrom_len_file, base_track_file_name) {
     tt = c(tt, which(posst[2:L]!=posed[2:L-1]));
     tt = sort(unique(tt));
     for(i in 1:n) {
+        state_name = cell_type_names[i];
         tstate = state[,i];
         t = c(tt, which(tstate[2:L]!=tstate[2:L-1]));
         t = sort(unique(t));
@@ -87,7 +91,7 @@ create_track = function(input_dir_state, chrom_len_file, base_track_file_name) {
         track_file_name_bed_unsorted <- get_track_file_name(base_track_file_name, i, "bed_unsorted");
         track_file_name_bed <- get_track_file_name(base_track_file_name, i, "bed");
         track_file_name_bigbed <- get_track_file_name(base_track_file_name, i, "bigbed");
-        x = cbind(np[, 1:3], state_name[as.integer(np[,4])+1], 1000, ".", np[,2:3]);
+        x = cbind(np[, 1:3], state_name, 1000, ".", np[,2:3]);
         write.table(as.matrix(x), track_file_name_bed_unsorted, quote=F, row.names=F, col.names=F);
         cmd = paste("LC_COLLATE=C sort -k1,1 -k2,2n < ", track_file_name_bed_unsorted, " > ", track_file_name_bed);
         system(cmd);
@@ -99,56 +103,71 @@ create_track = function(input_dir_state, chrom_len_file, base_track_file_name) {
     return(cells);
 }
 
-create_track_db = function(galaxy_url, encoded_dataset_id, input_dir_para, input_dir_state, build,
-        chrom_len_file, tracks_dir, hub_name, short_label, long_label, state_indexes, state_colors) {
+create_track_db = function(galaxy_url, encoded_dataset_id, input_dir_para, input_dir_state, build, chrom_len_file,
+        tracks_dir, hub_name, hub_short_label, hub_long_label, state_indexes, state_names, state_colors) {
     # Create a trackDb.txt file that includes each state.
-    para_files <- list.files(path=input_dir_para, full.names=TRUE);
-    ######
-    # The following is temporary and will be eliminated when there
-    # are multiple .para files.  See the comments in the for loop
-    # below.
-    data_frame <- read.table(para_files[1], comment="!", header=T);
-	color_hex_code <- create_heatmap(data_frame);
-    ######
-    base_track_file_name <- paste(tracks_dir, hub_name, sep="");
-    cells = create_track(input_dir_state, chrom_len_file, base_track_file_name);
-    if (!is.null(state_indexes)) {
+    s_indexes = c();
+    s_names = c();
+    s_colors = c();
+    if (is.null(state_indexes)) {
+        # Generate state colors automatically.
+        index = 0;
+        para_files = list.files(path=input_dir_para, full.names=TRUE);
+        for (para_file in para_files) {
+            data_frame = read.table(para_file, comment="!", header=T);
+            color_hex_code = create_heatmap(data_frame);
+            s_indexes = c(s_indexes, index);
+            s_names = c(s_names, toString(index));
+            s_colors = c(s_colors, color_hex_code);
+        }
+    } else {
         # Split state_indexes into a list of integers.
-        s_indexes <- c();
-        index_str <- as.character(state_indexes);
-        items <- strsplit(index_str, ",")
+        index_str = as.character(state_indexes);
+        items = strsplit(index_str, ",")
         for (item in items) {
-            s_indexes <- c(s_indexes, as.integer(item));
+            s_indexes = c(s_indexes, as.integer(item));
+        }
+        # Split state_names into a list of strings.
+        name_str = as.character(state_names);
+        items = strsplit(name_str, ",");
+        item_index = 0;
+        for (item in items) {
+            item_index = item_index + 1;
+            # Handle the special string "use state index".
+            if (identical(item, "use state index")) {
+                item = s_indexes[item_index];
+            }
+            s_names = c(s_names, item);
         }
         # Split state_colors into a list of strings.
-        s_colors <- c();
-        color_str <- as.character(state_colors);
-        items <- strsplit(color_str, ",");
+        color_str = as.character(state_colors);
+        items = strsplit(color_str, ",");
         for (item in items) {
-            s_colors <- c(s_colors, item);
+            s_colors = c(s_colors, item);
         }
     }
+    base_track_file_name <- paste(tracks_dir, hub_name, sep="");
+    cells = create_cells(input_dir_state, chrom_len_file, base_track_file_name, s_indexes, s_names, s_colors);
+    cell_info = cbind(cells, cells, cells, "#000000");
+    cell_info = array(cell_info, dim=c(length(cells), 4));
+    cell_info = as.matrix(cell_info);
     track_db = NULL;
     for (i in 1:length(cells)) {
-        # Get the color for the current state.
-        if (is.null(state_indexes) || !is.element(i, s_indexes)) {
-            ######
-            # This is for future use since there is currently only a single .para file.
-            # data_frame <- read.table(para_files[i], comment="!", header=T);
-            # color_hex_code <- create_heatmap(data_frame);
-        } else {
-            # Use the selected color for the current state.
-            color_hex_code <- s_colors[i];
+        ii = which(cells[i] == cell_info[,1]);
+        if(length(ii) == 0) {
+            next;
         }
-        color <- paste(c(col2rgb(color_hex_code)), collapse=",");
+        ii = ii[1];
+        # Get the color for the current state.
+        color <- paste(c(col2rgb(s_colors[i])), collapse=",");
         # Get the bigDataUrl.
         big_data_url <- get_big_data_url(galaxy_url, encoded_dataset_id, tracks_dir, i, build);
         # trackDb.txt track hub entry.
         track_db = c(track_db, paste("track ", hub_name, "_track_", i, sep=""));
         track_db = c(track_db, "type bigBed");
         track_db = c(track_db, paste("bigDataUrl", big_data_url, sep=" "));
-        track_db = c(track_db, paste("shortLabel", short_label, sep=" "));
-        track_db = c(track_db, paste("longLabel", long_label, sep=" "));
+        track_db = c(track_db, paste("shortLabel", cell_info[ii, 2], sep=" "));
+        track_db = c(track_db, paste("longLabel", paste(hub_name, cell_info[ii, 3], sep=" ")));
         track_db = c(track_db, paste("priority", i));
         track_db = c(track_db, "itemRgb on");
         track_db = c(track_db, "maxItems 100000");
@@ -165,6 +184,27 @@ get_big_data_url = function(galaxy_url, encoded_dataset_id, tracks_dir, index, b
     return(s)
 }
 
+get_cell_type_names = function(state_file) {
+    # The first line of a state file is a comment
+    # that looks something like this:
+    # ID CHR POSst POSed E001 E002 PosClass
+    # The cell type names are the elemets whose
+    # 1-based indexes start at 5 and end with -1,
+    # which in the above case are E001 and E002.
+    fh = file(state_file,"r");
+    line = readLines(fh, n=1);
+    close(fh);
+    # Split line into a list of strings.
+    items = strsplit(line, "\\s+")[[1]];
+    # Extract the cell type names into a list.
+    last_cell_type_name_index = length(items) -1;
+    cell_type_names = c();
+    for (i in 5:last_cell_type_name_index) {
+        cell_type_names = c(cell_type_names, items[i]);
+    }
+    return(cell_type_names);
+}
+
 get_track_file_name = function(base_track_file_name, index, ext) {
     track_file_name <- paste(base_track_file_name, index, ext, sep=".");
     return(track_file_name);
@@ -172,11 +212,11 @@ get_track_file_name = function(base_track_file_name, index, ext) {
 
 # Create the hub.txt output.
 hub_name_line <- paste("hub ", opt$hub_name, sep="");
-short_label_line <- paste("shortLabel ", opt$short_label, sep="");
-long_label_line <- paste("longLabel ", opt$long_label, sep="");
+hub_short_label_line <- paste("shortLabel ", opt$hub_short_label, sep="");
+hub_long_label_line <- paste("longLabel ", opt$hub_long_label, sep="");
 genomes_txt_line <- paste("genomesFile genomes.txt", sep="");
 email_line <- paste("email ", opt$email, sep="");
-contents <- paste(hub_name_line, short_label_line, long_label_line, genomes_txt_line, email_line, sep="\n");
+contents <- paste(hub_name_line, hub_short_label_line, hub_long_label_line, genomes_txt_line, email_line, sep="\n");
 hub_dir <- paste(opt$output_trackhub_files_path, "/", "myHub", "/", sep="");
 dir.create(hub_dir, showWarnings=FALSE);
 hub_file_path <- paste(hub_dir, "hub.txt", sep="");
@@ -195,7 +235,8 @@ source(heatmap_path);
 tracks_dir <- paste(hub_dir, opt$build, "/", sep="");
 dir.create(tracks_dir, showWarnings=FALSE);
 track_db <- create_track_db(opt$galaxy_url, opt$output_trackhub_id, opt$input_dir_para, opt$input_dir_state, opt$build,
-        opt$chrom_len_file, tracks_dir, opt$hub_name, opt$short_label, opt$long_label, opt$state_indexes, opt$state_colors);
+        opt$chrom_len_file, tracks_dir, opt$hub_name, opt$hub_short_label, opt$hub_long_label, opt$state_indexes,
+        opt$state_names, opt$state_colors);
 
 # Create the trackDb.txt output.
 track_db_file_path <- paste(tracks_dir, "trackDb.txt", sep="");
@@ -203,4 +244,3 @@ write.table(track_db, file=track_db_file_path, quote=F, row.names=F, col.names=F
 
 # Create the primary HTML dataset.
 create_primary_html(opt$output_trackhub, tracks_dir, opt$build);
-

@@ -10,8 +10,8 @@
 #import re
 #set dbkey = None
 #set sanitized_hub_name = $re.sub('\s+', '', str($hub_name), flags=re.UNICODE)
-#set sanitized_long_label = str($long_label)[:79]
-#set sanitized_short_label = str($short_label)[:16]
+#set sanitized_hub_long_label = str($hub_long_label)[:79]
+#set sanitized_hub_short_label = str($hub_short_label)[:16]
 #if str($__user__.email) == 'None':
     ## This is needed only if the user is not logged in.
     #set email = "foo@bar.net"
@@ -20,16 +20,19 @@
 #end if
 #set input_dir_para = "input_dir_para"
 #set input_dir_state = "input_dir_state"
-#set select_state_color = $select_state_color_cond.select_state_color
-#if str($select_state_color) == 'yes':
-    #set state_color_repeat = $select_state_color_cond.state_color_repeat
+#set set_state_name_and_color = $set_state_name_and_color_cond.set_state_name_and_color
+#if str($set_state_name_and_color) == 'yes':
+    #set state_repeat = $set_state_name_and_color_cond.state_repeat
     #set state_indexes = list()
+    #set state_names = list()
     #set state_colors = list()
-    #for $items in $state_color_repeat:
+    #for $items in $state_repeat:
         $state_indexes.append(str($items.state_index))
+        $state_names.append(str($items.state_name))
         $state_colors.append(str($items.state_color))
     #end for
     #set state_indexes = ",".join($state_indexes)
+    #set state_names = ",".join($state_names)
     #set state_colors = ",".join($state_colors)
 #end if
 mkdir $input_dir_para &&
@@ -55,14 +58,15 @@ Rscript '$__tool_directory__/ideas_genome_tracks.R'
 --hub_name '$hub_name'
 --input_dir_para '$input_dir_para'
 --input_dir_state '$input_dir_state'
---long_label '$sanitized_long_label'
+--hub_long_label '$sanitized_hub_long_label'
 --output_trackhub '$output_trackhub'
 --output_trackhub_files_path '$output_trackhub.files_path'
 --output_trackhub_id '$__app__.security.encode_id($output_trackhub.id)'
 --script_dir '$__tool_directory__'
---short_label '$sanitized_short_label'
-#if str($select_state_color) == 'yes':
+--hub_short_label '$sanitized_hub_short_label'
+#if str($set_state_name_and_color) == 'yes':
     --state_indexes '$state_indexes'
+    --state_names '$state_names'
     --state_colors '$state_colors'
 #end if
 &>ideas_genome_tracks.log;
@@ -74,30 +78,33 @@ fi
     <inputs>
         <param name="galaxy_url" type="baseurl" value="/"/>
         <param name="input" format="txt" type="data_collection" collection_type="list" label="IDEAS files"/>
-        <conditional name="select_state_color_cond">
-            <param name="select_state_color" type="select" label="Select colors for one or more states?">
+        <param name="hub_name" type="text" value="" label="Hub name" help="All white space characters will be eliminated">
+            <validator type="empty_field"/>
+        </param>
+        <param name="hub_short_label" type="text" value="short label" label="Hub short label" help="Limit to 17 characters">
+            <validator type="empty_field"/>
+        </param>
+        <param name="hub_long_label" type="text" value="long label" label="Hub long label" help="Limit to 80 characters">
+            <validator type="empty_field"/>
+        </param>
+        <conditional name="set_state_name_and_color_cond">
+            <param name="set_state_name_and_color" type="select" label="Specify names and colors for one or more states?">
                 <option value="no" selected="true">No</option>
                 <option value="yes">Yes</option>
             </param>
             <when value="no" />
             <when value="yes">
-                <repeat name="state_color_repeat" title="state color" min="1">
-                    <param name="state_index" type="integer" value="" min="1" label="State index" help="Enter the integer index of the desired state">
+                <repeat name="state_repeat" title="Name and color" min="1">
+                    <param name="state_index" type="integer" value="" min="0" label="State index" help="Enter the integer index of the state displayed in the IDEAS heatmap">
+                        <validator type="empty_field"/>
+                    </param>
+                    <param name="state_name" type="text" value="use state index" label="State name" help="The default string 'use state index' sets the name to the state index value">
                         <validator type="empty_field"/>
                     </param>
                     <param name="state_color" type="color" label="State color"/>
                 </repeat>
             </when>
         </conditional>
-        <param name="hub_name" type="text" value="" label="Hub name" help="All white space characters will be eliminated">
-            <validator type="empty_field"/>
-        </param>
-        <param name="short_label" type="text" value="short label" label="Short label" help="Limit to 17 characters">
-            <validator type="empty_field"/>
-        </param>
-        <param name="long_label" type="text" value="long label" label="Long label" help="Limit to 80 characters">
-            <validator type="empty_field"/>
-        </param>
     </inputs>
     <outputs>
         <data name="output_trackhub" format="trackhub"/>
@@ -113,8 +120,8 @@ fi
                 </collection>
             </param>
             <param name="hub_name" value="MyHub"/>
-            <param name="short_label" value="my short label"/>
-            <param name="long_label" value="my long label"/>
+            <param name="hub_short_label" value="my short label"/>
+            <param name="hub_long_label" value="my long label"/>
             <output name="output_trackhub" file="output_trackhub.html" ftype="trackhub"/>
         </test>
     </tests>

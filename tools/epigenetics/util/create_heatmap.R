@@ -26,8 +26,8 @@ create_heatmap<-function(data_frame, output_file_name=NULL) {
     plot(NA, NA, xlim=c(0, p+0.7), ylim=c(0, num_rows), xaxt="n", yaxt="n", xlab=NA, ylab=NA, frame.plot=F);
     axis(1, at=1:p-0.5, labels=colnames(data_matrix), las=2);
     axis(4, at=1:num_rows-0.5, labels=rownames(data_matrix), las=2);
-    color = round((t(data_matrix) - min_max_vector[1]) / (min_max_vector[2] - min_max_vector[1]) * 100);
-    rect(rep(1:p-1, num_rows), rep(1:num_rows-1, each=p), rep(1:p, num_rows), rep(1:num_rows, each=p), col=color);
+    col = round((t(data_matrix) - min_max_vector[1]) / (min_max_vector[2] - min_max_vector[1]) * 100);
+    rect(rep(1:p-1, num_rows), rep(1:num_rows-1, each=p), rep(1:p, num_rows), rep(1:num_rows, each=p), col=col);
     histone_mark_color = t(col2rgb(terrain.colors(ceiling(p))[1:p]));
 
     # Specify a color for common feature names like "h3k4me3".
