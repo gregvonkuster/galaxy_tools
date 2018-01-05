@@ -74,9 +74,9 @@ create_heatmap<-function(data_frame, output_file_name=NULL) {
         if(regexpr("ctcf", tolower(histone_marks[i])) > 0) {
             histone_mark_color[i,] = c(200, 0, 250);
         }
-        state_color = get_state_color(data_matrix, histone_mark_color)[,2];
+        state_color = get_state_color(data_matrix, histone_mark_color)[,];
     }
-    rect(rep(p+0.2, num_rows), 1:num_rows-0.8, rep(p+0.8, num_rows), 1:num_rows-0.2, col=state_color);
+    rect(rep(p+0.2, num_rows), 1:num_rows-0.8, rep(p+0.8, num_rows), 1:num_rows-0.2, col=state_color[,2]);
     palette(defpalette);
     if (!is.null(output_file_name)) {
         dev.off();
