@@ -14,10 +14,11 @@
 #set tmp_dir = "tmp"
 #set prep_input_config = "prep_input_config.txt"
 #set prep_output_config = "prep_output_config.txt"
+#set specify_genomic_window = $specify_genomic_window_cond.specify_genomic_window
+#set perform_training = $perform_training_cond.perform_training
 ##############################################
 ## Create the config file and prepare the data
 ##############################################
-#set specify_genomic_window = $specify_genomic_window_cond.specify_genomic_window
 #if str($output_heatmaps) == "yes":
     mkdir '$output_pdf_dir' &&
 #end if
@@ -83,6 +84,9 @@ fi
     #end for
     #for chrom, tup in $window_positions_by_chroms.items():
         && ideas
+        #if str($perform_training) == "yes":
+            --iterations $perform_training_cond.iterations
+        #end if
         '$prep_output_config'
         '$specify_genomic_window_cond.bed_input'
         $hp
@@ -133,6 +137,9 @@ fi
     ## Not using a genomic window bed file.
     ##############################################
     && ideas
+    #if str($perform_training) == "yes":
+        --iterations $perform_training_cond.iterations
+    #end if
     '$prep_output_config'
     $tmp_dir/*.bed
     $hp
@@ -214,6 +221,16 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
 #end if]]></configfile>
     </configfiles>
     <inputs>
+        <conditional name="perform_training_cond">
+            <param name="perform_training" type="select" label="Perform training">
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
+            </param>
+            <when value="yes">
+                <param name="iterations" type="integer" value="20" min="1" label="Number of training iterations"/>
+            </when>
+            <when value="no"/>
+        </conditional>
         <conditional name="cell_type_epigenetic_factor_cond">
             <param name="cell_type_epigenetic_factor" type="select" label="Set cell type and epigenetic factor names by">
                 <option value="extract" selected="true">extracting them from the selected input file names</option>
@@ -291,8 +308,8 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
         <param name="minerr" type="float" value="0.5" min="0" label="Minimum standard deviation for the emission Gaussian distribution" help="Zero value results in the default: 0.5"/>
         <param name="maxerr" type="float" value="1000000" min="0" label="Maximum standard deviation for the emission Gaussian distribution" help="Zero sets the maximum to a large number"/>
         <param name="output_heatmaps" type="select" display="radio" label="Output heatmaps?">
-            <option value="no" selected="true">No</option>
-            <option value="yes">Yes</option>
+            <option value="yes" selected="true">Yes</option>
+            <option value="no">No</option>
         </param>
         <param name="save_ideas_log" type="select" display="radio" label="Save IDEAS log in an additional history item">
             <option value="no" selected="true">No</option>
