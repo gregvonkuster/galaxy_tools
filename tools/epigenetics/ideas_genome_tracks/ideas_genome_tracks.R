@@ -26,19 +26,19 @@ parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
 args <- parse_args(parser, positional_arguments=TRUE)
 opt <- args$options
 
-create_primary_html = function(output_trackhub, tracks_dir, build) {
-    track_files <- list.files(path=tracks_dir);
+create_primary_html = function(output_trackhub, trackhub_dir) {
+    trackhub_files <- list.files(path=trackhub_dir);
     s <- paste('<html><head></head><body>', sep="\n");
-    s <- paste(s, '<h3>Contents of directory ~/myHub/', build, ' required by UCSC TrackHub</h3>\n', sep="");
+    s <- paste(s, '<h3>Contents of directory required by UCSC TrackHub</h3>\n', sep="");
     s <- paste(s, '<ul>\n', sep="")
-    for (i in 1:length(track_files)) {
-        s <- paste(s, '<li><a href="', 'myHub/', build, "/", track_files[i], '">', track_files[i], '</a></li>\n', sep="");
+    for (i in 1:length(trackhub_files)) {
+        s <- paste(s, '<li><a href="', 'myHub/', trackhub_files[i], '">', trackhub_files[i], '</a></li>\n', sep="");
     }
     s <- paste(s, '</ul>\n</body>\n</html>', sep="");
     cat(s, file=output_trackhub);
 }
 
-create_cells = function(input_dir_state, chrom_len_file, base_track_file_name, state_indexes, state_names, state_colors) {
+create_cells = function(input_dir_state, chrom_len_file, base_track_file_name, state_names, color_codes_vector) {
     # Create everything needed, including the bigbed file,
     # to render the tracks within the UCSC track hub.
     state_files = list.files(path=input_dir_state, full.names=TRUE);
@@ -46,19 +46,19 @@ create_cells = function(input_dir_state, chrom_len_file, base_track_file_name, s
     genome_size = read.table(chrom_len_file);
     g = NULL;
     for(i in state_files) {
-        tg = as.matrix(fread(i));
+        state_file_matrix = as.matrix(fread(i));
         t = NULL;
         for(j in 1:dim(genome_size)[1]) {
-            t = c(t, which(tg[,2]==as.character(genome_size[j, 1]) & as.numeric(tg[,4]) > as.numeric(genome_size[j, 2])));
+            t = c(t, which(state_file_matrix[,2]==as.character(genome_size[j, 1]) & as.numeric(state_file_matrix[,4]) > as.numeric(genome_size[j, 2])));
         }
         if (length(t) > 0) {
-            tg = tg[-t,];
+            state_file_matrix = state_file_matrix[-t,];
         }
-        t = which(is.na(match(tg[,2], genome_size[,1]))==T);
+        t = which(is.na(match(state_file_matrix[,2], genome_size[,1]))==T);
         if (length(t)>0) {
-            tg = tg[-t,];
+            state_file_matrix = state_file_matrix[-t,];
         }
-        g = rbind(g, tg);
+        g = rbind(g, state_file_matrix);
     }
     uchr = sort(unique(as.character(g[,2])));
     g1 = NULL;
@@ -81,21 +81,20 @@ create_cells = function(input_dir_state, chrom_len_file, base_track_file_name, s
     tt = c(tt, which(posst[2:L]!=posed[2:L-1]));
     tt = sort(unique(tt));
     for(i in 1:n) {
-        state_name = cell_type_names[i];
         tstate = state[,i];
         t = c(tt, which(tstate[2:L]!=tstate[2:L-1]));
         t = sort(unique(t));
         t0 = c(0, t) + 1;
         t = c(t, L);
         np = cbind(chr[t], posst[t0], posed[t], tstate[t]);
-        #cat("JJJJJJJ as.numeric(np[,4]: ", as.numeric(np[,4]), "\n");
+        state_name = cell_type_names[i];
+        x = cbind(np[, 1:3], state_names[as.integer(np[,4])+1], 1000, ".", np[,2:3], color_codes_vector[as.numeric(np[,4])+1]);
         track_file_name_bed_unsorted <- get_track_file_name(base_track_file_name, i, "bed_unsorted");
         track_file_name_bed <- get_track_file_name(base_track_file_name, i, "bed");
-        track_file_name_bigbed <- get_track_file_name(base_track_file_name, i, "bigbed");
-        x = cbind(np[, 1:3], state_name, 1000, ".", np[,2:3]);
         write.table(as.matrix(x), track_file_name_bed_unsorted, quote=F, row.names=F, col.names=F);
         cmd = paste("LC_COLLATE=C sort -k1,1 -k2,2n < ", track_file_name_bed_unsorted, " > ", track_file_name_bed);
         system(cmd);
+        track_file_name_bigbed <- get_track_file_name(base_track_file_name, i, "bigbed");
         cmd = paste("bedToBigBed ", track_file_name_bed, chrom_len_file, " ", track_file_name_bigbed);
         system(cmd);
         system(paste("rm ", track_file_name_bed_unsorted));
@@ -104,42 +103,28 @@ create_cells = function(input_dir_state, chrom_len_file, base_track_file_name, s
     return(cells);
 }
 
-create_track_db = function(galaxy_url, encoded_dataset_id, input_dir_para, input_dir_state, build, chrom_len_file, tracks_dir,
+create_track_db = function(galaxy_url, encoded_dataset_id, input_dir_para, input_dir_state, chrom_len_file, trackhub_dir,
         hub_name, hub_short_label, hub_long_label, specified_state_indexes, specified_state_names, specified_state_colors) {
-    # Create a trackDb.txt file that includes each state.
-    #cat("\n\n\n\n\nXXXXXXXXXXXXXXXX Entered create_track_db\n");
-    #cat("specified_state_indexes: ", specified_state_indexes, "\n");
-    #cat("specified_state_names: ", specified_state_names, "\n");
-    #cat("specified_state_colors: ", specified_state_colors, "\n");
+    # Create a trackDb.txt file.
     state_names = c();
-    state_colors = list();
-    # Generate the default state names and colors.
+    # Keep the set of color codes vectors in a list for easy access.
+    color_codes_vectors_by_para_file = list();
     # IDEAS state indexes are zero based.
     index = 0;
     para_files = list.files(path=input_dir_para, full.names=TRUE);
-    #cat("para_files: ", toString(para_files), "\n\n\n");
+    # Generate the default state names and colors.
     for (para_file in para_files) {
-        #cat("para_file: ", para_file, "\n");
         # Append the default state name.
         state_names = c(state_names, toString(index));
-        #cat("\n", index,index,index,index, "state_names: ", state_names, "\n");
         # Append the default color codes vector.
         data_frame = read.table(para_file, comment="!", header=T);
-        # Here specified_state_colors will look something like this:
-        # 248,239,0 254,153,95 255,255,255 245,245,0 #F8EF00 #FE995F #FFFFFF #F5F500
-        state_color_codes_vector = create_heatmap(data_frame);
-        #cat("state_color_codes_vector: ", state_color_codes_vector, "\n");
-        #cat("typeof(state_color_codes_vector): ", typeof(state_color_codes_vector), "\n");
-        #cat("length(state_color_codes_vector): ", length(state_color_codes_vector), "\n");
-        state_colors[[index + 1]] = state_color_codes_vector;
-        #cat("\n", index,index,index,index, "state_colors: ", state_colors, "\n");
+        # Here state_color_codes_vector contains an rgb
+        # string for each row (i.e., state) in data_frame:
+        # 248,239,0, 254,153,95, 255,255,255, 245,245,0
+        state_colors = get_state_color_codes_vector(data_frame);
+        color_codes_vectors_by_para_file[[index + 1]] = state_colors;
         index = index + 1;
     }
-    #cat("\n\nBBBBBBBB default state_names: ", state_names, "\n");
-    #cat("BBBBBBBB default typeof(state_names): ", typeof(state_names), "\n");
-    #cat("BBBBBBBB default length(state_names): ", length(state_names), "\n");
-    #cat("BBBBBBBB default state_colors: ", toString(state_colors), "\n");
-    #cat("BBBBBBBB default length(state_colors): ", length(state_colors), "\n\n\n");
     if (!is.null(specified_state_indexes)) {
         # Replace default name with specified name and default
         # color with specified color for each selected state.
@@ -152,37 +137,58 @@ create_track_db = function(galaxy_url, encoded_dataset_id, input_dir_para, input
         # Split specified_state_colors into a list of strings.
         color_str = as.character(specified_state_colors);
         specified_state_color_items = strsplit(color_str, ",")[[1]];
-        # Replace default names and colors.
         loop_index = 1;
+        # Replace default names and colors.
         for (specified_state_index_item in specified_state_index_items) {
-            #cat("specified_state_index_item: ", specified_state_index_item, "\n");
             specified_index = as.integer(specified_state_index_item);
-            #cat("specified_index: ", specified_index, "\n");
             # Replace default name with specified name.
             specified_name = specified_state_name_items[loop_index];
             # Handle the special string "use state index".
             if (identical(specified_name, "use state index")) {
                 specified_name = specified_state_index_item;
             }
-            #cat("specified_name: ", specified_name, "\n");
-            #cat("state_names: ", state_names, "\n");
-            #state_names[specified_index] = specified_name;
+            # Replace default name with specified name.
             state_names = replace(state_names, state_names==specified_index, specified_name);
-            #cat("state_names: ", state_names, "\n");
-            # Replace default color with specified color.
-            #cat("specified_state_color_items[specified_item_index]: ", specified_state_color_items[specified_item_index], "\n");
-            # FixMe: replacing default state colors is not yet working.
-            #state_colors[specified_index] = specified_state_color_items[loop_index];
-            #cat("state_colors: ", toString(state_colors), "\n");
+            # State indexes are zero based.
+            state_color_codes_vector_index = specified_index + 1;
+            color_codes_vectors_by_para_file_index = specified_index + 1;
+
+            # Replace the default state color with the specified
+            # state color for every parameter file that includes
+            # the current state index.
+            sccv_index = 1
+            for (sccv in color_codes_vectors_by_para_file) {
+                if (length(sccv) >= state_color_codes_vector_index) {
+                    # The current parameter file
+                    # includes the current state index.
+                    state_color_codes_vector = unlist(sccv, use.names=FALSE);
+                    # Replace the default color with the specified
+                    # color within state_color_codes_vector.
+                    specified_color = paste(c(col2rgb(specified_state_color_items[loop_index])), collapse=",");
+                    state_color_codes_vector[state_color_codes_vector_index] = specified_color;
+                    # Replace the updated state_color_codes_vector
+                    # within the color_codes_vectors_by_para_file list.
+                    color_codes_vectors_by_para_file[[sccv_index]] = paste(c(as.list(c(state_color_codes_vector))));
+                    sccv_index = sccv_index + 1;
+                }
+            }
             loop_index = loop_index + 1;
         }
     }
-    #cat("\n\nCCCCCC reset state_names: ", state_names, "\n");
-    #cat("CCCCCC reset state_colors: ", toString(state_colors), "\n");
-    #cat("CCCCCC reset length(state_colors): ", length(state_colors), "\n\n\n");
-    base_track_file_name <- paste(tracks_dir, hub_name, sep="");
-    cells = create_cells(input_dir_state, chrom_len_file, base_track_file_name, state_indexes, state_names, state_colors);
-    cell_info = cbind(cells, cells, cells, "#000000");
+    base_track_file_name <- paste(trackhub_dir, hub_name, sep="");
+    # After we incorporate the training system there will
+    # be a single state_color vector.  For now, we'll take
+    # the longest vector to generate the matrix.
+    max_vec = NULL;
+    for (ccv in color_codes_vectors_by_para_file) {
+        if (length(max_vec) < length(ccv)) {
+            max_vec = ccv;
+        }
+    }
+    cells = create_cells(input_dir_state, chrom_len_file, base_track_file_name, state_names, max_vec);
+    # Hub label color will always be black.
+    #cell_info = cbind(cells, cells, cells, "#000000");
+    cell_info = cbind(cells, cells, cells, "0,0,0");
     cell_info = array(cell_info, dim=c(length(cells), 4));
     cell_info = as.matrix(cell_info);
     track_db = NULL;
@@ -192,30 +198,8 @@ create_track_db = function(galaxy_url, encoded_dataset_id, input_dir_para, input
             next;
         }
         ii = ii[1];
-        # Get the color for the current state.
-        color_vector = state_colors[i];
-        #cat("color_vector: ", toString(color_vector), "\n");
-        # We are handling hte hub label color setting here.
-        # FixMe: Color selection is currently very confusing.  I think we may
-        # need to add another color selector for the hub label.  The current
-        # approach is to apply the specified color for the state to the hub label
-        # if the list of specified_state_index_items contains the value of i - 1
-        # since state indexes are zero based.
-        #cat("specified_state_index_items: ", specified_state_index_items, "\n");
-        #cat("length(specified_state_index_items): ", length(specified_state_index_items), "\n");
-        state_index = i - 1;
-        #cat("state_index: ", state_index, "\n");
-        if (state_index %in% specified_state_index_items) {
-            specified_state_color = specified_state_color_items[[i]];
-            #cat("specified_state_color: ", specified_state_color, "\n");
-            color = paste(c(col2rgb(specified_state_color)), collapse=",");
-            #cat("color 1: ", color, "\n");
-        } else {
-            color = paste(c(col2rgb("#FFFFFF")), collapse=",")
-            #cat("color 2: ", color, "\n");
-        }
         # Get the bigDataUrl.
-        big_data_url <- get_big_data_url(galaxy_url, encoded_dataset_id, tracks_dir, i, build);
+        big_data_url <- get_big_data_url(galaxy_url, encoded_dataset_id, trackhub_dir, i);
         # trackDb.txt track hub entry.
         track_db = c(track_db, paste("track ", hub_name, "_track_", i, sep=""));
         track_db = c(track_db, "type bigBed");
@@ -225,16 +209,17 @@ create_track_db = function(galaxy_url, encoded_dataset_id, input_dir_para, input
         track_db = c(track_db, paste("priority", i));
         track_db = c(track_db, "itemRgb on");
         track_db = c(track_db, "maxItems 100000");
-        track_db = c(track_db, paste("color", color, sep=" "));
+        # Hub label color will always be black.
+        track_db = c(track_db, paste("color", paste(c(cell_info[ii,4]), collapse=","), sep=" "));
         track_db = c(track_db, "visibility dense");
         track_db = c(track_db, "");
     }
     return(track_db);
 }
 
-get_big_data_url = function(galaxy_url, encoded_dataset_id, tracks_dir, index, build) {
-    track_files <- list.files(path=tracks_dir, pattern="\\.bigbed");
-    s <- paste(galaxy_url, 'datasets/', encoded_dataset_id, '/display/myHub/', build, '/', track_files[index], sep="");
+get_big_data_url = function(galaxy_url, encoded_dataset_id, trackhub_dir, index) {
+    track_files <- list.files(path=trackhub_dir, pattern="\\.bigbed");
+    s <- paste(galaxy_url, 'datasets/', encoded_dataset_id, '/display/myHub/', track_files[index], sep="");
     return(s)
 }
 
@@ -264,6 +249,10 @@ get_track_file_name = function(base_track_file_name, index, ext) {
     return(track_file_name);
 }
 
+# Create the directory that will contain all trackhub files.
+trackhub_dir <- paste(opt$output_trackhub_files_path, "/", "myHub", "/", sep="");
+dir.create(trackhub_dir, showWarnings=FALSE);
+
 # Create the hub.txt output.
 hub_name_line <- paste("hub ", opt$hub_name, sep="");
 hub_short_label_line <- paste("shortLabel ", opt$hub_short_label, sep="");
@@ -271,30 +260,26 @@ hub_long_label_line <- paste("longLabel ", opt$hub_long_label, sep="");
 genomes_txt_line <- paste("genomesFile genomes.txt", sep="");
 email_line <- paste("email ", opt$email, sep="");
 contents <- paste(hub_name_line, hub_short_label_line, hub_long_label_line, genomes_txt_line, email_line, sep="\n");
-hub_dir <- paste(opt$output_trackhub_files_path, "/", "myHub", "/", sep="");
-dir.create(hub_dir, showWarnings=FALSE);
-hub_file_path <- paste(hub_dir, "hub.txt", sep="");
+hub_file_path <- paste(trackhub_dir, "hub.txt", sep="");
 write.table(contents, file=hub_file_path, quote=F, row.names=F, col.names=F);
 
 # Create the genomes.txt output.
 genome_line <- paste("genome ", opt$build, sep="");
-track_db_line <- paste("trackDb ", opt$build, "/", "trackDb.txt", sep="");
+track_db_line <- paste("trackDb ", "trackDb.txt", sep="");
 contents <- paste(genome_line, track_db_line, sep="\n");
-genomes_file_path <- paste(hub_dir, "genomes.txt", sep="");
+genomes_file_path <- paste(trackhub_dir, "genomes.txt", sep="");
 write.table(contents, file=genomes_file_path, quote=F, row.names=F, col.names=F);
 
 # Create the tracks.
 heatmap_path <- paste(opt$script_dir, "create_heatmap.R", sep="/");
 source(heatmap_path);
-tracks_dir <- paste(hub_dir, opt$build, "/", sep="");
-dir.create(tracks_dir, showWarnings=FALSE);
-track_db <- create_track_db(opt$galaxy_url, opt$output_trackhub_id, opt$input_dir_para, opt$input_dir_state, opt$build,
-        opt$chrom_len_file, tracks_dir, opt$hub_name, opt$hub_short_label, opt$hub_long_label, opt$state_indexes,
+track_db <- create_track_db(opt$galaxy_url, opt$output_trackhub_id, opt$input_dir_para, opt$input_dir_state,
+        opt$chrom_len_file, trackhub_dir, opt$hub_name, opt$hub_short_label, opt$hub_long_label, opt$state_indexes,
         opt$state_names, opt$state_colors);
 
 # Create the trackDb.txt output.
-track_db_file_path <- paste(tracks_dir, "trackDb.txt", sep="");
+track_db_file_path <- paste(trackhub_dir, "trackDb.txt", sep="");
 write.table(track_db, file=track_db_file_path, quote=F, row.names=F, col.names=F);
 
 # Create the primary HTML dataset.
-create_primary_html(opt$output_trackhub, tracks_dir, opt$build);
+create_primary_html(opt$output_trackhub, trackhub_dir);
