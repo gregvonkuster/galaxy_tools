@@ -37,6 +37,10 @@ build_state_color_codes_vector <- function(data_matrix, histone_mark_color, colo
 create_heatmap <- function(data_frame, output_file_name, colors=c("white", "dark blue")) {
     # Plot a heatmap for a .para / .state combination based on the
     # received data_frame which was created by reading the .para file.
+    num_columns = dim(data_frame)[2];
+    num_rows = dim(data_frame)[1];
+    p = (sqrt(9 + 8 * (num_columns-1)) - 3) / 2;
+    data_matrix = as.matrix(data_frame[,1+1:p] / data_frame[,1]);
     state_colors_vector = get_state_color_codes_vector(data_frame, colors=colors, color_code_type="hex");
     # Open the output PDF file.
     pdf(file=output_file_name);
