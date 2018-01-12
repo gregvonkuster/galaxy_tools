@@ -6,11 +6,13 @@
         <requirement type="package" version="332">ucsc-bedsort</requirement>
         <requirement type="package" version="332">ucsc-bigwigaverageoverbed</requirement>
         <requirement type="package" version="1.20">ideas</requirement>
+        <requirement type="package" version="1.10.4">r-data.table</requirement>
         <requirement type="package" version="1.4.4">r-optparse</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
 #set output_pdf_dir = "output_pdf_dir"
 #set output_txt_dir = "output_txt_dir"
+#set output_training_dir = "output_training_dir"
 #set tmp_dir = "tmp"
 #set prep_input_config = "prep_input_config.txt"
 #set prep_output_config = "prep_output_config.txt"
@@ -21,6 +23,9 @@
 ##############################################
 #if str($output_heatmaps) == "yes":
     mkdir '$output_pdf_dir' &&
+#end if
+#if str($perform_training) == "yes":
+    mkdir '$output_training_dir' &&
 #end if
 mkdir '$output_txt_dir' &&
 cp '$gen_prep_input_config' $prep_input_config &&
@@ -83,116 +88,117 @@ fi
         #end if
     #end for
     #for chrom, tup in $window_positions_by_chroms.items():
-        && ideas
+        && Rscript '$__tool_directory__/ideas.R'
         #if str($perform_training) == "yes":
-            --iterations $perform_training_cond.iterations
+            --training_iterations $perform_training_cond.training_iterations
+            --training_windows $perform_training_cond.training_windows
         #end if
-        '$prep_output_config'
-        '$specify_genomic_window_cond.bed_input'
-        $hp
-        -inv $tup[0] $tup[1]
+        --prep_output_config '$prep_output_config'
+        --windows_bed '$specify_genomic_window_cond.bed_input'
+        --hp $hp
+        --window_start $tup[0]
+        --window_end $tup[1]
         #if str($log2) != "0.0":
-            -log2 $log2
+            --log2 $log2
         #end if
         #if str($max_states) != "0.0":
-            -G $max_states
+            --max_states $max_states
         #end if
         #if str($initial_states) != "0":
-            -C $initial_states
+            --initial_states $initial_states
         #end if
         #if str($max_position_classes) != "0":
-            -P $max_position_classes
+            --max_position_classes $max_position_classes
         #end if
         #if str($max_cell_type_clusters) != "0":
-            -K $max_cell_type_clusters
+            --max_cell_type_clusters $max_cell_type_clusters
         #end if
         #if str($prior_concentration) != "0.0":
-            -A $prior_concentration
+            --prior_concentration $prior_concentration
         #end if
-        -sample $burnin_num $mcmc_num
+        --burnin_num $burnin_num
+        --mcmc_num $mcmc_num
         #if str($minerr) != "0.0":
-            -minerr $minerr
+            --minerr $minerr
         #end if
         #if str($maxerr) != "0.0":
-            -maxerr $maxerr
+            --maxerr $maxerr
         #end if
-        -rseed $rseed
-        -thread \${GALAXY_SLOTS:-4}
-        -o '$project_name.$chrom'
+        --rseed $rseed
+        --thread \${GALAXY_SLOTS:-4}
+        --project_name '$project_name.$chrom'
         #if str($save_ideas_log) == "yes":
-            &>>'$output_log';
-            if [[ $? -ne 0 ]]; then
-                exit 1;
-            fi
-        #else:
-            &>>ideas_log.txt;
-            if [[ $? -ne 0 ]]; then
-                cp ideas_log.txt '$output_txt_dir'
-                exit 1;
-            fi
+            --save_ideas_log $save_ideas_log
+            --output_log '$output_log'
         #end if
     #end for
 #else:
     ##############################################
     ## Not using a genomic window bed file.
     ##############################################
-    && ideas
+    && Rscript '$__tool_directory__/ideas.R'
     #if str($perform_training) == "yes":
-        --iterations $perform_training_cond.iterations
+        --training_iterations $perform_training_cond.training_iterations
+        --training_windows $perform_training_cond.training_windows
     #end if
-    '$prep_output_config'
-    $tmp_dir/*.bed
-    $hp
+    --prep_output_config '$prep_output_config'
+    --windows_bed $tmp_dir/*.bed
+    --hp $hp
     #if str($log2) != "0.0":
-        -log2 $log2
+        --log2 $log2
     #end if
     #if str($max_states) != "0.0":
-        -G $max_states
+        --max_states $max_states
     #end if
     #if str($initial_states) != "0":
-        -C $initial_states
+        --initial_states $initial_states
     #end if
     #if str($max_position_classes) != "0":
-        -P $max_position_classes
+        --max_position_classes $max_position_classes
     #end if
     #if str($max_cell_type_clusters) != "0":
-        -K $max_cell_type_clusters
+        --max_cell_type_clusters $max_cell_type_clusters
     #end if
     #if str($prior_concentration) != "0.0":
-        -A $prior_concentration
+        --prior_concentration $prior_concentration
     #end if
-    -sample $burnin_num $mcmc_num
+    --burnin_num $burnin_num
+    --mcmc_num $mcmc_num
     #if str($minerr) != "0.0":
-        -minerr $minerr
+        --minerr $minerr
     #end if
     #if str($maxerr) != "0.0":
-        -maxerr $maxerr
+        --maxerr $maxerr
     #end if
-    -rseed $rseed
-    -thread \${GALAXY_SLOTS:-4}
-    -o '$project_name'
+    --rseed $rseed
+    --thread \${GALAXY_SLOTS:-4}
+    --project_name '$project_name'
     #if str($save_ideas_log) == "yes":
-        &>'$output_log';
-        if [[ $? -ne 0 ]]; then
-            exit 1;
-        fi
-    #else:
-        &>ideas_log.txt;
-        if [[ $? -ne 0 ]]; then
-            cp ideas_log.txt '$output_txt_dir'
-            exit 1;
-        fi
+        --save_ideas_log $save_ideas_log
+        --output_log '$output_log'
     #end if
 #end if
-&& mv ./*.cluster '$output_txt_dir'
-&& mv ./*.para '$output_txt_dir'
-&& mv ./*.profile '$output_txt_dir'
-&& mv ./*.state '$output_txt_dir'
-#if str($output_heatmaps) == "yes":
-    && Rscript '$__tool_directory__/create_heatmaps.R'
-    --input_dir '$output_txt_dir'
-    --output_dir '$output_pdf_dir'
-    --script_dir '$__tool_directory__'
+#if str($perform_training) == "yes":
+    && mv ./*.para0 '$output_training_dir'
+    && mv ./*.profile0 '$output_training_dir'
+    #if str($output_heatmaps) == "yes":
+        && Rscript '$__tool_directory__/create_heatmaps.R'
+        --input_dir 'input_training_dir'
+        --output_dir '$output_pdf_dir'
+        --script_dir '$__tool_directory__'
+        --in_training_mode true
+    #end if
+#else:
+    && mv ./*.cluster '$output_txt_dir'
+    && mv ./*.para '$output_txt_dir'
+    && mv ./*.profile '$output_txt_dir'
+    && mv ./*.state '$output_txt_dir'
+    #if str($output_heatmaps) == "yes":
+        && Rscript '$__tool_directory__/create_heatmaps.R'
+        --input_dir '$output_txt_dir'
+        --output_dir '$output_pdf_dir'
+        --script_dir '$__tool_directory__'
+    #end if
 #end if
     ]]></command>
     <configfiles>
@@ -222,12 +228,13 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
     </configfiles>
     <inputs>
         <conditional name="perform_training_cond">
-            <param name="perform_training" type="select" label="Perform training">
+            <param name="perform_training" type="select" label="Perform training?">
                 <option value="yes" selected="true">Yes</option>
                 <option value="no">No</option>
             </param>
             <when value="yes">
-                <param name="iterations" type="integer" value="20" min="1" label="Number of training iterations"/>
+                <param name="training_iterations" type="integer" value="20" min="2" label="Number of training iterations"/>
+                <param name="training_windows" type="integer" value="10000" min="2" label="Number of randomly selected windows for training"/>
             </when>
             <when value="no"/>
         </conditional>
@@ -264,7 +271,7 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
         <param name="project_name" type="text" value="myProject" label="Project name" help="Outputs will have this base name">
             <validator type="empty_field"/>
         </param>
-        <param argument="-rseed" type="integer" value="1234" min="0" max="1000000" label="Seed for IDEAS model initialization" help="Zero value generates a random seed, and this seed will be different for each job run."/>
+        <param name="rseed" type="integer" value="1234" min="0" max="1000000" label="Seed for IDEAS model initialization" help="Zero value generates a random seed, and this seed will be different for each job run."/>
         <conditional name="specify_genomic_window_cond">
             <param name="specify_genomic_window" type="select" label="Select Bed file that defines genomic windows on which to process the data">
                 <option value="no" selected="true">No</option>
@@ -289,14 +296,14 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
                 <param name="bed_input" type="data" format="bed" label="Bed file specifying the genomic windows"/>
             </when>
         </conditional>
-        <param argument="-bychr" type="boolean" truevalue="-bychr" falsevalue="" checked="False" label="Output chromosomes in separate files"/>
+        <param name="bychr" type="boolean" truevalue="true" falsevalue="" checked="False" label="Output chromosomes in separate files"/>
         <param name="reads_per_bp" type="select" display="radio" label="Calculate the signal in each genomic window using">
             <option value="6" selected="true">mean</option>
             <option value="8">max</option>
         </param>
         <param name="blacklist_input" type="data" format="bed" optional="True" multiple="True" label="Select file(s) containing regions to exclude"/>
-        <param argument="-norm" type="boolean" truevalue="-norm" falsevalue="" checked="False" label="Standardize all datasets"/>
-        <param argument="-hp" type="boolean" truevalue="-hp" falsevalue="" checked="False" label="Discourage state transition across chromosomes"/>
+        <param name="norm" type="boolean" truevalue="true" falsevalue="" checked="False" label="Standardize all datasets"/>
+        <param name="hp" type="boolean" truevalue="true" falsevalue="" checked="False" label="Discourage state transition across chromosomes"/>
         <param name="log2" type="float" value="0" min="0" label="Use log2(x+number) transformation" help="Zero means no log2 transformation"/>
         <param name="max_states" type="float" value="0" min="0" label="Maximum number of states to be inferred" help="Zero sets the maximum to a large number"/>
         <param name="initial_states" type="integer" value="20" min="0" label="Initial number of states" help="Positive integer"/>
@@ -326,6 +333,11 @@ ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_item
         </collection>
         <collection name="output_txt_collection" type="list">
             <discover_datasets pattern="__name__" directory="output_txt_dir" format="txt"/>
+            <filter>perform_training_cond['perform_training'] == 'no'</filter>
+        </collection>
+        <collection name="output_ttraining_collection" type="list">
+            <discover_datasets pattern="__name__" directory="output_training_dir" format="txt"/>
+            <filter>perform_training_cond['perform_training'] == 'yes'</filter>
         </collection>
     </outputs>
     <tests>
