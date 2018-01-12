@@ -3,8 +3,8 @@
     <requirements>
         <requirement type="package" version="2.4.27">bedops</requirement>
         <requirement type="package" version="1.10.4">r-data.table</requirement>
-         <requirement type="package" version="1.4.4">r-optparse</requirement>
-         <requirement type="package" version="332">ucsc-bedtobigbed</requirement>
+        <requirement type="package" version="1.4.4">r-optparse</requirement>
+        <requirement type="package" version="332">ucsc-bedtobigbed</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
 #import re
