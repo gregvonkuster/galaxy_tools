@@ -28,8 +28,7 @@ option_list <- list(
     make_option(c("--training_iterations"), action="store", dest="training_iterations", type="integer", default=NULL, help="Number of training iterations"),
     make_option(c("--training_windows"), action="store", dest="training_windows", type="integer", default=NULL, help="Number of training iterations"),
     make_option(c("--windows_bed"), action="store", dest="windows_bed", default=NULL, help="Bed file containing bed windows"),
-    make_option(c("--window_end"), action="store", dest="window_end", type="integer", default=NULL, help="Windows positions by chromosome end value"),
-    make_option(c("--window_start"), action="store", dest="window_start", type="integer", default=NULL, help="Windows positions by chromosome start value")
+    make_option(c("--windows_config"), action="store", dest="windows_config", default=NULL, help="Windows positions by chroms config")
 )
 
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
@@ -251,6 +250,17 @@ get_mean <- function(n) {
     return(array(NN, dim=c(length(NN)/(dim(n)[2]-2), dim(n)[2]-2)));
 }
 
+get_windows_by_chrom <- function(windows_config) {
+    if (is.null(windows_config)) {
+        windows_by_chrom = NULL;
+    } else {
+        fh = file(windows_config, "r");
+        windows_by_chrom = readLines(fh);
+        close(fh);
+    }
+    return(windows_by_chrom);
+}
+
 make_parameter <- function(myorder, id, mem, mycut, para) {
     rt = NULL;
     j = 0;
@@ -265,7 +275,6 @@ make_parameter <- function(myorder, id, mem, mycut, para) {
 }
 
 run_cmd <- function(cmd, save_ideas_log, output_log, default_log_name) {
-    cat("\n\n >>>>> cmd:\n", cmd, "\n\n");
     rc = system(cmd);
     if (rc != 0) {
         if (is.null(save_ideas_log)) {
@@ -276,81 +285,106 @@ run_cmd <- function(cmd, save_ideas_log, output_log, default_log_name) {
 }
 
 default_log_name = "ideas_log.txt";
-output_base_name = opt$project_name;
-cmd = paste("ideas", opt$prep_output_config, sep=" ");
+windows_by_chrom = get_windows_by_chrom(opt$windows_config);
+
+base_cmd = paste("ideas", opt$prep_output_config, sep=" ");
 if (!is.null(opt$windows_bed)) {
-    cmd = paste(cmd, opt$windows_bed, sep=" ");
+    base_cmd = paste(base_cmd, opt$windows_bed, sep=" ");
 }
 if (!is.null(opt$training_iterations)) {
-    cmd = paste(cmd, "-impute none", sep=" ");
+    base_cmd = paste(base_cmd, "-impute none", sep=" ");
 }
 if (opt$bychr) {
-    cmd = paste(cmd, "-bychr", sep=" ");
+    base_cmd = paste(base_cmd, "-bychr", sep=" ");
 }
 if (opt$hp) {
-    cmd = paste(cmd, "-hp", sep=" ");
+    base_cmd = paste(base_cmd, "-hp", sep=" ");
 }
 if (opt$norm) {
-    cmd = paste(cmd, "-norm", sep=" ");
-}
-if (!is.null(opt$window_start) && !is.null(opt$window_end)) {
-    cmd = paste(cmd, "-inv", opt$window_start, opt$window_end, sep=" ");
+    base_cmd = paste(base_cmd, "-norm", sep=" ");
 }
 if (!is.null(opt$log2)) {
-    cmd = paste(cmd, "-log2", opt$log2, sep=" ");
+    base_cmd = paste(base_cmd, "-log2", opt$log2, sep=" ");
 }
 if (!is.null(opt$max_states)) {
-    cmd = paste(cmd, "-G", opt$max_states, sep=" ");
+    base_cmd = paste(base_cmd, "-G", opt$max_states, sep=" ");
 }
 if (!is.null(opt$initial_states)) {
-    cmd = paste(cmd, "-C", opt$initial_states, sep=" ");
+    base_cmd = paste(base_cmd, "-C", opt$initial_states, sep=" ");
 }
 if (!is.null(opt$max_position_classes)) {
-    cmd = paste(cmd, "-P", opt$max_position_classes, sep=" ");
+    base_cmd = paste(base_cmd, "-P", opt$max_position_classes, sep=" ");
 }
 if (!is.null(opt$max_cell_type_clusters)) {
-    cmd = paste(cmd, "-K", opt$max_cell_type_clusters, sep=" ");
+    base_cmd = paste(base_cmd, "-K", opt$max_cell_type_clusters, sep=" ");
 }
 if (!is.null(opt$prior_concentration)) {
-    cmd = paste(cmd, "-A", opt$prior_concentration, sep=" ");
+    base_cmd = paste(base_cmd, "-A", opt$prior_concentration, sep=" ");
 }
-cmd = paste(cmd, "-sample", opt$burnin_num, opt$mcmc_num, sep=" ");
+base_cmd = paste(base_cmd, "-sample", opt$burnin_num, opt$mcmc_num, sep=" ");
 if (!is.null(opt$minerr)) {
-    cmd = paste(cmd, "-minerr", opt$minerr, sep=" ");
+    base_cmd = paste(base_cmd, "-minerr", opt$minerr, sep=" ");
 }
 if (!is.null(opt$maxerr)) {
-    cmd = paste(cmd, "-maxerr", opt$maxerr, sep=" ");
+    base_cmd = paste(base_cmd, "-maxerr", opt$maxerr, sep=" ");
 }
-cmd = paste(cmd, "-rseed", opt$rseed, sep=" ");
-cmd = paste(cmd, "-thread", opt$thread, sep=" ");
+base_cmd = paste(base_cmd, "-rseed", opt$rseed, sep=" ");
+base_cmd = paste(base_cmd, "-thread", opt$thread, sep=" ");
 
 if (is.null(opt$training_iterations)) {
-    final_cmd = paste(cmd, "-o", output_base_name, sep=" ");
-    final_cmd = add_output_redirect(final_cmd, opt$save_ideas_log, opt$output_log, default_log_name);
-    run_cmd(final_cmd, opt$save_ideas_log, opt$output_log, default_log_name);
-} else {
-    output_para0 = paste(output_base_name, ".para0", sep="");
-    output_profile0 = paste(output_base_name, ".profile0", sep="");
-    for (i in 1:opt$training_iterations) {
-        final_cmd = paste(cmd, "-o", paste(output_base_name, ".tmp.", i, sep=""), sep=" ");
-        final_cmd = add_output_redirect(final_cmd, opt$save_ideas_log, opt$output_log, default_log_name);
-        run_cmd(final_cmd, opt$save_ideas_log, opt$output_log, default_log_name);
-    }
-    tpara = combine_state(paste(output_base_name, ".tmp.", (1:opt$training_iterations), ".para", sep=""), mycut=0.5);
-    para = tpara$para;
-    write.table(tpara$profile, output_profile0, quote=F, row.names=F, col.names=F);
-    para = apply(para, 1, function(x){paste(x, collapse=" ")});
-    para = c(readLines(paste(output_base_name, ".tmp.1.para", sep=""), n=1), para);
-    writeLines(para, output_para0);
-    cmd = c(cmd, "-otherpara", output_para0, output_profile0);
-    if (length(which(cmd == "-G")) == 0) {
-        cmd = c(cmd, "-G", length(para)-1);
+    # Not performing training.
+    if (is.null(windows_by_chrom)) {
+        # Not performing windows by chromosome.
+        output_base_name = opt$project_name;
+        cmd = paste(base_cmd, "-o", output_base_name, sep=" ");
+        cmd = add_output_redirect(cmd, opt$save_ideas_log, opt$output_log, default_log_name);
+        run_cmd(cmd, opt$save_ideas_log, opt$output_log, default_log_name);
     } else {
-        tt = which(cmd == "-G");
-        cmd[tt + 1] = length(para)-1;
+        # Performing windows by chromosome.
+        for (i in 1:length(windows_by_chrom)) {
+            line = windows_by_chrom[i];
+            items = strsplit(line, " ")[[1]];
+            chrom = items[1];
+            window_start = items[2];
+            window_end = items[3];
+            output_base_name = paste(opt$project_name, chrom, sep=".");
+            cmd = paste(base_cmd, "-inv", window_start, window_end, sep=" ");
+            cmd = paste(cmd, "-o", output_base_name, sep=" ");
+            cmd = add_output_redirect(cmd, opt$save_ideas_log, opt$output_log, default_log_name);
+            run_cmd(cmd, opt$save_ideas_log, opt$output_log, default_log_name);
+        }
     }
-    tt = which(cmd == '-C');
-    if(length(tt)>0) {
-        cmd = cmd[-c(tt, tt+1)];
+} else {
+    # performing training.
+    if (is.null(windows_by_chrom)) {
+        # Not performing windows by chromosome.
+        output_base_name = opt$project_name;
+        output_para0 = paste(output_base_name, ".para0", sep="");
+        output_profile0 = paste(output_base_name, ".profile0", sep="");
+        for (i in 1:opt$training_iterations) {
+            cmd = paste(base_cmd, "-o", paste(output_base_name, ".tmp.", i, sep=""), sep=" ");
+            cmd = add_output_redirect(cmd, opt$save_ideas_log, opt$output_log, default_log_name);
+            run_cmd(cmd, opt$save_ideas_log, opt$output_log, default_log_name);
+        }
+        tpara = combine_state(paste(output_base_name, ".tmp.", (1:opt$training_iterations), ".para", sep=""), mycut=0.5);
+        para = tpara$para;
+        write.table(tpara$profile, output_profile0, quote=F, row.names=F, col.names=F);
+        para = apply(para, 1, function(x){paste(x, collapse=" ")});
+        para = c(readLines(paste(output_base_name, ".tmp.1.para", sep=""), n=1), para);
+        writeLines(para, output_para0);
+        cmd = c(cmd, "-otherpara", output_para0, output_profile0);
+        if (length(which(cmd == "-G")) == 0) {
+            cmd = c(cmd, "-G", length(para)-1);
+        } else {
+            tt = which(cmd == "-G");
+            cmd[tt + 1] = length(para)-1;
+        }
+        tt = which(cmd == '-C');
+        if(length(tt)>0) {
+            cmd = cmd[-c(tt, tt+1)];
+        }
+    } else {
+        # Performing windows by chromosome.
+        # TODO: complete this...
     }
 }

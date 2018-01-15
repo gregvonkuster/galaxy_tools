@@ -17,6 +17,7 @@
 #set prep_input_config = "prep_input_config.txt"
 #set prep_output_config = "prep_output_config.txt"
 #set specify_genomic_window = $specify_genomic_window_cond.specify_genomic_window
+#set windows_positions_by_chroms_config = "windows_positions_by_chroms_config.txt"
 #set perform_training = $perform_training_cond.perform_training
 ##############################################
 ## Create the config file and prepare the data
@@ -71,133 +72,70 @@ fi
     ## the window positions by chromosome to enable
     ## the IDEAS -inv option.
     ##############################################
-    #import collections
-    #set window_positions_by_chroms = collections.OrderedDict()
-    #for count, line in enumerate(open($specify_genomic_window_cond.bed_input.file_name, 'r')):
-        #set $line = $line.strip()
-        #if not $line or $line.startswith('#'):
-            #continue
-        #end if
-        #set items = $line.split('\t')
-        #if $items[0] in $window_positions_by_chroms:
-            #set tup = $window_positions_by_chroms[$items[0]]
-            #set $tup[1] += 1
-            #set $window_positions_by_chroms[$items[0]] = $tup
-        #else:
-            #set $window_positions_by_chroms[$items[0]] = [$count, $count+1]
-        #end if
-    #end for
-    #for chrom, tup in $window_positions_by_chroms.items():
-        && Rscript '$__tool_directory__/ideas.R'
-        #if str($perform_training) == "yes":
-            --training_iterations $perform_training_cond.training_iterations
-            --training_windows $perform_training_cond.training_windows
-        #end if
-        --prep_output_config '$prep_output_config'
-        --windows_bed '$specify_genomic_window_cond.bed_input'
-        --hp $hp
-        --window_start $tup[0]
-        --window_end $tup[1]
-        #if str($log2) != "0.0":
-            --log2 $log2
-        #end if
-        #if str($max_states) != "0.0":
-            --max_states $max_states
-        #end if
-        #if str($initial_states) != "0":
-            --initial_states $initial_states
-        #end if
-        #if str($max_position_classes) != "0":
-            --max_position_classes $max_position_classes
-        #end if
-        #if str($max_cell_type_clusters) != "0":
-            --max_cell_type_clusters $max_cell_type_clusters
-        #end if
-        #if str($prior_concentration) != "0.0":
-            --prior_concentration $prior_concentration
-        #end if
-        --burnin_num $burnin_num
-        --mcmc_num $mcmc_num
-        #if str($minerr) != "0.0":
-            --minerr $minerr
-        #end if
-        #if str($maxerr) != "0.0":
-            --maxerr $maxerr
-        #end if
-        --rseed $rseed
-        --thread \${GALAXY_SLOTS:-4}
-        --project_name '$project_name.$chrom'
-        #if str($save_ideas_log) == "yes":
-            --save_ideas_log $save_ideas_log
-            --output_log '$output_log'
-        #end if
-    #end for
-#else:
-    ##############################################
-    ## Not using a genomic window bed file.
-    ##############################################
-    && Rscript '$__tool_directory__/ideas.R'
-    #if str($perform_training) == "yes":
-        --training_iterations $perform_training_cond.training_iterations
-        --training_windows $perform_training_cond.training_windows
-    #end if
-    --prep_output_config '$prep_output_config'
-    --windows_bed $tmp_dir/*.bed
-    --hp $hp
-    #if str($log2) != "0.0":
-        --log2 $log2
-    #end if
-    #if str($max_states) != "0.0":
-        --max_states $max_states
-    #end if
-    #if str($initial_states) != "0":
-        --initial_states $initial_states
-    #end if
-    #if str($max_position_classes) != "0":
-        --max_position_classes $max_position_classes
-    #end if
-    #if str($max_cell_type_clusters) != "0":
-        --max_cell_type_clusters $max_cell_type_clusters
-    #end if
-    #if str($prior_concentration) != "0.0":
-        --prior_concentration $prior_concentration
-    #end if
-    --burnin_num $burnin_num
-    --mcmc_num $mcmc_num
-    #if str($minerr) != "0.0":
-        --minerr $minerr
-    #end if
-    #if str($maxerr) != "0.0":
-        --maxerr $maxerr
-    #end if
-    --rseed $rseed
-    --thread \${GALAXY_SLOTS:-4}
-    --project_name '$project_name'
-    #if str($save_ideas_log) == "yes":
-        --save_ideas_log $save_ideas_log
-        --output_log '$output_log'
-    #end if
+    && cp '$gen_windows_positions_by_chroms_config' $windows_positions_by_chroms_config
+#end if
+&& Rscript '$__tool_directory__/ideas.R'
+#if str($specify_genomic_window) == "yes":
+    --windows_config $windows_positions_by_chroms_config
 #end if
 #if str($perform_training) == "yes":
-    && mv ./*.para0 '$output_training_dir'
-    && mv ./*.profile0 '$output_training_dir'
-    #if str($output_heatmaps) == "yes":
-        && Rscript '$__tool_directory__/create_heatmaps.R'
-        --input_dir 'output_training_dir'
-        --output_dir '$output_pdf_dir'
-        --script_dir '$__tool_directory__'
-        --in_training_mode true
-    #end if
+    --training_iterations $perform_training_cond.training_iterations
+    --training_windows $perform_training_cond.training_windows
+#end if
+--prep_output_config '$prep_output_config'
+--windows_bed '$specify_genomic_window_cond.bed_input'
+--hp $hp
+#if str($log2) != "0.0":
+    --log2 $log2
+#end if
+#if str($max_states) != "0.0":
+    --max_states $max_states
+#end if
+#if str($initial_states) != "0":
+    --initial_states $initial_states
+#end if
+#if str($max_position_classes) != "0":
+    --max_position_classes $max_position_classes
+#end if
+#if str($max_cell_type_clusters) != "0":
+    --max_cell_type_clusters $max_cell_type_clusters
+#end if
+#if str($prior_concentration) != "0.0":
+    --prior_concentration $prior_concentration
+#end if
+--burnin_num $burnin_num
+--mcmc_num $mcmc_num
+#if str($minerr) != "0.0":
+    --minerr $minerr
+#end if
+#if str($maxerr) != "0.0":
+    --maxerr $maxerr
+#end if
+--rseed $rseed
+--thread \${GALAXY_SLOTS:-4}
+--project_name '$project_name'
+#if str($save_ideas_log) == "yes":
+    --save_ideas_log $save_ideas_log
+    --output_log '$output_log'
+#end if
+#if str($perform_training) == "yes":
+    #set output_dir = $output_training_dir
+    && mv ./*.para0 '$output_dir'
+    && mv ./*.profile0 '$output_dir'
 #else:
-    && mv ./*.cluster '$output_txt_dir'
-    && mv ./*.para '$output_txt_dir'
-    && mv ./*.profile '$output_txt_dir'
-    && mv ./*.state '$output_txt_dir'
-    #if str($output_heatmaps) == "yes":
-        && Rscript '$__tool_directory__/create_heatmaps.R'
-        --input_dir '$output_txt_dir'
-        --output_dir '$output_pdf_dir'
-        --script_dir '$__tool_directory__'
+    #set output_dir = $output_txt_dir
+    && mv ./*.para '$output_dir'
+    && mv ./*.profile '$output_dir'
+#end if
+&& mv ./*.cluster '$output_dir'
+&& mv ./*.state '$output_dir'
+#if str($output_heatmaps) == "yes":
+    && Rscript '$__tool_directory__/create_heatmaps.R'
+    --input_dir '$output_dir'
+    --output_dir '$output_pdf_dir'
+    --script_dir '$__tool_directory__'
+    #if str($perform_training) == "yes":
+        --in_training_mode true
     #end if
 #end if
     ]]></command>
@@ -225,6 +163,25 @@ ${cell_type_name} ${epigenetic_factor_name} ${i}
 ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_items.input}
     #end for
 #end if]]></configfile>
+        <configfile name="gen_windows_positions_by_chroms_config"><![CDATA[#import collections
+#set window_positions_by_chroms_odict = $collections.OrderedDict()
+#for count, line in enumerate(open($specify_genomic_window_cond.bed_input.file_name, 'r')):
+    #set $line = $line.strip()
+    #if not $line or $line.startswith('#'):
+        #continue
+    #end if
+    #set items = $line.split('\t')
+    #if $items[0] in $window_positions_by_chroms_odict:
+        #set tup = $window_positions_by_chroms_odict[$items[0]]
+        #set $tup[1] += 1
+        #set $window_positions_by_chroms_odict[$items[0]] = $tup
+    #else:
+        #set $window_positions_by_chroms_odict[$items[0]] = [$count, $count+1]
+    #end if
+#end for
+#for $chrom, $tup in $window_positions_by_chroms_odict.items():
+${chrom} ${tup[0]} ${tup[1]}
+#end for]]></configfile>
     </configfiles>
     <inputs>
         <conditional name="perform_training_cond">
