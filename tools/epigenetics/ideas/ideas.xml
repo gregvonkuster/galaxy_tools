@@ -26,9 +26,12 @@
     mkdir '$output_pdf_dir' &&
 #end if
 #if str($perform_training) == "yes":
+    #set output_dir = $output_training_dir
     mkdir '$output_training_dir' &&
+#else:
+    #set output_dir = $output_txt_dir
+    mkdir '$output_txt_dir' &&
 #end if
-mkdir '$output_txt_dir' &&
 cp '$gen_prep_input_config' $prep_input_config &&
 sort $prep_input_config -o $prep_input_config &&
 prepMat
@@ -56,7 +59,7 @@ $bychr
 $norm
 &>prepmat_log.txt;
 if [[ $? -ne 0 ]]; then
-    cp prepmat_log.txt '$output_txt_dir';
+    cp prepmat_log.txt '$output_dir';
     exit 1;
 fi
 ##############################################
@@ -76,6 +79,7 @@ fi
 #end if
 && Rscript '$__tool_directory__/ideas.R'
 #if str($specify_genomic_window) == "yes":
+    --windows_bed '$specify_genomic_window_cond.bed_input'
     --windows_config $windows_positions_by_chroms_config
 #end if
 #if str($perform_training) == "yes":
@@ -83,7 +87,6 @@ fi
     --training_windows $perform_training_cond.training_windows
 #end if
 --prep_output_config '$prep_output_config'
---windows_bed '$specify_genomic_window_cond.bed_input'
 --hp $hp
 #if str($log2) != "0.0":
     --log2 $log2
@@ -119,11 +122,9 @@ fi
     --output_log '$output_log'
 #end if
 #if str($perform_training) == "yes":
-    #set output_dir = $output_training_dir
     && mv ./*.para0 '$output_dir'
     && mv ./*.profile0 '$output_dir'
 #else:
-    #set output_dir = $output_txt_dir
     && mv ./*.para '$output_dir'
     && mv ./*.profile '$output_dir'
 #end if
@@ -163,25 +164,27 @@ ${cell_type_name} ${epigenetic_factor_name} ${i}
 ${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_items.input}
     #end for
 #end if]]></configfile>
-        <configfile name="gen_windows_positions_by_chroms_config"><![CDATA[#import collections
-#set window_positions_by_chroms_odict = $collections.OrderedDict()
-#for count, line in enumerate(open($specify_genomic_window_cond.bed_input.file_name, 'r')):
-    #set $line = $line.strip()
-    #if not $line or $line.startswith('#'):
-        #continue
-    #end if
-    #set items = $line.split('\t')
-    #if $items[0] in $window_positions_by_chroms_odict:
-        #set tup = $window_positions_by_chroms_odict[$items[0]]
-        #set $tup[1] += 1
-        #set $window_positions_by_chroms_odict[$items[0]] = $tup
-    #else:
-        #set $window_positions_by_chroms_odict[$items[0]] = [$count, $count+1]
-    #end if
-#end for
-#for $chrom, $tup in $window_positions_by_chroms_odict.items():
+        <configfile name="gen_windows_positions_by_chroms_config"><![CDATA[#if str($specify_genomic_window_cond.specify_genomic_window) == "yes":
+    #import collections
+    #set window_positions_by_chroms_odict = $collections.OrderedDict()
+    #for count, line in enumerate(open($specify_genomic_window_cond.bed_input.file_name, 'r')):
+        #set $line = $line.strip()
+        #if not $line or $line.startswith('#'):
+            #continue
+        #end if
+        #set items = $line.split('\t')
+        #if $items[0] in $window_positions_by_chroms_odict:
+            #set tup = $window_positions_by_chroms_odict[$items[0]]
+            #set $tup[1] += 1
+            #set $window_positions_by_chroms_odict[$items[0]] = $tup
+        #else:
+            #set $window_positions_by_chroms_odict[$items[0]] = [$count, $count+1]
+        #end if
+    #end for
+    #for $chrom, $tup in $window_positions_by_chroms_odict.items():
 ${chrom} ${tup[0]} ${tup[1]}
-#end for]]></configfile>
+    #end for
+#end if]]></configfile>
     </configfiles>
     <inputs>
         <conditional name="perform_training_cond">
@@ -190,7 +193,7 @@ ${chrom} ${tup[0]} ${tup[1]}
                 <option value="no">No</option>
             </param>
             <when value="yes">
-                <param name="training_iterations" type="integer" value="20" min="2" label="Number of training iterations"/>
+                <param name="training_iterations" type="integer" value="20" min="3" label="Number of training iterations"/>
                 <param name="training_windows" type="integer" value="10000" min="2" label="Number of randomly selected windows for training"/>
             </when>
             <when value="no"/>
