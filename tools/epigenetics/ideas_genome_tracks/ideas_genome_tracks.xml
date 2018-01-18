@@ -44,7 +44,7 @@ mkdir '$output_trackhub.files_path' &&
     #end if
     #set filename = $i.file_name
     #set name = $i.name
-    #if $name.endswith(".para"):
+    #if $name.endswith(".para0") or $name.endswith(".para"):
         ln -s $filename $input_dir_para/$name &&
     #else if $name.endswith(".state"):
         ln -s $filename $input_dir_state/$name &&

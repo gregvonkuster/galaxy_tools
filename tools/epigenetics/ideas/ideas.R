@@ -4,56 +4,47 @@ suppressPackageStartupMessages(library("data.table"))
 suppressPackageStartupMessages(library("optparse"))
 
 option_list <- list(
-            make_option(c("--burnin_num"), action="store", dest="burnin_num", type="integer", help="Number of burnin steps"),
-            make_option(c("--bychr"), action="store_true", dest="bychr", default=FALSE, help="Output chromosomes in separate files"),
-            make_option(c("--hp"), action="store_true", dest="hp", default=FALSE, help="Discourage state transition across chromosomes"),
-            make_option(c("--initial_states"), action="store", dest="initial_states", type="integer", default=NULL, help="Initial number of states"),
-            make_option(c("--log2"), action="store", dest="log2", type="double", default=NULL, help="log2 transformation"),
-            make_option(c("--maxerr"), action="store", dest="maxerr", type="double", default=NULL, help="Maximum standard deviation for the emission Gaussian distribution"),
-            make_option(c("--max_cell_type_clusters"), action="store", dest="max_cell_type_clusters", type="integer", default=NULL, help="Maximum number of cell type clusters allowed"),
-            make_option(c("--max_position_classes"), action="store", dest="max_position_classes", type="integer", default=NULL, help="Maximum number of position classes to be inferred"),
-            make_option(c("--max_states"), action="store", dest="max_states", type="double", default=NULL, help="Maximum number of states to be inferred"),
-            make_option(c("--mcmc_num"), action="store", dest="mcmc_num", type="integer", help="Number of maximization steps"),
-            make_option(c("--minerr"), action="store", dest="minerr", type="double", default=NULL, help="Minimum standard deviation for the emission Gaussian distribution"),
-            make_option(c("--norm"), action="store_true", dest="norm", default=FALSE, help="Standardize all datasets"),
-            make_option(c("--output_log"), action="store", dest="output_log", default=NULL, help="Output log file path"),
-            make_option(c("--prep_output_config"), action="store", dest="prep_output_config", help="prepMat output config file"),
-            make_option(c("--prior_concentration"), action="store", dest="prior_concentration", type="double", default=NULL, help="Prior concentration"),
-            make_option(c("--project_name"), action="store", dest="project_name", help="Outputs will have this base name"),
-            make_option(c("--rseed"), action="store", dest="rseed", type="integer", help="Seed for IDEAS model initialization"),
-            make_option(c("--save_ideas_log"), action="store", dest="save_ideas_log", default=NULL, help="Flag to save IDEAS process log"),
-            make_option(c("--script_dir"), action="store", dest="script_dir", help="R script source directory"),
-            make_option(c("--thread"), action="store", dest="thread", type="integer", help="Process threads"),
-            make_option(c("--tmp_dir"), action="store", dest="tmp_dir", help="Directory of bed files"),
-            make_option(c("--training_iterations"), action="store", dest="training_iterations", type="integer", default=NULL, help="Number of training iterations"),
-            make_option(c("--training_windows"), action="store", dest="training_windows", type="integer", default=NULL, help="Number of training iterations"),
-            make_option(c("--windows_bed"), action="store", dest="windows_bed", default=NULL, help="Bed file containing bed windows"),
-            make_option(c("--windows_config"), action="store", dest="windows_config", default=NULL, help="Windows positions by chroms config")
+    make_option(c("--burnin_num"), action="store", dest="burnin_num", type="integer", help="Number of burnin steps"),
+    make_option(c("--bychr"), action="store_true", dest="bychr", default=FALSE, help="Output chromosomes in separate files"),
+    make_option(c("--hp"), action="store_true", dest="hp", default=FALSE, help="Discourage state transition across chromosomes"),
+    make_option(c("--initial_states"), action="store", dest="initial_states", type="integer", default=NULL, help="Initial number of states"),
+    make_option(c("--log2"), action="store", dest="log2", type="double", default=NULL, help="log2 transformation"),
+    make_option(c("--maxerr"), action="store", dest="maxerr", type="double", default=NULL, help="Maximum standard deviation for the emission Gaussian distribution"),
+    make_option(c("--max_cell_type_clusters"), action="store", dest="max_cell_type_clusters", type="integer", default=NULL, help="Maximum number of cell type clusters allowed"),
+    make_option(c("--max_position_classes"), action="store", dest="max_position_classes", type="integer", default=NULL, help="Maximum number of position classes to be inferred"),
+    make_option(c("--max_states"), action="store", dest="max_states", type="double", default=NULL, help="Maximum number of states to be inferred"),
+    make_option(c("--mcmc_num"), action="store", dest="mcmc_num", type="integer", help="Number of maximization steps"),
+    make_option(c("--minerr"), action="store", dest="minerr", type="double", default=NULL, help="Minimum standard deviation for the emission Gaussian distribution"),
+    make_option(c("--norm"), action="store_true", dest="norm", default=FALSE, help="Standardize all datasets"),
+    make_option(c("--output_log"), action="store", dest="output_log", default=NULL, help="Output log file path"),
+    make_option(c("--prep_output_config"), action="store", dest="prep_output_config", help="prepMat output config file"),
+    make_option(c("--prior_concentration"), action="store", dest="prior_concentration", type="double", default=NULL, help="Prior concentration"),
+    make_option(c("--project_name"), action="store", dest="project_name", help="Outputs will have this base name"),
+    make_option(c("--rseed"), action="store", dest="rseed", type="integer", help="Seed for IDEAS model initialization"),
+    make_option(c("--save_ideas_log"), action="store", dest="save_ideas_log", default=NULL, help="Flag to save IDEAS process log"),
+    make_option(c("--script_dir"), action="store", dest="script_dir", help="R script source directory"),
+    make_option(c("--thread"), action="store", dest="thread", type="integer", help="Process threads"),
+    make_option(c("--tmp_dir"), action="store", dest="tmp_dir", help="Directory of bed files"),
+    make_option(c("--training_iterations"), action="store", dest="training_iterations", type="integer", default=NULL, help="Number of training iterations"),
+    make_option(c("--training_windows"), action="store", dest="training_windows", type="integer", default=NULL, help="Number of training iterations"),
+    make_option(c("--windows_bed"), action="store", dest="windows_bed", default=NULL, help="Bed file containing bed windows"),
+    make_option(c("--windows_config"), action="store", dest="windows_config", default=NULL, help="Windows positions by chroms config")
 )
 
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
 args <- parse_args(parser, positional_arguments=TRUE)
 opt <- args$options
 
-cat("XXX opt$training_iterations: ", opt$training_iterations, "\n");
-cat("XXX opt$training_windows: ", opt$training_windows, "\n");
-cat("XXX opt$windows_bed: ", opt$windows_bed, "\n");
-cat("XXX opt$windows_config: ", opt$windows_config, "\n");
-
 add_output_redirect <- function(cmd, save_ideas_log, output_log, default_log_name) {
     if (is.null(save_ideas_log)) {
-        cmd = paste(cmd, "&>>", default_log_name, sep=" ");
+        new_cmd = c(cmd, "&>>", default_log_name);
     }else {
-        cmd = paste(cmd, "&>>", output_log, sep=" ");
+        new_cmd = c(cmd, "&>>", output_log);
     }
-    return(cmd);
+    return(paste(new_cmd, collapse=" "));
 }
 
 combine_state <- function(parafiles, method="ward.D", mycut=0.9, pcut=1.0) {
-    #cat("^^^ parafiles: ", parafiles, "\n");
-    #cat("^^^ method: ", method, "\n");
-    #cat("^^^ mycut: ", mycut, "\n");
-    #cat("^^^ pcut: ", pcut, "\n");
     X = NULL;
     K = NULL;
     I = NULL;
@@ -81,7 +72,6 @@ combine_state <- function(parafiles, method="ward.D", mycut=0.9, pcut=1.0) {
         I = c(I, rep(i, dim(x)[1]));
     }
     N = length(parafiles);
-    #cat("^^^ N: ", N, "\n");
     p = (sqrt(1 + dim(X)[2] * 8) - 3) / 2;
     omycut = mycut;
     mycut = round(length(parafiles) * mycut);
@@ -112,11 +102,6 @@ combine_state <- function(parafiles, method="ward.D", mycut=0.9, pcut=1.0) {
             t = t + sum(K[1:(i-1)]);
         }
         t = (1:dim(D)[1])[-t];
-        #cat("^^^ D: ", D, "\n");
-        #cat("^^^ typeof(D): ", typeof(D), "\n");
-        #cat("^^^ t: ", t, "\n");
-        #cat("^^^ D[t,t]: ", D[t,t], "\n");
-        #cat("^^^ as.dist(D[t,t]): ", as.dist(D[t,t]), "\n");
         h = hclust(as.dist(D[t,t]), method=method);
         k = -1;
         tM = NULL;
@@ -138,8 +123,6 @@ combine_state <- function(parafiles, method="ward.D", mycut=0.9, pcut=1.0) {
         MM = rbind(MM, cbind(i, tM));
     }
     mysel = median(kk);
-    #cat("^^^ D: ", D, "\n");
-    #cat("^^^ as.dist(D): ", as.dist(D), "\n");
     h = hclust(as.dist(D), method=method);
     rt = rep(0, max(K)*2);
     k = -1;
@@ -257,6 +240,55 @@ compare_two <- function(n, m) {
     return(dd);
 }
 
+get_base_cmd <- function(prep_output_config, windows_bed, training_iterations, bychr, hp, norm, log2,
+        max_states, initial_states, max_position_classes, max_cell_type_clusters, prior_concentration,
+        burnin_num, mcmc_num, minerr, maxerr, rseed, thread) {
+    base_cmd = paste("ideas", prep_output_config, sep=" ");
+    if (!is.null(windows_bed)) {
+        base_cmd = paste(base_cmd, windows_bed, sep=" ");
+    }
+    if (!is.null(training_iterations)) {
+        base_cmd = paste(base_cmd, "-impute none", sep=" ");
+    }
+    if (bychr) {
+        base_cmd = paste(base_cmd, "-bychr", sep=" ");
+    }
+    if (hp) {
+        base_cmd = paste(base_cmd, "-hp", sep=" ");
+    }
+    if (norm) {
+        base_cmd = paste(base_cmd, "-norm", sep=" ");
+    }
+    if (!is.null(log2)) {
+        base_cmd = paste(base_cmd, "-log2", log2, sep=" ");
+    }
+    if (!is.null(max_states)) {
+        base_cmd = paste(base_cmd, "-G", max_states, sep=" ");
+    }
+    if (!is.null(initial_states)) {
+        base_cmd = paste(base_cmd, "-C", initial_states, sep=" ");
+    }
+    if (!is.null(max_position_classes)) {
+        base_cmd = paste(base_cmd, "-P", max_position_classes, sep=" ");
+    }
+    if (!is.null(max_cell_type_clusters)) {
+        base_cmd = paste(base_cmd, "-K", max_cell_type_clusters, sep=" ");
+    }
+    if (!is.null(prior_concentration)) {
+        base_cmd = paste(base_cmd, "-A", prior_concentration, sep=" ");
+    }
+    base_cmd = paste(base_cmd, "-sample", burnin_num, mcmc_num, sep=" ");
+    if (!is.null(minerr)) {
+        base_cmd = paste(base_cmd, "-minerr", minerr, sep=" ");
+    }
+    if (!is.null(maxerr)) {
+        base_cmd = paste(base_cmd, "-maxerr", maxerr, sep=" ");
+    }
+    base_cmd = paste(base_cmd, "-rseed", rseed, sep=" ");
+    base_cmd = paste(base_cmd, "-thread", thread, sep=" ");
+    return(base_cmd);
+}
+
 get_mean <- function(n) {
     N = NULL;
     for(i in sort(unique(n[,1]))) {
@@ -265,6 +297,23 @@ get_mean <- function(n) {
     }
     NN = N[,-1] / N[,1];
     return(array(NN, dim=c(length(NN)/(dim(n)[2]-2), dim(n)[2]-2)));
+}
+
+get_post_training_base_cmd <- function(base_cmd, para) {
+    # Change base_cmd due to training mode.
+    base_cmd_items = as.list(strsplit(base_cmd[1], split=" ", fixed=TRUE))[[1]];
+    if (length(which(base_cmd_items == "-G")) == 0) {
+        base_cmd_items = c(base_cmd_items, "-G", length(para)-1);
+    } else {
+        tt = which(base_cmd_items == "-G");
+        base_cmd_items[tt + 1] = length(para)-1;
+    }
+    tt = which(base_cmd_items == '-C');
+    if(length(tt) > 0) {
+        base_cmd_items = base_cmd_items[-c(tt, tt+1)];
+    }
+    base_cmd = paste(base_cmd_items, collapse=" ");
+    return(base_cmd);
 }
 
 get_windows_by_chrom <- function(windows_config) {
@@ -291,8 +340,14 @@ make_parameter <- function(myorder, id, mem, mycut, para) {
     return(rt);
 }
 
+remove_files <- function(path, pattern) {
+    files = list.files(path=path, pattern=pattern);
+    for (f in files) {
+        unlink(f);
+    }
+}
+
 run_cmd <- function(cmd, save_ideas_log, output_log, default_log_name) {
-    #cat("\n\n$$$$$ in run_cmd, cmd:\n", cmd, "\n\n");
     rc = system(cmd);
     if (rc != 0) {
         if (is.null(save_ideas_log)) {
@@ -304,55 +359,12 @@ run_cmd <- function(cmd, save_ideas_log, output_log, default_log_name) {
 
 default_log_name = "ideas_log.txt";
 windows_by_chrom = get_windows_by_chrom(opt$windows_config);
-
-base_cmd = paste("ideas", opt$prep_output_config, sep=" ");
-if (!is.null(opt$windows_bed)) {
-    base_cmd = paste(base_cmd, opt$windows_bed, sep=" ");
-}
-if (!is.null(opt$training_iterations)) {
-    base_cmd = paste(base_cmd, "-impute none", sep=" ");
-}
-if (opt$bychr) {
-    base_cmd = paste(base_cmd, "-bychr", sep=" ");
-}
-if (opt$hp) {
-    base_cmd = paste(base_cmd, "-hp", sep=" ");
-}
-if (opt$norm) {
-    base_cmd = paste(base_cmd, "-norm", sep=" ");
-}
-if (!is.null(opt$log2)) {
-    base_cmd = paste(base_cmd, "-log2", opt$log2, sep=" ");
-}
-if (!is.null(opt$max_states)) {
-    base_cmd = paste(base_cmd, "-G", opt$max_states, sep=" ");
-}
-if (!is.null(opt$initial_states)) {
-    base_cmd = paste(base_cmd, "-C", opt$initial_states, sep=" ");
-}
-if (!is.null(opt$max_position_classes)) {
-    base_cmd = paste(base_cmd, "-P", opt$max_position_classes, sep=" ");
-}
-if (!is.null(opt$max_cell_type_clusters)) {
-    base_cmd = paste(base_cmd, "-K", opt$max_cell_type_clusters, sep=" ");
-}
-if (!is.null(opt$prior_concentration)) {
-    base_cmd = paste(base_cmd, "-A", opt$prior_concentration, sep=" ");
-}
-base_cmd = paste(base_cmd, "-sample", opt$burnin_num, opt$mcmc_num, sep=" ");
-if (!is.null(opt$minerr)) {
-    base_cmd = paste(base_cmd, "-minerr", opt$minerr, sep=" ");
-}
-if (!is.null(opt$maxerr)) {
-    base_cmd = paste(base_cmd, "-maxerr", opt$maxerr, sep=" ");
-}
-base_cmd = paste(base_cmd, "-rseed", opt$rseed, sep=" ");
-base_cmd = paste(base_cmd, "-thread", opt$thread, sep=" ");
-
-#cat("\n\n>>> base_cmd: ", base_cmd, "\n\n");
-cat(">>> windows_by_chrom: ", windows_by_chrom, "\n");
+base_cmd = get_base_cmd(opt$prep_output_config, opt$windows_bed, opt$training_iterations, opt$bychr,
+        opt$hp, opt$norm, opt$log2, opt$max_states, opt$initial_states, opt$max_position_classes,
+        opt$max_cell_type_clusters, opt$prior_concentration, opt$burnin_num, opt$mcmc_num, opt$minerr,
+        opt$maxerr, opt$rseed, opt$thread);
 output_base_name = opt$project_name;
-#cat(">>> output_base_name: ", output_base_name, "\n");
+
 if (is.null(opt$training_iterations)) {
     # Not performing training.
     if (is.null(windows_by_chrom)) {
@@ -378,82 +390,48 @@ if (is.null(opt$training_iterations)) {
     }
 } else {
     # performing training.
-    output_para0 = paste(output_base_name, ".para0", sep="");
-    output_profile0 = paste(output_base_name, ".profile0", sep="");
+    output_para0 = paste(output_base_name, "para0", sep=".");
+    output_profile0 = paste(output_base_name, "profile0", sep=".");
+    for (i in 1:opt$training_iterations) {
+        cmd = paste(base_cmd, "-o", paste(output_base_name, ".tmp.", i, sep=""), sep=" ");
+        cmd = add_output_redirect(cmd, opt$save_ideas_log, opt$output_log, default_log_name);
+        run_cmd(cmd, opt$save_ideas_log, opt$output_log, default_log_name);
+    }
+    tpara = combine_state(paste(output_base_name, "tmp", (1:opt$training_iterations), "para", sep="."), mycut=0.5);
+    write.table(tpara$profile, output_profile0, quote=F, row.names=F, col.names=F);
+    para = tpara$para;
+    para = apply(para, 1, function(x){paste(x, collapse=" ")});
+    para = c(readLines(paste(output_base_name, "tmp", "1", "para", sep="."), n=1), para);
+    writeLines(para, output_para0);
+    # Now run IDEAS based on the files produced during training.
+    base_cmd = get_post_training_base_cmd(base_cmd, para);
+    base_cmd = paste(base_cmd, "-otherpara", output_para0[[1]], output_profile0[[1]], sep=" ");
     if (is.null(windows_by_chrom)) {
-        # Not performing windows by chromosome.
-        for (i in 1:opt$training_iterations) {
-            cmd = paste(base_cmd, "-o", paste(output_base_name, ".tmp.", i, sep=""), sep=" ");
-            cmd = add_output_redirect(cmd, opt$save_ideas_log, opt$output_log, default_log_name);
-            run_cmd(cmd, opt$save_ideas_log, opt$output_log, default_log_name);
-        }
-        tpara = combine_state(paste(output_base_name, "tmp", (1:opt$training_iterations), "para", sep="."), mycut=0.5);
-        #cat(">>> tpara: ", toString(tpara), "\n");
-        write.table(tpara$profile, output_profile0, quote=F, row.names=F, col.names=F);
-        para = tpara$para;
-        #cat(">>> para 1: ", para, "\n");
-        para = apply(para, 1, function(x){paste(x, collapse=" ")});
-        #cat(">>> para 2: ", para, "\n");
-        para = c(readLines(paste(output_base_name, "tmp", "1", "para", sep="."), n=1), para);
-        cat(">>> para 3: ", para, "\n");
-        writeLines(para, output_para0);
+        cmd = c(base_cmd, "-o", output_base_name);
+        cmd = add_output_redirect(cmd, opt$save_ideas_log, opt$output_log, default_log_name);
+        run_cmd(cmd, opt$save_ideas_log, opt$output_log, default_log_name);
     } else {
         # Performing windows by chromosome.
         if (length(windows_by_chrom) == 1) {
-            cmd = paste(base_cmd, "-o", output_base_name, sep=" ");
+            output_name = paste(output_base_name, i, sep=".");
+            cmd = c(base_cmd, "-o", output_name);
             cmd = add_output_redirect(cmd, opt$save_ideas_log, opt$output_log, default_log_name);
             run_cmd(cmd, opt$save_ideas_log, opt$output_log, default_log_name);
         } else {
             for (i in 1:length(windows_by_chrom)) {
                 line = windows_by_chrom[i];
                 items = strsplit(line, " ")[[1]];
-                chrom = items[1];
-                window_start = items[2];
-                window_end = items[3];
-                for (i in 1:opt$training_iterations) {
-                    cmd = paste(base_cmd, "-inv", window_start, window_end, sep=" ");
-                    output_name = paste(output_base_name, chrom, "tmp", i, sep=".");
-                    cmd = paste(cmd, "-o", output_name, sep=" ");
-                    cmd = add_output_redirect(cmd, opt$save_ideas_log, opt$output_log, default_log_name);
-                    run_cmd(cmd, opt$save_ideas_log, opt$output_log, default_log_name);
-                }
+                chrom = items[[1]];
+                window_start = items[[2]];
+                window_end = items[[3]];
+                cmd = paste(base_cmd, "-inv", window_start, window_end, sep=" ");
+                output_name = paste(output_base_name, chrom, sep=".");
+                cmd = paste(cmd, "-o", output_name, sep=" ");
+                cmd = add_output_redirect(cmd, opt$save_ideas_log, opt$output_log, default_log_name);
+                run_cmd(cmd, opt$save_ideas_log, opt$output_log, default_log_name);
             }
         }
-        tpara = combine_state(paste(output_base_name, chrom, "tmp", (1:opt$training_iterations), "para", sep="."), mycut=0.5);
-        #cat(">>> tpara: ", toString(tpara), "\n");
-        write.table(tpara$profile, output_profile0, quote=F, row.names=F, col.names=F);
-        para = tpara$para;
-        #cat(">>> para 1: ", para, "\n");
-        para = apply(para, 1, function(x){paste(x, collapse=" ")});
-        #cat(">>> para 2: ", para, "\n");
-        para = c(readLines(paste(output_base_name, chrom, "tmp", "1", "para", sep="."), n=1), para);
-        cat(">>> para 3: ", para, "\n");
-        writeLines(para, output_para0);
     }
-    # Now run IDEAS based on the files produced during training.
-    # Reset the value of base_cmd.
-    #cat("\n\n<<< original base_cmd: ", base_cmd, "\n\n");
-    base_cmd = c(base_cmd, "-otherpara", output_para0, output_profile0);
-    if (length(which(base_cmd == "-G")) == 0) {
-        base_cmd = c(base_cmd, "-G", length(para)-1);
-    } else {
-        tt = which(base_cmd == "-G");
-        base_cmd[tt + 1] = length(para)-1;
-    }
-    tt = which(base_cmd == '-C');
-    if(length(tt) > 0) {
-        base_cmd = base_cmd[-c(tt, tt+1)];
-    }
-    #cat("\n\n<<< altered base_cmd: ", base_cmd, "\n\n");
-    if (is.null(windows_by_chrom)) {
-        cmd = paste(base_cmd, "-o",output_base_name, sep=" ");
-        cmd = add_output_redirect(cmd, opt$save_ideas_log, opt$output_log, default_log_name);
-        run_cmd(cmd, opt$save_ideas_log, opt$output_log, default_log_name);
-    } else {
-        for(i in 1:length(windows_by_chrom)) {
-            cmd = paste(base_cmd, "-o", paste(output_base_name, i, sep="."), sep=" ");
-            cmd = add_output_redirect(cmd, opt$save_ideas_log, opt$output_log, default_log_name);
-            run_cmd(cmd, opt$save_ideas_log, opt$output_log, default_log_name);
-        }
-    }
+    # Remove temporary outputs.
+    remove_files(path=".", pattern="tmp");
 }
