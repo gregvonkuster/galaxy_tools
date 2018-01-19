@@ -295,30 +295,33 @@ ${chrom} ${tup[0]} ${tup[1]}
             <discover_datasets pattern="__name__" directory="output_txt_dir" format="txt"/>
             <filter>perform_training_cond['perform_training'] == 'no'</filter>
         </collection>
-        <collection name="output_ttraining_collection" type="list">
+        <collection name="output_training_collection" type="list">
             <discover_datasets pattern="__name__" directory="output_training_dir" format="txt"/>
             <filter>perform_training_cond['perform_training'] == 'yes'</filter>
         </collection>
     </outputs>
     <tests>
         <test>
+            <param name="perform_training" value="no"/>
             <param name="cell_type_epigenetic_factor" value="extract"/>
             <param name="input" value="e001-h3k4me3.bigwig" ftype="bigwig" dbkey="hg19"/>
             <param name="input_name_positions" value="cell_first"/>
             <param name="specify_genomic_window" value="yes"/>
             <param name="bed_input" value="genomic_windows.bed" ftype="bed" dbkey="hg19"/>
             <param name="project_name" value="IDEAS_out"/>
+            <param name="initial_states" value="2"/>
+            <param name="maxerr" value="1000"/>
+            <param name="output_heatmaps" value="no"/>
             <output_collection name="output_txt_collection" type="list">
-                <element name="IDEAS_out.cluster" file="IDEAS_out.cluster" ftype="txt"/>
-                <element name="IDEAS_out.para" file="IDEAS_out.para" ftype="txt"/>
-                <element name="IDEAS_out.profile" file="IDEAS_out.profile" ftype="txt"/>
-                <element name="IDEAS_out.state" file="IDEAS_out.state" ftype="txt"/>
+                <element name="IDEAS_out.chr1.cluster" file="IDEAS_out.cluster" ftype="txt"/>
+                <element name="IDEAS_out.chr1.para" file="IDEAS_out.para" ftype="txt"/>
+                <element name="IDEAS_out.chr1.profile" file="IDEAS_out.profile" ftype="txt"/>
+                <element name="IDEAS_out.chr1.state" file="IDEAS_out.state" ftype="txt"/>
             </output_collection>
-            <output_collection name="output_pdf_collection" type="list">
-                <element name="IDEAS_out.pdf" file="IDEAS_out.pdf" compare="contains"/>
-            </output_collection>
+            <output name="output_log" file="output_log.txt" ftype="txt" compare="contains" />
         </test>
         <test>
+            <param name="perform_training" value="no"/>
             <param name="cell_type_epigenetic_factor" value="manual"/>
             <repeat name="input_repeat">
                 <param name="cell_type_name" value="e001" />
@@ -328,14 +331,14 @@ ${chrom} ${tup[0]} ${tup[1]}
             <param name="specify_genomic_window" value="yes"/>
             <param name="bed_input" value="genomic_windows.bed" ftype="bed" dbkey="hg19"/>
             <param name="project_name" value="IDEAS_out"/>
+            <param name="initial_states" value="2"/>
+            <param name="maxerr" value="1000"/>
+            <param name="output_heatmaps" value="no"/>
             <output_collection name="output_txt_collection" type="list">
-                <element name="IDEAS_out.cluster" file="IDEAS_out.cluster" ftype="txt"/>
-                <element name="IDEAS_out.para" file="IDEAS_out.para" ftype="txt"/>
-                <element name="IDEAS_out.profile" file="IDEAS_out.profile" ftype="txt"/>
-                <element name="IDEAS_out.state" file="IDEAS_out.state" ftype="txt"/>
-            </output_collection>
-            <output_collection name="output_pdf_collection" type="list">
-                <element name="IDEAS_out.pdf" file="IDEAS_out.pdf" compare="contains"/>
+                <element name="IDEAS_out.chr1.cluster" file="IDEAS_out.cluster" ftype="txt"/>
+                <element name="IDEAS_out.chr1.para" file="IDEAS_out.para" ftype="txt"/>
+                <element name="IDEAS_out.chr1.profile" file="IDEAS_out.profile" ftype="txt"/>
+                <element name="IDEAS_out.chr1.state" file="IDEAS_out.state" ftype="txt"/>
             </output_collection>
         </test>
     </tests>
@@ -377,6 +380,11 @@ In addition to its improved power, IDEAS has two unique advantages:
 
 **Options**
 
+* **Perform training** - select "Yes" to run the specified number of training iterations, running IDEAS with the parameter values and producing outputs.  After training, these outputs are combined into a single dataset which is then used in conjunction with the inputs for the actual analysis.  This process improves the accuracy of the final results.
+
+ * **Number of training iterations** - the number of times to execute IDEAS with the specified parameter values on the selected inputs to produce the training results.  The minimum number of iterations is 3.
+ * **Number of randomly selected windows for training** - the number of chromosome windows within the input datasets from which to randomly select data for training.
+
 * **Set cell type and epigenetic factor names by** - cell type and epigenetic factor names can be set manually or by extracting them from the names of the selected input datasets.  The latter case requires all selected datasets to have names that contain a "-" character.
 
  * **BAM or BigWig files** - select one or more Bam or Bigwig files from your history, making sure that the name of every selected input include a "-" character (e.g., e001-h3k4me3.bigwig).
@@ -401,7 +409,6 @@ In addition to its improved power, IDEAS has two unique advantages:
 * **Calculate the signal in each genomic window using** - use the bigWigAverageOverBed utility from the UCSC genome browser to calculate the signal (i.e., the number of reads per bp) in each genomic window.
 * **Select file(s) containing regions to exclude** - select one or more bed files that contains regions you'd like excluded from your datasets.
 * **Standardize all datasets** - select "Yes" to standardize all datasets (e.g., reads / total_reads * 20 million) so that the signals from different cell types become comparable - your datasets can be read counts, logp-values or fold change.
-
 * **Discourage state transition across chromosomes** - select "Yes" to produce similar states in adjacent windows, making the annotation smoother, but at risk of reducing precision.
 * **Use log2(x+number) transformation** - perform Log2-transformation of the input data by log2(x+number) (recommended for read count data to reduce skewness). You can enter a number that is representative of the noise level in your data (e.g., a number less than 1). If this number is at a similar scale or larger than the signal in your data, it will lose power.  For example, if your input data is mean read count per window, using 0.1 may produce better results.
 * **Maximum number of states to be inferred** - restrict the maximum number of states to be generated by IDEAS; the final number of inferred states may be smaller than the number you specified
@@ -417,7 +424,8 @@ In addition to its improved power, IDEAS has two unique advantages:
 * **Number of maximization steps** - specify the number of maximization steps; default is 20.
 * **Minimum standard deviation for the emission Gaussian distribution** - This number multiplied by the overall standard deviation of your data will be used as a lower bound for the standard deviation for each factor in each epigenetic state (the default is 0.5). This number is useful for removing very subtle clusters in the data.  Setting this value near 0 will allow IDEAS to discover many subtle states, while setting it greater than 1 will result in IDEAS losing the ability to detect meaningful states.
 * **Maximim standard deviation for the emission Gaussian distribution** - if you want to find fine-grained states you may use this option (if not used, IDEAS uses infinity), but it is rearely used unless you need more states to be inferred.
-
+* **Output heatmaps** - select "Yes" to produce an additional dataset collection consisting of PDF datasets, one for each dataset with a .para extension in the primary IDEAS output dataset collection.
+* **Save IDEAS log in an additional history item** - select "Yes" to produce an additional history item that contains the entire IDEAS processing log.
     </help>
     <citations>
         <citation type="doi">10.1093/nar/gkw278</citation>

@@ -353,7 +353,7 @@ run_cmd <- function(cmd, save_ideas_log, output_log, default_log_name) {
         if (is.null(save_ideas_log)) {
             file.rename(default_log_name, output_log);
         }
-        quit(rc);
+        quit(save="no", status=rc);
     }
 }
 
@@ -381,7 +381,7 @@ if (is.null(opt$training_iterations)) {
             chrom = items[1];
             window_start = items[2];
             window_end = items[3];
-            output_name = paste(output_base_name,, chrom, sep=".");
+            output_name = paste(output_base_name, chrom, sep=".");
             cmd = paste(base_cmd, "-inv", window_start, window_end, sep=" ");
             cmd = paste(cmd, "-o", output_name, sep=" ");
             cmd = add_output_redirect(cmd, opt$save_ideas_log, opt$output_log, default_log_name);
