@@ -30,7 +30,7 @@ create_primary_html = function(output_trackhub, trackhub_dir) {
     trackhub_files <- list.files(path=trackhub_dir);
     s <- paste('<html><head></head><body>', sep="\n");
     s <- paste(s, '<h3>Contents of directory required by UCSC TrackHub</h3>\n', sep="");
-    s <- paste(s, '<ul>\n', sep="")
+    s <- paste(s, '<ul>\n', sep="");
     for (i in 1:length(trackhub_files)) {
         s <- paste(s, '<li><a href="', 'myHub/', trackhub_files[i], '">', trackhub_files[i], '</a></li>\n', sep="");
     }
