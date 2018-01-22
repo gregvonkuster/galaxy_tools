@@ -79,24 +79,24 @@ if [[ $? -ne 0 ]]; then
     #end if
     cp kaks_analysis_log.txt '$output_kaks';
     #if str($fit_components) == 'yes':
-        cp kaks_analysis_log.txt '$output_components'
+        cp kaks_analysis_log.txt '$output_components';
     #end if
 else
-    && mv $output_dir/species1.fna '$output_species1_fna'
-    && mv $output_dir/species1.faa '$output_species1_faa'
+    mv $output_dir/species1.fna '$output_species1_fna';
+    mv $output_dir/species1.faa '$output_species1_faa';
     #if str($comparison) == 'paralogs':
-        && mv $output_dir/species1.fna.blastn.paralogs '$output_species1_paralog'
-        && mv $output_dir/*.rbhb '$output_rbhb_paralog'
+        mv $output_dir/species1.fna.blastn.paralogs '$output_species1_paralog';
+        mv $output_dir/*.rbhb '$output_rbhb_paralog';
     #else:
-        && mv $output_dir/species2.faa '$output_species2_faa'
-        && mv $output_dir/species2.fna '$output_species2_fna'
-        && mv $output_dir/species1.fna.blastn.orthologs '$output_species1_ortholog'
-        && mv $output_dir/species2.fna.blastn.orthologs '$output_species2_ortholog'
-        && mv $output_dir/*.rbhb '$output_rbhb_ortholog'
+        mv $output_dir/species2.faa '$output_species2_faa';
+        mv $output_dir/species2.fna '$output_species2_fna';
+        mv $output_dir/species1.fna.blastn.orthologs '$output_species1_ortholog';
+        mv $output_dir/species2.fna.blastn.orthologs '$output_species2_ortholog';
+        mv $output_dir/*.rbhb '$output_rbhb_ortholog';
     #end if
-    && mv $output_dir/*.kaks '$output_kaks'
+    mv $output_dir/*.kaks '$output_kaks';
     #if str($fit_components) == 'yes':
-        && mv $output_dir/*.components '$output_components'
+        mv $output_dir/*.components '$output_components';
     #end if
 fi
     ]]></command>
