@@ -1,0 +1,192 @@
+<tool id="ideas_preprocessor" name="IDEAS preprocessor" version="1.0.0">
+    <description></description>
+    <requirements>
+        <requirement type="package" version="2.5.4">deeptools</requirement>
+        <requirement type="package" version="1.10.4">r-data.table</requirement>
+        <requirement type="package" version="1.4.4">r-optparse</requirement>
+        <requirement type="package" version="1.6">samtools</requirement>
+        <requirement type="package" version="357">ucsc-bigwigaverageoverbed</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+#set tmp_dir = "tmp"
+#set ideaspre_input_config = "ideaspre_input_config.txt"
+#set ideas_input_config = "IDEAS_input_config.txt"
+#set specify_genomic_window = $specify_genomic_window_cond.specify_genomic_window
+mkdir $tmp_dir &&
+mkdir $output.files_path &&
+#if str($specify_genomic_window) == "yes":
+    ##############################################
+    ## Using a genomic window bed file, so categorize
+    ## the window positions by chromosome to enable
+    ## the IDEAS -inv option.
+    ##############################################
+    #set chromosome_windows = "chromosome_windows.txt"
+    cp '$gen_chromosome_windows' $chromosome_windows &&
+#end if
+##############################################
+## Create the config file and prepare the data
+##############################################
+cp '$gen_ideaspre_input_config' $ideaspre_input_config &&
+sort $ideaspre_input_config -o $ideaspre_input_config &&
+Rscript '$__tool_directory__/ideas_preprocessor.R'
+--ideaspre_input_config '$ideaspre_input_config'
+#if str($specify_genomic_window) == "yes":
+    --ideas_input_config '$ideas_input_config'
+    --chromosome_windows '$chromosome_windows'
+#end if
+#if str($specify_genomic_window) == "yes":
+    --bed_input '$specify_genomic_window_cond.bed_input'
+#else:
+    --chrom_len_file '$chromInfo'
+    --window_size $specify_genomic_window_cond.window_size
+    #set restrict_chromosomes = $specify_genomic_window_cond.restrict_chromosomes_cond.restrict_chromosomes
+    #if str($restrict_chromosomes) == "yes":
+        #set chroms = []
+        #set chrom_repeat = $specify_genomic_window_cond.restrict_chromosomes_cond.chrom_repeat
+        #for $i in $chrom_repeat.chrom
+            $chroms.append($i)
+        #end for
+        --restrict_to_chroms ",".join(chroms)
+    #end if
+#end if
+--reads_per_bp $reads_per_bp
+#if str($exclude_input) not in ["None", ""]:
+    --exclude_input '$exclude_input'
+#end if
+--output '$output'
+--output_hid $output.hid
+--output_files_path '$output.files_path'
+&> ideas_preprocessor_log.txt;
+if [[ $? -ne 0 ]]; then
+    cp ideas_preprocessor_log.txt '$output';
+    exit 1;
+fi
+    ]]></command>
+    <configfiles>
+        <configfile name="gen_ideaspre_input_config"><![CDATA[#if str($cell_type_epigenetic_factor_cond.cell_type_epigenetic_factor) == "extract":
+    #set input_name_positions = $cell_type_epigenetic_factor_cond.input_name_positions
+    #for $i in $cell_type_epigenetic_factor_cond.input:
+        #set file_name_with_ext = $i.name
+        #if str($file_name_with_ext).find("http") >= 0 or str($file_name_with_ext).find("ftp") >= 0:
+             #set file_name_with_ext = $file_name_with_ext.split('/')[-1]
+        #end if
+        #assert str($file_name_with_ext).find("-") >= 0, "The selected input '%s' is invalid because it does not include the '-' character which is required when setting cell type and epigenetic factor names by extracting them from the input file names." % $file_name_with_ext
+        #set file_name = $file_name_with_ext.split(".")[0]
+        #if str($input_name_positions) == "cell_first":
+            #set cell_type_name = $file_name.split("-")[0]
+            #set epigenetic_factor_name = $file_name.split("-")[1]
+        #else:
+            #set cell_type_name = $file_name.split("-")[1]
+            #set epigenetic_factor_name = $file_name.split("-")[0]
+        #end if
+${cell_type_name} ${epigenetic_factor_name} ${i} ${file_name} ${i.ext}
+    #end for
+#else:
+    #for $input_items in $cell_type_epigenetic_factor_cond.input_repeat:
+${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_items.input} ${file_name} ${input_items.input.ext}
+    #end for
+#end if]]></configfile>
+        <configfile name="gen_chromosome_windows"><![CDATA[#if str($specify_genomic_window_cond.specify_genomic_window) == "yes":
+    #import collections
+    #set window_positions_by_chroms_odict = $collections.OrderedDict()
+    #for count, line in enumerate(open($specify_genomic_window_cond.bed_input.file_name, 'r')):
+        #set $line = $line.strip()
+        #if not $line or $line.startswith('#'):
+            #continue
+        #end if
+        #set items = $line.split('\t')
+        #if $items[0] in $window_positions_by_chroms_odict:
+            #set tup = $window_positions_by_chroms_odict[$items[0]]
+            #set $tup[1] += 1
+            #set $window_positions_by_chroms_odict[$items[0]] = $tup
+        #else:
+            #set $window_positions_by_chroms_odict[$items[0]] = [$count, $count+1]
+        #end if
+    #end for
+    #for $chrom, $tup in $window_positions_by_chroms_odict.items():
+${chrom} ${tup[0]} ${tup[1]}
+    #end for
+#end if]]></configfile>
+    </configfiles>
+    <inputs>
+        <conditional name="cell_type_epigenetic_factor_cond">
+            <param name="cell_type_epigenetic_factor" type="select" label="Set cell type and epigenetic factor names by">
+                <option value="extract" selected="true">extracting them from the selected input file names</option>
+                <option value="manual">manually setting them for each selected input</option>
+            </param>
+            <when value="extract">
+                <param name="input" type="data" format="bigwig,bam" multiple="True" label="BAM or BigWig files">
+                    <validator type="empty_field"/>
+                    <validator type="unspecified_build"/>
+                </param>
+                <param name="input_name_positions" type="select" display="radio" label="Selected input file name pattern is" help="A '-' character must separate cell type and epigenetic factor names within the selected input file names">
+                    <option value="cell_first" selected="true">Cell type name - Epigenetic factor name</option>
+                    <option value="cell_last">Epigenetic factor name - Cell type name</option>
+                </param>
+            </when>
+            <when value="manual">
+                <repeat name="input_repeat" title="Cell type, Epigenetic factor and Input" min="1">
+                    <param name="cell_type_name" type="text" value="" label="Cell type name">
+                        <validator type="empty_field"/>
+                    </param>
+                    <param name="epigenetic_factor_name" type="text" value="" label="Epigenetic factor name">
+                        <validator type="empty_field"/>
+                    </param>
+                    <param name="input" type="data" format="bigwig,bam" label="BAM or BigWig file">
+                        <validator type="empty_field"/>
+                        <validator type="unspecified_build"/>
+                    </param>
+                </repeat>
+            </when>
+        </conditional>
+        <conditional name="specify_genomic_window_cond">
+            <param name="specify_genomic_window" type="select" label="Select Bed file that defines genomic windows on which to process the data">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no">
+                <param name="window_size" type="integer" value="200" label="Window size in base pairs"/>
+                <conditional name="restrict_chromosomes_cond">
+                    <param name="restrict_chromosomes" type="select" label="Restrict processing to specified chromosomes">
+                        <option value="no" selected="true">No</option>
+                        <option value="yes">Yes</option>
+                    </param>
+                    <when value="no"/>
+                    <when value="yes">
+                        <repeat name="chrom_repeat" title="Chromosomes" min="1">
+                            <param name="chrom" type="text" value="" label="Chromosome" help="One chromosome (e.g., chr1, chr2, chrX) per text field"/>
+                        </repeat>
+                    </when>
+                </conditional>
+            </when>
+            <when value="yes">
+                <param name="bed_input" type="data" format="bed" label="Bed file specifying the genomic windows"/>
+            </when>
+        </conditional>
+        <param argument="--bychr" type="boolean" truevalue="true" falsevalue="" checked="False" label="Output chromosomes in separate files"/>
+        <param name="reads_per_bp" type="select" display="radio" label="Calculate the signal in each genomic window using">
+            <option value="6" selected="true">mean</option>
+            <option value="8">max</option>
+        </param>
+        <param name="exclude_input" type="data" format="bed" optional="True" multiple="True" label="Select file(s) containing regions to exclude"/>
+        <param argument="--standardize_datasets" type="boolean" truevalue="true" falsevalue="" checked="False" label="Standardize all datasets"/>
+    </inputs>
+    <outputs>
+        <data name="output" format="ideaspre"/>
+    </outputs>
+    <tests>
+        <test>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+-----
+
+**Required options**
+
+    </help>
+    <citations>
+        <citation type="doi">10.1093/nar/gkw278</citation>
+    </citations>
+</tool>
