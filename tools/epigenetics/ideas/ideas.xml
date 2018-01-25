@@ -10,18 +10,20 @@
         <requirement type="package" version="1.4.4">r-optparse</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
+## Sylink all files from input.metadata.tmp
+## to the current working directory.
+#import os
+#set tmp_dir = "tmp"
+#set from_tmp_path = $os.path.join($input.extra_files_path, "tmp")
+mkdir $tmp_dir &&
+#for f in $os.listdir($from_tmp_path):
+    ln -s $os.path.join($from_tmp_path, $f) $tmp_dir &&
+#end for
 #set output_pdf_dir = "output_pdf_dir"
 #set output_txt_dir = "output_txt_dir"
 #set output_training_dir = "output_training_dir"
-#set tmp_dir = "tmp"
-#set prep_input_config = "prep_input_config.txt"
-#set prep_output_config = "prep_output_config.txt"
-#set specify_genomic_window = $specify_genomic_window_cond.specify_genomic_window
 #set windows_positions_by_chroms_config = "windows_positions_by_chroms_config.txt"
 #set perform_training = $perform_training_cond.perform_training
-##############################################
-## Create the config file and prepare the data
-##############################################
 #if str($output_heatmaps) == "yes":
     mkdir '$output_pdf_dir' &&
 #end if
@@ -32,94 +34,58 @@
     #set output_dir = $output_txt_dir
     mkdir '$output_txt_dir' &&
 #end if
-cp '$gen_prep_input_config' $prep_input_config &&
-sort $prep_input_config -o $prep_input_config &&
-prepMat
-$prep_input_config
-#if str($specify_genomic_window) == "yes":
-    -bed '$specify_genomic_window_cond.bed_input'
-#else:
-    -gsz '$chromInfo'
-    -wsz $specify_genomic_window_cond.window_size
-    #set restrict_chromosomes = $specify_genomic_window_cond.restrict_chromosomes_cond.restrict_chromosomes
-    #if str($restrict_chromosomes) == "yes":
-        #set chroms = []
-        #set chrom_repeat = $specify_genomic_window_cond.restrict_chromosomes_cond.chrom_repeat
-        #for $i in $chrom_repeat.chrom
-            $chroms.append($i)
-        #end for
-        -chr ",".join(chroms)
-    #end if
+Rscript '$__tool_directory__/ideas.R'
+--burnin_num $burnin_num
+#if str($bychr) == "true":
+    --bychr true
 #end if
-$bychr
--c $reads_per_bp
-#if str($blacklist_input) not in ["None", ""]:
-    -exclude '$blacklist_input'
-#end if
-$norm
-&>prepmat_log.txt;
-if [[ $? -ne 0 ]]; then
-    cp prepmat_log.txt '$output_dir';
-    exit 1;
-fi
-##############################################
-## Coerce the prepMat config output to the
-## format expected by IDEAS.
-##############################################
-&& cut -d' ' $prep_input_config -f1,2 > file1.txt
-&& ls tmp/*.bed.gz > file2.txt
-&& paste <(cat file1.txt) <(cat file2.txt) -d' ' > $prep_output_config
-#if str($specify_genomic_window) == "yes":
-    ##############################################
-    ## Using a genomic window bed file, so categorize
-    ## the window positions by chromosome to enable
-    ## the IDEAS -inv option.
-    ##############################################
-    && cp '$gen_windows_positions_by_chroms_config' $windows_positions_by_chroms_config
-#end if
-&& Rscript '$__tool_directory__/ideas.R'
-#if str($specify_genomic_window) == "yes":
-    --windows_bed '$specify_genomic_window_cond.bed_input'
-    --windows_config $windows_positions_by_chroms_config
-#end if
-#if str($perform_training) == "yes":
-    --training_iterations $perform_training_cond.training_iterations
-    --training_windows $perform_training_cond.training_windows
-#end if
---prep_output_config '$prep_output_config'
---hp $hp
-#if str($log2) != "0.0":
-    --log2 $log2
-#end if
-#if str($max_states) != "0.0":
-    --max_states $max_states
+--chrom_bed_input $input.metadata.chrom_bed
+--chromosome_windows $input.metadata.chrom_windows
+#if str($hp) == "true":
+    --hp true
 #end if
 #if str($initial_states) != "0":
     --initial_states $initial_states
 #end if
-#if str($max_position_classes) != "0":
-    --max_position_classes $max_position_classes
-#end if
-#if str($max_cell_type_clusters) != "0":
-    --max_cell_type_clusters $max_cell_type_clusters
-#end if
-#if str($prior_concentration) != "0.0":
-    --prior_concentration $prior_concentration
-#end if
---burnin_num $burnin_num
---mcmc_num $mcmc_num
-#if str($minerr) != "0.0":
-    --minerr $minerr
+--input $input
+--input_files_path $input.extra_files_path
+--ideas_input_config $input.metadata.input_config
+#if str($log2) != "0.0":
+    --log2 $log2
 #end if
 #if str($maxerr) != "0.0":
     --maxerr $maxerr
 #end if
---rseed $rseed
---thread \${GALAXY_SLOTS:-4}
+#if str($max_cell_type_clusters) != "0":
+    --max_cell_type_clusters $max_cell_type_clusters
+#end if
+#if str($max_position_classes) != "0":
+    --max_position_classes $max_position_classes
+#end if
+#if str($max_states) != "0.0":
+    --max_states $max_states
+#end if
+--mcmc_num $mcmc_num
+#if str($minerr) != "0.0":
+    --minerr $minerr
+#end if
+--output_dir $output_dir
+#if str($prior_concentration) != "0.0":
+    --prior_concentration $prior_concentration
+#end if
 --project_name '$project_name'
 #if str($save_ideas_log) == "yes":
     --save_ideas_log $save_ideas_log
     --output_log '$output_log'
+#end if
+#if str($standardize_datasets) == "true":
+    --standardize_datasets true
+#end if
+--rseed $rseed
+--thread \${GALAXY_SLOTS:-4}
+#if str($perform_training) == "yes":
+    --training_iterations $perform_training_cond.training_iterations
+    --training_windows $perform_training_cond.training_windows
 #end if
 #if str($perform_training) == "yes":
     && mv ./*.para0 '$output_dir'
@@ -140,52 +106,6 @@ fi
     #end if
 #end if
     ]]></command>
-    <configfiles>
-        <configfile name="gen_prep_input_config"><![CDATA[#if str($cell_type_epigenetic_factor_cond.cell_type_epigenetic_factor) == "extract":
-    #set input_name_positions = $cell_type_epigenetic_factor_cond.input_name_positions
-    #for $i in $cell_type_epigenetic_factor_cond.input:
-        #set file_name_with_ext = $i.name
-        #if str($file_name_with_ext).find("http") >= 0 or str($file_name_with_ext).find("ftp") >= 0:
-             #set file_name_with_ext = $file_name_with_ext.split('/')[-1]
-        #end if
-        #assert str($file_name_with_ext).find("-") >= 0, "The selected input '%s' is invalid because it does not include the '-' character which is required when setting cell type and epigenetic factor names by extracting them from the input file names." % $file_name_with_ext
-        #set file_name = $file_name_with_ext.split(".")[0]
-        #if str($input_name_positions) == "cell_first":
-            #set cell_type_name = $file_name.split("-")[0]
-            #set epigenetic_factor_name = $file_name.split("-")[1]
-        #else:
-            #set cell_type_name = $file_name.split("-")[1]
-            #set epigenetic_factor_name = $file_name.split("-")[0]
-        #end if
-${cell_type_name} ${epigenetic_factor_name} ${i}
-    #end for
-#else:
-    #for $input_items in $cell_type_epigenetic_factor_cond.input_repeat:
-${input_items.cell_type_name} ${input_items.epigenetic_factor_name} ${input_items.input}
-    #end for
-#end if]]></configfile>
-        <configfile name="gen_windows_positions_by_chroms_config"><![CDATA[#if str($specify_genomic_window_cond.specify_genomic_window) == "yes":
-    #import collections
-    #set window_positions_by_chroms_odict = $collections.OrderedDict()
-    #for count, line in enumerate(open($specify_genomic_window_cond.bed_input.file_name, 'r')):
-        #set $line = $line.strip()
-        #if not $line or $line.startswith('#'):
-            #continue
-        #end if
-        #set items = $line.split('\t')
-        #if $items[0] in $window_positions_by_chroms_odict:
-            #set tup = $window_positions_by_chroms_odict[$items[0]]
-            #set $tup[1] += 1
-            #set $window_positions_by_chroms_odict[$items[0]] = $tup
-        #else:
-            #set $window_positions_by_chroms_odict[$items[0]] = [$count, $count+1]
-        #end if
-    #end for
-    #for $chrom, $tup in $window_positions_by_chroms_odict.items():
-${chrom} ${tup[0]} ${tup[1]}
-    #end for
-#end if]]></configfile>
-    </configfiles>
     <inputs>
         <conditional name="perform_training_cond">
             <param name="perform_training" type="select" label="Perform training?">
@@ -198,71 +118,16 @@ ${chrom} ${tup[0]} ${tup[1]}
             </when>
             <when value="no"/>
         </conditional>
-        <conditional name="cell_type_epigenetic_factor_cond">
-            <param name="cell_type_epigenetic_factor" type="select" label="Set cell type and epigenetic factor names by">
-                <option value="extract" selected="true">extracting them from the selected input file names</option>
-                <option value="manual">manually setting them for each selected input</option>
-            </param>
-            <when value="extract">
-                <param name="input" type="data" format="bigwig,bam" multiple="True" label="BAM or BigWig files">
-                    <validator type="empty_field"/>
-                    <validator type="unspecified_build"/>
-                </param>
-                <param name="input_name_positions" type="select" display="radio" label="Selected input file name pattern is" help="A '-' character must separate cell type and epigenetic factor names within the selected input file names">
-                    <option value="cell_first" selected="true">Cell type name - Epigenetic factor name</option>
-                    <option value="cell_last">Epigenetic factor name - Cell type name</option>
-                </param>
-            </when>
-            <when value="manual">
-                <repeat name="input_repeat" title="Cell type, Epigenetic factor and Input" min="1">
-                    <param name="cell_type_name" type="text" value="" label="Cell type name">
-                        <validator type="empty_field"/>
-                    </param>
-                    <param name="epigenetic_factor_name" type="text" value="" label="Epigenetic factor name">
-                        <validator type="empty_field"/>
-                    </param>
-                    <param name="input" type="data" format="bigwig,bam" label="BAM or BigWig file">
-                        <validator type="empty_field"/>
-                        <validator type="unspecified_build"/>
-                    </param>
-                </repeat>
-            </when>
-        </conditional>
+        <param name="input" type="data" format="ideaspre" label="Select IDEAS input"/>
         <param name="project_name" type="text" value="myProject" label="Project name" help="Outputs will have this base name">
             <validator type="empty_field"/>
         </param>
         <param name="rseed" type="integer" value="1234" min="0" max="1000000" label="Seed for IDEAS model initialization" help="Zero value generates a random seed, and this seed will be different for each job run."/>
-        <conditional name="specify_genomic_window_cond">
-            <param name="specify_genomic_window" type="select" label="Select Bed file that defines genomic windows on which to process the data">
-                <option value="no" selected="true">No</option>
-                <option value="yes">Yes</option>
-            </param>
-            <when value="no">
-                <param name="window_size" type="integer" value="200" label="Window size in base pairs"/>
-                <conditional name="restrict_chromosomes_cond">
-                    <param name="restrict_chromosomes" type="select" label="Restrict processing to specified chromosomes">
-                        <option value="no" selected="true">No</option>
-                        <option value="yes">Yes</option>
-                    </param>
-                    <when value="no"/>
-                    <when value="yes">
-                        <repeat name="chrom_repeat" title="Chromosomes" min="1">
-                            <param name="chrom" type="text" value="" label="Chromosome" help="One chromosome (e.g., chr1, chr2, chrX) per text field"/>
-                        </repeat>
-                    </when>
-                </conditional>
-            </when>
-            <when value="yes">
-                <param name="bed_input" type="data" format="bed" label="Bed file specifying the genomic windows"/>
-            </when>
-        </conditional>
         <param name="bychr" type="boolean" truevalue="true" falsevalue="" checked="False" label="Output chromosomes in separate files"/>
         <param name="reads_per_bp" type="select" display="radio" label="Calculate the signal in each genomic window using">
             <option value="6" selected="true">mean</option>
             <option value="8">max</option>
         </param>
-        <param name="blacklist_input" type="data" format="bed" optional="True" multiple="True" label="Select file(s) containing regions to exclude"/>
-        <param name="norm" type="boolean" truevalue="true" falsevalue="" checked="False" label="Standardize all datasets"/>
         <param name="hp" type="boolean" truevalue="true" falsevalue="" checked="False" label="Discourage state transition across chromosomes"/>
         <param name="log2" type="float" value="0" min="0" label="Use log2(x+number) transformation" help="Zero means no log2 transformation"/>
         <param name="max_states" type="float" value="0" min="0" label="Maximum number of states to be inferred" help="Zero sets the maximum to a large number"/>
@@ -270,6 +135,7 @@ ${chrom} ${tup[0]} ${tup[1]}
         <param name="max_position_classes" type="integer" value="0" min="0" label="Maximum number of position classes to be inferred" help="Zero sets the maximum to a large number"/>
         <param name="max_cell_type_clusters" type="integer" value="0" min="0" label="Maximum number of cell type clusters allowed" help="Zero sets the maximum to a large number"/>
         <param name="prior_concentration" type="float" value="1" min="0" label="Prior concentration" help="Zero value results in the default: sqrt(number of cell types)"/>
+        <param name="standardize_datasets" type="boolean" truevalue="true" falsevalue="" checked="False" label="Standardize all datasets"/>
         <param name="burnin_num" type="integer" value="20" min="1" label="Number of burnin steps"/>
         <param name="mcmc_num" type="integer" value="20" min="1" label="Number of maximization steps"/>
         <param name="minerr" type="float" value="0.5" min="0" label="Minimum standard deviation for the emission Gaussian distribution" help="Zero value results in the default: 0.5"/>
@@ -303,15 +169,12 @@ ${chrom} ${tup[0]} ${tup[1]}
     <tests>
         <test>
             <param name="perform_training" value="no"/>
-            <param name="cell_type_epigenetic_factor" value="extract"/>
-            <param name="input" value="e001-h3k4me3.bigwig" ftype="bigwig" dbkey="hg19"/>
-            <param name="input_name_positions" value="cell_first"/>
-            <param name="specify_genomic_window" value="yes"/>
-            <param name="bed_input" value="genomic_windows.bed" ftype="bed" dbkey="hg19"/>
+            <param name="input" value="input.ideaspre" ftype="ideaspre" dbkey="hg19"/>
             <param name="project_name" value="IDEAS_out"/>
             <param name="initial_states" value="2"/>
             <param name="maxerr" value="1000"/>
             <param name="output_heatmaps" value="no"/>
+            <param name="save_ideas_log" value="yes"/>
             <output_collection name="output_txt_collection" type="list">
                 <element name="IDEAS_out.chr1.cluster" file="IDEAS_out.cluster" ftype="txt"/>
                 <element name="IDEAS_out.chr1.para" file="IDEAS_out.para" ftype="txt"/>
@@ -319,27 +182,6 @@ ${chrom} ${tup[0]} ${tup[1]}
                 <element name="IDEAS_out.chr1.state" file="IDEAS_out.state" ftype="txt"/>
             </output_collection>
             <output name="output_log" file="output_log.txt" ftype="txt" compare="contains" />
-        </test>
-        <test>
-            <param name="perform_training" value="no"/>
-            <param name="cell_type_epigenetic_factor" value="manual"/>
-            <repeat name="input_repeat">
-                <param name="cell_type_name" value="e001" />
-                <param name="epigenetic_factor_name" value="h3k4me3"/>
-                <param name="input" value="e001-h3k4me3.bigwig" ftype="bigwig" dbkey="hg19"/>
-            </repeat>
-            <param name="specify_genomic_window" value="yes"/>
-            <param name="bed_input" value="genomic_windows.bed" ftype="bed" dbkey="hg19"/>
-            <param name="project_name" value="IDEAS_out"/>
-            <param name="initial_states" value="2"/>
-            <param name="maxerr" value="1000"/>
-            <param name="output_heatmaps" value="no"/>
-            <output_collection name="output_txt_collection" type="list">
-                <element name="IDEAS_out.chr1.cluster" file="IDEAS_out.cluster" ftype="txt"/>
-                <element name="IDEAS_out.chr1.para" file="IDEAS_out.para" ftype="txt"/>
-                <element name="IDEAS_out.chr1.profile" file="IDEAS_out.profile" ftype="txt"/>
-                <element name="IDEAS_out.chr1.state" file="IDEAS_out.state" ftype="txt"/>
-            </output_collection>
         </test>
     </tests>
     <help>
