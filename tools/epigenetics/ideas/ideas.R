@@ -10,7 +10,6 @@ option_list <- list(
     make_option(c("--chromosome_windows"), action="store", dest="chromosome_windows", default=NULL, help="Windows positions by chroms config file"),
     make_option(c("--hp"), action="store_true", dest="hp", default=FALSE, help="Discourage state transition across chromosomes"),
     make_option(c("--initial_states"), action="store", dest="initial_states", type="integer", default=NULL, help="Initial number of states"),
-    make_option(c("--input"), action="store", dest="input", help="IdeasPre input dataset"),
     make_option(c("--input_files_path"), action="store", dest="input_files_path", help="IdeasPre input dataset extra files path"),
     make_option(c("--ideas_input_config"), action="store", dest="ideas_input_config", help="IDEAS_input_config file"),
     make_option(c("--log2"), action="store", dest="log2", type="double", default=NULL, help="log2 transformation"),
@@ -286,14 +285,6 @@ get_base_cmd <- function(ideas_input_config, chrom_bed_input, training_iteration
     return(base_cmd);
 }
 
-get_file_path <- function(dir, fname) {
-    if (is.null(fname)) {
-        return(fname);
-    } else {
-        return(paste(dir, fname, sep="/"));
-    }
-}
-
 get_mean <- function(n) {
     N = NULL;
     for(i in sort(unique(n[,1]))) {
@@ -349,10 +340,6 @@ remove_files <- function(path, pattern) {
 }
 
 run_cmd <- function(cmd, save_ideas_log, output_log, output_dir) {
-    cat("save_ideas_log: ", save_ideas_log, "\n");
-    cat("output_log: ", output_log, "\n");
-    cat("output_dir: ", output_dir, "\n");
-    cat("\nRunning cmd:\n", cmd, "\n\n");
     rc = system(cmd);
     if (rc != 0) {
         if (is.null(save_ideas_log)) {
@@ -369,28 +356,18 @@ if (is.null(opt$save_ideas_log)) {
 } else {
     output_log = opt$output_log;
 }
-# Get full path of chromosomes.bed if not NULL.
-chrom_bed_input = get_file_path(opt$input_files_path, opt$chrom_bed_input);
-cat("chrom_bed_input: ", chrom_bed_input, "\n");
-# Get full path of chromosome_windows.txt if not NULL.
-chromosome_windows = get_file_path(opt$input_files_path, opt$chromosome_windows);
-cat("chromosome_windows: ", chromosome_windows, "\n");
-if (is.null(chromosome_windows)) {
+if (is.null(opt$chromosome_windows)) {
     windows_by_chrom = NULL;
 } else {
     # Read chromosome_windows.txt into memory.
-    windows_by_chrom = get_windows_by_chrom(chromosome_windows);
+    windows_by_chrom = get_windows_by_chrom(opt$chromosome_windows);
 }
-ideas_input_config = get_file_path(opt$input_files_path, opt$ideas_input_config);
-cat("ideas_input_config: ", ideas_input_config, "\n");
-base_cmd = get_base_cmd(ideas_input_config, chrom_bed_input, opt$training_iterations, opt$bychr, opt$hp,
+base_cmd = get_base_cmd(opt$ideas_input_config, opt$chrom_bed_input, opt$training_iterations, opt$bychr, opt$hp,
             opt$standardize_datasets, opt$log2, opt$max_states, opt$initial_states, opt$max_position_classes,
             opt$max_cell_type_clusters, opt$prior_concentration, opt$burnin_num, opt$mcmc_num, opt$minerr,
             opt$maxerr, opt$rseed, opt$thread);
-cat("base_cmd: ", base_cmd, "\n");
 output_base_name = opt$project_name;
-cat("output_base_name: ", output_base_name, "\n");
-
+# Perform analysis.
 if (is.null(opt$training_iterations)) {
     # Not performing training.
     if (is.null(windows_by_chrom)) {
@@ -415,7 +392,7 @@ if (is.null(opt$training_iterations)) {
         }
     }
 } else {
-    # performing training.
+    # Performing training.
     output_para0 = paste(output_base_name, "para0", sep=".");
     output_profile0 = paste(output_base_name, "profile0", sep=".");
     for (i in 1:opt$training_iterations) {

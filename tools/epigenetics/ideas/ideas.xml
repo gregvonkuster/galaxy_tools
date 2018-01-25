@@ -10,20 +10,40 @@
         <requirement type="package" version="1.4.4">r-optparse</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
-## Sylink all files from input.metadata.tmp
-## to the current working directory.
 #import os
+#set perform_training = $perform_training_cond.perform_training
+
+## Set the value of chrom_bed_input since we don't symlink it.
+#if $input.metadata.chrom_bed is None:
+    #set chrom_bed_input = None
+#else:
+    #set chrom_bed_input = $os.path.join($input.extra_files_path, $input.metadata.chrom_bed)
+#end if
+
+## Link chromosome_windows.txt if not None.
+#set chromosome_windows = $input.metadata.chrom_windows
+#if chromosome_windows is not None:
+    #set from_path = $os.path.join($input.extra_files_path, $chromosome_windows)
+    ln -s $from_path . &&
+#end if
+
+## Link IDEAS_input_config.txt which will always exist.
+#set ideas_input_config = $input.metadata.input_config
+#set from_path = $os.path.join($input.extra_files_path, $ideas_input_config)
+ln -s $from_path . &&
+
+## Link all files in the extra_files_path's tmp directory.
 #set tmp_dir = "tmp"
-#set from_tmp_path = $os.path.join($input.extra_files_path, "tmp")
+#set from_path = $os.path.join($input.extra_files_path, "tmp")
 mkdir $tmp_dir &&
-#for f in $os.listdir($from_tmp_path):
-    ln -s $os.path.join($from_tmp_path, $f) $tmp_dir &&
+#for f in $os.listdir($from_path):
+    ln -s $os.path.join($from_path, $f) $tmp_dir &&
 #end for
+
+## Define and create output directories.
 #set output_pdf_dir = "output_pdf_dir"
 #set output_txt_dir = "output_txt_dir"
 #set output_training_dir = "output_training_dir"
-#set windows_positions_by_chroms_config = "windows_positions_by_chroms_config.txt"
-#set perform_training = $perform_training_cond.perform_training
 #if str($output_heatmaps) == "yes":
     mkdir '$output_pdf_dir' &&
 #end if
@@ -34,22 +54,22 @@ mkdir $tmp_dir &&
     #set output_dir = $output_txt_dir
     mkdir '$output_txt_dir' &&
 #end if
+
 Rscript '$__tool_directory__/ideas.R'
 --burnin_num $burnin_num
 #if str($bychr) == "true":
     --bychr true
 #end if
---chrom_bed_input $input.metadata.chrom_bed
---chromosome_windows $input.metadata.chrom_windows
+--chrom_bed_input $chrom_bed_input
+--chromosome_windows $chromosome_windows
 #if str($hp) == "true":
     --hp true
 #end if
 #if str($initial_states) != "0":
     --initial_states $initial_states
 #end if
---input $input
 --input_files_path $input.extra_files_path
---ideas_input_config $input.metadata.input_config
+--ideas_input_config $ideas_input_config
 #if str($log2) != "0.0":
     --log2 $log2
 #end if
