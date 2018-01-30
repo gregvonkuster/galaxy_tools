@@ -41,7 +41,7 @@ create_primary_html = function(output, output_files_path) {
     for (i in 1:length(files)) {
         s <- paste(s, '<li><a href="', files[i], '">', files[i], '</a></li>\n', sep="");
     }
-    s <- paste(s, '</ul>\n</body>\n</html>', sep="");
+    s <- paste(s, '</ul></body></html>', sep="");
     cat(s, file=output);
 }
 
