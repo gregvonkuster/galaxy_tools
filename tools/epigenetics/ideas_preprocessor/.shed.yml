@@ -1,0 +1,13 @@
+name: ideas_preprocessor
+owner: greg
+description: |
+  Contains a tool that accepts a list of epigenetic data sets and produces an output with datatype IdeasPre.
+homepage_url: http://sites.stat.psu.edu/~yzz2/IDEAS/
+long_description: |
+  Contains a tool that accepts a list of epigenetic data sets (histones, chromatin accessibility, CpG methylation,
+  TFs, etc.) or any other whole-genome data sets (e.g., scores). Currently the supported data formats are BigWig
+  and BAM.  The tool produces a single dataset with the IdeasPre datatype for use as input to the IDEAS tool.
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/epigenetics/ideas_preprocessor
+type: unrestricted
+categories:
+- Epigenetics

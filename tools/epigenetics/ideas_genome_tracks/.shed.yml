@@ -5,7 +5,7 @@ description: |
 homepage_url: http://sites.stat.psu.edu/~yzz2/IDEAS/
 long_description: |
   Contains a tool that creates genome track visualizations from IDEAS state files.
-remote_repository_url: 
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/epigenetics/ideas_genome_tracks
 type: unrestricted
 categories:
 - Epigenetics
