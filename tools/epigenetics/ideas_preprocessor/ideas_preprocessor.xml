@@ -56,7 +56,6 @@ Rscript '$__tool_directory__/ideas_preprocessor.R'
     --standardize_datasets true
 #end if
 --output '$output'
---output_hid $output.hid
 --output_files_path '$output.files_path'
 &> ideas_preprocessor_log.txt;
 if [[ $? -ne 0 ]]; then

@@ -22,7 +22,6 @@ option_list <- list(
         make_option(c("--ideaspre_input_config"), action="store", dest="ideaspre_input_config", help="Preprocessing input config file"),
         make_option(c("--output"), action="store", dest="output", help="Primary output dataset"),
         make_option(c("--output_files_path"), action="store", dest="output_files_path", help="Primary output dataset extra files path"),
-        make_option(c("--output_hid"), action="store", dest="output_hid", help="Primary output dataset hid"),
         make_option(c("--reads_per_bp"), action="store", dest="reads_per_bp", type="integer", help="Calculate the signal in each genomic window"),
         make_option(c("--restrict_to_chroms"), action="store", dest="restrict_to_chroms", default=NULL, help="Restrict processing to specified chromosomes"),
         make_option(c("--standardize_datasets"), action="store_true", dest="standardize_datasets", default=FALSE, help="Standardize all datasets"),
@@ -34,10 +33,10 @@ parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
 args <- parse_args(parser, positional_arguments=TRUE)
 opt <- args$options
 
-create_primary_html = function(output, output_hid, output_files_path) {
+create_primary_html = function(output, output_files_path) {
     files = list.files(path=output_files_path);
     s <- paste('<html><head></head><body>', sep="\n");
-    s <- paste(s, '<h3>History item ', output_hid, ' files prepared for IDEAS</h3>\n', sep="");
+    s <- paste(s, '<h3>Files prepared for IDEAS</h3>\n', sep="");
     s <- paste(s, '<ul>\n', sep="");
     for (i in 1:length(files)) {
         s <- paste(s, '<li><a href="', files[i], '">', files[i], '</a></li>\n', sep="");
@@ -117,4 +116,4 @@ if (!is.null(opt$chrom_bed_input) && !is.null(opt$chromosome_windows)) {
     file.rename(opt$chromosome_windows, to_path);
 }
 # Create the primary HTML dataset.
-create_primary_html(opt$output, opt$output_hid, opt$output_files_path);
+create_primary_html(opt$output, opt$output_files_path);
