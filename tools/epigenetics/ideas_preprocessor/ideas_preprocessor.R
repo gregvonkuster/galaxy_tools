@@ -99,9 +99,12 @@ file.rename(ideas_input_config, to_path);
 # Archive the tmp directory.
 cmd = "tar -cvf tmp.tar tmp";
 system(cmd);
+# Compress the archive.
+cmd = "gzip tmp.tar";
+system(cmd);
 # Move the tmp archive to the output directory.
-to_path = paste(opt$output_files_path, "tmp.tar", sep="/");
-file.rename("tmp.tar", to_path);
+to_path = paste(opt$output_files_path, "tmp.tar.gz", sep="/");
+file.rename("tmp.tar.gz", to_path);
 
 if (!is.null(opt$chrom_bed_input) && !is.null(opt$chromosome_windows)) {
     # Renane opt$chrom_bed_input to be chromosomes.bed

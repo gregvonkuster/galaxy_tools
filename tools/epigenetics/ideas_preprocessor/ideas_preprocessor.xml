@@ -186,7 +186,7 @@ ${chrom} ${tup[0]} ${tup[1]}
                 <extra_files type="file" name="chromosomes.bed" value="chromosomes.bed"/>
                 <extra_files type="file" name="chromosome_windows.txt" value="chromosome_windows.txt"/>
                 <extra_files type="file" name="IDEAS_input_config.txt" value="IDEAS_input_config.txt"/>
-                <extra_files type="file" name="tmp.tar" value="tmp.tar" compare="sim_size"/>
+                <extra_files type="file" name="tmp.tar.gz" value="tmp.tar.gz" compare="sim_size"/>
             </output>
         </test>
     </tests>
