@@ -181,8 +181,13 @@ ${chrom} ${tup[0]} ${tup[1]}
         <test>
             <param name="input" value="e001-h3k4me3.bigwig" ftype="bigwig" dbkey="hg19"/>
             <param name="specify_chrom_windows" value="yes"/>
-            <param name="chrom_bed_input" value="chrom_windows.bed" ftype="bed" dbkey="hg19"/>
-            <output name="output" file="output.ideaspre" ftype="ideaspre" />
+            <param name="chrom_bed_input" value="chromosomes.bed" ftype="bed" dbkey="hg19"/>
+            <output name="output" file="output.html" ftype="ideaspre">
+                <extra_files type="file" name="chromosomes.bed" value="chromosomes.bed"/>
+                <extra_files type="file" name="chromosome_windows.txt" value="chromosome_windows.txt"/>
+                <extra_files type="file" name="IDEAS_input_config.txt" value="IDEAS_input_config.txt"/>
+                <extra_files type="file" name="tmp.tar" value="tmp.tar" compare="sim_size"/>
+            </output>
         </test>
     </tests>
     <help>

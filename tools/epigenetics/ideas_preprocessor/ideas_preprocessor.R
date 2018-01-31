@@ -46,8 +46,6 @@ create_primary_html = function(output, output_files_path) {
 }
 
 tmp_dir = "tmp";
-output_tmp_dir = paste(opt$output_files_path, tmp_dir, sep="/");
-dir.create(output_tmp_dir, showWarnings=FALSE);
 
 # Read the ideaspre_input_config text file which has this format:
 # "cell type name" "epigenetic factor name" "file path" "file name" "datatype"
@@ -98,14 +96,13 @@ system(cmd);
 # Move IDEAS_input_config.txt to the output directory.
 to_path = paste(opt$output_files_path, ideas_input_config, sep="/");
 file.rename(ideas_input_config, to_path);
-# Move the compressed bed files in the tmp
-# directory to the output tmp directory.
-tmp_files = list.files(path=tmp_dir);
-for (i in 1:length(tmp_files)) {
-    from_path = paste(tmp_dir, tmp_files[i], sep="/");
-    to_path = paste(output_tmp_dir, tmp_files[i], sep="/");
-    file.rename(from_path, to_path);
-}
+# Archive the tmp directory.
+cmd = "tar -cvf tmp.tar tmp";
+system(cmd);
+# Move the tmp archive to the output directory.
+to_path = paste(opt$output_files_path, "tmp.tar", sep="/");
+file.rename("tmp.tar", to_path);
+
 if (!is.null(opt$chrom_bed_input) && !is.null(opt$chromosome_windows)) {
     # Renane opt$chrom_bed_input to be chromosomes.bed
     # and make a copy of it in the output directory.
