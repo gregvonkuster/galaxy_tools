@@ -1,1 +1,1 @@
-e001 h3k4me3 tmp/e001-h3k4me3.bed.gz
+../../test-data/IDEAS_input_config.txt
