@@ -10,7 +10,6 @@ option_list <- list(
     make_option(c("--chromosome_windows"), action="store", dest="chromosome_windows", default=NULL, help="Windows positions by chroms config file"),
     make_option(c("--hp"), action="store_true", dest="hp", default=FALSE, help="Discourage state transition across chromosomes"),
     make_option(c("--initial_states"), action="store", dest="initial_states", type="integer", default=NULL, help="Initial number of states"),
-    make_option(c("--input_files_path"), action="store", dest="input_files_path", help="IdeasPre input dataset extra files path"),
     make_option(c("--ideas_input_config"), action="store", dest="ideas_input_config", help="IDEAS_input_config file"),
     make_option(c("--log2"), action="store", dest="log2", type="double", default=NULL, help="log2 transformation"),
     make_option(c("--maxerr"), action="store", dest="maxerr", type="double", default=NULL, help="Maximum standard deviation for the emission Gaussian distribution"),

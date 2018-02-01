@@ -13,32 +13,10 @@
 #import os
 #set perform_training = $perform_training_cond.perform_training
 
-## Set the value of chrom_bed_input since we don't symlink it.
-#if $input.metadata.chrom_bed is None:
-    #set chrom_bed_input = None
-#else:
-    #set chrom_bed_input = $os.path.join($input.extra_files_path, $input.metadata.chrom_bed)
-#end if
-
-## Link chromosome_windows.txt if not None.
-#set chromosome_windows = $input.metadata.chrom_windows
-#if chromosome_windows is not None:
-    #set from_path = $os.path.join($input.extra_files_path, $chromosome_windows)
-    ln -s $from_path . &&
-#end if
-
-## Link IDEAS_input_config.txt which will always exist.
-#set ideas_input_config = $input.metadata.input_config
-#set from_path = $os.path.join($input.extra_files_path, $ideas_input_config)
-ln -s $from_path . &&
-
-## Link all files in the extra_files_path's tmp directory.
-#set tmp_dir = "tmp"
-#set from_path = $os.path.join($input.extra_files_path, "tmp")
-mkdir $tmp_dir &&
-#for f in $os.listdir($from_path):
-    ln -s $os.path.join($from_path, $f) $tmp_dir &&
-#end for
+## Copy the input's compressed tmp directory archive.
+cp $input.metadata.tmp_archive . &&
+## Extract the tmp archive.
+tar -xzf tmp.tar.gz &&
 
 ## Define and create output directories.
 #set output_pdf_dir = "output_pdf_dir"
@@ -60,16 +38,19 @@ Rscript '$__tool_directory__/ideas.R'
 #if str($bychr) == "true":
     --bychr true
 #end if
---chrom_bed_input $chrom_bed_input
---chromosome_windows $chromosome_windows
+#if $input.metadata.chrom_bed is not None:
+    --chrom_bed_input $input.metadata.chrom_bed
+#end if
+#if $input.metadata.chrom_windows is not None:
+    --chromosome_windows $input.metadata.chrom_windows
+#end if
 #if str($hp) == "true":
     --hp true
 #end if
 #if str($initial_states) != "0":
     --initial_states $initial_states
 #end if
---input_files_path $input.extra_files_path
---ideas_input_config $ideas_input_config
+--ideas_input_config $input.metadata.input_config
 #if str($log2) != "0.0":
     --log2 $log2
 #end if
@@ -144,7 +125,7 @@ Rscript '$__tool_directory__/ideas.R'
         </param>
         <param name="rseed" type="integer" value="1234" min="0" max="1000000" label="Seed for IDEAS model initialization" help="Zero value generates a random seed, and this seed will be different for each job run."/>
         <param name="bychr" type="boolean" truevalue="true" falsevalue="" checked="False" label="Output chromosomes in separate files"/>
-        <param name="reads_per_bp" type="select" display="radio" label="Calculate the signal in each genomic window using">
+        <param name="reads_per_bp" type="select" display="radio" label="Calculate the signal in each window using">
             <option value="6" selected="true">mean</option>
             <option value="8">max</option>
         </param>
@@ -188,18 +169,33 @@ Rscript '$__tool_directory__/ideas.R'
     </outputs>
     <tests>
         <test>
-            <param name="perform_training" value="no"/>
-            <param name="input" value="input.ideaspre" ftype="ideaspre" dbkey="hg19"/>
+            <param name="perform_training" value="yes"/>
+            <param name="training_iterations" value="3"/>
+            <param name="input" value="ideas_test1/input.html" dbkey="hg19" ftype="ideaspre">
+                <composite_data value='ideas_test1/chromosomes.bed' dbkey="hg19"/>
+                <composite_data value='ideas_test1/chromosome_windows.txt' dbkey="hg19"/>
+                <composite_data value='ideas_test1/IDEAS_input_config.txt' dbkey="hg19"/>
+                <composite_data value='ideas_test1/tmp.tar.gz' dbkey="hg19"/>
+            <param name="output_heatmaps" value="yes"/>
+            </param>
             <param name="project_name" value="IDEAS_out"/>
-            <param name="initial_states" value="2"/>
-            <param name="maxerr" value="1000"/>
-            <param name="output_heatmaps" value="no"/>
             <param name="save_ideas_log" value="yes"/>
-            <output_collection name="output_txt_collection" type="list">
+            <output_collection name="output_training_collection" type="list">
                 <element name="IDEAS_out.chr1.cluster" file="IDEAS_out.cluster" ftype="txt"/>
-                <element name="IDEAS_out.chr1.para" file="IDEAS_out.para" ftype="txt"/>
-                <element name="IDEAS_out.chr1.profile" file="IDEAS_out.profile" ftype="txt"/>
-                <element name="IDEAS_out.chr1.state" file="IDEAS_out.state" ftype="txt"/>
+                <element name="IDEAS_out.chr2.cluster" file="IDEAS_out.cluster" ftype="txt"/>
+                <element name="IDEAS_out.chr3.cluster" file="IDEAS_out.cluster" ftype="txt"/>
+                <element name="IDEAS_out.chr4.cluster" file="IDEAS_out.cluster" ftype="txt"/>
+                <element name="IDEAS_out.chr5.cluster" file="IDEAS_out.cluster" ftype="txt"/>
+                <element name="IDEAS_out.chr1.state" file="IDEAS_out.chr1.state" ftype="txt"/>
+                <element name="IDEAS_out.chr2.state" file="IDEAS_out.chr2.state" ftype="txt"/>
+                <element name="IDEAS_out.chr3.state" file="IDEAS_out.chr3.state" ftype="txt"/>
+                <element name="IDEAS_out.chr4.state" file="IDEAS_out.chr4.state" ftype="txt"/>
+                <element name="IDEAS_out.chr5.state" file="IDEAS_out.chr5.state" ftype="txt"/>
+                <element name="IDEAS_out.para0" file="IDEAS_out.para0" ftype="txt"/>
+                <element name="IDEAS_out.profile0" file="IDEAS_out.profile0" ftype="txt"/>
+            </output_collection>
+            <output_collection name="output_pdf_collection" type="list">
+                <element name="IDEAS_out.state.1.pdf" file="IDEAS_out.state.1.pdf" ftype="pdf"/>
             </output_collection>
             <output name="output_log" file="output_log.txt" ftype="txt" compare="contains" />
         </test>
@@ -212,17 +208,10 @@ de novo regulatory functions from epigenetic data in multiple cell types jointly
 model defined on all data, and it combines signals across both the genome and cell types to boost power. The
 underlying assumption of IDEAS is that, because all cell types share the same underlying DNA sequences,
 **functions of each DNA segment should be correlated**. Also, cell type specific regulation is locus-dependent,
-and thus IDEAS uses local epigenetic landscape to **identify de novo and local cell type clusters** without
+and so IDEAS uses local epigenetic landscape to **identify de novo and local cell type clusters** without
 assuming or requiring a known global cell type relationship.
 
-IDEAS takes as input a list of epigenetic data sets (histones, chromatin accessibility, CpG methylation, TFs, etc)
-or any other whole-genome data sets (e.g., scores). Currently the supported data formats include BigWig and BAM.
-All data sets will first be mapped by IDEAS to a common genomic coordinate in a selected assembly (200bp windows
-by default, or user-provided). The user can specify regions to be considered or removed from the analysis. The
-input data may come from one cell type/condition/individual/time point (although it does not fully utilize the
-advantage of IDEAS), or from multiple cell types/conditions/individuals/time points. The same set of epigenetic
-features may not be present in all cell types, for which IDEAS will do imputation of the missing tracks if
-specified.
+The input is a single dataset with the **IdeasPre** datatype, which is produced by the IDEAS Preprocessor tool.
 
 .. image:: $PATH_TO_IMAGES/ideas.png
 
@@ -258,18 +247,8 @@ In addition to its improved power, IDEAS has two unique advantages:
 
 * **Project name** - datasets produced by IDEAS will have this base name.
 * **Seed for IDEAS model initialization** - enter an integer to be used as the seed for the IDEAS model initialization.  A zero value causes IDEAS to automatically generate a random seed, and this seed will be different for each job run.
-* **Select Bed file that defines genomic windows on which to process the data** - if "No" is selected, IDEAS will run whole genome segmentation.  If "Yes" is selected, IDEAS will segment genomes in the unit of the windows defined by the bed file.  This file can be in BED3, BED4 or BED5 format, but only the first three columns (chr posst posed) will be used.
-
- * **Window size in base pairs** - Window size in base pairs (if "No" is selected)
- * **Restrict processing to specified chromosomes** - If "Yes" is selected, processing will be restricted to specified chromosomes
-
-  * **Chromosomes** - processing will be restricted to specified chromosomes (if "Yes" is selected)
-
- * **Bed file specifying the genomic windows** - bed file specifying the genomic windows (if "Yes" is selected)
-
 * **Output chromosomes in separate files** - select "Yes" to produce separate files for each chromosome, allowing you to run IDEAS on different chromosomes separately.
-* **Calculate the signal in each genomic window using** - use the bigWigAverageOverBed utility from the UCSC genome browser to calculate the signal (i.e., the number of reads per bp) in each genomic window.
-* **Select file(s) containing regions to exclude** - select one or more bed files that contains regions you'd like excluded from your datasets.
+* **Calculate the signal in each window using** - use the bigWigAverageOverBed utility from the UCSC genome browser to calculate the signal (i.e., the number of reads per bp) in each window.
 * **Standardize all datasets** - select "Yes" to standardize all datasets (e.g., reads / total_reads * 20 million) so that the signals from different cell types become comparable - your datasets can be read counts, logp-values or fold change.
 * **Discourage state transition across chromosomes** - select "Yes" to produce similar states in adjacent windows, making the annotation smoother, but at risk of reducing precision.
 * **Use log2(x+number) transformation** - perform Log2-transformation of the input data by log2(x+number) (recommended for read count data to reduce skewness). You can enter a number that is representative of the noise level in your data (e.g., a number less than 1). If this number is at a similar scale or larger than the signal in your data, it will lose power.  For example, if your input data is mean read count per window, using 0.1 may produce better results.
