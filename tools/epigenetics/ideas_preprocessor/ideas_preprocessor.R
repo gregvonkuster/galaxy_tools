@@ -33,18 +33,6 @@ parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
 args <- parse_args(parser, positional_arguments=TRUE)
 opt <- args$options
 
-create_primary_html = function(output, output_files_path) {
-    files = list.files(path=output_files_path);
-    s <- paste('<html><head></head><body>', sep="\n");
-    s <- paste(s, '<h3>Files prepared for IDEAS</h3>\n', sep="");
-    s <- paste(s, '<ul>\n', sep="");
-    for (i in 1:length(files)) {
-        s <- paste(s, '<li><a href="', files[i], '">', files[i], '</a></li>\n', sep="");
-    }
-    s <- paste(s, '</ul></body></html>', sep="");
-    cat(s, file=output);
-}
-
 tmp_dir = "tmp";
 
 # Read the ideaspre_input_config text file which has this format:
@@ -115,5 +103,4 @@ if (!is.null(opt$chrom_bed_input) && !is.null(opt$chromosome_windows)) {
     to_path = paste(opt$output_files_path, opt$chromosome_windows, sep="/");
     file.rename(opt$chromosome_windows, to_path);
 }
-# Create the primary HTML dataset.
-create_primary_html(opt$output, opt$output_files_path);
+
