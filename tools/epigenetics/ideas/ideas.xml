@@ -38,10 +38,10 @@ Rscript '$__tool_directory__/ideas.R'
 #if str($bychr) == "true":
     --bychr true
 #end if
-#if $input.metadata.chrom_bed is not None:
+#if str($input.metadata.chrom_bed) not in ['', 'None']:
     --chrom_bed_input $input.metadata.chrom_bed
 #end if
-#if $input.metadata.chrom_windows is not None:
+#if str($input.metadata.chrom_windows) not in ['' 'None']:
     --chromosome_windows $input.metadata.chrom_windows
 #end if
 #if str($hp) == "true":

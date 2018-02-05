@@ -1,30 +1,15 @@
 #!/usr/bin/env Rscript
 
-# TODO: implement support for the following:
-# 1. Scenario where user did not select chrom_bed_input
-# 2. --exclude_bed_input
-# 3. --bychr
-# 4. --chrom_len_file
-# 5. --reads_per_bp
-# 6. --restrict_to_chroms
-# 7. --standardize_datasets
-# 8. Scenario where --window_size is NULL and need to handle bamCoverage - see TODO near line # 57.
-
-
 suppressPackageStartupMessages(library("data.table"))
 suppressPackageStartupMessages(library("optparse"))
 
 option_list <- list(
         make_option(c("--chrom_bed_input"), action="store", dest="chrom_bed_input", defaul=NULL, help="Chromosome windows positions file"),
         make_option(c("--exclude_bed_input"), action="store", dest="exclude_bed_input", defaul=NULL, help="File(s) containing regions to exclude"),
-        make_option(c("--bychr"), action="store_true", dest="bychr", defaul=FALSE, help="Separate files by chromosome"),
         make_option(c("--chrom_len_file"), action="store", dest="chrom_len_file", default=NULL, help="Chromosome lengths file"),
         make_option(c("--ideaspre_input_config"), action="store", dest="ideaspre_input_config", help="Preprocessing input config file"),
         make_option(c("--output"), action="store", dest="output", help="Primary output dataset"),
         make_option(c("--output_files_path"), action="store", dest="output_files_path", help="Primary output dataset extra files path"),
-        make_option(c("--reads_per_bp"), action="store", dest="reads_per_bp", type="integer", help="Calculate the signal in each genomic window"),
-        make_option(c("--restrict_to_chroms"), action="store", dest="restrict_to_chroms", default=NULL, help="Restrict processing to specified chromosomes"),
-        make_option(c("--standardize_datasets"), action="store_true", dest="standardize_datasets", default=FALSE, help="Standardize all datasets"),
         make_option(c("--chromosome_windows"), action="store", dest="chromosome_windows", default=NULL, help="Windows positions by chroms config file"),
         make_option(c("--window_size"), action="store", dest="window_size", type="integer", default=NULL, help="Window size in base pairs")
 )
@@ -34,41 +19,64 @@ args <- parse_args(parser, positional_arguments=TRUE)
 opt <- args$options
 
 tmp_dir = "tmp";
+cbi_file = "chrom_bed_input.bed";
 
-# Read the ideaspre_input_config text file which has this format:
-# "cell type name" "epigenetic factor name" "file path" "file name" "datatype"
-ideaspre_input_config = as.matrix(read.table(opt$ideaspre_input_config));
-
-# TODO: fix this
-window_size = opt$window_size
-if (is.null(opt$window_size)) {
-    window_size = 500;
+if (is.null(opt$chrom_bed_input)) {
+    # Create a chromosome windows positions file
+    # using the received chromosome lengths file
+    # and the window size.
+    cmd = paste("bedtools makewindows -g", opt$chrom_len_file, "-w", opt$window_size, ">", cbi_file, sep=" ");
+    system(cmd);
+} else {
+    if (!is.null(opt$exclude_bed_input)) {
+        # Copy the received chrom_bed_input
+        # since we will alter it.
+        file.copy(opt$chrom_bed_input, cbi_file);
+    } else {
+        cbi_file = opt$chrom_bed_input;
+    }
 }
-# Process data to windows mean.
-if (!is.null(opt$chrom_bed_input)) {
-    for (i in 1:dim(ideaspre_input_config)[1]) {
-        file_path = ideaspre_input_config[i, 3]
-        file_name = ideaspre_input_config[i, 4]
-        datatype = ideaspre_input_config[i, 5]
-        if (datatype == "bam") {
-            cmd = paste("samtools index", file_path);
-            system(cmd);
-            bigwig_file_name = paste(file_name, "bw", sep=".");
-
-            cmd = paste("bamCoverage --bam", file_path, "-o", bigwig_file_name, "--binSize", window_size);
-            system(cmd);
-        } else {
-            bigwig_file_name = file_path;
-        }
-        bed_file_name = paste(file_name, "bed", sep=".");
-        bed_file_path = paste("tmp", bed_file_name, sep="/");
-        cmd = paste("bigWigAverageOverBed", bigwig_file_name, opt$chrom_bed_input, "stdout | cut -f5 >", bed_file_path);
+# Exclude regions if necessary.
+if (!is.null(opt$exclude_bed_input)) {
+    exclude_bed_inputs = as.character(opt$exclude_bed_input);
+    exclude_bed_files = strsplit(exclude_bed_inputs, ",");
+    tmp_file = paste("tmp", cbi_file, sep="_");
+    for (exclude_bed_file in exclude_bed_files) {
+        cmd = paste("bedtools subtract -a", cbi_file, "-b", exclude_bed_file, ">", tmp_file, sep=" ");
         system(cmd);
-        cmd = paste("gzip -f", bed_file_path);
+        cmd = paste("mv", tmp_file, cbi_file, sep=" ");
         system(cmd);
     }
 }
-
+# Read the chromosome windows positions file
+# to get the smallest window size in the file
+# (i.e., the minimum of column 3 - column 2.
+cbi = fread(cbi_file);
+min_window_size = min(cbi[,3]-cbi[,2]);
+# Read the ideaspre_input_config text file which has this format:
+# "cell type name" "epigenetic factor name" "file path" "file name" "datatype"
+ideaspre_input_config = as.matrix(read.table(opt$ideaspre_input_config));
+# Process data to windows mean.
+for (i in 1:dim(ideaspre_input_config)[1]) {
+    file_path = ideaspre_input_config[i, 3]
+    file_name = ideaspre_input_config[i, 4]
+    datatype = ideaspre_input_config[i, 5]
+    if (datatype == "bam") {
+        cmd = paste("samtools index", file_path);
+        system(cmd);
+        bigwig_file_name = paste(file_name, "bw", sep=".");
+        cmd = paste("bamCoverage --bam", file_path, "-o", bigwig_file_name, "--binSize", min_window_size);
+        system(cmd);
+    } else {
+        bigwig_file_name = file_path;
+    }
+    bed_file_name = paste(file_name, "bed", sep=".");
+    bed_file_path = paste("tmp", bed_file_name, sep="/");
+    cmd = paste("bigWigAverageOverBed", bigwig_file_name, opt$chrom_bed_input, "stdout | cut -f5 >", bed_file_path);
+    system(cmd);
+    cmd = paste("gzip -f", bed_file_path);
+    system(cmd);
+}
 # Create file1.txt.
 cmd = paste("cut -d' '", opt$ideaspre_input_config, "-f1,2 > file1.txt", sep=" ");
 system(cmd);
@@ -93,7 +101,7 @@ system(cmd);
 # Move the tmp archive to the output directory.
 to_path = paste(opt$output_files_path, "tmp.tar.gz", sep="/");
 file.rename("tmp.tar.gz", to_path);
-
+# Handle file names for display in the primary dataset if necessary.
 if (!is.null(opt$chrom_bed_input) && !is.null(opt$chromosome_windows)) {
     # Renane opt$chrom_bed_input to be chromosomes.bed
     # and make a copy of it in the output directory.
@@ -103,4 +111,3 @@ if (!is.null(opt$chrom_bed_input) && !is.null(opt$chromosome_windows)) {
     to_path = paste(opt$output_files_path, opt$chromosome_windows, sep="/");
     file.rename(opt$chromosome_windows, to_path);
 }
-

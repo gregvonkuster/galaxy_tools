@@ -1,6 +1,7 @@
 <tool id="ideas_preprocessor" name="IDEAS Preprocessor" version="1.0.0">
     <description></description>
     <requirements>
+        <requirement type="package" version="2.27.1">bedtools</requirement>
         <requirement type="package" version="2.5.4">deeptools</requirement>
         <requirement type="package" version="1.10.4">r-data.table</requirement>
         <requirement type="package" version="1.4.4">r-optparse</requirement>
@@ -35,25 +36,14 @@ Rscript '$__tool_directory__/ideas_preprocessor.R'
 #else:
     --chrom_len_file '$chromInfo'
     --window_size $specify_chrom_windows_cond.window_size
-    #set restrict_chromosomes = $specify_chrom_windows_cond.restrict_chromosomes_cond.restrict_chromosomes
-    #if str($restrict_chromosomes) == "yes":
-        #set chroms = []
-        #set chrom_repeat = $specify_chrom_windows_cond.restrict_chromosomes_cond.chrom_repeat
-        #for $i in $chrom_repeat.chrom
-            $chroms.append($i)
-        #end for
-        --restrict_to_chroms ",".join(chroms)
-    #end if
 #end if
-#if str($bychr) == "true":
-    --bychr true
-#end if
---reads_per_bp $reads_per_bp
 #if str($exclude_bed_input) not in ["None", ""]:
-    --exclude_bed_input '$exclude_bed_input'
-#end if
-#if str($standardize_datasets) == "true":
-    --standardize_datasets true
+    #set exclude_bed_inputs = list()
+    #for $i in $exclude_bed_input:
+        $exclude_bed_input.append(str($i))
+    #end for
+    #set exclude_bed_inputs = ",".join($exclude_bed_inputs)
+    --exclude_bed_input '$exclude_bed_inputs'
 #end if
 --output '$output'
 --output_files_path '$output.files_path'
@@ -147,18 +137,6 @@ ${chrom} ${tup[0]} ${tup[1]}
             </param>
             <when value="no">
                 <param name="window_size" type="integer" value="200" label="Window size in base pairs"/>
-                <conditional name="restrict_chromosomes_cond">
-                    <param name="restrict_chromosomes" type="select" label="Restrict processing to specified chromosomes">
-                        <option value="no" selected="true">No</option>
-                        <option value="yes">Yes</option>
-                    </param>
-                    <when value="no"/>
-                    <when value="yes">
-                        <repeat name="chrom_repeat" title="Chromosomes" min="1">
-                            <param name="chrom" type="text" value="" label="Chromosome" help="One chromosome (e.g., chr1, chr2, chrX) per text field"/>
-                        </repeat>
-                    </when>
-                </conditional>
             </when>
             <when value="yes">
                 <param name="chrom_bed_input" type="data" format="bed" label="Select bed file for defining chromosome window positions">
@@ -166,13 +144,7 @@ ${chrom} ${tup[0]} ${tup[1]}
                 </param>
             </when>
         </conditional>
-        <param name="bychr" type="boolean" truevalue="true" falsevalue="" checked="False" label="Output chromosomes in separate files"/>
-        <param name="reads_per_bp" type="select" display="radio" label="Calculate the signal in each window using">
-            <option value="6" selected="true">mean</option>
-            <option value="8">max</option>
-        </param>
         <param name="exclude_bed_input" type="data" format="bed" optional="True" multiple="True" label="Select bed file(s) containing regions to exclude"/>
-        <param name="standardize_datasets" type="boolean" truevalue="true" falsevalue="" checked="False" label="Standardize all datasets"/>
     </inputs>
     <outputs>
         <data name="output" format="ideaspre"/>
@@ -220,17 +192,9 @@ use as input to the IDEAS tool.
 * **Define chromosome window positions from a bed file** - select "No" to run whole genome segmentation or select "Yes" to segment genomes within the unit of the windows defined by the bed file.  This file can be in BED3, BED4 or BED5 format, but only the first three columns (chr posst posed) will be used.
 
  * **Window size in base pairs** - Window size in base pairs if specifying manually.
- * **Restrict processing to specified chromosomes** - select "Yes" to restrict processing to specified chromosomes.
-
-  * **Chromosomes** - enter a comma-separated list of chromosomes for processing.
-
  * **Select bed file for defining chromosome window positions** - select a bed file for specifying the chromosome window positions.
 
-* **Output chromosomes in separate files** - select "Yes" to produce separate files for each chromosome, allowing you to run IDEAS on different chromosomes separately.
-* **Calculate the signal in each window using** - use the bigWigAverageOverBed utility from the UCSC genome browser to calculate the signal (i.e., the number of reads per bp) in each window.
 * **Select bed file(s) containing regions to exclude** - select one or more bed files that contains regions you'd like excluded from your datasets.
-* **Standardize all datasets** - select "Yes" to standardize all datasets (e.g., reads / total_reads * 20 million) so that the signals from different cell types become comparable - your datasets can be read counts, logp-values or fold change.
-
     </help>
     <citations>
         <citation type="doi">10.1093/nar/gkw278</citation>
