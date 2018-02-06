@@ -102,11 +102,17 @@ system(cmd);
 to_path = paste(opt$output_files_path, "tmp.tar.gz", sep="/");
 file.rename("tmp.tar.gz", to_path);
 # Handle file names for display in the primary dataset if necessary.
-if (!is.null(opt$chrom_bed_input) && !is.null(opt$chromosome_windows)) {
-    # Renane opt$chrom_bed_input to be chromosomes.bed
-    # and make a copy of it in the output directory.
-    to_path = paste(opt$output_files_path, "chromosomes.bed", sep="/");
+to_path = paste(opt$output_files_path, "chromosomes.bed", sep="/");
+if (is.null(opt$chrom_bed_input)) {
+    # Move cbi_file to the output directory,
+    # naming it chromosomes.bed.
+    file.rename(cbi_file, to_path);
+} else {
+    # Copy opt$chrom_bed_input to the output
+    # directory, naming it chromosomes.bed.
     file.copy(opt$chrom_bed_input, to_path);
+}
+if (!is.null(opt$chromosome_windows)) {
     # Move chromosome_windows.txt to the output directory.
     to_path = paste(opt$output_files_path, opt$chromosome_windows, sep="/");
     file.rename(opt$chromosome_windows, to_path);
