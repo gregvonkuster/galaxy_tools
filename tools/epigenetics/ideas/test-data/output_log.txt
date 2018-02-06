@@ -1,0 +1,2 @@
+N=1, L=250, A=1.000000, K=1
+Summarize posteriors...Done
