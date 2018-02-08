@@ -171,32 +171,30 @@ Rscript '$__tool_directory__/ideas.R'
             <param name="training_iterations" value="3"/>
             <param name="input" value="ideas_test1/input.html" dbkey="hg19" ftype="ideaspre">
                 <!--
-                    The order is critical here - itr must be the same as is displayed on the upload form!
+                    The order is critical here - it must be the same as is displayed on the upload form!
                     Also, there seems to be a bug with the composite upload form tab.  All datasets must
                     be selected whether they are optional or not.  Here the chromosome_windows.txt file
                     was generated during a manual execution of ideas_preprocessor tool, specifying chrom
                     windows.
                 -->
-                <composite_data name='chromosome_windows.txt' value='ideas_test1/chromosome_windows.txt' ftyp='txt' dbkey="hg19"/>
-                <composite_data name='chromosomes.bed' value='ideas_test1/chromosomes.bed' ftype='bed' dbkey="hg19"/>
-                <composite_data name='IDEAS_input_config.txt' value='ideas_test1/IDEAS_input_config.txt' ftype='txt' dbkey="hg19"/>
-                <composite_data name='tmp.tar.gz' value='ideas_test1/tmp.tar.gz' dbkey="hg19"/>
+                <composite_data value='ideas_test1/chromosome_windows.txt'/>
+                <composite_data value='ideas_test1/chromosomes.bed'/>
+                <composite_data value='ideas_test1/IDEAS_input_config.txt'/>
+                <composite_data value='ideas_test1/tmp.tar.gz'/>
             </param>
             <param name="output_heatmaps" value="yes"/>
             <param name="project_name" value="IDEAS_out"/>
-            <param name="save_ideas_log" value="yes"/>
             <output_collection name="output_training_collection" type="list">
                 <element name="IDEAS_out.chr1.cluster" file="IDEAS_out.chr1.cluster" ftype="txt"/>
                 <element name="IDEAS_out.chr2.cluster" file="IDEAS_out.chr2.cluster" ftype="txt"/>
                 <element name="IDEAS_out.chr1.state" file="IDEAS_out.chr1.state" ftype="txt"/>
                 <element name="IDEAS_out.chr2.state" file="IDEAS_out.chr2.state" ftype="txt"/>
                 <element name="IDEAS_out.para0" file="IDEAS_out.para0" ftype="txt"/>
-                <element name="IDEAS_out.profile0" file="IDEAS_out.profile0" ftype="txt"/>
+                <element name="IDEAS_out.profile0" file="IDEAS_out.profile0" ftype="txt" compare="contains"/>
             </output_collection>
             <output_collection name="output_pdf_collection" type="list">
                 <element name="IDEAS_out.state.1.pdf" file="IDEAS_out.state.1.pdf" ftype="pdf" compare="contains"/>
             </output_collection>
-            <output name="output_log" file="output_log.txt" ftype="txt" compare="contains"/>
         </test>
     </tests>
     <help>
