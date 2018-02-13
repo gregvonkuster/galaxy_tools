@@ -27,7 +27,7 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
         <param name="input" type="data" format="csv" label="Temperature data" />
         <param name="location" type="text" value="" optional="false" label="Location" />
         <param name="insect" type="select" label="Select insect">
-            <option value="Brown Marmolated Stink Bug" selected="True">Brown Marmolated Stink Bug</option>
+            <option value="Brown Marmorated Stink Bug" selected="True">Brown Marmorated Stink Bug</option>
         </param>
         <param name="replications" type="integer" value="10" min="1" label="Number of replications" />
         <param name="insects_per_replication" type="integer" value="1000" min="1" label="Number of insects with which to start each replication" />
@@ -68,7 +68,7 @@ Provides an agent-based stochastic model expressing stage-specific phenology and
 
  * **Location** - the location associated with the selected temperature data.
  * **Temperature data** - select the dataset from your history containing the temperature data.
- * **Select insect** - currently only the Brown Marmolated Stink Bug can be analyzed.
+ * **Select insect** - currently only the Brown Marmorated Stink Bug can be analyzed.
  * **Number of replications** - number of replications.
  * **Number of insects with which to start each replication** - the analysis for each replication will start with this number of insects.
  * **Critical photoperiod for diapause induction/termination** - critical photoperiod for diapause induction/termination.
