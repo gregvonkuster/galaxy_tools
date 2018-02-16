@@ -71,7 +71,7 @@ Rscript '$__tool_directory__/ideas_genome_tracks.R'
 #end if
 &>ideas_genome_tracks.log;
 if [[ $? -ne 0 ]]; then
-    cp ideas_log.txt '$output_trackhub'
+    cp ideas_log.txt '$output_trackhub';
     exit 1;
 fi
     ]]></command>

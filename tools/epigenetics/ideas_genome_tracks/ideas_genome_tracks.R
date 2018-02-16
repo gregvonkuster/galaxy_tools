@@ -30,7 +30,7 @@ create_primary_html = function(output_trackhub, trackhub_dir) {
     trackhub_files <- list.files(path=trackhub_dir);
     s <- paste('<html><head></head><body>', sep="\n");
     s <- paste(s, '<h3>Contents of directory required by UCSC TrackHub</h3>\n', sep="");
-    s <- paste(s, '<ul>\n', sep="");
+    s <- paste(s, '<ul>\n', sep="")
     for (i in 1:length(trackhub_files)) {
         s <- paste(s, '<li><a href="', 'myHub/', trackhub_files[i], '">', trackhub_files[i], '</a></li>\n', sep="");
     }
@@ -86,17 +86,17 @@ create_tracks = function(input_dir_state, chrom_len_file, base_track_file_name, 
         t0 = c(0, t) + 1;
         t = c(t, L);
         np = cbind(chr[t], posst[t0], posed[t], tstate[t]);
-        x = cbind(np[, 1:3], state_names[as.integer(np[,4])+1], 1000, ".", np[,2:3], color_codes_vector[as.numeric(np[,4])+1]);
+        x = cbind(np[,1:3], state_names[as.integer(np[,4])+1], 1000, ".", np[,2:3], color_codes_vector[as.numeric(np[,4])+1]);
         track_file_name_bed_unsorted <- get_track_file_name(base_track_file_name, i, "bed_unsorted");
         track_file_name_bed <- get_track_file_name(base_track_file_name, i, "bed");
         write.table(as.matrix(x), track_file_name_bed_unsorted, quote=F, row.names=F, col.names=F);
         cmd = paste("LC_COLLATE=C sort -k1,1 -k2,2n < ", track_file_name_bed_unsorted, " > ", track_file_name_bed);
-        system(cmd);
+        run_cmd(cmd);
         track_file_name_bigbed <- get_track_file_name(base_track_file_name, i, "bigbed");
         cmd = paste("bedToBigBed ", track_file_name_bed, chrom_len_file, " ", track_file_name_bigbed);
-        system(cmd);
-        system(paste("rm ", track_file_name_bed_unsorted));
-        system(paste("rm ", track_file_name_bed));
+        run_cmd(cmd);
+        run_cmd(paste("rm ", track_file_name_bed_unsorted));
+        run_cmd(paste("rm ", track_file_name_bed));
     }
 }
 
@@ -108,11 +108,17 @@ create_track_db = function(galaxy_url, encoded_dataset_id, input_dir_para, input
     color_codes_vectors_by_para_file = list();
     # IDEAS state indexes are zero based.
     index = 0;
-    para_files = list.files(path=input_dir_para, full.names=TRUE);
-    # Generate the default state names and colors.
-    for (para_file in para_files) {
+    state_files = list.files(path=input_dir_state, full.names=TRUE);
+    # Generate the default state names.
+    for (state_file in state_files) {
         # Append the default state name.
         state_names = c(state_names, toString(index));
+        index = index + 1;
+    }
+    # Generate the default colors.
+    index = 0;
+    para_files = list.files(path=input_dir_para, full.names=TRUE);
+    for (para_file in para_files) {
         # Append the default color codes vector.
         data_frame = read.table(para_file, comment="!", header=T);
         # Here state_color_codes_vector contains an rgb
@@ -185,7 +191,7 @@ create_track_db = function(galaxy_url, encoded_dataset_id, input_dir_para, input
             }
         }
     } else {
-        color_codes_vector = color_codes_vectors_by_para_file[1];
+        color_codes_vector = color_codes_vectors_by_para_file[[1]];
     }
     # Create the bigbed track files.
     create_tracks(input_dir_state, chrom_len_file, base_track_file_name, state_names, color_codes_vector);
@@ -252,6 +258,13 @@ get_cell_type_names = function(input_dir_state) {
 get_track_file_name = function(base_track_file_name, index, ext) {
     track_file_name <- paste(base_track_file_name, index, ext, sep=".");
     return(track_file_name);
+}
+
+run_cmd = function(cmd) {
+    rc = system(cmd);
+    if (rc != 0) {
+        quit(save="no", status=rc);
+    }
 }
 
 # Create the directory that will contain all trackhub files.

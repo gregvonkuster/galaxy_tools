@@ -18,6 +18,13 @@ parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
 args <- parse_args(parser, positional_arguments=TRUE)
 opt <- args$options
 
+run_cmd = function(cmd) {
+    rc = system(cmd);
+    if (rc != 0) {
+        quit(save="no", status=rc);
+    }
+}
+
 tmp_dir = "tmp";
 cbi_file = "chrom_bed_input.bed";
 
@@ -26,7 +33,7 @@ if (is.null(opt$chrom_bed_input)) {
     # using the received chromosome lengths file
     # and the window size.
     cmd = paste("bedtools makewindows -g", opt$chrom_len_file, "-w", opt$window_size, ">", cbi_file, sep=" ");
-    system(cmd);
+    run_cmd(cmd);
 } else {
     if (!is.null(opt$exclude_bed_input)) {
         # Copy the received chrom_bed_input
@@ -43,9 +50,9 @@ if (!is.null(opt$exclude_bed_input)) {
     tmp_file = paste("tmp", cbi_file, sep="_");
     for (exclude_bed_file in exclude_bed_files) {
         cmd = paste("bedtools subtract -a", cbi_file, "-b", exclude_bed_file, ">", tmp_file, sep=" ");
-        system(cmd);
+        run_cmd(cmd);
         cmd = paste("mv", tmp_file, cbi_file, sep=" ");
-        system(cmd);
+        run_cmd(cmd);
     }
 }
 # Read the chromosome windows positions file
@@ -63,41 +70,41 @@ for (i in 1:dim(ideaspre_input_config)[1]) {
     datatype = ideaspre_input_config[i, 5]
     if (datatype == "bam") {
         cmd = paste("samtools index", file_path);
-        system(cmd);
+        run_cmd(cmd);
         bigwig_file_name = paste(file_name, "bw", sep=".");
         cmd = paste("bamCoverage --bam", file_path, "-o", bigwig_file_name, "--binSize", min_window_size);
-        system(cmd);
+        run_cmd(cmd);
     } else {
         bigwig_file_name = file_path;
     }
     bed_file_name = paste(file_name, "bed", sep=".");
     bed_file_path = paste("tmp", bed_file_name, sep="/");
     cmd = paste("bigWigAverageOverBed", bigwig_file_name, opt$chrom_bed_input, "stdout | cut -f5 >", bed_file_path);
-    system(cmd);
+    run_cmd(cmd);
     cmd = paste("gzip -f", bed_file_path);
-    system(cmd);
+    run_cmd(cmd);
 }
 # Create file1.txt.
 cmd = paste("cut -d' '", opt$ideaspre_input_config, "-f1,2 > file1.txt", sep=" ");
-system(cmd);
+run_cmd(cmd);
 # Compress the bed files in the tmp directory.
 tmp_gzipped_files = paste(tmp_dir, "*.bed.gz", sep="/");
 # Create file2.txt.
 cmd = paste("ls", tmp_gzipped_files, "> file2.txt", sep=" ");
-system(cmd);
+run_cmd(cmd);
 # Create IDEAS_input_config.txt  with the format required by IDEAS.
 ideas_input_config = "IDEAS_input_config.txt"
 cmd = paste("paste -d' ' file1.txt file2.txt >", ideas_input_config, sep=" " );
-system(cmd);
+run_cmd(cmd);
 # Move IDEAS_input_config.txt to the output directory.
 to_path = paste(opt$output_files_path, ideas_input_config, sep="/");
 file.rename(ideas_input_config, to_path);
 # Archive the tmp directory.
 cmd = "tar -cvf tmp.tar tmp";
-system(cmd);
+run_cmd(cmd);
 # Compress the archive.
 cmd = "gzip tmp.tar";
-system(cmd);
+run_cmd(cmd);
 # Move the tmp archive to the output directory.
 to_path = paste(opt$output_files_path, "tmp.tar.gz", sep="/");
 file.rename("tmp.tar.gz", to_path);
