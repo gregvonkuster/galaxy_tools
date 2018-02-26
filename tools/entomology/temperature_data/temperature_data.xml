@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<tool name="Temperature data" id="ipm_temperature_data" tool_type="data_source" version="1.0.0">
-    <description>(year-to-date) for insect phenology model</description>
+<tool name="Temperature Data" id="ipm_temperature_data" tool_type="data_source" version="1.0.0">
+    <description>for insect phenology model</description>
     <command detect_errors="exit_code"><![CDATA[
 python '$__tool_directory__/temperature.py'
 --datatypes_config '$__datatypes_config__'
