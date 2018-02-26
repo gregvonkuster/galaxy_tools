@@ -211,7 +211,7 @@ create_track_db = function(galaxy_url, encoded_dataset_id, input_dir_para, input
         # Get the bigDataUrl.
         big_data_url <- get_big_data_url(galaxy_url, encoded_dataset_id, trackhub_dir, i);
         track_db = c(track_db, paste("track ", hub_name, "_track_", i, sep=""));
-        track_db = c(track_db, "type bigBed");
+        track_db = c(track_db, "type bigBed 9 .");
         track_db = c(track_db, paste("bigDataUrl", big_data_url, sep=" "));
         track_db = c(track_db, paste("shortLabel", cell_info[ii, 2], sep=" "));
         track_db = c(track_db, paste("longLabel", paste(hub_name, cell_info[ii, 3], sep=" ")));
@@ -301,3 +301,4 @@ write.table(track_db, file=track_db_file_path, quote=F, row.names=F, col.names=F
 
 # Create the primary HTML dataset.
 create_primary_html(opt$output_trackhub, trackhub_dir);
+
