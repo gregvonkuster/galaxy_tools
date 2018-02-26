@@ -221,7 +221,6 @@ parse_input_data = function(input_file, num_rows) {
 render_chart = function(date_labels, chart_type, plot_std_error, insect, location, latitude, start_date, end_date, days, maxval,
     life_stage, group, group_std_error, group2=NULL, group2_std_error=NULL, group3=NULL, group3_std_error=NULL,
     life_stages_adult=NULL, life_stages_nymph=NULL) {
-    cat("RRR chart_type: ", chart_type, "\n");
     if (chart_type=="pop_size_by_life_stage") {
         if (life_stage=="All") {
             title = paste(insect, ": Total Pop :", location, ": Lat:", latitude, ":", start_date, "-", end_date, sep=" ");
@@ -244,38 +243,22 @@ render_chart = function(date_labels, chart_type, plot_std_error, insect, locatio
                 lines(days, group3+group3_std_error, col=4, lty=2);
                 lines(days, group3-group3_std_error, col=4, lty=2);
             }
-        } else if (life_stage=="Egg") {
-            title = paste(insect, ": Egg Pop :", location, ": Lat:", latitude, ":", start_date, "-", end_date, sep=" ");
-            legend_text = c("Egg");
-            columns = c(4); 
-            plot(days, group, main=title, type="l", ylim=c(0, maxval), axes=F, lwd=2, xlab="", ylab="", cex=3, cex.lab=3, cex.axis=3, cex.main=3);
-            legend("topleft", legend_text, lty=c(1, 1, 1), col=columns, cex=3);
-            axis(1, at=c(1:length(date_labels)) * 30 - 15, cex.axis=3, labels=date_labels);
-            axis(2, cex.axis=3);
-            if (plot_std_error=="yes") {
-                # Standard error for group.
-                lines(days, group+group_std_error, lty=2);
-                lines(days, group-group_std_error, lty=2);
+        } else {
+            if (life_stage=="Egg") {
+                title = paste(insect, ": Egg Pop :", location, ": Lat:", latitude, ":", start_date, "-", end_date, sep=" ");
+                legend_text = c("Egg");
+                columns = c(4); 
+            } else if (life_stage=="Nymph") {
+                stage = paste(life_stages_nymph, "Nymph Pop", sep=" ");
+                title = paste(insect, ": ", stage, location, ": Lat:", latitude, ":", start_date, "-", end_date, sep=" ");
+                legend_text = c("Nymph");
+                columns = c(2);
+            } else if (life_stage=="Adult") {
+                stage = paste(life_stages_adult, "Adult Pop", sep=" ");
+                title = paste(insect, ": ", stage, location, ": Lat:", latitude, ":", start_date, "-", end_date, sep=" ");
+                legend_text = c("Adult");
+                columns = c(1);
             }
-        } else if (life_stage=="Nymph") {
-            stage = paste(life_stages_nymph, "Nymph Pop", sep=" ");
-            title = paste(insect, ": ", stage, location, ": Lat:", latitude, ":", start_date, "-", end_date, sep=" ");
-            legend_text = c("Nymph");
-            columns = c(2);
-            plot(days, group, main=title, type="l", ylim=c(0, maxval), axes=F, lwd=2, xlab="", ylab="", cex=3, cex.lab=3, cex.axis=3, cex.main=3);
-            legend("topleft", legend_text, lty=c(1, 1, 1), col=columns, cex=3);
-            axis(1, at=c(1:length(date_labels)) * 30 - 15, cex.axis=3, labels=date_labels);
-            axis(2, cex.axis=3);
-            if (plot_std_error=="yes") {
-                # Standard error for group.
-                lines(days, group+group_std_error, lty=2);
-                lines(days, group-group_std_error, lty=2);
-            }
-        } else if (life_stage=="Adult") {
-            stage = paste(life_stages_adult, "Adult Pop", sep=" ");
-            title = paste(insect, ": ", stage, location, ": Lat:", latitude, ":", start_date, "-", end_date, sep=" ");
-            legend_text = c("Adult");
-            columns = c(1);
             plot(days, group, main=title, type="l", ylim=c(0, maxval), axes=F, lwd=2, xlab="", ylab="", cex=3, cex.lab=3, cex.axis=3, cex.main=3);
             legend("topleft", legend_text, lty=c(1, 1, 1), col=columns, cex=3);
             axis(1, at=c(1:length(date_labels)) * 30 - 15, cex.axis=3, labels=date_labels);
@@ -288,16 +271,15 @@ render_chart = function(date_labels, chart_type, plot_std_error, insect, locatio
         }
     } else if (chart_type=="pop_size_by_generation") {
         if (life_stage=="All") {
-            title = paste(insect, ": Total Pop by Generation :", location, ": Lat:", latitude, ":", start_date, "-", end_date, sep=" ");
+            title_str = ": Total Pop by Generation :";
         } else if (life_stage=="Egg") {
-            cat("Not implemented!");
-            quit(save="no", status=1);
+            title_str = ": Egg Pop by Generation :";
         } else if (life_stage=="Nymph") {
-            cat("Not implemented!");
-            quit(save="no", status=1);
+            title_str = ": Nymph Pop by Generation :";
         } else if (life_stage=="Adult") {
-            title = paste(insect, ": Adult Pop by Generation :", location, ": Lat:", latitude, ":", start_date, "-", end_date, sep=" ");
+            title_str = ": Adult Pop by Generation :";
         }
+        title = paste(insect, title_str, location, ": Lat:", latitude, ":", start_date, "-", end_date, sep=" ");
         legend_text = c("P", "F1", "F2");
         columns = c(1, 2, 4);
         plot(days, group, main=title, type="l", ylim=c(0, maxval), axes=F, lwd=2, xlab="", ylab="", cex=3, cex.lab=3, cex.axis=3, cex.main=3);
@@ -340,21 +322,25 @@ OldNymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$
 Previtellogenic.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
 Vitellogenic.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
 Diapausing.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-
 newborn.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
 adult.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
 death.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-
 # P is Parental, or overwintered adults.
 P.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+P_eggs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+P_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
 P_adults.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
 # F1 is the first field-produced generation.
 F1.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+F1_eggs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+F1_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
 F1_adults.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
 # F2 is the second field-produced generation.
 F2.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+F2_eggs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+F2_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
 F2_adults.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-
+# Total population.
 population.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
 
 # Process replications.
@@ -363,9 +349,12 @@ for (N.replications in 1:opt$replications) {
     num_insects = opt$insects_per_replication;
     # Generation, Stage, degree-days, T, Diapause.
     vector.ini = c(0, 3, 0, 0, 0);
-    # Overwintering, previttelogenic, degree-days=0, T=0, no-diapause.
+    # Replicate to create a matrix where the columns are
+    # Generation, Stage, degree-days, T, Diapause and the
+    # rows are the initial number of insects per replication.
     vector.matrix = rep(vector.ini, num_insects);
-    # Complete matrix for the population.
+    # Complete transposed matrix for the population, so now
+    # the rows are Generation, Stage, degree-days, T, Diapause
     vector.matrix = base::t(matrix(vector.matrix, nrow=5));
     # Time series of population size.
     Eggs = rep(0, opt$num_days);
@@ -374,24 +363,25 @@ for (N.replications in 1:opt$replications) {
     Previtellogenic = rep(0, opt$num_days);
     Vitellogenic = rep(0, opt$num_days);
     Diapausing = rep(0, opt$num_days);
-
     N.newborn = rep(0, opt$num_days);
     N.adult = rep(0, opt$num_days);
     N.death = rep(0, opt$num_days);
-
     overwintering_adult.population = rep(0, opt$num_days);
     first_generation.population = rep(0, opt$num_days);
     second_generation.population = rep(0, opt$num_days);
-
     # P is Parental, or overwintered adults.
+    P.egg = rep(0, opt$num_days);
+    P.nymph = rep(0, opt$num_days);
     P.adult = rep(0, opt$num_days);
     # F1 is the first field-produced generation.
+    F1.egg = rep(0, opt$num_days);
+    F1.nymph = rep(0, opt$num_days);
     F1.adult = rep(0, opt$num_days);
     # F2 is the second field-produced generation.
+    F2.egg = rep(0, opt$num_days);
+    F2.nymph = rep(0, opt$num_days);
     F2.adult = rep(0, opt$num_days);
-
     total.population = NULL;
-
     averages.day = rep(0, opt$num_days);
     # All the days included in the input temperature dataset.
     for (row in 1:opt$num_days) {
@@ -619,18 +609,21 @@ for (N.replications in 1:opt$replications) {
         # Update population size for the next day.
         num_insects = num_insects - num_insects.death + num_insects.newborn;
 
-        # Aggregate results by day.
-        # Egg population size.
+        # Aggregate results by day.  Due to multiple transpose calls
+        # on vector.matrix above, the columns of vector.matrix
+        # are now Generation, Stage, degree-days, T, Diapause,
+
+        # For egg population size, column 2 (Stage), must be 0.
         Eggs[row] = sum(vector.matrix[,2]==0);
-        # Young nymph population size.
+        # For young nymph population size, column 2 (Stage) must be 1.
         YoungNymphs[row] = sum(vector.matrix[,2]==1);
-        # Old nymph population size.
+        # For old nymph population size, column 2 (Stage) must be 2.
         OldNymphs[row] = sum(vector.matrix[,2]==2);
-        # Previtellogenic population size.
+        # For pre-vitellogenic population size, column 2 (Stage) must be 3.
         Previtellogenic[row] = sum(vector.matrix[,2]==3);
-        # Vitellogenic population size.
+        # For vitellogenic population size, column 2 (Stage) must be 4.
         Vitellogenic[row] = sum(vector.matrix[,2]==4);
-        # Diapausing population size.
+        # For diapausing population size, column 2 (Stage) must be 5.
         Diapausing[row] = sum(vector.matrix[,2]==5);
 
         # Newborn population size.
@@ -642,18 +635,57 @@ for (N.replications in 1:opt$replications) {
 
         total.population = c(total.population, num_insects);
 
-        # Overwintering adult population size.
+        # For overwintering adult (P) population
+        # size, column 1 (Generation) must be 0.
         overwintering_adult.population[row] = sum(vector.matrix[,1]==0);
-        # First generation population size.
+        # For first field generation (F1) population
+        # size, column 1 (Generation) must be 1.
         first_generation.population[row] = sum(vector.matrix[,1]==1);
-        # Second generation population size.
+        # For second field generation (F2) population
+        # size, column 1 (Generation) must be 2.
         second_generation.population[row] = sum(vector.matrix[,1]==2);
 
-        # P is Parental, or overwintered adults.
-        P.adult[row] = sum(vector.matrix[,1]==0);
-        # F1 is the first field-produced generation.
+        # For egg life stage of generation F1 population size,
+        # column 1 (generation) is 0 and column 2 (Stage) is 0.
+        P.egg[row] = sum(vector.matrix[,1]==0 & vector.matrix[,2]==0);
+        # For nymph life stage of generation F1 population
+        # size, one of the following combinations is required:
+        # - column 1 (Generation) is 0 and column 2 (Stage) is 1 (Young nymph)
+        # - column 1 (Generation) is 0 and column 2 (Stage) is 2 (Old nymph)
+        P.nymph[row] = sum((vector.matrix[,1]==0 & vector.matrix[,2]==1) | (vector.matrix[,1]==0 & vector.matrix[,2]==2));
+        # For adult life stage of generation P population
+        # size, one of the following combinations is required:
+        # - column 1 (Generation) is 0 and column 2 (Stage) is 3 (Pre-vitellogenic)
+        # - column 1 (Generation) is 0 and column 2 (Stage) is 4 (Vitellogenic)
+        # - column 1 (Generation) is 0 and column 2 (Stage) is 5 (Diapausing)
+        P.adult[row] = sum((vector.matrix[,1]==0 & vector.matrix[,2]==3) | (vector.matrix[,1]==0 & vector.matrix[,2]==4) | (vector.matrix[,1]==0 & vector.matrix[,2]==5));
+        # For egg life stage of generation F1 population size,
+        # column 1 (generation) is 1 and column 2 (Stage) is 0.
+        F1.egg[row] = sum(vector.matrix[,1]==1 & vector.matrix[,2]==0);
+        # For nymph life stage of generation F1 population
+        # size, one of the following combinations is required:
+        # - column 1 (Generation) is 1 and column 2 (Stage) is 1 (Young nymph)
+        # - column 1 (Generation) is 1 and column 2 (Stage) is 2 (Old nymph)
+        F1.nymph[row] = sum((vector.matrix[,1]==1 & vector.matrix[,2]==1) | (vector.matrix[,1]==1 & vector.matrix[,2]==2));
+        # For adult life stage of generation F1 population
+        # size, one of the following combinations is required:
+        # - column 1 (Generation) is 1 and column 2 (Stage) is 3 (Pre-vitellogenic)
+        # - column 1 (Generation) is 1 and column 2 (Stage) is 4 (Vitellogenic)
+        # - column 1 (Generation) is 1 and column 2 (Stage) is 5 (Diapausing)
         F1.adult[row] = sum((vector.matrix[,1]==1 & vector.matrix[,2]==3) | (vector.matrix[,1]==1 & vector.matrix[,2]==4) | (vector.matrix[,1]==1 & vector.matrix[,2]==5));
-        # F2 adult population size
+        # For egg life stage of generation F2 population size,
+        # column 1 (generation) is 2 and column 2 (Stage) is 0.
+        F2.egg[row] = sum(vector.matrix[,1]==2 & vector.matrix[,2]==0);
+        # For nymph life stage of generation F2 population
+        # size, one of the following combinations is required:
+        # - column 1 (Generation) is 2 and column 2 (Stage) is 1 (Young nymph)
+        # - column 1 (Generation) is 2 and column 2 (Stage) is 2 (Old nymph)
+        F2.nymph[row] = sum((vector.matrix[,1]==2 & vector.matrix[,2]==1) | (vector.matrix[,1]==2 & vector.matrix[,2]==2));
+        # For adult life stage of generation F2 population
+        # size, one of the following combinations is required:
+        # - column 1 (Generation) is 2 and column 2 (Stage) is 3 (Pre-vitellogenic)
+        # - column 1 (Generation) is 2 and column 2 (Stage) is 4 (Vitellogenic)
+        # - column 1 (Generation) is 2 and column 2 (Stage) is 5 (Diapausing)
         F2.adult[row] = sum((vector.matrix[,1]==2 & vector.matrix[,2]==3) | (vector.matrix[,1]==2 & vector.matrix[,2]==4) | (vector.matrix[,1]==2 & vector.matrix[,2]==5));
     }   # End of days specified in the input temperature data.
 
@@ -666,21 +698,24 @@ for (N.replications in 1:opt$replications) {
     Previtellogenic.replications[,N.replications] = Previtellogenic;
     Vitellogenic.replications[,N.replications] = Vitellogenic;
     Diapausing.replications[,N.replications] = Diapausing;
-
     newborn.replications[,N.replications] = N.newborn;
     adult.replications[,N.replications] = N.adult;
     death.replications[,N.replications] = N.death;
-
     # P is Parental, or overwintered adults.
     P.replications[,N.replications] = overwintering_adult.population;
+    P_eggs.replications[,N.replications] = P.egg;
+    P_nymphs.replications[,N.replications] = P.nymph;
     P_adults.replications[,N.replications] = P.adult;
     # F1 is the first field-produced generation.
     F1.replications[,N.replications] = first_generation.population;
+    F1_eggs.replications[,N.replications] = F1.egg;
+    F1_nymphs.replications[,N.replications] = F1.nymph;
     F1_adults.replications[,N.replications] = F1.adult;
     # F2 is the second field-produced generation.
     F2.replications[,N.replications] = second_generation.population;
+    F2_eggs.replications[,N.replications] = F2.egg;
+    F2_nymphs.replications[,N.replications] = F2.nymph;
     F2_adults.replications[,N.replications] = F2.adult;
-
     population.replications[,N.replications] = total.population;
 }
 
@@ -734,30 +769,51 @@ if (opt$life_stages_adult=="All") {
 P = apply(P.replications, 1, mean);
 # Standard error for P.
 P.std_error = apply(P.replications, 1, sd) / sqrt(opt$replications);
-
+# Mean value for P eggs.
+P_eggs = apply(P_eggs.replications, 1, mean);
+# Standard error for P_eggs.
+P_eggs.std_error = apply(P_eggs.replications, 1, sd) / sqrt(opt$replications);
+# Mean value for P nymphs.
+P_nymphs = apply(P_nymphs.replications, 1, mean);
+# Standard error for P_nymphs.
+P_nymphs.std_error = apply(P_nymphs.replications, 1, sd) / sqrt(opt$replications);
 # Mean value for P adults.
 P_adults = apply(P_adults.replications, 1, mean);
-# Standard error for P_adult.
+# Standard error for P_adults.
 P_adults.std_error = apply(P_adults.replications, 1, sd) / sqrt(opt$replications);
 
 # Mean value for F1, which is the first field-produced generation.
 F1 = apply(F1.replications, 1, mean);
 # Standard error for F1.
 F1.std_error = apply(F1.replications, 1, sd) / sqrt(opt$replications);
-
+# Mean value for F1 eggs.
+F1_eggs = apply(F1_eggs.replications, 1, mean);
+# Standard error for F1 eggs.
+F1_eggs.std_error = apply(F1_eggs.replications, 1, sd) / sqrt(opt$replications);
+# Mean value for F1 nymphs.
+F1_nymphs = apply(F1_nymphs.replications, 1, mean);
+# Standard error for F1 nymphs.
+F1_nymphs.std_error = apply(F1_nymphs.replications, 1, sd) / sqrt(opt$replications);
 # Mean value for F1 adults.
 F1_adults = apply(F1_adults.replications, 1, mean);
-# Standard error for F1 adult.
+# Standard error for F1 adults.
 F1_adults.std_error = apply(F1_adults.replications, 1, sd) / sqrt(opt$replications);
 
 # Mean value for F2, which is the second field-produced generation.
 F2 = apply(F2.replications, 1, mean);
 # Standard error for F2.
 F2.std_error = apply(F2.replications, 1, sd) / sqrt(opt$replications);
-
+# Mean value for F2 eggs.
+F2_eggs = apply(F2_eggs.replications, 1, mean);
+# Standard error for F2 eggs.
+F2_eggs.std_error = apply(F2_eggs.replications, 1, sd) / sqrt(opt$replications);
+# Mean value for F2 nymphs.
+F2_nymphs = apply(F2_nymphs.replications, 1, mean);
+# Standard error for F2 eggs.
+F2_nymphs.std_error = apply(F2_nymphs.replications, 1, sd) / sqrt(opt$replications);
 # Mean value for F2 adults.
 F2_adults = apply(F2_adults.replications, 1, mean);
-# Standard error for F2 adult.
+# Standard error for F2 adults.
 F2_adults.std_error = apply(F2_adults.replications, 1, sd) / sqrt(opt$replications);
 
 # Display the total number of days in the Galaxy history item blurb.
@@ -768,16 +824,34 @@ days = c(1:opt$num_days);
 start_date = temperature_data_frame$DATE[1];
 end_date = temperature_data_frame$DATE[opt$num_days];
 
-cat("\n plot_generations_separately: ", opt$plot_generations_separately, "\n");
-
 if (opt$plot_generations_separately=="yes") {
     for (life_stage in life_stages) {}
         if (life_stage == "Egg") {
-            cat("Not implemented!");
-            quit(save="no", status=1);
+            # Start PDF device driver.
+            dev.new(width=20, height=30);
+            file_path = paste(output_dir, "egg_pop_size_by_generation.pdf", sep="/");
+            pdf(file=file_path, width=20, height=30, bg="white");
+            par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
+            # Egg population size by generation.
+            maxval = max(F2_eggs) + 100;
+            render_chart(date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
+                life_stage, group=P_eggs, group_std_error=P_eggs.std_error, group2=F1_eggs, group2_std_error=F1_eggs.std_error, group3=F2_eggs,
+                group3_std_error=F2_eggs.std_error);
+            # Turn off device driver to flush output.
+            dev.off();
         } else if (life_stage == "Nymph") {
-            cat("Not implemented!");
-            quit(save="no", status=1);
+            # Start PDF device driver.
+            dev.new(width=20, height=30);
+            file_path = paste(output_dir, "nymph_pop_size_by_generation.pdf", sep="/");
+            pdf(file=file_path, width=20, height=30, bg="white");
+            par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
+            # Nymph population size by generation.
+            maxval = max(F2_nymphs) + 100;
+            render_chart(date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
+                life_stage, group=P_nymphs, group_std_error=P_nymphs.std_error, group2=F1_nymphs, group2_std_error=F1_nymphs.std_error,
+                group3=F2_nymphs, group3_std_error=F2_nymphs.std_error);
+            # Turn off device driver to flush output.
+            dev.off();
         } else if (life_stage == "Adult") {
             # Start PDF device driver.
             dev.new(width=20, height=30);
