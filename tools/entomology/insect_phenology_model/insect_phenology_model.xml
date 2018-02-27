@@ -5,14 +5,14 @@
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
 #set stages = list()
-#set life_stages_adult = "All"
-#set life_stages_nymph = "All"
+#set life_stages_adult = "None"
+#set life_stage_nymph = "None"
 #set life_stages = $life_stages_cond.life_stages
 #for life_stage in str($life_stages).split(","):
-    #if $life_stage == "adult":
+    #if $life_stage == "Adult":
         #set life_stages_adult = $life_stages_cond.life_stages_adult
-    #else if $life_stage == "nymph":
-        #set life_stages_nymph = $life_stages_cond.life_stages_nymph
+    #else if $life_stage == "Nymph":
+        #set life_stage_nymph = $life_stages_cond.life_stage_nymph
     #end if
     $stages.append($life_stage)
 #end for
@@ -29,8 +29,8 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
 #if str($life_stages_adult) != "None":
     --life_stages_adult $life_stages_adult
 #end if
-#if str($life_stages_nymph) != "None":
-    --life_stages_nymph $life_stages_nymph
+#if str($life_stage_nymph) != "None":
+    --life_stage_nymph $life_stage_nymph
 #end if
 --location '$location'
 --max_clutch_size $max_clutch_size
@@ -48,9 +48,9 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
         <param name="input" type="data" format="csv" label="Temperature data" />
         <param name="location" type="text" value="" optional="false" label="Location" />
         <param name="insect" type="select" label="Select insect">
-            <option value="Brown Marmorated Stink Bug" selected="True">Brown Marmorated Stink Bug</option>
+            <option value="BMSB" selected="True">Brown Marmorated Stink Bug</option>
         </param>
-        <param name="replications" type="integer" value="10" min="1" label="Number of replications" />
+        <param name="replications" type="integer" value="10" min="2" label="Number of replications" />
         <param name="insects_per_replication" type="integer" value="1000" min="1" label="Number of insects with which to start each replication" />
         <param name="photoperiod" type="float" value="13.5" min="0" label="Critical photoperiod for diapause induction/termination" />
         <param name="egg_mortality" type="integer" value="1" min="0" label="Adjustment rate for egg mortality" />
@@ -68,23 +68,23 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
         </param>
         <conditional name="life_stages_cond" label="Select life_stages for plotting">
             <param name="life_stages" type="select" label="Select life stages for plotting">
-                <option value="All" selected="true">All</option>
+                <option value="Total" selected="true">All</option>
                 <option value="Egg">Egg</option>
                 <option value="Nymph">Nymph</option>
                 <option value="Adult">Adult</option>
             </param>
-            <when value="All"/>
+            <when value="Total"/>
             <when value="Egg"/>
             <when value="Nymph">
-                <param name="life_stages_nymph" type="select" label="Select nymph life stage">
-                    <option value="All" selected="true">All</option>
+                <param name="life_stage_nymph" type="select" label="Select nymph life stage">
+                    <option value="Total" selected="true">All</option>
                     <option value="Young">Young</option>
                     <option value="Old">Old</option>
                 </param>
             </when>
             <when value="Adult">
                 <param name="life_stages_adult" type="select" label="Select adult life stage">
-                    <option value="All" selected="true">All</option>
+                    <option value="Total" selected="true">All</option>
                     <option value="Pre-vittelogenic">Pre-vittelogenic</option>
                     <option value="Vittelogenic">Vittelogenic</option>
                     <option value="Diapausing">Diapausing</option>
