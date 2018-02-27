@@ -976,7 +976,7 @@ if (plot_generations_separately) {
         if (life_stage == "Egg") {
             # Start PDF device driver.
             dev.new(width=20, height=30);
-            file_path = paste(output_dir, "egg_pop_size.pdf", sep="/");
+            file_path = paste(output_dir, "egg_pop.pdf", sep="/");
             pdf(file=file_path, width=20, height=30, bg="white");
             par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
             # Egg population size.
@@ -988,7 +988,7 @@ if (plot_generations_separately) {
         } else if (life_stage == "Nymph") {
             # Start PDF device driver.
             dev.new(width=20, height=30);
-            file_name = paste(tolower(life_stage_nymph), "nymph_pop_size.pdf", sep="_");
+            file_name = paste(tolower(life_stage_nymph), "nymph_pop.pdf", sep="_");
             file_path = paste(output_dir, file_name, sep="/");
             pdf(file=file_path, width=20, height=30, bg="white");
             par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
@@ -1001,7 +1001,7 @@ if (plot_generations_separately) {
         } else if (life_stage == "Adult") {
             # Start PDF device driver.
             dev.new(width=20, height=30);
-            file_name = paste(tolower(life_stages_adult), "adult_pop_size.pdf", sep="_");
+            file_name = paste(tolower(life_stages_adult), "adult_pop.pdf", sep="_");
             file_path = paste(output_dir, file_name, sep="/");
             pdf(file=file_path, width=20, height=30, bg="white");
             par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
@@ -1014,7 +1014,7 @@ if (plot_generations_separately) {
         } else if (life_stage == "Total") {
             # Start PDF device driver.
             dev.new(width=20, height=30);
-            file_path = paste(output_dir, "total_pop_size.pdf", sep="/");
+            file_path = paste(output_dir, "total_pop.pdf", sep="/");
             pdf(file=file_path, width=20, height=30, bg="white");
             par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
             # Total population size.
