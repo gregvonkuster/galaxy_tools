@@ -105,9 +105,9 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
         <test>
             <param name="input" value="state_college.csv" ftype="csv" />
             <param name="location" value="State College PA" />
-            <param name="replications" value="10" />
+            <param name="replications" value="2" />
             <output_collection name="output_collection" type="list">
-                <element name="output.pdf" file="output.pdf" ftype="pdf" compare="contains"/>
+                <element name="total_pop_by_generation.pdf" file="total_pop_by_generation.pdf" ftype="pdf" compare="contains"/>
             </output_collection>
         </test>
     </tests>
