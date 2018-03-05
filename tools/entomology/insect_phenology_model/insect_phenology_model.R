@@ -246,7 +246,7 @@ render_chart = function(date_labels, chart_type, plot_std_error, insect, locatio
             if (life_stage=="Egg") {
                 title = paste(insect,  ": Reps", replications, ":", life_stage, "Pop :", location, ": Lat", latitude, ":", start_date, "-", end_date, sep=" ");
                 legend_text = c(life_stage);
-                columns = c(4); 
+                columns = c(4);
             } else if (life_stage=="Nymph") {
                 stage = paste(life_stage_nymph, "Nymph Pop :", sep=" ");
                 title = paste(insect, ": Reps", replications, ":", stage, location, ": Lat", latitude, ":", start_date, "-", end_date, sep=" ");
@@ -916,7 +916,7 @@ start_date = temperature_data_frame$DATE[1];
 end_date = temperature_data_frame$DATE[opt$num_days];
 
 if (plot_generations_separately) {
-    for (life_stage in life_stages) {}
+    for (life_stage in life_stages) {
         if (life_stage == "Egg") {
             # Start PDF device driver.
             dev.new(width=20, height=30);
@@ -971,6 +971,7 @@ if (plot_generations_separately) {
             # Turn off device driver to flush output.
             dev.off();
         }
+    }
 } else {
     for (life_stage in life_stages) {
         if (life_stage == "Egg") {

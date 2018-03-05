@@ -4,18 +4,28 @@
         <requirement type="package" version="1.4.4">r-optparse</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
-#set stages = list()
-#set life_stages_adult = "None"
 #set life_stage_nymph = "None"
-#set life_stages = $life_stages_cond.life_stages
-#for life_stage in str($life_stages).split(","):
-    #if $life_stage == "Adult":
-        #set life_stages_adult = $life_stages_cond.life_stages_adult
-    #else if $life_stage == "Nymph":
-        #set life_stage_nymph = $life_stages_cond.life_stage_nymph
+#set life_stages_adult = "None"
+#set stages = list()
+#set plot_adult_life_stage = $plot_adult_life_stage_cond.plot_adult_life_stage
+#set plot_nymph_life_stage = $plot_nymph_life_stage_cond.plot_nymph_life_stage
+#if str($plot_egg_life_stage) == "yes" and str($plot_nymph_life_stage) == "yes" and str($plot_adult_life_stage) == "yes":
+    $stages.append("Total")
+    #set life_stage_nymph = $plot_nymph_life_stage_cond.life_stage_nymph
+    #set life_stages_adult = $plot_adult_life_stage_cond.life_stages_adult
+#else:
+    #if str($plot_egg_life_stage) == "yes":
+        $stages.append("Egg")
     #end if
-    $stages.append($life_stage)
-#end for
+    #if str($plot_nymph_life_stage) == "yes":
+        $stages.append("Nymph")
+        #set life_stage_nymph = $plot_nymph_life_stage_cond.life_stage_nymph
+    #end if
+    #if str($plot_adult_life_stage) == "yes":
+        $stages.append("Adult")
+        #set life_stages_adult = $plot_adult_life_stage_cond.life_stages_adult
+    #end if
+#end if
 #set stages = ",".join($stages)
 mkdir output_dir &&
 Rscript '$__tool_directory__/insect_phenology_model.R'
@@ -66,23 +76,30 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
             <option value="yes" selected="True">Yes</option>
             <option value="no">No</option>
         </param>
-        <conditional name="life_stages_cond" label="Select life_stages for plotting">
-            <param name="life_stages" type="select" label="Select life stages for plotting">
-                <option value="Total" selected="true">All</option>
-                <option value="Egg">Egg</option>
-                <option value="Nymph">Nymph</option>
-                <option value="Adult">Adult</option>
+        <param name="plot_egg_life_stage" type="select" label="Plot egg life stage?">
+            <option value="yes" selected="true">Yes</option>
+            <option value="no">No</option>
+        </param>
+        <conditional name="plot_nymph_life_stage_cond">
+            <param name="plot_nymph_life_stage" type="select" label="Plot nymph life stage?">
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
             </param>
-            <when value="Total"/>
-            <when value="Egg"/>
-            <when value="Nymph">
+            <when value="yes">
                 <param name="life_stage_nymph" type="select" label="Select nymph life stage">
                     <option value="Total" selected="true">All</option>
                     <option value="Young">Young</option>
                     <option value="Old">Old</option>
                 </param>
             </when>
-            <when value="Adult">
+            <when value="no"/>
+        </conditional>
+        <conditional name="plot_adult_life_stage_cond">
+            <param name="plot_adult_life_stage" type="select" label="Plot adult life stage?">
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
+            </param>
+            <when value="yes">
                 <param name="life_stages_adult" type="select" label="Select adult life stage">
                     <option value="Total" selected="true">All</option>
                     <option value="Pre-vittelogenic">Pre-vittelogenic</option>
@@ -90,6 +107,7 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
                     <option value="Diapausing">Diapausing</option>
                 </param>
             </when>
+            <when value="no"/>
         </conditional>
         <param name="plot_std_error" type="select" label="Plot standard error?">
             <option value="yes" selected="True">Yes</option>
@@ -136,9 +154,16 @@ Provides an agent-based stochastic model expressing stage-specific phenology and
  * **Adjustment of degree-days accumulation (young nymph->old nymph)** - adjustment of degree-days accumulation (young nymph->old nymph).
  * **Adjustment of degree-days accumulation (old nymph->adult)** - adjustment of degree-days accumulation (old nymph->adult).
  * **Plot generations separately** - select "Yes" to plot P, F1 and F2 as separate lines or "no" to pool across generations, resulting in a total for the selected life states.
- * **Select life stages for plotting** - select any combinaton of Egg, Nymph, Adult or "All" for plotting.
- * **Plot standard error** - add standard error lines to plot.
+ * **Plot egg life stage** - select "Yes" to plot the egg life stage.  If all life stages (egg, nymph and adult) are selected for plotting, one output for the total will be produced.
+ * **Plot nymph life stage** - select "Yes" to plot the nymph life stage.  If all life stages (egg, nymph and adult) are selected for plotting, one output for the total will be produced.
 
+  * **Select nymph life stage** - select the nymph life stage for plotting.
+
+ * **Plot adult life stage** - select "Yes" to plot the adult life stage.  If all life stages (egg, nymph and adult) are selected for plotting, one output for the total will be produced.
+
+  * **Select adult life stage** - select the adult life stage for plotting.
+
+ * **Plot standard error** - add standard error lines to plot.
     </help>
     <citations>
         <citation type="doi">10.3389/fphys.2016.00165</citation>
