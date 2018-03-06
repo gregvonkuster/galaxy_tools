@@ -4,29 +4,22 @@
         <requirement type="package" version="1.4.4">r-optparse</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
-#set life_stage_nymph = "None"
-#set life_stages_adult = "None"
-#set stages = list()
+#set life_stages = list()
 #set plot_adult_life_stage = $plot_adult_life_stage_cond.plot_adult_life_stage
 #set plot_nymph_life_stage = $plot_nymph_life_stage_cond.plot_nymph_life_stage
-#if str($plot_egg_life_stage) == "yes" and str($plot_nymph_life_stage) == "yes" and str($plot_adult_life_stage) == "yes":
-    $stages.append("Total")
-    #set life_stage_nymph = $plot_nymph_life_stage_cond.life_stage_nymph
-    #set life_stages_adult = $plot_adult_life_stage_cond.life_stages_adult
-#else:
-    #if str($plot_egg_life_stage) == "yes":
-        $stages.append("Egg")
-    #end if
-    #if str($plot_nymph_life_stage) == "yes":
-        $stages.append("Nymph")
-        #set life_stage_nymph = $plot_nymph_life_stage_cond.life_stage_nymph
-    #end if
-    #if str($plot_adult_life_stage) == "yes":
-        $stages.append("Adult")
-        #set life_stages_adult = $plot_adult_life_stage_cond.life_stages_adult
-    #end if
+#if str($plot_egg_life_stage) == "yes":
+    $life_stages.append("Egg")
 #end if
-#set stages = ",".join($stages)
+#if str($plot_nymph_life_stage) == "yes":
+    $life_stages.append("Nymph")
+#end if
+#if str($plot_adult_life_stage) == "yes":
+    $life_stages.append("Adult")
+#end if
+#if str($plot_egg_life_stage) == "yes" and str($plot_nymph_life_stage) == "yes" and str($plot_adult_life_stage) == "yes":
+    $life_stages.append("Total")
+#end if
+#set life_stages = ",".join($life_stages)
 mkdir output_dir &&
 Rscript '$__tool_directory__/insect_phenology_model.R'
 --adult_mortality $adult_mortality
@@ -35,12 +28,12 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
 --input '$input'
 --insect '$insect'
 --insects_per_replication $insects_per_replication
---life_stages '$stages'
-#if str($life_stages_adult) != "None":
-    --life_stages_adult $life_stages_adult
+--life_stages '$life_stages'
+#if str($plot_adult_life_stage) == "yes":
+    --life_stages_adult '$plot_adult_life_stage_cond.life_stages_adult'
 #end if
-#if str($life_stage_nymph) != "None":
-    --life_stage_nymph $life_stage_nymph
+#if str($plot_nymph_life_stage) == "yes":
+    --life_stages_nymph '$plot_nymph_life_stage_cond.life_stages_nymph'
 #end if
 --location '$location'
 --max_clutch_size $max_clutch_size
@@ -86,7 +79,7 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
                 <option value="no">No</option>
             </param>
             <when value="yes">
-                <param name="life_stage_nymph" type="select" label="Select nymph life stage">
+                <param name="life_stages_nymph" type="select" multiple="true" label="Select nymph life stage">
                     <option value="Total" selected="true">All</option>
                     <option value="Young">Young</option>
                     <option value="Old">Old</option>
@@ -100,7 +93,7 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
                 <option value="no">No</option>
             </param>
             <when value="yes">
-                <param name="life_stages_adult" type="select" label="Select adult life stage">
+                <param name="life_stages_adult" type="select" multiple="true" label="Select adult life stage">
                     <option value="Total" selected="true">All</option>
                     <option value="Pre-vittelogenic">Pre-vittelogenic</option>
                     <option value="Vittelogenic">Vittelogenic</option>
@@ -125,7 +118,10 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
             <param name="location" value="State College PA" />
             <param name="replications" value="2" />
             <output_collection name="output_collection" type="list">
-                <element name="total_pop_by_generation.pdf" file="total_pop_by_generation.pdf" ftype="pdf" compare="contains"/>
+                <element name="01_egg_pop_by_generation.pdf" file="pop_by_generation.pdf" ftype="pdf" compare="contains"/>
+                <element name="04_total_nymph_pop_by_generation.pdf" file="pop_by_generation.pdf" ftype="pdf" compare="contains"/>
+                <element name="08_total_adult_pop_by_generation.pdf" file="pop_by_generation.pdf" ftype="pdf" compare="contains"/>
+                <element name="09_total_pop_by_generation.pdf" file="pop_by_generation.pdf" ftype="pdf" compare="contains"/>
             </output_collection>
         </test>
     </tests>
