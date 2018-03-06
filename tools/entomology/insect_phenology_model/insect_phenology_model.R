@@ -52,38 +52,6 @@ add_daylight_length = function(temperature_data_frame, num_columns, num_rows) {
     return(temperature_data_frame);
 }
 
-dev.egg = function(temperature) {
-    # This function is not used, but was
-    # in the original, so keep it for now.
-    dev.rate = -0.9843 * temperature + 33.438;
-    return(dev.rate);
-}
-
-dev.emerg = function(temperature) {
-    # This function is not used, but was
-    # in the original, so keep it for now.
-    emerg.rate = -0.5332 * temperature + 24.147;
-    return(emerg.rate);
-}
-
-dev.old = function(temperature) {
-    # This function is not used, but was
-    # in the original, so keep it for now.
-    n34 = -0.6119 * temperature + 17.602;
-    n45 = -0.4408 * temperature + 19.036;
-    dev.rate = mean(n34 + n45);
-    return(dev.rate);
-}
-
-dev.young = function(temperature) {
-    # This function is not used, but was
-    # in the original, so keep it for now.
-    n12 = -0.3728 * temperature + 14.68;
-    n23 = -0.6119 * temperature + 25.249;
-    dev.rate = mean(n12 + n23);
-    return(dev.rate);
-}
-
 get_date_labels = function(temperature_data_frame, num_rows) {
     # Keep track of the years to see if spanning years.
     month_labels = list();
@@ -101,6 +69,22 @@ get_date_labels = function(temperature_data_frame, num_rows) {
         }
     }
     return(c(unlist(month_labels)));
+}
+
+
+get_file_path = function(life_stage, base_name, life_stage_nymph=NULL, life_stage_adult=NULL) {
+    if (!is.null(life_stage_nymph)) {
+        lsi = get_life_stage_index(life_stage, life_stage_nymph=life_stage_nymph);
+        file_name = paste(lsi, tolower(life_stage_nymph), base_name, sep="_");
+    } else if (!is.null(life_stage_adult)) {
+        lsi = get_life_stage_index(life_stage, life_stage_adult=life_stage_adult);
+        file_name = paste(lsi, tolower(life_stage_adult), base_name, sep="_");
+    } else {
+        lsi = get_life_stage_index(life_stage);
+        file_name = paste(lsi, base_name, sep="_");
+    }
+    file_path = paste("output_dir", file_name, sep="/");
+    return(file_path);
 }
 
 get_life_stage_index = function(life_stage, life_stage_nymph=NULL, life_stage_adult=NULL) {
@@ -346,7 +330,6 @@ if (opt$plot_generations_separately=="yes") {
 }
 # Read the temperature data into a data frame.
 temperature_data_frame = parse_input_data(opt$input, opt$num_days);
-output_dir = "output_dir";
 # Get the date labels for plots.
 date_labels = get_date_labels(temperature_data_frame, opt$num_days);
 # All latitude values are the same, so get the value for plots from the first row.
@@ -968,9 +951,7 @@ if (plot_generations_separately) {
         if (life_stage == "Egg") {
             # Start PDF device driver.
             dev.new(width=20, height=30);
-            lsi = get_life_stage_index(life_stage);
-            file_name = paste(lsi, "egg_pop_by_generation.pdf", sep="_");
-            file_path = paste(output_dir, file_name, sep="/");
+            file_path = get_file_path(life_stage, "egg_pop_by_generation.pdf")
             pdf(file=file_path, width=20, height=30, bg="white");
             par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
             # Egg population size by generation.
@@ -984,16 +965,14 @@ if (plot_generations_separately) {
             for (life_stage_nymph in life_stages_nymph) {
                 # Start PDF device driver.
                 dev.new(width=20, height=30);
-                lsi = get_life_stage_index(life_stage, life_stage_nymph=life_stage_nymph);
-                file_name = paste(lsi, tolower(life_stage_nymph), "nymph_pop_by_generation.pdf", sep="_");
-                file_path = paste(output_dir, file_name, sep="/");
+                file_path = get_file_path(life_stage, "nymph_pop_by_generation.pdf", life_stage_nymph=life_stage_nymph)
                 pdf(file=file_path, width=20, height=30, bg="white");
                 par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
                 # Nymph population size by generation.
                 maxval = max(P_nymphs+F1_nymphs+F2_nymphs) + 100;
                 render_chart(date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
-                                            opt$replications, life_stage, group=P_nymphs, group_std_error=P_nymphs.std_error, group2=F1_nymphs, group2_std_error=F1_nymphs.std_error,
-                                            group3=F2_nymphs, group3_std_error=F2_nymphs.std_error, life_stages_nymph=life_stage_nymph);
+                    opt$replications, life_stage, group=P_nymphs, group_std_error=P_nymphs.std_error, group2=F1_nymphs, group2_std_error=F1_nymphs.std_error,
+                    group3=F2_nymphs, group3_std_error=F2_nymphs.std_error, life_stages_nymph=life_stage_nymph);
                 # Turn off device driver to flush output.
                 dev.off();
             }
@@ -1001,9 +980,7 @@ if (plot_generations_separately) {
             for (life_stage_adult in life_stages_adult) {
                 # Start PDF device driver.
                 dev.new(width=20, height=30);
-                lsi = get_life_stage_index(life_stage, life_stage_adult=life_stage_adult);
-                file_name = paste(lsi, tolower(life_stage_adult), "adult_pop_by_generation.pdf", sep="_");
-                file_path = paste(output_dir, file_name, sep="/");
+                file_path = get_file_path(life_stage, "adult_pop_by_generation.pdf", life_stage_adult=life_stage_adult)
                 pdf(file=file_path, width=20, height=30, bg="white");
                 par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
                 # Adult population size by generation.
@@ -1019,9 +996,7 @@ if (plot_generations_separately) {
             # Name collection elements so that they
             # are displayed in logical order.
             dev.new(width=20, height=30);
-            lsi = get_life_stage_index(life_stage);
-            file_name = paste(lsi, "total_pop_by_generation.pdf", sep="_");
-            file_path = paste(output_dir, file_name, sep="/");
+            file_path = get_file_path(life_stage, "total_pop_by_generation.pdf")
             pdf(file=file_path, width=20, height=30, bg="white");
             par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
             # Total population size by generation.
@@ -1037,9 +1012,7 @@ if (plot_generations_separately) {
         if (life_stage == "Egg") {
             # Start PDF device driver.
             dev.new(width=20, height=30);
-            lsi = get_life_stage_index(life_stage);
-            file_name = paste(lsi, "egg_pop.pdf", sep="_");
-            file_path = paste(output_dir, file_name, sep="/");
+            file_path = get_file_path(life_stage, "egg_pop.pdf")
             pdf(file=file_path, width=20, height=30, bg="white");
             par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
             # Egg population size.
@@ -1052,9 +1025,7 @@ if (plot_generations_separately) {
             for (life_stage_nymph in life_stages_nymph) {
                 # Start PDF device driver.
                 dev.new(width=20, height=30);
-                lsi = get_life_stage_index(life_stage, life_stage_nymph=life_stage_nymph);
-                file_name = paste(lsi, tolower(life_stage_nymph), "nymph_pop.pdf", sep="_");
-                file_path = paste(output_dir, file_name, sep="/");
+                file_path = get_file_path(life_stage, "nymph_pop.pdf", life_stage_nymph=life_stage_nymph)
                 pdf(file=file_path, width=20, height=30, bg="white");
                 par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
                 if (life_stage_nymph=="Total") {
@@ -1080,9 +1051,7 @@ if (plot_generations_separately) {
             for (life_stage_adult in life_stages_adult) {
                 # Start PDF device driver.
                 dev.new(width=20, height=30);
-                lsi = get_life_stage_index(life_stage, life_stage_adult=life_stage_adult);
-                file_name = paste(lsi, tolower(life_stage_adult), "adult_pop.pdf", sep="_");
-                file_path = paste(output_dir, file_name, sep="/");
+                file_path = get_file_path(life_stage, "adult_pop.pdf", life_stage_adult=life_stage_adult)
                 pdf(file=file_path, width=20, height=30, bg="white");
                 par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
                 if (life_stage_adult=="Total") {
@@ -1111,9 +1080,7 @@ if (plot_generations_separately) {
         } else if (life_stage == "Total") {
             # Start PDF device driver.
             dev.new(width=20, height=30);
-            lsi = get_life_stage_index(life_stage);
-            file_name = paste(lsi, "total_pop.pdf", sep="_");
-            file_path = paste(output_dir, file_name, sep="/");
+            file_path = get_file_path(life_stage, "total_pop.pdf")
             pdf(file=file_path, width=20, height=30, bg="white");
             par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
             # Total population size.
