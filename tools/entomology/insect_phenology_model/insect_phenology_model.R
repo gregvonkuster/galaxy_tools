@@ -71,7 +71,6 @@ get_date_labels = function(temperature_data_frame, num_rows) {
     return(c(unlist(month_labels)));
 }
 
-
 get_file_path = function(life_stage, base_name, life_stage_nymph=NULL, life_stage_adult=NULL) {
     if (!is.null(life_stage_nymph)) {
         lsi = get_life_stage_index(life_stage, life_stage_nymph=life_stage_nymph);
@@ -114,6 +113,85 @@ get_life_stage_index = function(life_stage, life_stage_nymph=NULL, life_stage_ad
         lsi = "09";
     }
     return(lsi);
+}
+
+get_mean_and_std_error = function(p_replications, f1_replications, f2_replications) {
+    # P mean.
+    p_m = apply(p_replications, 1, mean);
+    # P standard error.
+    p_se = apply(p_replications, 1, sd) / sqrt(opt$replications);
+    # F1 mean.
+    f1_m = apply(f1_replications, 1, mean);
+    # F1 standard error.
+    f1_se = apply(f1_replications, 1, sd) / sqrt(opt$replications);
+    # F2 mean.
+    f2_m = apply(f2_replications, 1, mean);
+    # F2 standard error.
+    f2_se = apply(f2_replications, 1, sd) / sqrt(opt$replications);
+    return(list(p_m, p_se, f1_m, f1_se, f2_m, f2_se))
+}
+
+get_stages = function(life_stages, life_stages_nymph, life_stages_adult) {
+    # Split life_stages into a list of strings for plots.
+    life_stages_str = as.character(life_stages);
+    life_stages = strsplit(life_stages_str, ",")[[1]];
+    # Determine the data we need to generate for plotting.
+    process_eggs = FALSE;
+    process_nymphs = FALSE;
+    process_young_nymphs = FALSE;
+    process_old_nymphs = FALSE;
+    process_total_nymphs = FALSE;
+    process_adults = FALSE;
+    process_previtellogenic_adults = FALSE;
+    process_vitellogenic_adults = FALSE;
+    process_diapausing_adults = FALSE;
+    process_total_adults = FALSE;
+    for (life_stage in life_stages) {
+        if (life_stage=="Total") {
+            process_eggs = TRUE;
+            process_nymphs = TRUE;
+            process_adults = TRUE;
+        } else if (life_stage=="Egg") {
+            process_eggs = TRUE;
+        } else if (life_stage=="Nymph") {
+            process_nymphs = TRUE;
+        } else if (life_stage=="Adult") {
+            process_adults = TRUE;
+        }
+    }
+    if (process_nymphs) {
+        # Split life_stages_nymph into a list of strings for plots.
+        life_stages_nymph_str = as.character(opt$life_stages_nymph);
+        life_stages_nymph = strsplit(life_stages_nymph_str, ",")[[1]];
+        for (life_stage_nymph in life_stages_nymph) {
+            if (life_stage_nymph=="Young") {
+                process_young_nymphs = TRUE;
+            } else if (life_stage_nymph=="Old") {
+                process_old_nymphs = TRUE;
+            } else if (life_stage_nymph=="Total") {
+                process_total_nymphs = TRUE;
+            }
+        }
+    }
+    if (process_adults) {
+        # Split life_stages_adult into a list of strings for plots.
+        life_stages_adult_str = as.character(opt$life_stages_adult);
+        life_stages_adult = strsplit(life_stages_adult_str, ",")[[1]];
+        for (life_stage_adult in life_stages_adult) {
+            if (life_stage_adult=="Previtellogenic") {
+                process_previtellogenic_adults = TRUE;
+            } else if (life_stage_adult=="Vitellogenic") {
+                process_vitellogenic_adults = TRUE;
+            } else if (life_stage_adult=="Diapausing") {
+                process_diapausing_adults = TRUE;
+            } else if (life_stage_adult=="Total") {
+                process_total_adults = TRUE;
+            }
+        }
+    }
+    return(c(process_eggs, process_nymphs, process_young_nymphs, process_old_nymphs, process_total_nymphs,
+        process_adults, process_previtellogenic_adults, process_vitellogenic_adults, process_diapausing_adults,
+        process_total_adults, life_stages, life_stages_nymph, life_stages_adult))
 }
 
 get_temperature_at_hour = function(latitude, temperature_data_frame, row, num_days) {
@@ -237,10 +315,10 @@ parse_input_data = function(input_file, num_rows) {
     return(temperature_data_frame);
 }
 
-
 render_chart = function(date_labels, chart_type, plot_std_error, insect, location, latitude, start_date, end_date, days, maxval,
-            replications, life_stage, group, group_std_error, group2=NULL, group2_std_error=NULL, group3=NULL, group3_std_error=NULL,
-            life_stages_adult=NULL, life_stages_nymph=NULL) {
+    replications, life_stage, group, group_std_error, group2=NULL, group2_std_error=NULL, group3=NULL, group3_std_error=NULL,
+    life_stages_adult=NULL, life_stages_nymph=NULL) {
+    cat("In render_chart, chart_type: ", chart_type, "\n");
     if (chart_type=="pop_size_by_life_stage") {
         if (life_stage=="Total") {
             title = paste(insect, ": Reps", replications, ":", life_stage, "Pop :", location, ": Lat", latitude, ":", start_date, "-", end_date, sep=" ");
@@ -300,6 +378,10 @@ render_chart = function(date_labels, chart_type, plot_std_error, insect, locatio
             title_str = paste(":", life_stages_adult, "Adult Pop by Gen", ":", sep=" ");
         }
         title = paste(insect, ": Reps", replications, title_str, location, ": Lat", latitude, ":", start_date, "-", end_date, sep=" ");
+        cat("In render_chart, title: ", title, "\n");
+        cat("In render_chart, group: ", group, "\n");
+        cat("In render_chart, group2: ", group2, "\n");
+        cat("In render_chart, group3: ", group3, "\n");
         legend_text = c("P", "F1", "F2");
         columns = c(1, 2, 4);
         plot(days, group, main=title, type="l", ylim=c(0, maxval), axes=F, lwd=2, xlab="", ylab="", cex=3, cex.lab=3, cex.axis=3, cex.main=3);
@@ -336,42 +418,44 @@ date_labels = get_date_labels(temperature_data_frame, opt$num_days);
 latitude = temperature_data_frame$LATITUDE[1];
 # Get the number of days for plots.
 num_columns = dim(temperature_data_frame)[2];
-# Split life_stages into a list of strings for plots.
-life_stages_str = as.character(opt$life_stages);
-life_stages = strsplit(life_stages_str, ",")[[1]];
-# Determine the data we need to generate for plotting.
-process_eggs = FALSE;
-process_nymphs = FALSE;
-process_adults = FALSE;
-for (life_stage in life_stages) {
-    if (life_stage=="Total") {
-        process_eggs = TRUE;
-        process_nymphs = TRUE;
-        process_adults = TRUE;
-    } else if (life_stage=="Egg") {
-        process_eggs = TRUE;
-    } else if (life_stage=="Nymph") {
-        process_nymphs = TRUE;
-    } else if (life_stage=="Adult") {
-        process_adults = TRUE;
-    }
-}
-if (process_adults) {
-    # Split life_stages_adult into a list of strings for plots.
-    life_stages_adult_str = as.character(opt$life_stages_adult);
-    life_stages_adult = strsplit(life_stages_adult_str, ",")[[1]];
-}
-if (process_nymphs) {
-# Split life_stages_nymph into a list of strings for plots.
-    life_stages_nymph_str = as.character(opt$life_stages_nymph);
-    life_stages_nymph = strsplit(life_stages_nymph_str, ",")[[1]];
-}
+# Determine the specified life stages for processing.
+stages = get_stages(opt$life_stages, opt$life_stages_nymph, opt$life_stages_adult)
+process_eggs = stages[1];
+cat("process_eggs: ", process_eggs, "\n");
+process_nymphs = stages[2];
+cat("process_nymphs: ", process_nymphs, "\n");
+process_young_nymphs = stages[3];
+cat("process_young_nymphs: ", process_young_nymphs, "\n");
+process_old_nymphs = stages[4];
+cat("process_old_nymphs: ", process_old_nymphs, "\n");
+process_total_nymphs = stages[5];
+cat("process_total_nymphs: ", process_total_nymphs, "\n");
+process_adults = stages[6];
+cat("process_adults: ", process_adults, "\n");
+process_previtellogenic_adults = stages[7];
+cat("process_previtellogenic_adults: ", process_previtellogenic_adults, "\n");
+process_vitellogenic_adults = stages[8];
+cat("process_vitellogenic_adults: ", process_vitellogenic_adults, "\n");
+process_diapausing_adults = stages[9];
+cat("process_diapausing_adults: ", process_diapausing_adults, "\n");
+process_total_adults = stages[10];
+cat("process_total_adults: ", process_total_adults, "\n");
+life_stages = stages[11];
+cat("life_stages: ", life_stages, "\n");
+life_stages_nymph = stages[12];
+cat("life_stages_nymph: ", life_stages_nymph, "\n");
+life_stages_adult = stages[13];
+cat("life_stages_adult: ", life_stages_adult, "\n");
 # Initialize matrices.
 if (process_eggs) {
     Eggs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
 }
-if (process_nymphs) {
+cat("process_young_nymphs==TRUE: ", process_young_nymphs==TRUE, "\n");
+cat("process_total_nymphs==TRUE: ", process_total_nymphs==TRUE, "\n");
+if (process_young_nymphs==TRUE | process_total_nymphs==TRUE) {
     YoungNymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+}
+if (process_old_nymphs==TRUE | process_total_nymphs==TRUE) {
     OldNymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
 }
 if (process_adults) {
@@ -394,10 +478,20 @@ if (plot_generations_separately) {
         F1_eggs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
         F2_eggs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
     }
-    if (process_nymphs) {
-        P_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-        F1_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-        F2_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+    if (process_young_nymphs) {
+        P_young_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+        F1_young_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+        F2_young_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+    }
+    if (process_old_nymphs) {
+        P_old_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+        F1_old_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+        F2_old_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+    }
+    if (process_total_nymphs) {
+        P_total_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+        F1_total_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+        F2_total_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
     }
     if (process_adults) {
         P_adults.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
@@ -449,10 +543,20 @@ for (current_replication in 1:opt$replications) {
             F1.egg = rep(0, opt$num_days);
             F2.egg = rep(0, opt$num_days);
         }
-        if (process_nymphs) {
-            P.nymph = rep(0, opt$num_days);
-            F1.nymph = rep(0, opt$num_days);
-            F2.nymph = rep(0, opt$num_days);
+        if (process_young_nymphs) {
+            P.young_nymph = rep(0, opt$num_days);
+            F1.young_nymph = rep(0, opt$num_days);
+            F2.young_nymph = rep(0, opt$num_days);
+        }
+        if (process_old_nymphs) {
+            P.old_nymph = rep(0, opt$num_days);
+            F1.old_nymph = rep(0, opt$num_days);
+            F2.old_nymph = rep(0, opt$num_days);
+        }
+        if (process_total_nymphs) {
+            P.total_nymph = rep(0, opt$num_days);
+            F1.total_nymph = rep(0, opt$num_days);
+            F2.total_nymph = rep(0, opt$num_days);
         }
         if (process_adults) {
             P.adult = rep(0, opt$num_days);
@@ -696,9 +800,11 @@ for (current_replication in 1:opt$replications) {
             # For egg population size, column 2 (Stage), must be 0.
             Eggs[row] = sum(vector.matrix[,2]==0);
         }
-        if (process_nymphs) {
+        if (process_young_nymphs) {
             # For young nymph population size, column 2 (Stage) must be 1.
             YoungNymphs[row] = sum(vector.matrix[,2]==1);
+        }
+        if (process_old_nymphs) {
             # For old nymph population size, column 2 (Stage) must be 2.
             OldNymphs[row] = sum(vector.matrix[,2]==2);
         }
@@ -742,22 +848,50 @@ for (current_replication in 1:opt$replications) {
                 # column 1 (generation) is 2 and column 2 (Stage) is 0.
                 F2.egg[row] = sum(vector.matrix[,1]==2 & vector.matrix[,2]==0);
             }
-            if (process_nymphs) {
-                # For nymph life stage of generation P population
+            if (process_young_nymphs) {
+                # For young nymph life stage of generation P population
+                # size, the following combination is required:
+                # - column 1 (Generation) is 0 and column 2 (Stage) is 1 (Young nymph)
+                P.young_nymph[row] = sum(vector.matrix[,1]==0 & vector.matrix[,2]==1);
+                # For young nymph life stage of generation F1 population
+                # size, the following combination is required:
+                # - column 1 (Generation) is 1 and column 2 (Stage) is 1 (Young nymph)
+                F1.young_nymph[row] = sum(vector.matrix[,1]==1 & vector.matrix[,2]==1);
+                # For young nymph life stage of generation F2 population
+                # size, the following combination is required:
+                # - column 1 (Generation) is 2 and column 2 (Stage) is 1 (Young nymph)
+                F2.young_nymph[row] = sum(vector.matrix[,1]==2 & vector.matrix[,2]==1);
+            }
+            if (process_old_nymphs) {
+                # For old nymph life stage of generation P population
+                # size, the following combination is required:
+                # - column 1 (Generation) is 0 and column 2 (Stage) is 2 (Old nymph)
+                P.old_nymph[row] = sum(vector.matrix[,1]==0 & vector.matrix[,2]==2);
+                # For old nymph life stage of generation F1 population
+                # size, the following combination is required:
+                # - column 1 (Generation) is 1 and column 2 (Stage) is 2 (Old nymph)
+                F1.old_nymph[row] = sum(vector.matrix[,1]==1 & vector.matrix[,2]==2);
+                # For old nymph life stage of generation F2 population
+                # size, the following combination is required:
+                # - column 1 (Generation) is 2 and column 2 (Stage) is 2 (Old nymph)
+                F2.old_nymph[row] = sum(vector.matrix[,1]==2 & vector.matrix[,2]==2);
+            }
+            if (process_total_nymphs) {
+                # For total nymph life stage of generation P population
                 # size, one of the following combinations is required:
                 # - column 1 (Generation) is 0 and column 2 (Stage) is 1 (Young nymph)
                 # - column 1 (Generation) is 0 and column 2 (Stage) is 2 (Old nymph)
-                P.nymph[row] = sum((vector.matrix[,1]==0 & vector.matrix[,2]==1) | (vector.matrix[,1]==0 & vector.matrix[,2]==2));
-                # For nymph life stage of generation F1 population
+                P.total_nymph[row] = sum((vector.matrix[,1]==0 & vector.matrix[,2]==1) | (vector.matrix[,1]==0 & vector.matrix[,2]==2));
+                # For total nymph life stage of generation F1 population
                 # size, one of the following combinations is required:
                 # - column 1 (Generation) is 1 and column 2 (Stage) is 1 (Young nymph)
                 # - column 1 (Generation) is 1 and column 2 (Stage) is 2 (Old nymph)
-                F1.nymph[row] = sum((vector.matrix[,1]==1 & vector.matrix[,2]==1) | (vector.matrix[,1]==1 & vector.matrix[,2]==2));
-                # For nymph life stage of generation F2 population
+                F1.total_nymph[row] = sum((vector.matrix[,1]==1 & vector.matrix[,2]==1) | (vector.matrix[,1]==1 & vector.matrix[,2]==2));
+                # For total nymph life stage of generation F2 population
                 # size, one of the following combinations is required:
                 # - column 1 (Generation) is 2 and column 2 (Stage) is 1 (Young nymph)
                 # - column 1 (Generation) is 2 and column 2 (Stage) is 2 (Old nymph)
-                F2.nymph[row] = sum((vector.matrix[,1]==2 & vector.matrix[,2]==1) | (vector.matrix[,1]==2 & vector.matrix[,2]==2));
+                F2.total_nymph[row] = sum((vector.matrix[,1]==2 & vector.matrix[,2]==1) | (vector.matrix[,1]==2 & vector.matrix[,2]==2));
             }
             if (process_adults) {
                 # For adult life stage of generation P population
@@ -788,8 +922,10 @@ for (current_replication in 1:opt$replications) {
     if (process_eggs) {
         Eggs.replications[,current_replication] = Eggs;
     }
-    if (process_nymphs) {
+    if (process_young_nymphs==TRUE | process_total_nymphs==TRUE) {
         YoungNymphs.replications[,current_replication] = YoungNymphs;
+    }
+    if (process_old_nymphs==TRUE | process_total_nymphs==TRUE) {
         OldNymphs.replications[,current_replication] = OldNymphs;
     }
     if (process_adults) {
@@ -812,10 +948,20 @@ for (current_replication in 1:opt$replications) {
             F1_eggs.replications[,current_replication] = F1.egg;
             F2_eggs.replications[,current_replication] = F2.egg;
         }
-        if (process_nymphs) {
-            P_nymphs.replications[,current_replication] = P.nymph;
-            F1_nymphs.replications[,current_replication] = F1.nymph;
-            F2_nymphs.replications[,current_replication] = F2.nymph;
+        if (process_young_nymphs) {
+            P_young_nymphs.replications[,current_replication] = P.young_nymph;
+            F1_young_nymphs.replications[,current_replication] = F1.young_nymph;
+            F2_young_nymphs.replications[,current_replication] = F2.young_nymph;
+        }
+        if (process_old_nymphs) {
+            P_old_nymphs.replications[,current_replication] = P.old_nymph;
+            F1_old_nymphs.replications[,current_replication] = F1.old_nymph;
+            F2_old_nymphs.replications[,current_replication] = F2.old_nymph;
+        }
+        if (process_total_nymphs) {
+            P_total_nymphs.replications[,current_replication] = P.total_nymph;
+            F1_total_nymphs.replications[,current_replication] = F1.total_nymph;
+            F2_total_nymphs.replications[,current_replication] = F2.total_nymph;
         }
         if (process_adults) {
             P_adults.replications[,current_replication] = P.adult;
@@ -882,58 +1028,61 @@ if (process_adults) {
 }
 
 if (plot_generations_separately) {
-    # Mean value for P which is Parental, or overwintered adults.
-    P = apply(P.replications, 1, mean);
-    # Standard error for P.
-    P.std_error = apply(P.replications, 1, sd) / sqrt(opt$replications);
-    # Mean value for F1, which is the first field-produced generation.
-    F1 = apply(F1.replications, 1, mean);
-    # Standard error for F1.
-    F1.std_error = apply(F1.replications, 1, sd) / sqrt(opt$replications);
-    # Mean value for F2, which is the second field-produced generation.
-    F2 = apply(F2.replications, 1, mean);
-    # Standard error for F2.
-    F2.std_error = apply(F2.replications, 1, sd) / sqrt(opt$replications);
+    m_se = get_mean_and_std_error(P.replications, F1.replications, F2.replications);
+    P = m_se[[1]];
+    P.std_error = m_se[[2]];
+    F1 = m_se[[3]];
+    F1.std_error = m_se[[4]];
+    F2 = m_se[[5]];
+    F2.std_error = m_se[[6]];
     if (process_eggs) {
-        # Mean value for P eggs.
-        P_eggs = apply(P_eggs.replications, 1, mean);
-        # Standard error for P_eggs.
-        P_eggs.std_error = apply(P_eggs.replications, 1, sd) / sqrt(opt$replications);
-        # Mean value for F1 eggs.
-        F1_eggs = apply(F1_eggs.replications, 1, mean);
-        # Standard error for F1 eggs.
-        F1_eggs.std_error = apply(F1_eggs.replications, 1, sd) / sqrt(opt$replications);
-        # Mean value for F2 eggs.
-        F2_eggs = apply(F2_eggs.replications, 1, mean);
-        # Standard error for F2 eggs.
-        F2_eggs.std_error = apply(F2_eggs.replications, 1, sd) / sqrt(opt$replications);
+        m_se = get_mean_and_std_error(P_eggs.replications, F1_eggs.replications, F2_eggs.replications);
+        P_eggs = m_se[[1]];
+        P_eggs.std_error = m_se[[2]];
+        F1_eggs = m_se[[3]];
+        F1_eggs.std_error = m_se[[4]];
+        F2_eggs = m_se[[5]];
+        F2_eggs.std_error = m_se[[6]];
     }
-    if (process_nymphs) {
-        # Mean value for P nymphs.
-        P_nymphs = apply(P_nymphs.replications, 1, mean);
-        # Standard error for P_nymphs.
-        P_nymphs.std_error = apply(P_nymphs.replications, 1, sd) / sqrt(opt$replications);
-        # Mean value for F1 nymphs.
-        F1_nymphs = apply(F1_nymphs.replications, 1, mean);
-        # Standard error for F1 nymphs.
-        F1_nymphs.std_error = apply(F1_nymphs.replications, 1, sd) / sqrt(opt$replications);
-        # Mean value for F2 nymphs.
-        F2_nymphs = apply(F2_nymphs.replications, 1, mean);
-        # Standard error for F2 eggs.
-        F2_nymphs.std_error = apply(F2_nymphs.replications, 1, sd) / sqrt(opt$replications);
+    if (process_young_nymphs) {
+        m_se = get_mean_and_std_error(P_young_nymphs.replications, F1_young_nymphs.replications, F2_young_nymphs.replications);
+        P_young_nymphs = m_se[[1]];
+        P_young_nymphs.std_error = m_se[[2]];
+        F1_young_nymphs = m_se[[3]];
+        F1_young_nymphs.std_error = m_se[[4]];
+        F2_young_nymphs = m_se[[5]];
+        F2_young_nymphs.std_error = m_se[[6]];
+    }
+    if (process_old_nymphs) {
+        m_se = get_mean_and_std_error(P_old_nymphs.replications, F1_old_nymphs.replications, F2_old_nymphs.replications);
+        P_old_nymphs = m_se[[1]];
+        P_old_nymphs.std_error = m_se[[2]];
+        F1_old_nymphs = m_se[[3]];
+        F1_old_nymphs.std_error = m_se[[4]];
+        F2_old_nymphs = m_se[[5]];
+        F2_old_nymphs.std_error = m_se[[6]];
+    }
+    if (process_total_nymphs) {
+        m_se = get_mean_and_std_error(P_total_nymphs.replications, F1_total_nymphs.replications, F2_total_nymphs.replications);
+        P_total_nymphs = m_se[[1]];
+        P_total_nymphs.std_error = m_se[[2]];
+        F1_total_nymphs = m_se[[3]];
+        F1_total_nymphs.std_error = m_se[[4]];
+        F2_total_nymphs = m_se[[5]];
+        F2_total_nymphs.std_error = m_se[[6]];
     }
     if (process_adults) {
-        # Mean value for P adults.
+        # Mean value for P_adults.
         P_adults = apply(P_adults.replications, 1, mean);
         # Standard error for P_adults.
         P_adults.std_error = apply(P_adults.replications, 1, sd) / sqrt(opt$replications);
         # Mean value for F1 adults.
         F1_adults = apply(F1_adults.replications, 1, mean);
-        # Standard error for F1 adults.
+        # Standard error for F1_adults.
         F1_adults.std_error = apply(F1_adults.replications, 1, sd) / sqrt(opt$replications);
-        # Mean value for F2 adults.
+        # Mean value for F2_adults.
         F2_adults = apply(F2_adults.replications, 1, mean);
-        # Standard error for F2 adults.
+        # Standard error for F2_adults.
         F2_adults.std_error = apply(F2_adults.replications, 1, sd) / sqrt(opt$replications);
     }
 }
@@ -946,8 +1095,10 @@ days = c(1:opt$num_days);
 start_date = temperature_data_frame$DATE[1];
 end_date = temperature_data_frame$DATE[opt$num_days];
 
+cat("plot_generations_separately: ", plot_generations_separately, "\n");
 if (plot_generations_separately) {
     for (life_stage in life_stages) {
+        cat("life_stage: ", life_stage, "\n");
         if (life_stage == "Egg") {
             # Start PDF device driver.
             dev.new(width=20, height=30);
@@ -956,6 +1107,15 @@ if (plot_generations_separately) {
             par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
             # Egg population size by generation.
             maxval = max(P_eggs+F1_eggs+F2_eggs) + 100;
+            cat("maxval: ", maxval, "\n");
+            cat("P_eggs: ", toString(P_eggs), "\n");
+            cat("is.vector(P_eggs): ", is.vector(P_eggs), "\n");
+            cat("length(P_eggs): ", length(P_eggs), "\n");
+            cat("P_eggs.std_error: ", toString(P_eggs.std_error), "\n");
+            cat("F1_eggs: ", toString(F1_eggs), "\n");
+            cat("F1_eggs.std_error: ", toString(F1_eggs.std_error), "\n");
+            cat("F2_eggs: ", toString(F2_eggs), "\n");
+            cat("F2_eggs.std_error: ", toString(F2_eggs.std_error), "\n");
             render_chart(date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
                 opt$replications, life_stage, group=P_eggs, group_std_error=P_eggs.std_error, group2=F1_eggs, group2_std_error=F1_eggs.std_error, group3=F2_eggs,
                 group3_std_error=F2_eggs.std_error);
@@ -963,16 +1123,44 @@ if (plot_generations_separately) {
             dev.off();
         } else if (life_stage == "Nymph") {
             for (life_stage_nymph in life_stages_nymph) {
+                cat("life_stage_nymph: ", life_stage_nymph, "\n");
                 # Start PDF device driver.
                 dev.new(width=20, height=30);
                 file_path = get_file_path(life_stage, "nymph_pop_by_generation.pdf", life_stage_nymph=life_stage_nymph)
                 pdf(file=file_path, width=20, height=30, bg="white");
                 par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
-                # Nymph population size by generation.
-                maxval = max(P_nymphs+F1_nymphs+F2_nymphs) + 100;
+                if (life_stage_nymph=="Young") {
+                    # Young nymph population size by generation.
+                    maxval = max(P_young_nymphs+F1_young_nymphs+F2_young_nymphs) + 100;
+                    group = P_young_nymphs;
+                    group_std_error = P_young_nymphs.std_error;
+                    group2 = F1_young_nymphs;
+                    group2_std_error = F1_young_nymphs.std_error;
+                    group3 = F2_young_nymphs;
+                    group_3_std_error = F2_young_nymphs.std_error;
+                } else if (life_stage_nymph=="Old") {
+                    # Total nymph population size by generation.
+                    maxval = max(P_old_nymphs+F1_old_nymphs+F2_old_nymphs) + 100;
+                    group = P_old_nymphs;
+                    group_std_error = P_old_nymphs.std_error;
+                    group2 = F1_old_nymphs;
+                    group2_std_error = F1_old_nymphs.std_error;
+                    group3 = F2_old_nymphs;
+                    group_3_std_error = F2_old_nymphs.std_error;
+                } else if (life_stage_nymph=="Total") {
+                    # Total nymph population size by generation.
+                    maxval = max(P_total_nymphs+F1_total_nymphs+F2_total_nymphs) + 100;
+                    group = P_total_nymphs;
+                    group_std_error = P_total_nymphs.std_error;
+                    group2 = F1_total_nymphs;
+                    group2_std_error = F1_total_nymphs.std_error;
+                    group3 = F2_total_nymphs;
+                    group_3_std_error = F2_total_nymphs.std_error;
+                }
+                cat("XXX group: ", group, "\n");
                 render_chart(date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
-                    opt$replications, life_stage, group=P_nymphs, group_std_error=P_nymphs.std_error, group2=F1_nymphs, group2_std_error=F1_nymphs.std_error,
-                    group3=F2_nymphs, group3_std_error=F2_nymphs.std_error, life_stages_nymph=life_stage_nymph);
+                    opt$replications, life_stage, group=group, group_std_error=group_std_error, group2=group2, group2_std_error=group_2_std_error,
+                    group3=group3, group3_std_error=group3_std_error, life_stages_nymph=life_stage_nymph);
                 # Turn off device driver to flush output.
                 dev.off();
             }
