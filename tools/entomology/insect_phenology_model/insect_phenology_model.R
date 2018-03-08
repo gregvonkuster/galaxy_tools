@@ -131,69 +131,6 @@ get_mean_and_std_error = function(p_replications, f1_replications, f2_replicatio
     return(list(p_m, p_se, f1_m, f1_se, f2_m, f2_se))
 }
 
-get_stages = function(life_stages, life_stages_nymph, life_stages_adult) {
-    # Split life_stages into a list of strings for plots.
-    life_stages_str = as.character(life_stages);
-    life_stages = strsplit(life_stages_str, ",")[[1]];
-    # Determine the data we need to generate for plotting.
-    process_eggs = FALSE;
-    process_nymphs = FALSE;
-    process_young_nymphs = FALSE;
-    process_old_nymphs = FALSE;
-    process_total_nymphs = FALSE;
-    process_adults = FALSE;
-    process_previtellogenic_adults = FALSE;
-    process_vitellogenic_adults = FALSE;
-    process_diapausing_adults = FALSE;
-    process_total_adults = FALSE;
-    for (life_stage in life_stages) {
-        if (life_stage=="Total") {
-            process_eggs = TRUE;
-            process_nymphs = TRUE;
-            process_adults = TRUE;
-        } else if (life_stage=="Egg") {
-            process_eggs = TRUE;
-        } else if (life_stage=="Nymph") {
-            process_nymphs = TRUE;
-        } else if (life_stage=="Adult") {
-            process_adults = TRUE;
-        }
-    }
-    if (process_nymphs) {
-        # Split life_stages_nymph into a list of strings for plots.
-        life_stages_nymph_str = as.character(opt$life_stages_nymph);
-        life_stages_nymph = strsplit(life_stages_nymph_str, ",")[[1]];
-        for (life_stage_nymph in life_stages_nymph) {
-            if (life_stage_nymph=="Young") {
-                process_young_nymphs = TRUE;
-            } else if (life_stage_nymph=="Old") {
-                process_old_nymphs = TRUE;
-            } else if (life_stage_nymph=="Total") {
-                process_total_nymphs = TRUE;
-            }
-        }
-    }
-    if (process_adults) {
-        # Split life_stages_adult into a list of strings for plots.
-        life_stages_adult_str = as.character(opt$life_stages_adult);
-        life_stages_adult = strsplit(life_stages_adult_str, ",")[[1]];
-        for (life_stage_adult in life_stages_adult) {
-            if (life_stage_adult=="Previtellogenic") {
-                process_previtellogenic_adults = TRUE;
-            } else if (life_stage_adult=="Vitellogenic") {
-                process_vitellogenic_adults = TRUE;
-            } else if (life_stage_adult=="Diapausing") {
-                process_diapausing_adults = TRUE;
-            } else if (life_stage_adult=="Total") {
-                process_total_adults = TRUE;
-            }
-        }
-    }
-    return(c(process_eggs, process_nymphs, process_young_nymphs, process_old_nymphs, process_total_nymphs,
-        process_adults, process_previtellogenic_adults, process_vitellogenic_adults, process_diapausing_adults,
-        process_total_adults, life_stages, life_stages_nymph, life_stages_adult))
-}
-
 get_temperature_at_hour = function(latitude, temperature_data_frame, row, num_days) {
     # Base development threshold for Brown Marmorated Stink Bug
     # insect phenology model.
@@ -419,33 +356,77 @@ latitude = temperature_data_frame$LATITUDE[1];
 # Get the number of days for plots.
 num_columns = dim(temperature_data_frame)[2];
 # Determine the specified life stages for processing.
-stages = get_stages(opt$life_stages, opt$life_stages_nymph, opt$life_stages_adult)
-process_eggs = stages[1];
+# Split life_stages into a list of strings for plots.
+life_stages_str = as.character(opt$life_stages);
+life_stages = strsplit(life_stages_str, ",")[[1]];
+# Determine the data we need to generate for plotting.
+process_eggs = FALSE;
+process_nymphs = FALSE;
+process_young_nymphs = FALSE;
+process_old_nymphs = FALSE;
+process_total_nymphs = FALSE;
+process_adults = FALSE;
+process_previtellogenic_adults = FALSE;
+process_vitellogenic_adults = FALSE;
+process_diapausing_adults = FALSE;
+process_total_adults = FALSE;
+for (life_stage in life_stages) {
+    if (life_stage=="Total") {
+        process_eggs = TRUE;
+        process_nymphs = TRUE;
+        process_adults = TRUE;
+    } else if (life_stage=="Egg") {
+        process_eggs = TRUE;
+    } else if (life_stage=="Nymph") {
+        process_nymphs = TRUE;
+    } else if (life_stage=="Adult") {
+        process_adults = TRUE;
+    }
+}
+if (process_nymphs) {
+    # Split life_stages_nymph into a list of strings for plots.
+    life_stages_nymph_str = as.character(opt$life_stages_nymph);
+    life_stages_nymph = strsplit(life_stages_nymph_str, ",")[[1]];
+    for (life_stage_nymph in opt$life_stages_nymph) {
+        if (life_stage_nymph=="Young") {
+            process_young_nymphs = TRUE;
+        } else if (life_stage_nymph=="Old") {
+            process_old_nymphs = TRUE;
+        } else if (life_stage_nymph=="Total") {
+            process_total_nymphs = TRUE;
+        }
+    }
+}
+if (process_adults) {
+    # Split life_stages_adult into a list of strings for plots.
+    life_stages_adult_str = as.character(opt$life_stages_adult);
+    life_stages_adult = strsplit(life_stages_adult_str, ",")[[1]];
+    for (life_stage_adult in opt$life_stages_adult) {
+        if (life_stage_adult=="Previtellogenic") {
+            process_previtellogenic_adults = TRUE;
+        } else if (life_stage_adult=="Vitellogenic") {
+            process_vitellogenic_adults = TRUE;
+        } else if (life_stage_adult=="Diapausing") {
+            process_diapausing_adults = TRUE;
+        } else if (life_stage_adult=="Total") {
+            process_total_adults = TRUE;
+        }
+    }
+}
 cat("process_eggs: ", process_eggs, "\n");
-process_nymphs = stages[2];
 cat("process_nymphs: ", process_nymphs, "\n");
-process_young_nymphs = stages[3];
 cat("process_young_nymphs: ", process_young_nymphs, "\n");
-process_old_nymphs = stages[4];
 cat("process_old_nymphs: ", process_old_nymphs, "\n");
-process_total_nymphs = stages[5];
 cat("process_total_nymphs: ", process_total_nymphs, "\n");
-process_adults = stages[6];
 cat("process_adults: ", process_adults, "\n");
-process_previtellogenic_adults = stages[7];
 cat("process_previtellogenic_adults: ", process_previtellogenic_adults, "\n");
-process_vitellogenic_adults = stages[8];
 cat("process_vitellogenic_adults: ", process_vitellogenic_adults, "\n");
-process_diapausing_adults = stages[9];
 cat("process_diapausing_adults: ", process_diapausing_adults, "\n");
-process_total_adults = stages[10];
 cat("process_total_adults: ", process_total_adults, "\n");
-life_stages = stages[11];
 cat("life_stages: ", life_stages, "\n");
-life_stages_nymph = stages[12];
 cat("life_stages_nymph: ", life_stages_nymph, "\n");
-life_stages_adult = stages[13];
 cat("life_stages_adult: ", life_stages_adult, "\n");
+
 # Initialize matrices.
 if (process_eggs) {
     Eggs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
@@ -1095,6 +1076,7 @@ days = c(1:opt$num_days);
 start_date = temperature_data_frame$DATE[1];
 end_date = temperature_data_frame$DATE[opt$num_days];
 
+cat("life_stages: ", toString(life_stages), "\n");
 cat("plot_generations_separately: ", plot_generations_separately, "\n");
 if (plot_generations_separately) {
     for (life_stage in life_stages) {
@@ -1137,7 +1119,7 @@ if (plot_generations_separately) {
                     group2 = F1_young_nymphs;
                     group2_std_error = F1_young_nymphs.std_error;
                     group3 = F2_young_nymphs;
-                    group_3_std_error = F2_young_nymphs.std_error;
+                    group3_std_error = F2_young_nymphs.std_error;
                 } else if (life_stage_nymph=="Old") {
                     # Total nymph population size by generation.
                     maxval = max(P_old_nymphs+F1_old_nymphs+F2_old_nymphs) + 100;
@@ -1146,7 +1128,7 @@ if (plot_generations_separately) {
                     group2 = F1_old_nymphs;
                     group2_std_error = F1_old_nymphs.std_error;
                     group3 = F2_old_nymphs;
-                    group_3_std_error = F2_old_nymphs.std_error;
+                    group3_std_error = F2_old_nymphs.std_error;
                 } else if (life_stage_nymph=="Total") {
                     # Total nymph population size by generation.
                     maxval = max(P_total_nymphs+F1_total_nymphs+F2_total_nymphs) + 100;
@@ -1155,11 +1137,11 @@ if (plot_generations_separately) {
                     group2 = F1_total_nymphs;
                     group2_std_error = F1_total_nymphs.std_error;
                     group3 = F2_total_nymphs;
-                    group_3_std_error = F2_total_nymphs.std_error;
+                    group3_std_error = F2_total_nymphs.std_error;
                 }
                 cat("XXX group: ", group, "\n");
                 render_chart(date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
-                    opt$replications, life_stage, group=group, group_std_error=group_std_error, group2=group2, group2_std_error=group_2_std_error,
+                    opt$replications, life_stage, group=group, group_std_error=group_std_error, group2=group2, group2_std_error=group2_std_error,
                     group3=group3, group3_std_error=group3_std_error, life_stages_nymph=life_stage_nymph);
                 # Turn off device driver to flush output.
                 dev.off();
