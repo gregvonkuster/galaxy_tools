@@ -255,7 +255,6 @@ parse_input_data = function(input_file, num_rows) {
 render_chart = function(date_labels, chart_type, plot_std_error, insect, location, latitude, start_date, end_date, days, maxval,
     replications, life_stage, group, group_std_error, group2=NULL, group2_std_error=NULL, group3=NULL, group3_std_error=NULL,
     life_stages_adult=NULL, life_stages_nymph=NULL) {
-    cat("In render_chart, chart_type: ", chart_type, "\n");
     if (chart_type=="pop_size_by_life_stage") {
         if (life_stage=="Total") {
             title = paste(insect, ": Reps", replications, ":", life_stage, "Pop :", location, ": Lat", latitude, ":", start_date, "-", end_date, sep=" ");
@@ -315,10 +314,6 @@ render_chart = function(date_labels, chart_type, plot_std_error, insect, locatio
             title_str = paste(":", life_stages_adult, "Adult Pop by Gen", ":", sep=" ");
         }
         title = paste(insect, ": Reps", replications, title_str, location, ": Lat", latitude, ":", start_date, "-", end_date, sep=" ");
-        cat("In render_chart, title: ", title, "\n");
-        cat("In render_chart, group: ", group, "\n");
-        cat("In render_chart, group2: ", group2, "\n");
-        cat("In render_chart, group3: ", group3, "\n");
         legend_text = c("P", "F1", "F2");
         columns = c(1, 2, 4);
         plot(days, group, main=title, type="l", ylim=c(0, maxval), axes=F, lwd=2, xlab="", ylab="", cex=3, cex.lab=3, cex.axis=3, cex.main=3);
@@ -387,7 +382,7 @@ if (process_nymphs) {
     # Split life_stages_nymph into a list of strings for plots.
     life_stages_nymph_str = as.character(opt$life_stages_nymph);
     life_stages_nymph = strsplit(life_stages_nymph_str, ",")[[1]];
-    for (life_stage_nymph in opt$life_stages_nymph) {
+    for (life_stage_nymph in life_stages_nymph) {
         if (life_stage_nymph=="Young") {
             process_young_nymphs = TRUE;
         } else if (life_stage_nymph=="Old") {
@@ -401,7 +396,7 @@ if (process_adults) {
     # Split life_stages_adult into a list of strings for plots.
     life_stages_adult_str = as.character(opt$life_stages_adult);
     life_stages_adult = strsplit(life_stages_adult_str, ",")[[1]];
-    for (life_stage_adult in opt$life_stages_adult) {
+    for (life_stage_adult in life_stages_adult) {
         if (life_stage_adult=="Previtellogenic") {
             process_previtellogenic_adults = TRUE;
         } else if (life_stage_adult=="Vitellogenic") {
@@ -413,30 +408,15 @@ if (process_adults) {
         }
     }
 }
-cat("process_eggs: ", process_eggs, "\n");
-cat("process_nymphs: ", process_nymphs, "\n");
-cat("process_young_nymphs: ", process_young_nymphs, "\n");
-cat("process_old_nymphs: ", process_old_nymphs, "\n");
-cat("process_total_nymphs: ", process_total_nymphs, "\n");
-cat("process_adults: ", process_adults, "\n");
-cat("process_previtellogenic_adults: ", process_previtellogenic_adults, "\n");
-cat("process_vitellogenic_adults: ", process_vitellogenic_adults, "\n");
-cat("process_diapausing_adults: ", process_diapausing_adults, "\n");
-cat("process_total_adults: ", process_total_adults, "\n");
-cat("life_stages: ", life_stages, "\n");
-cat("life_stages_nymph: ", life_stages_nymph, "\n");
-cat("life_stages_adult: ", life_stages_adult, "\n");
 
 # Initialize matrices.
 if (process_eggs) {
     Eggs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
 }
-cat("process_young_nymphs==TRUE: ", process_young_nymphs==TRUE, "\n");
-cat("process_total_nymphs==TRUE: ", process_total_nymphs==TRUE, "\n");
-if (process_young_nymphs==TRUE | process_total_nymphs==TRUE) {
+if (process_young_nymphs | process_total_nymphs) {
     YoungNymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
 }
-if (process_old_nymphs==TRUE | process_total_nymphs==TRUE) {
+if (process_old_nymphs | process_total_nymphs) {
     OldNymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
 }
 if (process_adults) {
@@ -903,10 +883,10 @@ for (current_replication in 1:opt$replications) {
     if (process_eggs) {
         Eggs.replications[,current_replication] = Eggs;
     }
-    if (process_young_nymphs==TRUE | process_total_nymphs==TRUE) {
+    if (process_young_nymphs | process_total_nymphs) {
         YoungNymphs.replications[,current_replication] = YoungNymphs;
     }
-    if (process_old_nymphs==TRUE | process_total_nymphs==TRUE) {
+    if (process_old_nymphs | process_total_nymphs) {
         OldNymphs.replications[,current_replication] = OldNymphs;
     }
     if (process_adults) {
@@ -1076,11 +1056,8 @@ days = c(1:opt$num_days);
 start_date = temperature_data_frame$DATE[1];
 end_date = temperature_data_frame$DATE[opt$num_days];
 
-cat("life_stages: ", toString(life_stages), "\n");
-cat("plot_generations_separately: ", plot_generations_separately, "\n");
 if (plot_generations_separately) {
     for (life_stage in life_stages) {
-        cat("life_stage: ", life_stage, "\n");
         if (life_stage == "Egg") {
             # Start PDF device driver.
             dev.new(width=20, height=30);
@@ -1089,15 +1066,6 @@ if (plot_generations_separately) {
             par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
             # Egg population size by generation.
             maxval = max(P_eggs+F1_eggs+F2_eggs) + 100;
-            cat("maxval: ", maxval, "\n");
-            cat("P_eggs: ", toString(P_eggs), "\n");
-            cat("is.vector(P_eggs): ", is.vector(P_eggs), "\n");
-            cat("length(P_eggs): ", length(P_eggs), "\n");
-            cat("P_eggs.std_error: ", toString(P_eggs.std_error), "\n");
-            cat("F1_eggs: ", toString(F1_eggs), "\n");
-            cat("F1_eggs.std_error: ", toString(F1_eggs.std_error), "\n");
-            cat("F2_eggs: ", toString(F2_eggs), "\n");
-            cat("F2_eggs.std_error: ", toString(F2_eggs.std_error), "\n");
             render_chart(date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
                 opt$replications, life_stage, group=P_eggs, group_std_error=P_eggs.std_error, group2=F1_eggs, group2_std_error=F1_eggs.std_error, group3=F2_eggs,
                 group3_std_error=F2_eggs.std_error);
@@ -1105,7 +1073,6 @@ if (plot_generations_separately) {
             dev.off();
         } else if (life_stage == "Nymph") {
             for (life_stage_nymph in life_stages_nymph) {
-                cat("life_stage_nymph: ", life_stage_nymph, "\n");
                 # Start PDF device driver.
                 dev.new(width=20, height=30);
                 file_path = get_file_path(life_stage, "nymph_pop_by_generation.pdf", life_stage_nymph=life_stage_nymph)
@@ -1139,7 +1106,6 @@ if (plot_generations_separately) {
                     group3 = F2_total_nymphs;
                     group3_std_error = F2_total_nymphs.std_error;
                 }
-                cat("XXX group: ", group, "\n");
                 render_chart(date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
                     opt$replications, life_stage, group=group, group_std_error=group_std_error, group2=group2, group2_std_error=group2_std_error,
                     group3=group3, group3_std_error=group3_std_error, life_stages_nymph=life_stage_nymph);
