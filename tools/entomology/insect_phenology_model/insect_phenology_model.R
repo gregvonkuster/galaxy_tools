@@ -399,7 +399,7 @@ if (process_adults) {
     for (life_stage_adult in life_stages_adult) {
         if (life_stage_adult=="Pre-vittelogenic") {
             process_previttelogenic_adults = TRUE;
-        } else if (life_stage_adult=="Vitelogenic") {
+        } else if (life_stage_adult=="Vittelogenic") {
             process_vittelogenic_adults = TRUE;
         } else if (life_stage_adult=="Diapausing") {
             process_diapausing_adults = TRUE;
@@ -422,7 +422,7 @@ if (process_previttelogenic_adults | process_total_adults) {
     Previttelogenic.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
 }
 if (process_vittelogenic_adults | process_total_adults) {
-    Vitelogenic.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+    Vittelogenic.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
 }
 if (process_diapausing_adults | process_total_adults) {
     Diapausing.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
@@ -508,7 +508,7 @@ for (current_replication in 1:opt$replications) {
         Previttelogenic = rep(0, opt$num_days);
     }
     if (process_vittelogenic_adults | process_total_adults) {
-        Vitelogenic = rep(0, opt$num_days);
+        Vittelogenic = rep(0, opt$num_days);
     }
     if (process_diapausing_adults | process_total_adults) {
         Diapausing = rep(0, opt$num_days);
@@ -814,7 +814,7 @@ for (current_replication in 1:opt$replications) {
         }
         if (process_vittelogenic_adults | process_total_adults) {
             # For vittelogenic population size, column 2 (Stage) must be 4.
-            Vitelogenic[row] = sum(vector.matrix[,2]==4);
+            Vittelogenic[row] = sum(vector.matrix[,2]==4);
         }
         if (process_diapausing_adults | process_total_adults) {
             # For diapausing population size, column 2 (Stage) must be 5.
@@ -914,15 +914,15 @@ for (current_replication in 1:opt$replications) {
             if (process_vittelogenic_adults) {
                 # For vittelogenic adult life stage of generation P population
                 # size, the following combination is required:
-                # - column 1 (Generation) is 0 and column 2 (Stage) is 4 (Vitelogenic)
+                # - column 1 (Generation) is 0 and column 2 (Stage) is 4 (Vittelogenic)
                 P.vittelogenic_adult[row] = sum(vector.matrix[,1]==0 & vector.matrix[,2]==4);
                 # For vittelogenic adult life stage of generation F1 population
                 # size, the following combination is required:
-                # - column 1 (Generation) is 1 and column 2 (Stage) is 4 (Vitelogenic)
+                # - column 1 (Generation) is 1 and column 2 (Stage) is 4 (Vittelogenic)
                 F1.vittelogenic_adult[row] = sum(vector.matrix[,1]==1 & vector.matrix[,2]==4);
                 # For vittelogenic adult life stage of generation F2 population
                 # size, the following combination is required:
-                # - column 1 (Generation) is 2 and column 2 (Stage) is 4 (Vitelogenic)
+                # - column 1 (Generation) is 2 and column 2 (Stage) is 4 (Vittelogenic)
                 F2.vittelogenic_adult[row] = sum(vector.matrix[,1]==2 & vector.matrix[,2]==4);
             }
             if (process_diapausing_adults) {
@@ -943,19 +943,19 @@ for (current_replication in 1:opt$replications) {
                 # For total adult life stage of generation P population
                 # size, one of the following combinations is required:
                 # - column 1 (Generation) is 0 and column 2 (Stage) is 3 (Pre-vittelogenic)
-                # - column 1 (Generation) is 0 and column 2 (Stage) is 4 (Vitelogenic)
+                # - column 1 (Generation) is 0 and column 2 (Stage) is 4 (Vittelogenic)
                 # - column 1 (Generation) is 0 and column 2 (Stage) is 5 (Diapausing)
                 P.total_adult[row] = sum((vector.matrix[,1]==0 & vector.matrix[,2]==3) | (vector.matrix[,1]==0 & vector.matrix[,2]==4) | (vector.matrix[,1]==0 & vector.matrix[,2]==5));
                 # For total adult life stage of generation F1 population
                 # size, one of the following combinations is required:
                 # - column 1 (Generation) is 1 and column 2 (Stage) is 3 (Pre-vittelogenic)
-                # - column 1 (Generation) is 1 and column 2 (Stage) is 4 (Vitelogenic)
+                # - column 1 (Generation) is 1 and column 2 (Stage) is 4 (Vittelogenic)
                 # - column 1 (Generation) is 1 and column 2 (Stage) is 5 (Diapausing)
                 F1.total_adult[row] = sum((vector.matrix[,1]==1 & vector.matrix[,2]==3) | (vector.matrix[,1]==1 & vector.matrix[,2]==4) | (vector.matrix[,1]==1 & vector.matrix[,2]==5));
                 # For total adult life stage of generation F2 population
                 # size, one of the following combinations is required:
                 # - column 1 (Generation) is 2 and column 2 (Stage) is 3 (Pre-vittelogenic)
-                # - column 1 (Generation) is 2 and column 2 (Stage) is 4 (Vitelogenic)
+                # - column 1 (Generation) is 2 and column 2 (Stage) is 4 (Vittelogenic)
                 # - column 1 (Generation) is 2 and column 2 (Stage) is 5 (Diapausing)
                 F2.total_adult[row] = sum((vector.matrix[,1]==2 & vector.matrix[,2]==3) | (vector.matrix[,1]==2 & vector.matrix[,2]==4) | (vector.matrix[,1]==2 & vector.matrix[,2]==5));
             }
@@ -978,7 +978,7 @@ for (current_replication in 1:opt$replications) {
         Previttelogenic.replications[,current_replication] = Previttelogenic;
     }
     if (process_vittelogenic_adults | process_total_adults) {
-        Vitelogenic.replications[,current_replication] = Vitelogenic;
+        Vittelogenic.replications[,current_replication] = Vittelogenic;
     }
     if (process_diapausing_adults | process_total_adults) {
         Diapausing.replications[,current_replication] = Diapausing;
@@ -1070,9 +1070,9 @@ if (process_adults) {
     for (life_stage_adult in life_stages_adult) {
         if (life_stage_adult=="Total") {
             # Mean value for all adults.
-            total_adults = apply((Previttelogenic.replications+Vitelogenic.replications+Diapausing.replications), 1, mean);
+            total_adults = apply((Previttelogenic.replications+Vittelogenic.replications+Diapausing.replications), 1, mean);
             # Standard error for all adults.
-            total_adults.std_error = apply((Previttelogenic.replications+Vitelogenic.replications+Diapausing.replications), 1, sd) / sqrt(opt$replications);
+            total_adults.std_error = apply((Previttelogenic.replications+Vittelogenic.replications+Diapausing.replications), 1, sd) / sqrt(opt$replications);
         } else if (life_stage_adult == "Pre-vittelogenic") {
             # Mean value for previttelogenic adults.
             previttelogenic_adults = apply(Previttelogenic.replications, 1, mean);
@@ -1080,9 +1080,9 @@ if (process_adults) {
             previttelogenic_adults.std_error = apply(Previttelogenic.replications, 1, sd) / sqrt(opt$replications);
         } else if (life_stage_adult == "Vittelogenic") {
             # Mean value for vittelogenic adults.
-            vittelogenic_adults = apply(Vitelogenic.replications, 1, mean);
+            vittelogenic_adults = apply(Vittelogenic.replications, 1, mean);
             # Standard error for vittelogenic adults.
-            vittelogenic_adults.std_error = apply(Vitelogenic.replications, 1, sd) / sqrt(opt$replications);
+            vittelogenic_adults.std_error = apply(Vittelogenic.replications, 1, sd) / sqrt(opt$replications);
         } else if (life_stage_adult == "Diapausing") {
             # Mean value for vittelogenic adults.
             diapausing_adults = apply(Diapausing.replications, 1, mean);
