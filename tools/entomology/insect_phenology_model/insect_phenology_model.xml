@@ -117,6 +117,42 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
             <param name="input" value="state_college.csv" ftype="csv" />
             <param name="location" value="State College PA" />
             <param name="replications" value="2" />
+            <param name="plot_generations_separately" value="no" />
+            <param name="plot_egg_life_stage" value="no" />
+            <param name="life_stages_nymph" value="Young" />
+            <param name="life_stages_adult" value="Pre-vittelogenic" />
+            <output_collection name="output_collection" type="list">
+                <element name="02_young_nymph_pop.pdf" file="pop_by_generation.pdf" ftype="pdf" compare="contains"/>
+                <element name="05_pre-vittelogenic_adult_pop.pdf" file="pop_by_generation.pdf" ftype="pdf" compare="contains"/>
+            </output_collection>
+        </test>
+        <test>
+            <param name="input" value="state_college.csv" ftype="csv" />
+            <param name="location" value="State College PA" />
+            <param name="replications" value="2" />
+            <param name="plot_generations_separately" value="no" />
+            <output_collection name="output_collection" type="list">
+                <element name="01_egg_pop.pdf" file="pop_by_generation.pdf" ftype="pdf" compare="contains"/>
+                <element name="04_total_nymph_pop.pdf" file="pop_by_generation.pdf" ftype="pdf" compare="contains"/>
+                <element name="08_total_adult_pop.pdf" file="pop_by_generation.pdf" ftype="pdf" compare="contains"/>
+                <element name="09_total_pop.pdf" file="pop_by_generation.pdf" ftype="pdf" compare="contains"/>
+            </output_collection>
+        </test>
+        <test>
+            <param name="input" value="state_college.csv" ftype="csv" />
+            <param name="location" value="State College PA" />
+            <param name="replications" value="2" />
+            <param name="plot_egg_life_stage" value="no" />
+            <param name="life_stages_nymph" value="Old" />
+            <param name="plot_adult_life_stage" value="no" />
+            <output_collection name="output_collection" type="list">
+                <element name="03_old_nymph_pop_by_generation.pdf" file="pop_by_generation.pdf" ftype="pdf" compare="contains"/>
+            </output_collection>
+        </test>
+        <test>
+            <param name="input" value="state_college.csv" ftype="csv" />
+            <param name="location" value="State College PA" />
+            <param name="replications" value="2" />
             <output_collection name="output_collection" type="list">
                 <element name="01_egg_pop_by_generation.pdf" file="pop_by_generation.pdf" ftype="pdf" compare="contains"/>
                 <element name="04_total_nymph_pop_by_generation.pdf" file="pop_by_generation.pdf" ftype="pdf" compare="contains"/>
