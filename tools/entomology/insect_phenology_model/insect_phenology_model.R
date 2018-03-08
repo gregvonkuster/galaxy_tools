@@ -464,7 +464,7 @@ if (plot_generations_separately) {
     }
     if (process_vittelogenic_adults) {
         P_vittelogenic_adults.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-        F1_vittelogenic_adults = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+        F1_vittelogenic_adults.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
         F2_vittelogenic_adults.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
     }
     if (process_diapausing_adults) {
