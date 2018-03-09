@@ -15,14 +15,15 @@ option_list <- list(
     make_option(c("--location"), action="store", dest="location", help="Selected location"),
     make_option(c("--min_clutch_size"), action="store", dest="min_clutch_size", type="integer", help="Adjustment of minimum clutch size"),
     make_option(c("--max_clutch_size"), action="store", dest="max_clutch_size", type="integer", help="Adjustment of maximum clutch size"),
+    make_option(c("--num_days"), action="store", dest="num_days", type="integer", help="Total number of days in the temperature dataset"),
     make_option(c("--nymph_mortality"), action="store", dest="nymph_mortality", type="integer", help="Adjustment rate for nymph mortality"),
     make_option(c("--old_nymph_accumulation"), action="store", dest="old_nymph_accumulation", type="integer", help="Adjustment of degree-days accumulation (young nymph->old nymph)"),
-    make_option(c("--num_days"), action="store", dest="num_days", type="integer", help="Total number of days in the temperature dataset"),
+    make_option(c("--output"), action="store", dest="output", help="Dataset containing analyzed data"),
     make_option(c("--oviposition"), action="store", dest="oviposition", type="integer", help="Adjustment for oviposition rate"),
     make_option(c("--photoperiod"), action="store", dest="photoperiod", type="double", help="Critical photoperiod for diapause induction/termination"),
-    make_option(c("--replications"), action="store", dest="replications", type="integer", help="Number of replications"),
     make_option(c("--plot_generations_separately"), action="store", dest="plot_generations_separately", help="Plot Plot P, F1 and F2 as separate lines or pool across them"),
     make_option(c("--plot_std_error"), action="store", dest="plot_std_error", help="Plot Standard error"),
+    make_option(c("--replications"), action="store", dest="replications", type="integer", help="Number of replications"),
     make_option(c("--young_nymph_accumulation"), action="store", dest="young_nymph_accumulation", type="integer", help="Adjustment of degree-days accumulation (egg->young nymph)")
 )
 
@@ -30,7 +31,7 @@ parser <- OptionParser(usage="%prog [options] file", option_list=option_list);
 args <- parse_args(parser, positional_arguments=TRUE);
 opt <- args$options;
 
-add_daylight_length = function(temperature_data_frame, num_columns, num_rows) {
+add_daylight_length = function(temperature_data_frame, num_rows) {
     # Return a vector of daylight length (photoperido profile) for
     # the number of days specified in the input temperature data
     # (from Forsythe 1995).
@@ -48,8 +49,18 @@ add_daylight_length = function(temperature_data_frame, num_columns, num_rows) {
         daylight_length_vector[i] = 24 - darkness_length;
     }
     # Append daylight_length_vector as a new column to temperature_data_frame.
-    temperature_data_frame[, num_columns+1] = daylight_length_vector;
+    temperature_data_frame = append_vector(temperature_data_frame, daylight_length_vector, "DAYLEN");
     return(temperature_data_frame);
+}
+
+append_vector = function(data_frame, vec, new_column_name) {
+    num_columns = dim(data_frame)[2];
+    current_column_names = colnames(data_frame);
+    # Append vector vec as a new column to data_frame.
+    data_frame[,num_columns+1] = vec;
+    # Reset the column names with the additional column for later access.
+    colnames(data_frame) = append(current_column_names, new_column_name);
+    return(data_frame);
 }
 
 get_date_labels = function(temperature_data_frame, num_rows) {
@@ -244,10 +255,9 @@ parse_input_data = function(input_file, num_rows) {
         # LATITUDE, LONGITUDE, DATE, DOY, TMIN, TMAX
         # Set the column names for access when adding daylight length..
         colnames(temperature_data_frame) = c("LATITUDE","LONGITUDE", "DATE", "DOY", "TMIN", "TMAX");
+        current_column_names = colnames(temperature_data_frame);
         # Add a column containing the daylight length for each day.
-        temperature_data_frame = add_daylight_length(temperature_data_frame, num_columns, num_rows);
-        # Reset the column names with the additional column for later access.
-        colnames(temperature_data_frame) = c("LATITUDE","LONGITUDE", "DATE", "DOY", "TMIN", "TMAX", "DAYLEN");
+        temperature_data_frame = add_daylight_length(temperature_data_frame, num_rows);
     }
     return(temperature_data_frame);
 }
@@ -348,8 +358,6 @@ temperature_data_frame = parse_input_data(opt$input, opt$num_days);
 date_labels = get_date_labels(temperature_data_frame, opt$num_days);
 # All latitude values are the same, so get the value for plots from the first row.
 latitude = temperature_data_frame$LATITUDE[1];
-# Get the number of days for plots.
-num_columns = dim(temperature_data_frame)[2];
 # Determine the specified life stages for processing.
 # Split life_stages into a list of strings for plots.
 life_stages_str = as.character(opt$life_stages);
@@ -619,7 +627,7 @@ for (current_replication in 1:opt$replications) {
             else {
                 # End of diapause.
                 if (vector.individual[1] == 0 && vector.individual[2] == 3) {
-                    # Overwintering adult (previttelogenic).
+                    # Overwintering adult (pre-vittelogenic).
                     if (photoperiod > opt$photoperiod && vector.individual[3] > 68 && doy < 180) {
                         # Add 68C to become fully reproductively matured.
                         # Transfer to vittelogenic.
@@ -627,7 +635,7 @@ for (current_replication in 1:opt$replications) {
                         vector.matrix[i,] = vector.individual;
                     }
                     else {
-                        # Add to # Add average temperature for current day.
+                        # Add average temperature for current day.
                         vector.individual[3] = vector.individual[3] + averages.temp;
                         # Add 1 day in current stage.
                         vector.individual[4] = vector.individual[4] + 1;
@@ -635,7 +643,7 @@ for (current_replication in 1:opt$replications) {
                     }
                 }
                 if (vector.individual[1] != 0 && vector.individual[2] == 3) {
-                    # Not overwintering adult (previttelogenic).
+                    # Not overwintering adult (pre-vittelogenic).
                     current.gen = vector.individual[1];
                     if (vector.individual[3] > 68) {
                         # Add 68C to become fully reproductively matured.
@@ -750,7 +758,7 @@ for (current_replication in 1:opt$replications) {
                     }
                     vector.matrix[i,] = vector.individual;
                 }
-                # Old nymph to adult: previttelogenic or diapausing?
+                # Old nymph to adult: pre-vittelogenic or diapausing?
                 if (vector.individual[2] == 2) {
                     # Add average temperature for current day.
                     vector.individual[3] = vector.individual[3] + averages.temp;
@@ -1041,8 +1049,10 @@ for (current_replication in 1:opt$replications) {
 if (process_eggs) {
     # Mean value for eggs.
     eggs = apply(Eggs.replications, 1, mean);
+    temperature_data_frame = append_vector(temperature_data_frame, eggs, "EGG");
     # Standard error for eggs.
     eggs.std_error = apply(Eggs.replications, 1, sd) / sqrt(opt$replications);
+    temperature_data_frame = append_vector(temperature_data_frame, eggs.std_error, "EGGSE");
 }
 if (process_nymphs) {
     # Calculate nymph populations for selected life stage.
@@ -1050,18 +1060,24 @@ if (process_nymphs) {
         if (life_stage_nymph=="Total") {
             # Mean value for all nymphs.
             total_nymphs = apply((YoungNymphs.replications+OldNymphs.replications), 1, mean);
+            temperature_data_frame = append_vector(temperature_data_frame, total_nymphs, "TOTALNYMPH");
             # Standard error for all nymphs.
             total_nymphs.std_error = apply((YoungNymphs.replications+OldNymphs.replications) / sqrt(opt$replications), 1, sd);
+            temperature_data_frame = append_vector(temperature_data_frame, total_nymphs.std_error, "TOTALNYMPHSE");
         } else if (life_stage_nymph=="Young") {
             # Mean value for young nymphs.
             young_nymphs = apply(YoungNymphs.replications, 1, mean);
+            temperature_data_frame = append_vector(temperature_data_frame, young_nymphs, "YOUNGNYMPH");
             # Standard error for young nymphs.
             young_nymphs.std_error = apply(YoungNymphs.replications / sqrt(opt$replications), 1, sd);
+            temperature_data_frame = append_vector(temperature_data_frame, young_nymphs.std_error, "YOUNGNYMPHSE");
         } else if (life_stage_nymph=="Old") {
             # Mean value for old nymphs.
             old_nymphs = apply(OldNymphs.replications, 1, mean);
+            temperature_data_frame = append_vector(temperature_data_frame, old_nymphs, "OLDNYMPH");
             # Standard error for old nymphs.
             old_nymphs.std_error = apply(OldNymphs.replications / sqrt(opt$replications), 1, sd);
+            temperature_data_frame = append_vector(temperature_data_frame, old_nymphs.std_error, "OLDNYMPHSE");
         }
     }
 }
@@ -1071,23 +1087,31 @@ if (process_adults) {
         if (life_stage_adult=="Total") {
             # Mean value for all adults.
             total_adults = apply((Previttelogenic.replications+Vittelogenic.replications+Diapausing.replications), 1, mean);
+            temperature_data_frame = append_vector(temperature_data_frame, total_adults, "TOTALADULT");
             # Standard error for all adults.
             total_adults.std_error = apply((Previttelogenic.replications+Vittelogenic.replications+Diapausing.replications), 1, sd) / sqrt(opt$replications);
+            temperature_data_frame = append_vector(temperature_data_frame, total_adults.std_error, "TOTALADULTSE");
         } else if (life_stage_adult == "Pre-vittelogenic") {
             # Mean value for previttelogenic adults.
             previttelogenic_adults = apply(Previttelogenic.replications, 1, mean);
+            temperature_data_frame = append_vector(temperature_data_frame, previttelogenic_adults, "PRE-VITADULT");
             # Standard error for previttelogenic adults.
             previttelogenic_adults.std_error = apply(Previttelogenic.replications, 1, sd) / sqrt(opt$replications);
+            temperature_data_frame = append_vector(temperature_data_frame, previttelogenic_adults.std_error, "PRE-VITADULTSE");
         } else if (life_stage_adult == "Vittelogenic") {
             # Mean value for vittelogenic adults.
             vittelogenic_adults = apply(Vittelogenic.replications, 1, mean);
+            temperature_data_frame = append_vector(temperature_data_frame, vittelogenic_adults, "VITADULT");
             # Standard error for vittelogenic adults.
             vittelogenic_adults.std_error = apply(Vittelogenic.replications, 1, sd) / sqrt(opt$replications);
+            temperature_data_frame = append_vector(temperature_data_frame, vittelogenic_adults.std_error, "VITADULTSE");
         } else if (life_stage_adult == "Diapausing") {
             # Mean value for vittelogenic adults.
             diapausing_adults = apply(Diapausing.replications, 1, mean);
+            temperature_data_frame = append_vector(temperature_data_frame, diapausing_adults, "DIAPAUSINGADULT");
             # Standard error for vittelogenic adults.
             diapausing_adults.std_error = apply(Diapausing.replications, 1, sd) / sqrt(opt$replications);
+            temperature_data_frame = append_vector(temperature_data_frame, diapausing_adults.std_error, "DIAPAUSINGADULTSE");
         }
     }
 }
@@ -1174,9 +1198,10 @@ if (plot_generations_separately) {
     }
 }
 
+# Save the analyzed data.
+write.csv(temperature_data_frame, file=opt$output, row.names=F);
 # Display the total number of days in the Galaxy history item blurb.
 cat("Number of days: ", opt$num_days, "\n");
-
 # Information needed for plots plots.
 days = c(1:opt$num_days);
 start_date = temperature_data_frame$DATE[1];

@@ -46,7 +46,8 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
 --replications $replications
 --plot_generations_separately $plot_generations_separately
 --plot_std_error $plot_std_error
---young_nymph_accumulation $young_nymph_accumulation]]></command>
+--young_nymph_accumulation $young_nymph_accumulation
+--output '$output']]></command>
     <inputs>
         <param name="input" type="data" format="csv" label="Temperature data" />
         <param name="location" type="text" value="" optional="false" label="Location" />
@@ -108,7 +109,8 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
         </param>
     </inputs>
     <outputs>
-        <collection name="output_collection" type="list" label="${tool.name} ${location}, on ${on_string}">
+        <data name="output" format="csv" label="${tool.name} (analyzed data) on ${on_string}"/>
+        <collection name="output_collection" type="list" label="${tool.name} (plots), on ${on_string}">
             <discover_datasets pattern="__name__" directory="output_dir" format="pdf" />
         </collection>
     </outputs>
@@ -121,11 +123,13 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
             <param name="plot_egg_life_stage" value="no" />
             <param name="life_stages_nymph" value="Young" />
             <param name="life_stages_adult" value="Pre-vittelogenic" />
+            <output name="output" file="output1.csv" ftype="csv"/>
             <output_collection name="output_collection" type="list">
                 <element name="02_young_nymph_pop.pdf" file="pop_by_generation.pdf" ftype="pdf" compare="contains"/>
                 <element name="05_pre-vittelogenic_adult_pop.pdf" file="pop_by_generation.pdf" ftype="pdf" compare="contains"/>
             </output_collection>
         </test>
+        <!--
         <test>
             <param name="input" value="state_college.csv" ftype="csv" />
             <param name="location" value="State College PA" />
@@ -160,6 +164,7 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
                 <element name="09_total_pop_by_generation.pdf" file="pop_by_generation.pdf" ftype="pdf" compare="contains"/>
             </output_collection>
         </test>
+        -->
     </tests>
     <help>
 **What it does**
