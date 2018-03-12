@@ -1057,14 +1057,7 @@ if (process_eggs) {
 if (process_nymphs) {
     # Calculate nymph populations for selected life stage.
     for (life_stage_nymph in life_stages_nymph) {
-        if (life_stage_nymph=="Total") {
-            # Mean value for all nymphs.
-            total_nymphs = apply((YoungNymphs.replications+OldNymphs.replications), 1, mean);
-            temperature_data_frame = append_vector(temperature_data_frame, total_nymphs, "TOTALNYMPH");
-            # Standard error for all nymphs.
-            total_nymphs.std_error = apply((YoungNymphs.replications+OldNymphs.replications) / sqrt(opt$replications), 1, sd);
-            temperature_data_frame = append_vector(temperature_data_frame, total_nymphs.std_error, "TOTALNYMPHSE");
-        } else if (life_stage_nymph=="Young") {
+        if (life_stage_nymph=="Young") {
             # Mean value for young nymphs.
             young_nymphs = apply(YoungNymphs.replications, 1, mean);
             temperature_data_frame = append_vector(temperature_data_frame, young_nymphs, "YOUNGNYMPH");
@@ -1078,20 +1071,20 @@ if (process_nymphs) {
             # Standard error for old nymphs.
             old_nymphs.std_error = apply(OldNymphs.replications / sqrt(opt$replications), 1, sd);
             temperature_data_frame = append_vector(temperature_data_frame, old_nymphs.std_error, "OLDNYMPHSE");
+        } else if (life_stage_nymph=="Total") {
+            # Mean value for all nymphs.
+            total_nymphs = apply((YoungNymphs.replications+OldNymphs.replications), 1, mean);
+            temperature_data_frame = append_vector(temperature_data_frame, total_nymphs, "TOTALNYMPH");
+            # Standard error for all nymphs.
+            total_nymphs.std_error = apply((YoungNymphs.replications+OldNymphs.replications) / sqrt(opt$replications), 1, sd);
+            temperature_data_frame = append_vector(temperature_data_frame, total_nymphs.std_error, "TOTALNYMPHSE");
         }
     }
 }
 if (process_adults) {
     # Calculate adult populations for selected life stage.
     for (life_stage_adult in life_stages_adult) {
-        if (life_stage_adult=="Total") {
-            # Mean value for all adults.
-            total_adults = apply((Previttelogenic.replications+Vittelogenic.replications+Diapausing.replications), 1, mean);
-            temperature_data_frame = append_vector(temperature_data_frame, total_adults, "TOTALADULT");
-            # Standard error for all adults.
-            total_adults.std_error = apply((Previttelogenic.replications+Vittelogenic.replications+Diapausing.replications), 1, sd) / sqrt(opt$replications);
-            temperature_data_frame = append_vector(temperature_data_frame, total_adults.std_error, "TOTALADULTSE");
-        } else if (life_stage_adult == "Pre-vittelogenic") {
+        if (life_stage_adult == "Pre-vittelogenic") {
             # Mean value for previttelogenic adults.
             previttelogenic_adults = apply(Previttelogenic.replications, 1, mean);
             temperature_data_frame = append_vector(temperature_data_frame, previttelogenic_adults, "PRE-VITADULT");
@@ -1112,6 +1105,13 @@ if (process_adults) {
             # Standard error for vittelogenic adults.
             diapausing_adults.std_error = apply(Diapausing.replications, 1, sd) / sqrt(opt$replications);
             temperature_data_frame = append_vector(temperature_data_frame, diapausing_adults.std_error, "DIAPAUSINGADULTSE");
+        } else if (life_stage_adult=="Total") {
+            # Mean value for all adults.
+            total_adults = apply((Previttelogenic.replications+Vittelogenic.replications+Diapausing.replications), 1, mean);
+            temperature_data_frame = append_vector(temperature_data_frame, total_adults, "TOTALADULT");
+            # Standard error for all adults.
+            total_adults.std_error = apply((Previttelogenic.replications+Vittelogenic.replications+Diapausing.replications), 1, sd) / sqrt(opt$replications);
+            temperature_data_frame = append_vector(temperature_data_frame, total_adults.std_error, "TOTALADULTSE");
         }
     }
 }
