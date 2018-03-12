@@ -47,7 +47,12 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
 --plot_generations_separately $plot_generations_separately
 --plot_std_error $plot_std_error
 --young_nymph_accumulation $young_nymph_accumulation
---output '$output']]></command>
+--output '$output'
+&>ipm_log.txt;
+if [[ $? -ne 0 ]]; then
+    cp ipm_log.txt '$output';
+    exit 1;
+fi]]></command>
     <inputs>
         <param name="input" type="data" format="csv" label="Temperature data" />
         <param name="location" type="text" value="" optional="false" label="Location" />
