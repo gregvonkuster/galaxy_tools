@@ -18,7 +18,10 @@ option_list <- list(
     make_option(c("--num_days"), action="store", dest="num_days", type="integer", help="Total number of days in the temperature dataset"),
     make_option(c("--nymph_mortality"), action="store", dest="nymph_mortality", type="integer", help="Adjustment rate for nymph mortality"),
     make_option(c("--old_nymph_accumulation"), action="store", dest="old_nymph_accumulation", type="integer", help="Adjustment of degree-days accumulation (young nymph->old nymph)"),
-    make_option(c("--output"), action="store", dest="output", help="Dataset containing analyzed data"),
+    make_option(c("--output_combined"), action="store", dest="output_combined", help="Dataset containing analyzed data for combined generations"),
+    make_option(c("--output_f1"), action="store", dest="output_f1", default=NULL, help="Dataset containing analyzed data for generation F1"),
+    make_option(c("--output_f2"), action="store", dest="output_f2", default=NULL, help="Dataset containing analyzed data for generation F2"),
+    make_option(c("--output_p"), action="store", dest="output_p", default=NULL, help="Dataset containing analyzed data for generation P"),
     make_option(c("--oviposition"), action="store", dest="oviposition", type="integer", help="Adjustment for oviposition rate"),
     make_option(c("--photoperiod"), action="store", dest="photoperiod", type="double", help="Critical photoperiod for diapause induction/termination"),
     make_option(c("--plot_generations_separately"), action="store", dest="plot_generations_separately", help="Plot Plot P, F1 and F2 as separate lines or pool across them"),
@@ -354,6 +357,12 @@ if (opt$plot_generations_separately=="yes") {
 }
 # Read the temperature data into a data frame.
 temperature_data_frame = parse_input_data(opt$input, opt$num_days);
+# Create copies of the temperature data for generations P, F1 and F2 if we're plotting generations separately.
+if (plot_generations_separately) {
+    temperature_data_frame_P = data.frame(temperature_data_frame);
+    temperature_data_frame_F1 = data.frame(temperature_data_frame);
+    temperature_data_frame_F2 = data.frame(temperature_data_frame);
+}
 # Get the date labels for plots.
 date_labels = get_date_labels(temperature_data_frame, opt$num_days);
 # All latitude values are the same, so get the value for plots from the first row.
@@ -1128,78 +1137,134 @@ if (plot_generations_separately) {
         m_se = get_mean_and_std_error(P_eggs.replications, F1_eggs.replications, F2_eggs.replications);
         P_eggs = m_se[[1]];
         P_eggs.std_error = m_se[[2]];
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_eggs, "EGG-P");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_eggs.std_error, "EGG-P-SE");
         F1_eggs = m_se[[3]];
         F1_eggs.std_error = m_se[[4]];
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_eggs, "EGG-F1");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_eggs.std_error, "EGG-F1-SE");
         F2_eggs = m_se[[5]];
         F2_eggs.std_error = m_se[[6]];
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_eggs, "EGG-F2");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_eggs.std_error, "EGG-F2-SE");
     }
     if (process_young_nymphs) {
         m_se = get_mean_and_std_error(P_young_nymphs.replications, F1_young_nymphs.replications, F2_young_nymphs.replications);
         P_young_nymphs = m_se[[1]];
         P_young_nymphs.std_error = m_se[[2]];
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_young_nymphs, "YOUNGNYMPH-P");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_young_nymphs.std_error, "YOUNGNYMPH-P-SE");
         F1_young_nymphs = m_se[[3]];
         F1_young_nymphs.std_error = m_se[[4]];
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_young_nymphs, "YOUNGNYMPH-F1");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_young_nymphs.std_error, "YOUNGNYMPH-F1-SE");
         F2_young_nymphs = m_se[[5]];
         F2_young_nymphs.std_error = m_se[[6]];
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_young_nymphs, "YOUNGNYMPH-F2");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_young_nymphs.std_error, "YOUNGNYMPH-F2-SE");
     }
     if (process_old_nymphs) {
         m_se = get_mean_and_std_error(P_old_nymphs.replications, F1_old_nymphs.replications, F2_old_nymphs.replications);
         P_old_nymphs = m_se[[1]];
         P_old_nymphs.std_error = m_se[[2]];
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_old_nymphs, "OLDNYMPH-P");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_old_nymphs.std_error, "OLDNYMPH-P-SE");
         F1_old_nymphs = m_se[[3]];
         F1_old_nymphs.std_error = m_se[[4]];
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_old_nymphs, "OLDNYMPH-F1");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_old_nymphs.std_error, "OLDNYMPH-F1-SE");
         F2_old_nymphs = m_se[[5]];
         F2_old_nymphs.std_error = m_se[[6]];
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_old_nymphs, "OLDNYMPH-F2");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_old_nymphs.std_error, "OLDNYMPH-F2-SE");
     }
     if (process_total_nymphs) {
         m_se = get_mean_and_std_error(P_total_nymphs.replications, F1_total_nymphs.replications, F2_total_nymphs.replications);
         P_total_nymphs = m_se[[1]];
         P_total_nymphs.std_error = m_se[[2]];
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_total_nymphs, "TOTALNYMPH-P");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_total_nymphs.std_error, "TOTALNYMPH-P-SE");
         F1_total_nymphs = m_se[[3]];
         F1_total_nymphs.std_error = m_se[[4]];
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_total_nymphs, "TOTALNYMPH-F1");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_total_nymphs.std_error, "TOTALNYMPH-F1-SE");
         F2_total_nymphs = m_se[[5]];
         F2_total_nymphs.std_error = m_se[[6]];
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_total_nymphs, "TOTALNYMPH-F2");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_total_nymphs.std_error, "TOTALNYMPH-F2-SE");
     }
     if (process_previttelogenic_adults) {
         m_se = get_mean_and_std_error(P_previttelogenic_adults.replications, F1_previttelogenic_adults.replications, F2_previttelogenic_adults.replications);
         P_previttelogenic_adults = m_se[[1]];
         P_previttelogenic_adults.std_error = m_se[[2]];
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_previttelogenic_adults, "PRE-VITADULT-P");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_previttelogenic_adults.std_error, "PRE-VITADULT-P-SE");
         F1_previttelogenic_adults = m_se[[3]];
         F1_previttelogenic_adults.std_error = m_se[[4]];
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_previttelogenic_adults, "PRE-VITADULT-F1");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_previttelogenic_adults.std_error, "PRE-VITADULT-F1-SE");
         F2_previttelogenic_adults = m_se[[5]];
         F2_previttelogenic_adults.std_error = m_se[[6]];
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_previttelogenic_adults, "PRE-VITADULT-F2");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_previttelogenic_adults.std_error, "PRE-VITADULT-F2-SE");
     }
     if (process_vittelogenic_adults) {
         m_se = get_mean_and_std_error(P_vittelogenic_adults.replications, F1_vittelogenic_adults.replications, F2_vittelogenic_adults.replications);
         P_vittelogenic_adults = m_se[[1]];
         P_vittelogenic_adults.std_error = m_se[[2]];
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_vittelogenic_adults, "VITADULT-P");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_vittelogenic_adults.std_error, "VITADULT-P-SE");
         F1_vittelogenic_adults = m_se[[3]];
         F1_vittelogenic_adults.std_error = m_se[[4]];
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_vittelogenic_adults, "VITADULT-F1");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_vittelogenic_adults.std_error, "VITADULT-F1-SE");
         F2_vittelogenic_adults = m_se[[5]];
         F2_vittelogenic_adults.std_error = m_se[[6]];
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_vittelogenic_adults, "VITADULT-F2");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_vittelogenic_adults.std_error, "VITADULT-F2-SE");
     }
     if (process_diapausing_adults) {
         m_se = get_mean_and_std_error(P_diapausing_adults.replications, F1_diapausing_adults.replications, F2_diapausing_adults.replications);
         P_diapausing_adults = m_se[[1]];
         P_diapausing_adults.std_error = m_se[[2]];
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_diapausing_adults, "DIAPAUSINGADULT-P");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_diapausing_adults.std_error, "DIAPAUSINGADULT-P-SE");
         F1_diapausing_adults = m_se[[3]];
         F1_diapausing_adults.std_error = m_se[[4]];
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_diapausing_adults, "DIAPAUSINGADULT-F1");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_diapausing_adults.std_error, "DIAPAUSINGADULT-F1-SE");
         F2_diapausing_adults = m_se[[5]];
         F2_diapausing_adults.std_error = m_se[[6]];
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_diapausing_adults, "DIAPAUSINGADULT-F2");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_diapausing_adults.std_error, "DIAPAUSINGADULT-F2-SE");
     }
     if (process_total_adults) {
         m_se = get_mean_and_std_error(P_total_adults.replications, F1_total_adults.replications, F2_total_adults.replications);
         P_total_adults = m_se[[1]];
         P_total_adults.std_error = m_se[[2]];
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_total_adults, "TOTALADULT-P");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_total_adults.std_error, "TOTALADULT-P-SE");
         F1_total_adults = m_se[[3]];
         F1_total_adults.std_error = m_se[[4]];
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_total_adults, "TOTALADULT-F1");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_total_adults.std_error, "TOTALADULT-F1-SE");
         F2_total_adults = m_se[[5]];
         F2_total_adults.std_error = m_se[[6]];
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_total_adults, "TOTALADULT-F2");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_total_adults.std_error, "TOTALADULT-F2-SE");
     }
 }
 
-# Save the analyzed data.
-write.csv(temperature_data_frame, file=opt$output, row.names=F);
+# Save the analyzed data for combined generations.
+write.csv(temperature_data_frame, file=opt$output_combined, row.names=F);
+if (plot_generations_separately) {
+    # Save the analyzed data for generation P.
+    write.csv(temperature_data_frame_P, file=opt$output_p, row.names=F);
+    # Save the analyzed data for generation F1.
+    write.csv(temperature_data_frame_F1, file=opt$output_f1, row.names=F);
+    # Save the analyzed data for generation F2.
+    write.csv(temperature_data_frame_F2, file=opt$output_f2, row.names=F);
+}
 # Display the total number of days in the Galaxy history item blurb.
 cat("Number of days: ", opt$num_days, "\n");
 # Information needed for plots plots.
