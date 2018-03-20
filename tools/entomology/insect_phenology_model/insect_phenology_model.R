@@ -368,7 +368,7 @@ render_chart = function(ticks, date_labels, chart_type, plot_std_error, insect, 
         title = paste(insect, ": Reps", replications, title_str, location, ": Lat", latitude, ":", start_date, "-", end_date, sep=" ");
         legend_text = c("P", "F1", "F2");
         columns = c(1, 2, 4);
-        plot(days, group, main=title, type="l", ylim=c(0, maxval), axes=FALSE, lwd=2, xlab="", ylab="");
+        plot(days, group, main=title, type="l", ylim=c(0, maxval), axes=FALSE, lwd=2, xlab="", ylab="", cex=3, cex.lab=3, cex.axis=3, cex.main=3);
         legend("topleft", legend_text, lty=c(1, 1, 1), col=columns, cex=3);
         lines(days, group2, lwd=2, lty=1, col=2);
         lines(days, group3, lwd=2, lty=1, col=4);
