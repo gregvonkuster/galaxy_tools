@@ -18,10 +18,6 @@ option_list <- list(
     make_option(c("--num_days"), action="store", dest="num_days", type="integer", help="Total number of days in the temperature dataset"),
     make_option(c("--nymph_mortality"), action="store", dest="nymph_mortality", type="integer", help="Adjustment rate for nymph mortality"),
     make_option(c("--old_nymph_accumulation"), action="store", dest="old_nymph_accumulation", type="integer", help="Adjustment of degree-days accumulation (young nymph->old nymph)"),
-    make_option(c("--output_combined"), action="store", dest="output_combined", help="Dataset containing analyzed data for combined generations"),
-    make_option(c("--output_f1"), action="store", dest="output_f1", default=NULL, help="Dataset containing analyzed data for generation F1"),
-    make_option(c("--output_f2"), action="store", dest="output_f2", default=NULL, help="Dataset containing analyzed data for generation F2"),
-    make_option(c("--output_p"), action="store", dest="output_p", default=NULL, help="Dataset containing analyzed data for generation P"),
     make_option(c("--oviposition"), action="store", dest="oviposition", type="integer", help="Adjustment for oviposition rate"),
     make_option(c("--photoperiod"), action="store", dest="photoperiod", type="double", help="Critical photoperiod for diapause induction/termination"),
     make_option(c("--plot_generations_separately"), action="store", dest="plot_generations_separately", help="Plot Plot P, F1 and F2 as separate lines or pool across them"),
@@ -66,25 +62,6 @@ append_vector = function(data_frame, vec, new_column_name) {
     return(data_frame);
 }
 
-get_date_labels = function(temperature_data_frame, num_rows) {
-    # Keep track of the years to see if spanning years.
-    month_labels = list();
-    current_month_label = NULL;
-    for (i in 1:num_rows) {
-        # Get the year and month from the date which
-        # has the format YYYY-MM-DD.
-        date = format(temperature_data_frame$DATE[i]);
-        items = strsplit(date, "-")[[1]];
-        month = items[2];
-        month_label = month.abb[as.integer(month)];
-        if (!identical(current_month_label, month_label)) {
-            month_labels[length(month_labels)+1] = month_label;
-            current_month_label = month_label;
-        }
-    }
-    return(c(unlist(month_labels)));
-}
-
 get_file_path = function(life_stage, base_name, life_stage_nymph=NULL, life_stage_adult=NULL) {
     if (!is.null(life_stage_nymph)) {
         lsi = get_life_stage_index(life_stage, life_stage_nymph=life_stage_nymph);
@@ -96,7 +73,7 @@ get_file_path = function(life_stage, base_name, life_stage_nymph=NULL, life_stag
         lsi = get_life_stage_index(life_stage);
         file_name = paste(lsi, base_name, sep="_");
     }
-    file_path = paste("output_dir", file_name, sep="/");
+    file_path = paste("output_plots_dir", file_name, sep="/");
     return(file_path);
 }
 
@@ -216,6 +193,68 @@ get_temperature_at_hour = function(latitude, temperature_data_frame, row, num_da
     return(c(curr_mean_temp, averages))
 }
 
+get_tick_index = function(index, last_tick, ticks, month_labels) {
+    # The R code tries hard not to draw overlapping tick labels, and so
+    # will omit labels where they would abut or overlap previously drawn
+    # labels. This can result in, for example, every other tick being
+    # labelled.  We'll keep track of the last tick to make sure all of
+    # the month labels are displayed, and missing ticks are restricted
+    # to Sundays which have no labels anyway.
+    if (last_tick==0) {
+        return(length(ticks)+1);
+    }
+    last_saved_tick = ticks[[length(ticks)]];
+    if (index-last_saved_tick<6) {
+        last_saved_month = month_labels[[length(month_labels)]];
+        if (last_saved_month=="") {
+            # We're safe overwriting a tick
+            # with no label (i.e., a Sunday tick).
+            return(length(ticks));
+        } else {
+            # Don't eliminate a Month label.
+            return(NULL);
+        }
+    }
+    return(length(ticks)+1);
+}
+
+get_x_axis_ticks_and_labels = function(temperature_data_frame, num_rows) {
+    # Keep track of the years to see if spanning years.
+    month_labels = list();
+    ticks = list();
+    current_month_label = NULL;
+    last_tick = 0;
+    for (i in 1:num_rows) {
+        # Get the year and month from the date which
+        # has the format YYYY-MM-DD.
+        date = format(temperature_data_frame$DATE[i]);
+        # Get the month label.
+        items = strsplit(date, "-")[[1]];
+        month = items[2];
+        month_label = month.abb[as.integer(month)];
+        tick_index = get_tick_index(i, last_tick, ticks, month_labels)
+        if (!is.null(tick_index)) {
+            if (!identical(current_month_label, month_label)) {
+                # Add an x-axis tick for the month.
+                ticks[tick_index] = i;
+                month_labels[tick_index] = month_label;
+                current_month_label = month_label;
+                last_tick = i;
+            }
+            # Get the day.
+            day = weekdays(as.Date(date));
+            if (day=="Sunday") {
+                # Add an x-axis tick if we're on a Sunday.
+                ticks[tick_index] = i;
+                # Add a blank month label so it is not displayed.
+                month_labels[tick_index] = "";
+                last_tick = i;
+            }
+        }
+    }
+    return(list(ticks, month_labels));
+}
+
 mortality.adult = function(temperature) {
     if (temperature < 12.7) {
         mortality.probability = 0.002;
@@ -265,7 +304,7 @@ parse_input_data = function(input_file, num_rows) {
     return(temperature_data_frame);
 }
 
-render_chart = function(date_labels, chart_type, plot_std_error, insect, location, latitude, start_date, end_date, days, maxval,
+render_chart = function(ticks, date_labels, chart_type, plot_std_error, insect, location, latitude, start_date, end_date, days, maxval,
     replications, life_stage, group, group_std_error, group2=NULL, group2_std_error=NULL, group3=NULL, group3_std_error=NULL,
     life_stages_adult=NULL, life_stages_nymph=NULL) {
     if (chart_type=="pop_size_by_life_stage") {
@@ -273,12 +312,12 @@ render_chart = function(date_labels, chart_type, plot_std_error, insect, locatio
             title = paste(insect, ": Reps", replications, ":", life_stage, "Pop :", location, ": Lat", latitude, ":", start_date, "-", end_date, sep=" ");
             legend_text = c("Egg", "Nymph", "Adult");
             columns = c(4, 2, 1);
-            plot(days, group, main=title, type="l", ylim=c(0, maxval), axes=F, lwd=2, xlab="", ylab="", cex=3, cex.lab=3, cex.axis=3, cex.main=3);
+            plot(days, group, main=title, type="l", ylim=c(0, maxval), axes=FALSE, lwd=2, xlab="", ylab="", cex=3, cex.lab=3, cex.axis=3, cex.main=3);
             legend("topleft", legend_text, lty=c(1, 1, 1), col=columns, cex=3);
             lines(days, group2, lwd=2, lty=1, col=2);
             lines(days, group3, lwd=2, lty=1, col=4);
-            axis(1, at=c(1:length(date_labels)) * 30 - 15, cex.axis=3, labels=date_labels);
-            axis(2, cex.axis=3);
+            axis(side=1, at=ticks, labels=date_labels, font.axis=3, xpd=TRUE, cex=3, cex.lab=3, cex.axis=3, cex.main=3);
+            axis(side=2, font.axis=3, xpd=TRUE, cex=3, cex.lab=3, cex.axis=3, cex.main=3);
             if (plot_std_error=="yes") {
                 # Standard error for group.
                 lines(days, group+group_std_error, lty=2);
@@ -306,10 +345,10 @@ render_chart = function(date_labels, chart_type, plot_std_error, insect, locatio
                 legend_text = c(paste(life_stages_adult, life_stage, sep=" "));
                 columns = c(1);
             }
-            plot(days, group, main=title, type="l", ylim=c(0, maxval), axes=F, lwd=2, xlab="", ylab="", cex=3, cex.lab=3, cex.axis=3, cex.main=3);
+            plot(days, group, main=title, type="l", ylim=c(0, maxval), axes=FALSE, lwd=2, xlab="", ylab="", cex=3, cex.lab=3, cex.axis=3, cex.main=3);
             legend("topleft", legend_text, lty=c(1), col="black", cex=3);
-            axis(1, at=c(1:length(date_labels)) * 30 - 15, cex.axis=3, labels=date_labels);
-            axis(2, cex.axis=3);
+            axis(side=1, at=ticks, labels=date_labels, font.axis=3, xpd=TRUE, cex=3, cex.lab=3, cex.axis=3, cex.main=3);
+            axis(side=2, font.axis=3, xpd=TRUE, cex=3, cex.lab=3, cex.axis=3, cex.main=3);
             if (plot_std_error=="yes") {
                 # Standard error for group.
                 lines(days, group+group_std_error, lty=2);
@@ -329,12 +368,12 @@ render_chart = function(date_labels, chart_type, plot_std_error, insect, locatio
         title = paste(insect, ": Reps", replications, title_str, location, ": Lat", latitude, ":", start_date, "-", end_date, sep=" ");
         legend_text = c("P", "F1", "F2");
         columns = c(1, 2, 4);
-        plot(days, group, main=title, type="l", ylim=c(0, maxval), axes=F, lwd=2, xlab="", ylab="", cex=3, cex.lab=3, cex.axis=3, cex.main=3);
+        plot(days, group, main=title, type="l", ylim=c(0, maxval), axes=FALSE, lwd=2, xlab="", ylab="");
         legend("topleft", legend_text, lty=c(1, 1, 1), col=columns, cex=3);
         lines(days, group2, lwd=2, lty=1, col=2);
         lines(days, group3, lwd=2, lty=1, col=4);
-        axis(1, at=c(1:length(date_labels)) * 30 - 15, cex.axis=3, labels=date_labels);
-        axis(2, cex.axis=3);
+        axis(side=1, at=ticks, labels=date_labels, font.axis=3, xpd=TRUE, cex=3, cex.lab=3, cex.axis=3, cex.main=3);
+        axis(side=2, font.axis=3, xpd=TRUE, cex=3, cex.lab=3, cex.axis=3, cex.main=3);
         if (plot_std_error=="yes") {
             # Standard error for group.
             lines(days, group+group_std_error, lty=2);
@@ -364,7 +403,9 @@ if (plot_generations_separately) {
     temperature_data_frame_F2 = data.frame(temperature_data_frame);
 }
 # Get the date labels for plots.
-date_labels = get_date_labels(temperature_data_frame, opt$num_days);
+ticks_and_labels = get_x_axis_ticks_and_labels(temperature_data_frame, opt$num_days);
+ticks = c(unlist(ticks_and_labels[1]));
+date_labels = c(unlist(ticks_and_labels[2]));
 # All latitude values are the same, so get the value for plots from the first row.
 latitude = temperature_data_frame$LATITUDE[1];
 # Determine the specified life stages for processing.
@@ -1256,14 +1297,18 @@ if (plot_generations_separately) {
 }
 
 # Save the analyzed data for combined generations.
-write.csv(temperature_data_frame, file=opt$output_combined, row.names=F);
+file_path = paste("output_data_dir", "04_combined_generations.csv", sep="/");
+write.csv(temperature_data_frame, file=file_path, row.names=F);
 if (plot_generations_separately) {
     # Save the analyzed data for generation P.
-    write.csv(temperature_data_frame_P, file=opt$output_p, row.names=F);
+    file_path = paste("output_data_dir", "01_generation_P.csv", sep="/");
+    write.csv(temperature_data_frame_P, file=file_path, row.names=F);
     # Save the analyzed data for generation F1.
-    write.csv(temperature_data_frame_F1, file=opt$output_f1, row.names=F);
+    file_path = paste("output_data_dir", "02_generation_F1.csv", sep="/");
+    write.csv(temperature_data_frame_F1, file=file_path, row.names=F);
     # Save the analyzed data for generation F2.
-    write.csv(temperature_data_frame_F2, file=opt$output_f2, row.names=F);
+    file_path = paste("output_data_dir", "03_generation_F2.csv", sep="/");
+    write.csv(temperature_data_frame_F2, file=file_path, row.names=F);
 }
 # Display the total number of days in the Galaxy history item blurb.
 cat("Number of days: ", opt$num_days, "\n");
@@ -1282,7 +1327,7 @@ if (plot_generations_separately) {
             par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
             # Egg population size by generation.
             maxval = max(P_eggs+F1_eggs+F2_eggs) + 100;
-            render_chart(date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
+            render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
                 opt$replications, life_stage, group=P_eggs, group_std_error=P_eggs.std_error, group2=F1_eggs, group2_std_error=F1_eggs.std_error, group3=F2_eggs,
                 group3_std_error=F2_eggs.std_error);
             # Turn off device driver to flush output.
@@ -1322,7 +1367,7 @@ if (plot_generations_separately) {
                     group3 = F2_total_nymphs;
                     group3_std_error = F2_total_nymphs.std_error;
                 }
-                render_chart(date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
+                render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
                     opt$replications, life_stage, group=group, group_std_error=group_std_error, group2=group2, group2_std_error=group2_std_error,
                     group3=group3, group3_std_error=group3_std_error, life_stages_nymph=life_stage_nymph);
                 # Turn off device driver to flush output.
@@ -1372,7 +1417,7 @@ if (plot_generations_separately) {
                     group3 = F2_total_adults;
                     group3_std_error = F2_total_adults.std_error;
                 }
-                render_chart(date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
+                render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
                     opt$replications, life_stage, group=group, group_std_error=group_std_error, group2=group2, group2_std_error=group2_std_error,
                     group3=group3, group3_std_error=group3_std_error, life_stages_adult=life_stage_adult);
                 # Turn off device driver to flush output.
@@ -1388,7 +1433,7 @@ if (plot_generations_separately) {
             par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
             # Total population size by generation.
             maxval = max(P+F1+F2) + 100;
-            render_chart(date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
+            render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
                 opt$replications, life_stage, group=P, group_std_error=P.std_error, group2=F1, group2_std_error=F1.std_error, group3=F2, group3_std_error=F2.std_error);
             # Turn off device driver to flush output.
             dev.off();
@@ -1404,7 +1449,7 @@ if (plot_generations_separately) {
             par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
             # Egg population size.
             maxval = max(eggs+eggs.std_error) + 100;
-            render_chart(date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
+            render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
                 opt$replications, life_stage, group=eggs, group_std_error=eggs.std_error);
             # Turn off device driver to flush output.
             dev.off();
@@ -1429,7 +1474,7 @@ if (plot_generations_separately) {
                     group_std_error = old_nymphs.std_error;
                 }
                 maxval = max(group+group_std_error) + 100;
-                render_chart(date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
+                render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
                     opt$replications, life_stage, group=group, group_std_error=group_std_error, life_stages_nymph=life_stage_nymph);
                 # Turn off device driver to flush output.
                 dev.off();
@@ -1459,7 +1504,7 @@ if (plot_generations_separately) {
                     group_std_error = diapausing_adults.std_error
                 }
                 maxval = max(group+group_std_error) + 100;
-                render_chart(date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
+                render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
                     opt$replications, life_stage, group=group, group_std_error=group_std_error, life_stages_adult=life_stage_adult);
                 # Turn off device driver to flush output.
                 dev.off();
@@ -1472,7 +1517,7 @@ if (plot_generations_separately) {
             par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
             # Total population size.
             maxval = max(eggs+eggs.std_error, total_nymphs+total_nymphs.std_error, total_adults+total_adults.std_error) + 100;
-            render_chart(date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
+            render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
                 opt$replications, life_stage, group=total_adults, group_std_error=total_adults.std_error, group2=total_nymphs, group2_std_error=total_nymphs.std_error, group3=eggs,
                 group3_std_error=eggs.std_error);
             # Turn off device driver to flush output.

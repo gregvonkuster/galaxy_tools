@@ -4,6 +4,10 @@
         <requirement type="package" version="1.4.4">r-optparse</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
+#import os
+#set output_data_dir = "output_data_dir"
+#set output_plots_dir = "output_plots_dir"
+#set error_file = $os.path.join($output_data_dir, "04_combined_generations.csv")
 #set life_stages = list()
 #set plot_adult_life_stage = $plot_adult_life_stage_cond.plot_adult_life_stage
 #set plot_nymph_life_stage = $plot_nymph_life_stage_cond.plot_nymph_life_stage
@@ -20,7 +24,8 @@
     $life_stages.append("Total")
 #end if
 #set life_stages = ",".join($life_stages)
-mkdir output_dir &&
+mkdir output_data_dir &&
+mkdir output_plots_dir &&
 Rscript '$__tool_directory__/insect_phenology_model.R'
 --adult_mortality $adult_mortality
 --adult_accumulation $adult_accumulation
@@ -47,15 +52,9 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
 --plot_generations_separately $plot_generations_separately
 --plot_std_error $plot_std_error
 --young_nymph_accumulation $young_nymph_accumulation
---output_combined '$output_combined'
-#if str($plot_generations_separately) == "yes":
-    --output_p '$output_p'
-    --output_f1 '$output_f1'
-    --output_f2 '$output_f2'
-#end if
 &>ipm_log.txt;
 if [[ $? -ne 0 ]]; then
-    cp ipm_log.txt '$output_combined';
+    cp ipm_log.txt '$error_file';
     exit 1;
 fi]]></command>
     <inputs>
@@ -119,18 +118,11 @@ fi]]></command>
         </param>
     </inputs>
     <outputs>
-        <data name="output_p" format="csv" label="${tool.name} (P) on ${on_string}">
-            <filter>plot_generations_separately == 'yes'</filter>
-        </data>
-        <data name="output_f1" format="csv" label="${tool.name} (F1) on ${on_string}">
-            <filter>plot_generations_separately == 'yes'</filter>
-        </data>
-        <data name="output_f2" format="csv" label="${tool.name} (F2) on ${on_string}">
-            <filter>plot_generations_separately == 'yes'</filter>
-        </data>
-        <data name="output_combined" format="csv" label="${tool.name} (combined generations) on ${on_string}"/>
-        <collection name="output_collection" type="list" label="${tool.name} (plots), on ${on_string}">
-            <discover_datasets pattern="__name__" directory="output_dir" format="pdf" />
+        <collection name="output_data_collection" type="list" label="${tool.name} (data), on ${on_string}">
+            <discover_datasets pattern="__name__" directory="output_data_dir" format="csv" />
+        </collection>
+        <collection name="output_plots_collection" type="list" label="${tool.name} (plots), on ${on_string}">
+            <discover_datasets pattern="__name__" directory="output_plots_dir" format="pdf" />
         </collection>
     </outputs>
     <tests>
@@ -142,8 +134,10 @@ fi]]></command>
             <param name="plot_egg_life_stage" value="no" />
             <param name="life_stages_nymph" value="Young" />
             <param name="life_stages_adult" value="Pre-vittelogenic" />
-            <output name="output_combined" file="output_combined1.csv" ftype="csv" compare="contains"/>
-            <output_collection name="output_collection" type="list">
+            <output_collection name="output_data_collection" type="list">
+                <element name="04_combined_generations.csv" file="output_combined1.csv" ftype="csv" compare="contains"/>
+            </output_collection>
+            <output_collection name="output_plots_collection" type="list">
                 <element name="02_young_nymph_pop.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
                 <element name="05_pre-vittelogenic_adult_pop.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
             </output_collection>
@@ -153,8 +147,10 @@ fi]]></command>
             <param name="location" value="State College PA" />
             <param name="replications" value="2" />
             <param name="plot_generations_separately" value="no" />
-            <output name="output_combined" file="output_combined2.csv" ftype="csv" compare="contains"/>
-            <output_collection name="output_collection" type="list">
+            <output_collection name="output_data_collection" type="list">
+                <element name="04_combined_generations.csv" file="output_combined2.csv" ftype="csv" compare="contains"/>
+            </output_collection>
+            <output_collection name="output_plots_collection" type="list">
                 <element name="01_egg_pop.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
                 <element name="04_total_nymph_pop.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
                 <element name="08_total_adult_pop.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
@@ -168,11 +164,13 @@ fi]]></command>
             <param name="plot_egg_life_stage" value="no" />
             <param name="life_stages_nymph" value="Old" />
             <param name="plot_adult_life_stage" value="no" />
-            <output name="output_p" file="output_p_3.csv" ftype="csv" compare="contains"/>
-            <output name="output_f1" file="output_f1_3.csv" ftype="csv" compare="contains"/>
-            <output name="output_f2" file="output_f2_3.csv" ftype="csv" compare="contains"/>
-            <output name="output_combined" file="output_combined3.csv" ftype="csv" compare="contains"/>
-            <output_collection name="output_collection" type="list">
+            <output_collection name="output_data_collection" type="list">
+                <element name="01_generation_P.csv" file="output_p_3.csv" ftype="csv" compare="contains"/>
+                <element name="02_generation_F1.csv" file="output_f1_3.csv" ftype="csv" compare="contains"/>
+                <element name="03_generation_F2.csv" file="output_f2_3.csv" ftype="csv" compare="contains"/>
+                <element name="04_combined_generations.csv" file="output_combined3.csv" ftype="csv" compare="contains"/>
+            </output_collection>
+            <output_collection name="output_plots_collection" type="list">
                 <element name="03_old_nymph_pop_by_generation.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
             </output_collection>
         </test>
@@ -180,11 +178,13 @@ fi]]></command>
             <param name="input" value="state_college.csv" ftype="csv" />
             <param name="location" value="State College PA" />
             <param name="replications" value="2" />
-            <output name="output_p" file="output_p_4.csv" ftype="csv" compare="contains"/>
-            <output name="output_f1" file="output_f1_4.csv" ftype="csv" compare="contains"/>
-            <output name="output_f2" file="output_f2_4.csv" ftype="csv" compare="contains"/>
-            <output name="output_combined" file="output_combined4.csv" ftype="csv" compare="contains"/>
-            <output_collection name="output_collection" type="list">
+            <output_collection name="output_data_collection" type="list">
+                <element name="01_generation_P.csv" file="output_p_4.csv" ftype="csv" compare="contains"/>
+                <element name="02_generation_F1.csv" file="output_f1_4.csv" ftype="csv" compare="contains"/>
+                <element name="03_generation_F2.csv" file="output_f2_4.csv" ftype="csv" compare="contains"/>
+                <element name="04_combined_generations.csv" file="output_combined4.csv" ftype="csv" compare="contains"/>
+            </output_collection>
+            <output_collection name="output_plots_collection" type="list">
                 <element name="01_egg_pop_by_generation.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
                 <element name="04_total_nymph_pop_by_generation.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
                 <element name="08_total_adult_pop_by_generation.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
