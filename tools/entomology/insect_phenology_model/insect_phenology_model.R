@@ -6,7 +6,8 @@ option_list <- list(
     make_option(c("--adult_mortality"), action="store", dest="adult_mortality", type="integer", help="Adjustment rate for adult mortality"),
     make_option(c("--adult_accumulation"), action="store", dest="adult_accumulation", type="integer", help="Adjustment of degree-days accumulation (old nymph->adult)"),
     make_option(c("--egg_mortality"), action="store", dest="egg_mortality", type="integer", help="Adjustment rate for egg mortality"),
-    make_option(c("--input"), action="store", dest="input", help="Temperature data for selected location"),
+    make_option(c("--input_norm"), action="store", dest="input_norm", help="30 year normals temperature data for selected station"),
+    make_option(c("--input_ytd"), action="store", dest="input_ytd", help="Year-to-date temperature data for selected location"),
     make_option(c("--insect"), action="store", dest="insect", help="Insect name"),
     make_option(c("--insects_per_replication"), action="store", dest="insects_per_replication", type="integer", help="Number of insects with which to start each replication"),
     make_option(c("--life_stages"), action="store", dest="life_stages", help="Selected life stages for plotting"),
@@ -15,7 +16,7 @@ option_list <- list(
     make_option(c("--location"), action="store", dest="location", help="Selected location"),
     make_option(c("--min_clutch_size"), action="store", dest="min_clutch_size", type="integer", help="Adjustment of minimum clutch size"),
     make_option(c("--max_clutch_size"), action="store", dest="max_clutch_size", type="integer", help="Adjustment of maximum clutch size"),
-    make_option(c("--num_days"), action="store", dest="num_days", type="integer", help="Total number of days in the temperature dataset"),
+    make_option(c("--num_days_ytd"), action="store", dest="num_days_ytd", type="integer", help="Total number of days in the temperature dataset"),
     make_option(c("--nymph_mortality"), action="store", dest="nymph_mortality", type="integer", help="Adjustment rate for nymph mortality"),
     make_option(c("--old_nymph_accumulation"), action="store", dest="old_nymph_accumulation", type="integer", help="Adjustment of degree-days accumulation (young nymph->old nymph)"),
     make_option(c("--oviposition"), action="store", dest="oviposition", type="integer", help="Adjustment for oviposition rate"),
@@ -32,7 +33,7 @@ opt <- args$options;
 
 add_daylight_length = function(temperature_data_frame, num_rows) {
     # Return a vector of daylight length (photoperido profile) for
-    # the number of days specified in the input temperature data
+    # the number of days specified in the input_ytd temperature data
     # (from Forsythe 1995).
     p = 0.8333;
     latitude = temperature_data_frame$LATITUDE[1];
@@ -218,13 +219,29 @@ get_tick_index = function(index, last_tick, ticks, month_labels) {
     return(length(ticks)+1);
 }
 
-get_x_axis_ticks_and_labels = function(temperature_data_frame, num_rows) {
+get_total_days = function(is_leap_year) {
+    # Get the total number of days in the current year.
+    if (is_leap_year) {
+        return (366);
+    } else {
+        return (365);
+    }
+}
+
+get_x_axis_ticks_and_labels = function(temperature_data_frame, num_rows, num_days_ytd) {
     # Keep track of the years to see if spanning years.
     month_labels = list();
     ticks = list();
     current_month_label = NULL;
     last_tick = 0;
     for (i in 1:num_rows) {
+        if (i==num_days_ytd) {
+            # Add a tick for the start of the 30 year normnals data.
+            tick_index = get_tick_index(i, last_tick, ticks, month_labels)
+            ticks[tick_index] = i;
+            month_labels[tick_index] = "Start 30 year normals";
+            last_tick = i;
+        }
         # Get the year and month from the date which
         # has the format YYYY-MM-DD.
         date = format(temperature_data_frame$DATE[i]);
@@ -233,14 +250,15 @@ get_x_axis_ticks_and_labels = function(temperature_data_frame, num_rows) {
         month = items[2];
         month_label = month.abb[as.integer(month)];
         tick_index = get_tick_index(i, last_tick, ticks, month_labels)
+        if (!identical(current_month_label, month_label)) {
+            # Add an x-axis tick for the month.
+            ticks[tick_index] = i;
+            month_labels[tick_index] = month_label;
+            current_month_label = month_label;
+            last_tick = i;
+        }
+        tick_index = get_tick_index(i, last_tick, ticks, month_labels)
         if (!is.null(tick_index)) {
-            if (!identical(current_month_label, month_label)) {
-                # Add an x-axis tick for the month.
-                ticks[tick_index] = i;
-                month_labels[tick_index] = month_label;
-                current_month_label = month_label;
-                last_tick = i;
-            }
             # Get the day.
             day = weekdays(as.Date(date));
             if (day=="Sunday") {
@@ -251,8 +269,27 @@ get_x_axis_ticks_and_labels = function(temperature_data_frame, num_rows) {
                 last_tick = i;
             }
         }
+        if (i==num_rows) {
+            # Add a tick for the last day of the year.
+            tick_index = get_tick_index(i, last_tick, ticks, month_labels)
+            ticks[tick_index] = i;
+            month_labels[tick_index] = "";
+            last_tick = i;
+        }
     }
     return(list(ticks, month_labels));
+}
+
+is_leap_year = function(date_str) {
+    # Extract the year from the date_str.
+    date = format(date_str);
+    items = strsplit(date, "-")[[1]];
+    year = as.integer(items[1]);
+    if (((year %% 4 == 0) & (year %% 100 != 0)) | (year %% 400 == 0)) {
+        return (TRUE);
+    } else {
+        return (FALSE);
+    }
 }
 
 mortality.adult = function(temperature) {
@@ -288,25 +325,63 @@ mortality.nymph = function(temperature) {
     return(mortality.probability);
 }
 
-parse_input_data = function(input_file, num_rows) {
-    # Read in the input temperature datafile into a data frame.
-    temperature_data_frame = read.csv(file=input_file, header=T, strip.white=TRUE, sep=",");
-    num_columns = dim(temperature_data_frame)[2];
-    if (num_columns == 6) {
-        # The input data has the following 6 columns:
-        # LATITUDE, LONGITUDE, DATE, DOY, TMIN, TMAX
-        # Set the column names for access when adding daylight length..
-        colnames(temperature_data_frame) = c("LATITUDE","LONGITUDE", "DATE", "DOY", "TMIN", "TMAX");
-        current_column_names = colnames(temperature_data_frame);
-        # Add a column containing the daylight length for each day.
-        temperature_data_frame = add_daylight_length(temperature_data_frame, num_rows);
+parse_input_data = function(input_ytd, input_norm, num_days_ytd) {
+    # Read the input_ytd temperature datafile into a data frame.
+    # The input_ytd data has the following 6 columns:
+    # LATITUDE, LONGITUDE, DATE, DOY, TMIN, TMAX
+    temperature_data_frame = read.csv(file=input_ytd, header=T, strip.white=TRUE, stringsAsFactors=FALSE, sep=",");
+    # Set the temperature_data_frame column names for access.
+    colnames(temperature_data_frame) = c("LATITUDE", "LONGITUDE", "DATE", "DOY", "TMIN", "TMAX");
+    # Get the start date.
+    start_date = temperature_data_frame$DATE[1];
+    # See if we're in a leap year.
+    is_leap_year = is_leap_year(start_date);
+    # get the number of days in the year.
+    total_days = get_total_days(is_leap_year);
+    # Extract the year from the start date.
+    date_str = format(start_date);
+    date_str_items = strsplit(date_str, "-")[[1]];
+    year = date_str_items[1];
+    # Read the input_norm temperature datafile into a data frame.
+    # The input_norm data has the following 10 columns:
+    # STATIONID, LATITUDE, LONGITUDE, ELEV_M, NAME, ST, MMDD, DOY, TMIN, TMAX
+    norm_data_frame = read.csv(file=input_norm, header=T, strip.white=TRUE, stringsAsFactors=FALSE, sep=",");
+    # Set the norm_data_frame column names for access.
+    colnames(norm_data_frame) = c("STATIONID", "LATITUDE","LONGITUDE", "ELEV_M", "NAME", "ST", "MMDD", "DOY", "TMIN", "TMAX");
+    # All normals data includes Feb 29 which is row 60 in
+    # the data, so delete that row if we're not in a leap year.
+    if (!is_leap_year) {
+        norm_data_frame = norm_data_frame[-c(60),];
     }
+    # Define the next row for the temperature_data_frame from the 30 year normals data.
+    first_normals_row = num_days_ytd + 1;
+    for (i in first_normals_row:total_days) {
+        latitude = norm_data_frame[i,"LATITUDE"][1];
+        longitude = norm_data_frame[i,"LONGITUDE"][1];
+        # Format the date.
+        mmdd = norm_data_frame[i,"MMDD"][1];
+        date_str = paste(year, mmdd, sep="-");
+        doy = norm_data_frame[i,"DOY"][1];
+        if (!is_leap_year) {
+            # Since all normals data includes Feb 29, we have to
+            # subtract 1 from DOY if we're not in a leap year since
+            # we removed the Feb 29 row from the data frame above.
+            doy = as.integer(doy) - 1;
+        }
+        tmin = norm_data_frame[i,"TMIN"][1];
+        tmax = norm_data_frame[i,"TMAX"][1];
+        # Append the row to temperature_data_frame.
+        new_row = list(latitude, longitude, date_str, doy, tmin, tmax);
+        temperature_data_frame[i,] = new_row;
+    }
+    # Add a column containing the daylight length for each day.
+    temperature_data_frame = add_daylight_length(temperature_data_frame, total_days);
     return(temperature_data_frame);
 }
 
 render_chart = function(ticks, date_labels, chart_type, plot_std_error, insect, location, latitude, start_date, end_date, days, maxval,
-    replications, life_stage, group, group_std_error, group2=NULL, group2_std_error=NULL, group3=NULL, group3_std_error=NULL,
-    life_stages_adult=NULL, life_stages_nymph=NULL) {
+                        replications, life_stage, group, group_std_error, group2=NULL, group2_std_error=NULL, group3=NULL, group3_std_error=NULL,
+                        life_stages_adult=NULL, life_stages_nymph=NULL) {
     if (chart_type=="pop_size_by_life_stage") {
         if (life_stage=="Total") {
             title = paste(insect, ": Reps", replications, ":", life_stage, "Pop :", location, ": Lat", latitude, ":", start_date, "-", end_date, sep=" ");
@@ -316,7 +391,7 @@ render_chart = function(ticks, date_labels, chart_type, plot_std_error, insect, 
             legend("topleft", legend_text, lty=c(1, 1, 1), col=columns, cex=3);
             lines(days, group2, lwd=2, lty=1, col=2);
             lines(days, group3, lwd=2, lty=1, col=4);
-            axis(side=1, at=ticks, labels=date_labels, font.axis=3, xpd=TRUE, cex=3, cex.lab=3, cex.axis=3, cex.main=3);
+            axis(side=1, at=ticks, labels=date_labels, las=2, font.axis=3, xpd=TRUE, cex=3, cex.lab=3, cex.axis=3, cex.main=3);
             axis(side=2, font.axis=3, xpd=TRUE, cex=3, cex.lab=3, cex.axis=3, cex.main=3);
             if (plot_std_error=="yes") {
                 # Standard error for group.
@@ -347,7 +422,7 @@ render_chart = function(ticks, date_labels, chart_type, plot_std_error, insect, 
             }
             plot(days, group, main=title, type="l", ylim=c(0, maxval), axes=FALSE, lwd=2, xlab="", ylab="", cex=3, cex.lab=3, cex.axis=3, cex.main=3);
             legend("topleft", legend_text, lty=c(1), col="black", cex=3);
-            axis(side=1, at=ticks, labels=date_labels, font.axis=3, xpd=TRUE, cex=3, cex.lab=3, cex.axis=3, cex.main=3);
+            axis(side=1, at=ticks, labels=date_labels, las=2, font.axis=3, xpd=TRUE, cex=3, cex.lab=3, cex.axis=3, cex.main=3);
             axis(side=2, font.axis=3, xpd=TRUE, cex=3, cex.lab=3, cex.axis=3, cex.main=3);
             if (plot_std_error=="yes") {
                 # Standard error for group.
@@ -372,7 +447,7 @@ render_chart = function(ticks, date_labels, chart_type, plot_std_error, insect, 
         legend("topleft", legend_text, lty=c(1, 1, 1), col=columns, cex=3);
         lines(days, group2, lwd=2, lty=1, col=2);
         lines(days, group3, lwd=2, lty=1, col=4);
-        axis(side=1, at=ticks, labels=date_labels, font.axis=3, xpd=TRUE, cex=3, cex.lab=3, cex.axis=3, cex.main=3);
+        axis(side=1, at=ticks, labels=date_labels, las=2, font.axis=3, xpd=TRUE, cex=3, cex.lab=3, cex.axis=3, cex.main=3);
         axis(side=2, font.axis=3, xpd=TRUE, cex=3, cex.lab=3, cex.axis=3, cex.main=3);
         if (plot_std_error=="yes") {
             # Standard error for group.
@@ -394,24 +469,39 @@ if (opt$plot_generations_separately=="yes") {
 } else {
     plot_generations_separately = FALSE;
 }
+# Display the total number of days in the Galaxy history item blurb.
+cat("Year-to-date number of days: ", opt$num_days_ytd, "\n");
+
 # Read the temperature data into a data frame.
-temperature_data_frame = parse_input_data(opt$input, opt$num_days);
+temperature_data_frame = parse_input_data(opt$input_ytd, opt$input_norm, opt$num_days_ytd);
+
 # Create copies of the temperature data for generations P, F1 and F2 if we're plotting generations separately.
 if (plot_generations_separately) {
     temperature_data_frame_P = data.frame(temperature_data_frame);
     temperature_data_frame_F1 = data.frame(temperature_data_frame);
     temperature_data_frame_F2 = data.frame(temperature_data_frame);
 }
-# Get the date labels for plots.
-ticks_and_labels = get_x_axis_ticks_and_labels(temperature_data_frame, opt$num_days);
+
+# Information needed for plots.
+start_date = temperature_data_frame$DATE[1];
+end_date = temperature_data_frame$DATE[opt$num_days_ytd];
+# See if we're in a leap year.
+is_leap_year = is_leap_year(start_date);
+total_days = get_total_days(is_leap_year);
+total_days_vector = c(1:total_days);
+
+# Get the ticks date labels for plots.
+ticks_and_labels = get_x_axis_ticks_and_labels(temperature_data_frame, total_days, opt$num_days_ytd);
 ticks = c(unlist(ticks_and_labels[1]));
 date_labels = c(unlist(ticks_and_labels[2]));
 # All latitude values are the same, so get the value for plots from the first row.
 latitude = temperature_data_frame$LATITUDE[1];
+
 # Determine the specified life stages for processing.
 # Split life_stages into a list of strings for plots.
 life_stages_str = as.character(opt$life_stages);
 life_stages = strsplit(life_stages_str, ",")[[1]];
+
 # Determine the data we need to generate for plotting.
 process_eggs = FALSE;
 process_nymphs = FALSE;
@@ -468,76 +558,76 @@ if (process_adults) {
 }
 # Initialize matrices.
 if (process_eggs) {
-    Eggs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+    Eggs.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
 }
 if (process_young_nymphs | process_total_nymphs) {
-    YoungNymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+    YoungNymphs.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
 }
 if (process_old_nymphs | process_total_nymphs) {
-    OldNymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+    OldNymphs.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
 }
 if (process_previttelogenic_adults | process_total_adults) {
-    Previttelogenic.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+    Previttelogenic.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
 }
 if (process_vittelogenic_adults | process_total_adults) {
-    Vittelogenic.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+    Vittelogenic.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
 }
 if (process_diapausing_adults | process_total_adults) {
-    Diapausing.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+    Diapausing.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
 }
-newborn.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-adult.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-death.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+newborn.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
+adult.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
+death.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
 if (plot_generations_separately) {
     # P is Parental, or overwintered adults.
-    P.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+    P.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
     # F1 is the first field-produced generation.
-    F1.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+    F1.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
     # F2 is the second field-produced generation.
-    F2.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+    F2.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
     if (process_eggs) {
-        P_eggs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-        F1_eggs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-        F2_eggs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+        P_eggs.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
+        F1_eggs.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
+        F2_eggs.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
     }
     if (process_young_nymphs) {
-        P_young_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-        F1_young_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-        F2_young_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+        P_young_nymphs.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
+        F1_young_nymphs.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
+        F2_young_nymphs.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
     }
     if (process_old_nymphs) {
-        P_old_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-        F1_old_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-        F2_old_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+        P_old_nymphs.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
+        F1_old_nymphs.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
+        F2_old_nymphs.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
     }
     if (process_total_nymphs) {
-        P_total_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-        F1_total_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-        F2_total_nymphs.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+        P_total_nymphs.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
+        F1_total_nymphs.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
+        F2_total_nymphs.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
     }
     if (process_previttelogenic_adults) {
-        P_previttelogenic_adults.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-        F1_previttelogenic_adults.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-        F2_previttelogenic_adults.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+        P_previttelogenic_adults.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
+        F1_previttelogenic_adults.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
+        F2_previttelogenic_adults.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
     }
     if (process_vittelogenic_adults) {
-        P_vittelogenic_adults.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-        F1_vittelogenic_adults.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-        F2_vittelogenic_adults.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+        P_vittelogenic_adults.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
+        F1_vittelogenic_adults.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
+        F2_vittelogenic_adults.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
     }
     if (process_diapausing_adults) {
-        P_diapausing_adults.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-        F1_diapausing_adults.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-        F2_diapausing_adults.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+        P_diapausing_adults.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
+        F1_diapausing_adults.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
+        F2_diapausing_adults.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
     }
     if (process_total_adults) {
-        P_total_adults.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-        F1_total_adults.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
-        F2_total_adults.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+        P_total_adults.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
+        F1_total_adults.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
+        F2_total_adults.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
     }
 }
 # Total population.
-population.replications = matrix(rep(0, opt$num_days*opt$replications), ncol=opt$replications);
+population.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
 
 # Process replications.
 for (current_replication in 1:opt$replications) {
@@ -554,83 +644,83 @@ for (current_replication in 1:opt$replications) {
     vector.matrix = base::t(matrix(vector.matrix, nrow=5));
     # Time series of population size.
     if (process_eggs) {
-        Eggs = rep(0, opt$num_days);
+        Eggs = rep(0, total_days);
     }
     if (process_young_nymphs | process_total_nymphs) {
-        YoungNymphs = rep(0, opt$num_days);
+        YoungNymphs = rep(0, total_days);
     }
     if (process_old_nymphs | process_total_nymphs) {
-        OldNymphs = rep(0, opt$num_days);
+        OldNymphs = rep(0, total_days);
     }
     if (process_previttelogenic_adults | process_total_adults) {
-        Previttelogenic = rep(0, opt$num_days);
+        Previttelogenic = rep(0, total_days);
     }
     if (process_vittelogenic_adults | process_total_adults) {
-        Vittelogenic = rep(0, opt$num_days);
+        Vittelogenic = rep(0, total_days);
     }
     if (process_diapausing_adults | process_total_adults) {
-        Diapausing = rep(0, opt$num_days);
+        Diapausing = rep(0, total_days);
     }
-    N.newborn = rep(0, opt$num_days);
-    N.adult = rep(0, opt$num_days);
-    N.death = rep(0, opt$num_days);
-    overwintering_adult.population = rep(0, opt$num_days);
-    first_generation.population = rep(0, opt$num_days);
-    second_generation.population = rep(0, opt$num_days);
+    N.newborn = rep(0, total_days);
+    N.adult = rep(0, total_days);
+    N.death = rep(0, total_days);
+    overwintering_adult.population = rep(0, total_days);
+    first_generation.population = rep(0, total_days);
+    second_generation.population = rep(0, total_days);
     if (plot_generations_separately) {
         # P is Parental, or overwintered adults.
         # F1 is the first field-produced generation.
         # F2 is the second field-produced generation.
         if (process_eggs) {
-            P.egg = rep(0, opt$num_days);
-            F1.egg = rep(0, opt$num_days);
-            F2.egg = rep(0, opt$num_days);
+            P.egg = rep(0, total_days);
+            F1.egg = rep(0, total_days);
+            F2.egg = rep(0, total_days);
         }
         if (process_young_nymphs) {
-            P.young_nymph = rep(0, opt$num_days);
-            F1.young_nymph = rep(0, opt$num_days);
-            F2.young_nymph = rep(0, opt$num_days);
+            P.young_nymph = rep(0, total_days);
+            F1.young_nymph = rep(0, total_days);
+            F2.young_nymph = rep(0, total_days);
         }
         if (process_old_nymphs) {
-            P.old_nymph = rep(0, opt$num_days);
-            F1.old_nymph = rep(0, opt$num_days);
-            F2.old_nymph = rep(0, opt$num_days);
+            P.old_nymph = rep(0, total_days);
+            F1.old_nymph = rep(0, total_days);
+            F2.old_nymph = rep(0, total_days);
         }
         if (process_total_nymphs) {
-            P.total_nymph = rep(0, opt$num_days);
-            F1.total_nymph = rep(0, opt$num_days);
-            F2.total_nymph = rep(0, opt$num_days);
+            P.total_nymph = rep(0, total_days);
+            F1.total_nymph = rep(0, total_days);
+            F2.total_nymph = rep(0, total_days);
         }
         if (process_previttelogenic_adults) {
-            P.previttelogenic_adult = rep(0, opt$num_days);
-            F1.previttelogenic_adult = rep(0, opt$num_days);
-            F2.previttelogenic_adult = rep(0, opt$num_days);
+            P.previttelogenic_adult = rep(0, total_days);
+            F1.previttelogenic_adult = rep(0, total_days);
+            F2.previttelogenic_adult = rep(0, total_days);
         }
         if (process_vittelogenic_adults) {
-            P.vittelogenic_adult = rep(0, opt$num_days);
-            F1.vittelogenic_adult = rep(0, opt$num_days);
-            F2.vittelogenic_adult = rep(0, opt$num_days);
+            P.vittelogenic_adult = rep(0, total_days);
+            F1.vittelogenic_adult = rep(0, total_days);
+            F2.vittelogenic_adult = rep(0, total_days);
         }
         if (process_diapausing_adults) {
-            P.diapausing_adult = rep(0, opt$num_days);
-            F1.diapausing_adult = rep(0, opt$num_days);
-            F2.diapausing_adult = rep(0, opt$num_days);
+            P.diapausing_adult = rep(0, total_days);
+            F1.diapausing_adult = rep(0, total_days);
+            F2.diapausing_adult = rep(0, total_days);
         }
         if (process_total_adults) {
-            P.total_adult = rep(0, opt$num_days);
-            F1.total_adult = rep(0, opt$num_days);
-            F2.total_adult = rep(0, opt$num_days);
+            P.total_adult = rep(0, total_days);
+            F1.total_adult = rep(0, total_days);
+            F2.total_adult = rep(0, total_days);
         }
     }
     total.population = NULL;
-    averages.day = rep(0, opt$num_days);
-    # All the days included in the input temperature dataset.
-    for (row in 1:opt$num_days) {
+    averages.day = rep(0, total_days);
+    # All the days included in the input_ytd temperature dataset.
+    for (row in 1:total_days) {
         # Get the integer day of the year for the current row.
         doy = temperature_data_frame$DOY[row];
         # Photoperiod in the day.
         photoperiod = temperature_data_frame$DAYLEN[row];
-        temp.profile = get_temperature_at_hour(latitude, temperature_data_frame, row, opt$num_days);
+        temp.profile = get_temperature_at_hour(latitude, temperature_data_frame, row, total_days);
         mean.temp = temp.profile[1];
         averages.temp = temp.profile[2];
         averages.day[row] = averages.temp;
@@ -1018,7 +1108,7 @@ for (current_replication in 1:opt$replications) {
                 F2.total_adult[row] = sum((vector.matrix[,1]==2 & vector.matrix[,2]==3) | (vector.matrix[,1]==2 & vector.matrix[,2]==4) | (vector.matrix[,1]==2 & vector.matrix[,2]==5));
             }
         }
-    }   # End of days specified in the input temperature data.
+    }   # End of days specified in the input_ytd temperature data.
 
     averages.cum = cumsum(averages.day);
 
@@ -1310,12 +1400,6 @@ if (plot_generations_separately) {
     file_path = paste("output_data_dir", "03_generation_F2.csv", sep="/");
     write.csv(temperature_data_frame_F2, file=file_path, row.names=F);
 }
-# Display the total number of days in the Galaxy history item blurb.
-cat("Number of days: ", opt$num_days, "\n");
-# Information needed for plots plots.
-days = c(1:opt$num_days);
-start_date = temperature_data_frame$DATE[1];
-end_date = temperature_data_frame$DATE[opt$num_days];
 
 if (plot_generations_separately) {
     for (life_stage in life_stages) {
@@ -1327,9 +1411,9 @@ if (plot_generations_separately) {
             par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
             # Egg population size by generation.
             maxval = max(P_eggs+F1_eggs+F2_eggs) + 100;
-            render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
-                opt$replications, life_stage, group=P_eggs, group_std_error=P_eggs.std_error, group2=F1_eggs, group2_std_error=F1_eggs.std_error, group3=F2_eggs,
-                group3_std_error=F2_eggs.std_error);
+            render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude,
+                start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=P_eggs, group_std_error=P_eggs.std_error,
+                group2=F1_eggs, group2_std_error=F1_eggs.std_error, group3=F2_eggs, group3_std_error=F2_eggs.std_error);
             # Turn off device driver to flush output.
             dev.off();
         } else if (life_stage == "Nymph") {
@@ -1367,9 +1451,9 @@ if (plot_generations_separately) {
                     group3 = F2_total_nymphs;
                     group3_std_error = F2_total_nymphs.std_error;
                 }
-                render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
-                    opt$replications, life_stage, group=group, group_std_error=group_std_error, group2=group2, group2_std_error=group2_std_error,
-                    group3=group3, group3_std_error=group3_std_error, life_stages_nymph=life_stage_nymph);
+                render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude,
+                    start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=group, group_std_error=group_std_error,
+                    group2=group2, group2_std_error=group2_std_error, group3=group3, group3_std_error=group3_std_error, life_stages_nymph=life_stage_nymph);
                 # Turn off device driver to flush output.
                 dev.off();
             }
@@ -1417,9 +1501,9 @@ if (plot_generations_separately) {
                     group3 = F2_total_adults;
                     group3_std_error = F2_total_adults.std_error;
                 }
-                render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
-                    opt$replications, life_stage, group=group, group_std_error=group_std_error, group2=group2, group2_std_error=group2_std_error,
-                    group3=group3, group3_std_error=group3_std_error, life_stages_adult=life_stage_adult);
+                render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude,
+                    start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=group, group_std_error=group_std_error,
+                    group2=group2, group2_std_error=group2_std_error, group3=group3, group3_std_error=group3_std_error, life_stages_adult=life_stage_adult);
                 # Turn off device driver to flush output.
                 dev.off();
             }
@@ -1433,8 +1517,9 @@ if (plot_generations_separately) {
             par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
             # Total population size by generation.
             maxval = max(P+F1+F2) + 100;
-            render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
-                opt$replications, life_stage, group=P, group_std_error=P.std_error, group2=F1, group2_std_error=F1.std_error, group3=F2, group3_std_error=F2.std_error);
+            render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude,
+                start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=P, group_std_error=P.std_error,
+                group2=F1, group2_std_error=F1.std_error, group3=F2, group3_std_error=F2.std_error);
             # Turn off device driver to flush output.
             dev.off();
         }
@@ -1449,8 +1534,8 @@ if (plot_generations_separately) {
             par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
             # Egg population size.
             maxval = max(eggs+eggs.std_error) + 100;
-            render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
-                opt$replications, life_stage, group=eggs, group_std_error=eggs.std_error);
+            render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, opt$location, latitude,
+                start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=eggs, group_std_error=eggs.std_error);
             # Turn off device driver to flush output.
             dev.off();
         } else if (life_stage == "Nymph") {
@@ -1474,8 +1559,9 @@ if (plot_generations_separately) {
                     group_std_error = old_nymphs.std_error;
                 }
                 maxval = max(group+group_std_error) + 100;
-                render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
-                    opt$replications, life_stage, group=group, group_std_error=group_std_error, life_stages_nymph=life_stage_nymph);
+                render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, opt$location, latitude,
+                    start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=group, group_std_error=group_std_error,
+                    life_stages_nymph=life_stage_nymph);
                 # Turn off device driver to flush output.
                 dev.off();
             }
@@ -1504,8 +1590,9 @@ if (plot_generations_separately) {
                     group_std_error = diapausing_adults.std_error
                 }
                 maxval = max(group+group_std_error) + 100;
-                render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
-                    opt$replications, life_stage, group=group, group_std_error=group_std_error, life_stages_adult=life_stage_adult);
+                render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, opt$location, latitude,
+                    start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=group, group_std_error=group_std_error,
+                    life_stages_adult=life_stage_adult);
                 # Turn off device driver to flush output.
                 dev.off();
             }
@@ -1517,9 +1604,9 @@ if (plot_generations_separately) {
             par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
             # Total population size.
             maxval = max(eggs+eggs.std_error, total_nymphs+total_nymphs.std_error, total_adults+total_adults.std_error) + 100;
-            render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, opt$location, latitude, start_date, end_date, days, maxval,
-                opt$replications, life_stage, group=total_adults, group_std_error=total_adults.std_error, group2=total_nymphs, group2_std_error=total_nymphs.std_error, group3=eggs,
-                group3_std_error=eggs.std_error);
+            render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, opt$location, latitude,
+                start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=total_adults, group_std_error=total_adults.std_error,
+                group2=total_nymphs, group2_std_error=total_nymphs.std_error, group3=eggs, group3_std_error=eggs.std_error);
             # Turn off device driver to flush output.
             dev.off();
         }

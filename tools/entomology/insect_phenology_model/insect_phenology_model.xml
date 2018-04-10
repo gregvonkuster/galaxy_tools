@@ -30,7 +30,8 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
 --adult_mortality $adult_mortality
 --adult_accumulation $adult_accumulation
 --egg_mortality $egg_mortality
---input '$input'
+--input_ytd '$input_ytd'
+--input_norm '$input_norm'
 --insect '$insect'
 --insects_per_replication $insects_per_replication
 --life_stages '$life_stages'
@@ -44,7 +45,7 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
 --max_clutch_size $max_clutch_size
 --min_clutch_size $min_clutch_size
 --nymph_mortality $nymph_mortality
---num_days $input.metadata.data_lines
+--num_days_ytd $input_ytd.metadata.data_lines
 --old_nymph_accumulation $old_nymph_accumulation
 --oviposition $oviposition
 --photoperiod $photoperiod
@@ -58,7 +59,12 @@ if [[ $? -ne 0 ]]; then
     exit 1;
 fi]]></command>
     <inputs>
-        <param name="input" type="data" format="csv" label="Temperature data" />
+        <param name="input_ytd" type="data" format="csv" label="Year-to-date temperature data">
+            <validator type="expression" message="Year-to-date temperature data must have 6 columns">value is not None and value.metadata.columns==6</validator>
+        </param>
+        <param name="input_norm" type="data" format="csv" label="30 year normals temperature data">
+            <validator type="expression" message="30 year normals temperature data must have 10 columns and 366 rows">value is not None and value.metadata.columns==10 and value.metadata.data_lines==366</validator>
+        </param>
         <param name="location" type="text" value="" optional="false" label="Location" />
         <param name="insect" type="select" label="Select insect">
             <option value="BMSB" selected="True">Brown Marmorated Stink Bug</option>
@@ -127,7 +133,7 @@ fi]]></command>
     </outputs>
     <tests>
         <test>
-            <param name="input" value="state_college.csv" ftype="csv" />
+            <param name="input_ytd" value="state_college.csv" ftype="csv" />
             <param name="location" value="State College PA" />
             <param name="replications" value="2" />
             <param name="plot_generations_separately" value="no" />
@@ -143,7 +149,7 @@ fi]]></command>
             </output_collection>
         </test>
         <test>
-            <param name="input" value="state_college.csv" ftype="csv" />
+            <param name="input_ytd" value="state_college.csv" ftype="csv" />
             <param name="location" value="State College PA" />
             <param name="replications" value="2" />
             <param name="plot_generations_separately" value="no" />
@@ -158,7 +164,7 @@ fi]]></command>
             </output_collection>
         </test>
         <test>
-            <param name="input" value="state_college.csv" ftype="csv" />
+            <param name="input_ytd" value="state_college.csv" ftype="csv" />
             <param name="location" value="State College PA" />
             <param name="replications" value="2" />
             <param name="plot_egg_life_stage" value="no" />
@@ -175,7 +181,7 @@ fi]]></command>
             </output_collection>
         </test>
         <test>
-            <param name="input" value="state_college.csv" ftype="csv" />
+            <param name="input_ytd" value="state_college.csv" ftype="csv" />
             <param name="location" value="State College PA" />
             <param name="replications" value="2" />
             <output_collection name="output_data_collection" type="list">
