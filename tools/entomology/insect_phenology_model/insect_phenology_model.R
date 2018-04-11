@@ -362,6 +362,7 @@ parse_input_data = function(input_ytd, input_norm, num_days_ytd) {
     colnames(temperature_data_frame) = c("LATITUDE", "LONGITUDE", "DATE", "DOY", "TMIN", "TMAX");
     # Get the start date.
     start_date = temperature_data_frame$DATE[1];
+    end_date = temperature_data_frame$DATE[num_days_ytd];
     # See if we're in a leap year.
     is_leap_year = is_leap_year(start_date);
     # Get the number of days in the year.
@@ -403,7 +404,7 @@ parse_input_data = function(input_ytd, input_norm, num_days_ytd) {
     }
     # Add a column containing the daylight length for each day.
     temperature_data_frame = add_daylight_length(temperature_data_frame, total_days);
-    return(list(temperature_data_frame, start_date, start_doy_ytd, end_doy_ytd, is_leap_year, total_days));
+    return(list(temperature_data_frame, start_date, end_date, start_doy_ytd, end_doy_ytd, is_leap_year, total_days));
 }
 
 render_chart = function(ticks, date_labels, chart_type, plot_std_error, insect, location, latitude, start_date, end_date, days, maxval,
@@ -504,11 +505,11 @@ data_list = parse_input_data(opt$input_ytd, opt$input_norm, opt$num_days_ytd);
 temperature_data_frame = data_list[[1]];
 # Information needed for plots.
 start_date = data_list[[2]];
-end_date = temperature_data_frame$DATE[opt$num_days_ytd];
-start_doy_ytd = data_list[[3]];
-end_doy_ytd = data_list[[4]];
-is_leap_year = data_list[[5]];
-total_days = data_list[[6]];
+end_date = data_list[[3]];
+start_doy_ytd = data_list[[4]];
+end_doy_ytd = data_list[[5]];
+is_leap_year = data_list[[6]];
+total_days = data_list[[7]];
 total_days_vector = c(1:total_days);
 
 # Create copies of the temperature data for generations P, F1 and F2 if we're plotting generations separately.
