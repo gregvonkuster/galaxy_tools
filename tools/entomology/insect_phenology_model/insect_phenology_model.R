@@ -225,7 +225,7 @@ get_tick_index = function(index, last_tick, ticks, month_labels) {
         return(length(ticks)+1);
     }
     last_saved_tick = ticks[[length(ticks)]];
-    if (index-last_saved_tick<6) {
+    if (index-last_saved_tick<3) {
         last_saved_month = month_labels[[length(month_labels)]];
         if (last_saved_month=="") {
             # We're safe overwriting a tick

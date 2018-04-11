@@ -133,7 +133,8 @@ fi]]></command>
     </outputs>
     <tests>
         <test>
-            <param name="input_ytd" value="state_college.csv" ftype="csv" />
+            <param name="input_ytd" value="state_college_partial.csv" ftype="csv" />
+            <param name="input_norm" value="30_year_normals.csv" ftype="csv" />
             <param name="location" value="State College PA" />
             <param name="replications" value="2" />
             <param name="plot_generations_separately" value="no" />
@@ -149,7 +150,8 @@ fi]]></command>
             </output_collection>
         </test>
         <test>
-            <param name="input_ytd" value="state_college.csv" ftype="csv" />
+            <param name="input_ytd" value="state_college_ytd.csv" ftype="csv" />
+            <param name="input_norm" value="30_year_normals.csv" ftype="csv" />
             <param name="location" value="State College PA" />
             <param name="replications" value="2" />
             <param name="plot_generations_separately" value="no" />
@@ -164,7 +166,8 @@ fi]]></command>
             </output_collection>
         </test>
         <test>
-            <param name="input_ytd" value="state_college.csv" ftype="csv" />
+            <param name="input_ytd" value="state_college_partial.csv" ftype="csv" />
+            <param name="input_norm" value="30_year_normals.csv" ftype="csv" />
             <param name="location" value="State College PA" />
             <param name="replications" value="2" />
             <param name="plot_egg_life_stage" value="no" />
@@ -181,7 +184,8 @@ fi]]></command>
             </output_collection>
         </test>
         <test>
-            <param name="input_ytd" value="state_college.csv" ftype="csv" />
+            <param name="input_ytd" value="state_college_ytd.csv" ftype="csv" />
+            <param name="input_norm" value="30_year_normals.csv" ftype="csv" />
             <param name="location" value="State College PA" />
             <param name="replications" value="2" />
             <output_collection name="output_data_collection" type="list">
