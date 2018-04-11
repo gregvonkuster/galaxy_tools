@@ -123,6 +123,26 @@ get_mean_and_std_error = function(p_replications, f1_replications, f2_replicatio
     return(list(p_m, p_se, f1_m, f1_se, f2_m, f2_se))
 }
 
+get_next_normals_row = function(norm_data_frame, year, is_leap_year, index) {
+    # Return the next 30 year normals row formatted
+    # appropriately for the year-to-date data.
+    latitude = norm_data_frame[index,"LATITUDE"][1];
+    longitude = norm_data_frame[index,"LONGITUDE"][1];
+    # Format the date.
+    mmdd = norm_data_frame[index,"MMDD"][1];
+    date_str = paste(year, mmdd, sep="-");
+    doy = norm_data_frame[index,"DOY"][1];
+    if (!is_leap_year) {
+        # Since all normals data includes Feb 29, we have to
+        # subtract 1 from DOY if we're not in a leap year since
+        # we removed the Feb 29 row from the data frame above.
+        doy = as.integer(doy) - 1;
+    }
+    tmin = norm_data_frame[index,"TMIN"][1];
+    tmax = norm_data_frame[index,"TMAX"][1];
+    return(list(latitude, longitude, date_str, doy, tmin, tmax));
+}
+
 get_temperature_at_hour = function(latitude, temperature_data_frame, row, num_days) {
     # Base development threshold for Brown Marmorated Stink Bug
     # insect phenology model.
@@ -222,59 +242,67 @@ get_tick_index = function(index, last_tick, ticks, month_labels) {
 get_total_days = function(is_leap_year) {
     # Get the total number of days in the current year.
     if (is_leap_year) {
-        return (366);
+        return(366);
     } else {
-        return (365);
+        return(365);
     }
 }
 
-get_x_axis_ticks_and_labels = function(temperature_data_frame, num_rows, num_days_ytd) {
+get_x_axis_ticks_and_labels = function(temperature_data_frame, num_rows, start_doy_ytd, end_doy_ytd) {
     # Keep track of the years to see if spanning years.
     month_labels = list();
     ticks = list();
     current_month_label = NULL;
     last_tick = 0;
     for (i in 1:num_rows) {
-        if (i==num_days_ytd) {
-            # Add a tick for the start of the 30 year normnals data.
+        if (start_doy_ytd > 1 & i==start_doy_ytd-1) {
+            # Add a tick for the end of the 30 year normnals data
+            # that was prepended to the year-to-date data.
             tick_index = get_tick_index(i, last_tick, ticks, month_labels)
             ticks[tick_index] = i;
-            month_labels[tick_index] = "Start 30 year normals";
+            month_labels[tick_index] = "End prepended 30 year normals";
             last_tick = i;
-        }
-        # Get the year and month from the date which
-        # has the format YYYY-MM-DD.
-        date = format(temperature_data_frame$DATE[i]);
-        # Get the month label.
-        items = strsplit(date, "-")[[1]];
-        month = items[2];
-        month_label = month.abb[as.integer(month)];
-        tick_index = get_tick_index(i, last_tick, ticks, month_labels)
-        if (!identical(current_month_label, month_label)) {
-            # Add an x-axis tick for the month.
+        } else  if (i==end_doy_ytd+1) {
+            # Add a tick for the start of the 30 year normnals data
+            # that was appended to the year-to-date data.
+            tick_index = get_tick_index(i, last_tick, ticks, month_labels)
             ticks[tick_index] = i;
-            month_labels[tick_index] = month_label;
-            current_month_label = month_label;
+            month_labels[tick_index] = "Start appended 30 year normals";
             last_tick = i;
-        }
-        tick_index = get_tick_index(i, last_tick, ticks, month_labels)
-        if (!is.null(tick_index)) {
-            # Get the day.
-            day = weekdays(as.Date(date));
-            if (day=="Sunday") {
-                # Add an x-axis tick if we're on a Sunday.
-                ticks[tick_index] = i;
-                # Add a blank month label so it is not displayed.
-                month_labels[tick_index] = "";
-                last_tick = i;
-            }
-        }
-        if (i==num_rows) {
+        } else if (i==num_rows) {
             # Add a tick for the last day of the year.
             tick_index = get_tick_index(i, last_tick, ticks, month_labels)
             ticks[tick_index] = i;
             month_labels[tick_index] = "";
             last_tick = i;
+        } else {
+            # Get the year and month from the date which
+            # has the format YYYY-MM-DD.
+            date = format(temperature_data_frame$DATE[i]);
+            # Get the month label.
+            items = strsplit(date, "-")[[1]];
+            month = items[2];
+            month_label = month.abb[as.integer(month)];
+            if (!identical(current_month_label, month_label)) {
+                # Add an x-axis tick for the month.
+                tick_index = get_tick_index(i, last_tick, ticks, month_labels)
+                ticks[tick_index] = i;
+                month_labels[tick_index] = month_label;
+                current_month_label = month_label;
+                last_tick = i;
+            }
+            tick_index = get_tick_index(i, last_tick, ticks, month_labels)
+            if (!is.null(tick_index)) {
+                # Get the day.
+                day = weekdays(as.Date(date));
+                if (day=="Sunday") {
+                    # Add an x-axis tick if we're on a Sunday.
+                    ticks[tick_index] = i;
+                    # Add a blank month label so it is not displayed.
+                    month_labels[tick_index] = "";
+                    last_tick = i;
+                }
+            }
         }
     }
     return(list(ticks, month_labels));
@@ -286,9 +314,9 @@ is_leap_year = function(date_str) {
     items = strsplit(date, "-")[[1]];
     year = as.integer(items[1]);
     if (((year %% 4 == 0) & (year %% 100 != 0)) | (year %% 400 == 0)) {
-        return (TRUE);
+        return(TRUE);
     } else {
-        return (FALSE);
+        return(FALSE);
     }
 }
 
@@ -336,12 +364,15 @@ parse_input_data = function(input_ytd, input_norm, num_days_ytd) {
     start_date = temperature_data_frame$DATE[1];
     # See if we're in a leap year.
     is_leap_year = is_leap_year(start_date);
-    # get the number of days in the year.
+    # Get the number of days in the year.
     total_days = get_total_days(is_leap_year);
     # Extract the year from the start date.
     date_str = format(start_date);
     date_str_items = strsplit(date_str, "-")[[1]];
     year = date_str_items[1];
+    # Save the first DOY to later check if start_date is Jan 1.
+    start_doy_ytd = as.integer(temperature_data_frame$DOY[1]);
+    end_doy_ytd = as.integer(temperature_data_frame$DOY[num_days_ytd]);
     # Read the input_norm temperature datafile into a data frame.
     # The input_norm data has the following 10 columns:
     # STATIONID, LATITUDE, LONGITUDE, ELEV_M, NAME, ST, MMDD, DOY, TMIN, TMAX
@@ -353,35 +384,31 @@ parse_input_data = function(input_ytd, input_norm, num_days_ytd) {
     if (!is_leap_year) {
         norm_data_frame = norm_data_frame[-c(60),];
     }
-    # Define the next row for the temperature_data_frame from the 30 year normals data.
-    first_normals_row = num_days_ytd + 1;
-    for (i in first_normals_row:total_days) {
-        latitude = norm_data_frame[i,"LATITUDE"][1];
-        longitude = norm_data_frame[i,"LONGITUDE"][1];
-        # Format the date.
-        mmdd = norm_data_frame[i,"MMDD"][1];
-        date_str = paste(year, mmdd, sep="-");
-        doy = norm_data_frame[i,"DOY"][1];
-        if (!is_leap_year) {
-            # Since all normals data includes Feb 29, we have to
-            # subtract 1 from DOY if we're not in a leap year since
-            # we removed the Feb 29 row from the data frame above.
-            doy = as.integer(doy) - 1;
+    if (start_doy_ytd > 1) {
+        # The year-to-date data starts after Jan 1, so create a
+        # temporary data frame to contain the 30 year normals data
+        # from Jan 1 to the date immediately prior to start_date.
+        tmp_data_frame = temperature_data_frame[FALSE,];
+        for (i in 1:start_doy_ytd-1) {
+            tmp_data_frame[i,] = get_next_normals_row(norm_data_frame, year, is_leap_year, i);
         }
-        tmin = norm_data_frame[i,"TMIN"][1];
-        tmax = norm_data_frame[i,"TMAX"][1];
-        # Append the row to temperature_data_frame.
-        new_row = list(latitude, longitude, date_str, doy, tmin, tmax);
-        temperature_data_frame[i,] = new_row;
+        # Next merge the temporary data frame with the year-to-date data frame.
+        temperature_data_frame = rbind(tmp_data_frame, temperature_data_frame);
+    }
+    # Define the next row for the year-to-date data from the 30 year normals data.
+    first_normals_append_row = end_doy_ytd + 1;
+    # Append the 30 year normals data to the year-to-date data.
+    for (i in first_normals_append_row:total_days) {
+        temperature_data_frame[i,] = get_next_normals_row(norm_data_frame, year, is_leap_year, i);
     }
     # Add a column containing the daylight length for each day.
     temperature_data_frame = add_daylight_length(temperature_data_frame, total_days);
-    return(temperature_data_frame);
+    return(list(temperature_data_frame, start_date, start_doy_ytd, end_doy_ytd, is_leap_year, total_days));
 }
 
 render_chart = function(ticks, date_labels, chart_type, plot_std_error, insect, location, latitude, start_date, end_date, days, maxval,
-                        replications, life_stage, group, group_std_error, group2=NULL, group2_std_error=NULL, group3=NULL, group3_std_error=NULL,
-                        life_stages_adult=NULL, life_stages_nymph=NULL) {
+    replications, life_stage, group, group_std_error, group2=NULL, group2_std_error=NULL, group3=NULL, group3_std_error=NULL,
+    life_stages_adult=NULL, life_stages_nymph=NULL) {
     if (chart_type=="pop_size_by_life_stage") {
         if (life_stage=="Total") {
             title = paste(insect, ": Reps", replications, ":", life_stage, "Pop :", location, ": Lat", latitude, ":", start_date, "-", end_date, sep=" ");
@@ -472,8 +499,17 @@ if (opt$plot_generations_separately=="yes") {
 # Display the total number of days in the Galaxy history item blurb.
 cat("Year-to-date number of days: ", opt$num_days_ytd, "\n");
 
-# Read the temperature data into a data frame.
-temperature_data_frame = parse_input_data(opt$input_ytd, opt$input_norm, opt$num_days_ytd);
+# Parse the inputs.
+data_list = parse_input_data(opt$input_ytd, opt$input_norm, opt$num_days_ytd);
+temperature_data_frame = data_list[[1]];
+# Information needed for plots.
+start_date = data_list[[2]];
+end_date = temperature_data_frame$DATE[opt$num_days_ytd];
+start_doy_ytd = data_list[[3]];
+end_doy_ytd = data_list[[4]];
+is_leap_year = data_list[[5]];
+total_days = data_list[[6]];
+total_days_vector = c(1:total_days);
 
 # Create copies of the temperature data for generations P, F1 and F2 if we're plotting generations separately.
 if (plot_generations_separately) {
@@ -482,16 +518,8 @@ if (plot_generations_separately) {
     temperature_data_frame_F2 = data.frame(temperature_data_frame);
 }
 
-# Information needed for plots.
-start_date = temperature_data_frame$DATE[1];
-end_date = temperature_data_frame$DATE[opt$num_days_ytd];
-# See if we're in a leap year.
-is_leap_year = is_leap_year(start_date);
-total_days = get_total_days(is_leap_year);
-total_days_vector = c(1:total_days);
-
 # Get the ticks date labels for plots.
-ticks_and_labels = get_x_axis_ticks_and_labels(temperature_data_frame, total_days, opt$num_days_ytd);
+ticks_and_labels = get_x_axis_ticks_and_labels(temperature_data_frame, total_days, start_doy_ytd, end_doy_ytd);
 ticks = c(unlist(ticks_and_labels[1]));
 date_labels = c(unlist(ticks_and_labels[2]));
 # All latitude values are the same, so get the value for plots from the first row.
