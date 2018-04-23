@@ -7,16 +7,16 @@ option_list <- list(
     make_option(c("--adult_accumulation"), action="store", dest="adult_accumulation", type="integer", help="Adjustment of degree-days accumulation (old nymph->adult)"),
     make_option(c("--egg_mortality"), action="store", dest="egg_mortality", type="integer", help="Adjustment rate for egg mortality"),
     make_option(c("--input_norm"), action="store", dest="input_norm", help="30 year normals temperature data for selected station"),
-    make_option(c("--input_ytd"), action="store", dest="input_ytd", help="Year-to-date temperature data for selected location"),
+    make_option(c("--input_ytd"), action="store", dest="input_ytd", default=NULL, help="Year-to-date temperature data for selected location"),
     make_option(c("--insect"), action="store", dest="insect", help="Insect name"),
     make_option(c("--insects_per_replication"), action="store", dest="insects_per_replication", type="integer", help="Number of insects with which to start each replication"),
     make_option(c("--life_stages"), action="store", dest="life_stages", help="Selected life stages for plotting"),
     make_option(c("--life_stages_adult"), action="store", dest="life_stages_adult", default=NULL, help="Adult life stages for plotting"),
     make_option(c("--life_stages_nymph"), action="store", dest="life_stages_nymph", default=NULL, help="Nymph life stages for plotting"),
-    make_option(c("--location"), action="store", dest="location", help="Selected location"),
+    make_option(c("--location"), action="store", dest="location", default=NULL, help="Selected location"),
     make_option(c("--min_clutch_size"), action="store", dest="min_clutch_size", type="integer", help="Adjustment of minimum clutch size"),
     make_option(c("--max_clutch_size"), action="store", dest="max_clutch_size", type="integer", help="Adjustment of maximum clutch size"),
-    make_option(c("--num_days_ytd"), action="store", dest="num_days_ytd", type="integer", help="Total number of days in the temperature dataset"),
+    make_option(c("--num_days_ytd"), action="store", dest="num_days_ytd", default=NULL, type="integer", help="Total number of days in the year-to-date temperature dataset"),
     make_option(c("--nymph_mortality"), action="store", dest="nymph_mortality", type="integer", help="Adjustment rate for nymph mortality"),
     make_option(c("--old_nymph_accumulation"), action="store", dest="old_nymph_accumulation", type="integer", help="Adjustment of degree-days accumulation (young nymph->old nymph)"),
     make_option(c("--oviposition"), action="store", dest="oviposition", type="integer", help="Adjustment for oviposition rate"),
@@ -262,7 +262,7 @@ get_x_axis_ticks_and_labels = function(temperature_data_frame, num_rows, start_d
             ticks[tick_index] = i;
             month_labels[tick_index] = "End prepended 30 year normals";
             last_tick = i;
-        } else  if (i==end_doy_ytd+1) {
+        } else  if (end_doy_ytd > 0 & i==end_doy_ytd+1) {
             # Add a tick for the start of the 30 year normnals data
             # that was appended to the year-to-date data.
             tick_index = get_tick_index(i, last_tick, ticks, month_labels)
@@ -353,27 +353,43 @@ mortality.nymph = function(temperature) {
     return(mortality.probability);
 }
 
-parse_input_data = function(input_ytd, input_norm, num_days_ytd) {
-    # Read the input_ytd temperature datafile into a data frame.
-    # The input_ytd data has the following 6 columns:
-    # LATITUDE, LONGITUDE, DATE, DOY, TMIN, TMAX
-    temperature_data_frame = read.csv(file=input_ytd, header=T, strip.white=TRUE, stringsAsFactors=FALSE, sep=",");
-    # Set the temperature_data_frame column names for access.
-    colnames(temperature_data_frame) = c("LATITUDE", "LONGITUDE", "DATE", "DOY", "TMIN", "TMAX");
-    # Get the start date.
-    start_date = temperature_data_frame$DATE[1];
-    end_date = temperature_data_frame$DATE[num_days_ytd];
+parse_input_data = function(input_ytd, input_norm, num_days_ytd, location) {
+    if (is.null(input_ytd)) {
+        # We're analysing only the 30 year normals data, so create an empty
+        # data frame for containing temperature data after it is converted
+        # from the 30 year normals format to the year-to-date format.
+        temperature_data_frame = data.frame(matrix(ncol=6, nrow=0));
+        colnames(temperature_data_frame) = c("LATITUDE", "LONGITUDE", "DATE", "DOY", "TMIN", "TMAX");
+        # Base all dates on the current date since 30 year
+        # normals data does not include any dates.
+        year = format(Sys.Date(), "%Y");
+        start_date = paste(year, "01", "01", sep="-");
+        end_date = paste(year, "12", "31", sep="-");
+        # Set invalid start and end DOY.
+        start_doy_ytd = 0;
+        end_doy_ytd = 0;
+    } else {
+        # Read the input_ytd temperature datafile into a data frame.
+        # The input_ytd data has the following 6 columns:
+        # LATITUDE, LONGITUDE, DATE, DOY, TMIN, TMAX
+        temperature_data_frame = read.csv(file=input_ytd, header=T, strip.white=TRUE, stringsAsFactors=FALSE, sep=",");
+        # Set the temperature_data_frame column names for access.
+        colnames(temperature_data_frame) = c("LATITUDE", "LONGITUDE", "DATE", "DOY", "TMIN", "TMAX");
+        # Get the start date.
+        start_date = temperature_data_frame$DATE[1];
+        end_date = temperature_data_frame$DATE[num_days_ytd];
+        # Extract the year from the start date.
+        date_str = format(start_date);
+        date_str_items = strsplit(date_str, "-")[[1]];
+        year = date_str_items[1];
+        # Save the first DOY to later check if start_date is Jan 1.
+        start_doy_ytd = as.integer(temperature_data_frame$DOY[1]);
+        end_doy_ytd = as.integer(temperature_data_frame$DOY[num_days_ytd]);
+    }
     # See if we're in a leap year.
     is_leap_year = is_leap_year(start_date);
     # Get the number of days in the year.
     total_days = get_total_days(is_leap_year);
-    # Extract the year from the start date.
-    date_str = format(start_date);
-    date_str_items = strsplit(date_str, "-")[[1]];
-    year = date_str_items[1];
-    # Save the first DOY to later check if start_date is Jan 1.
-    start_doy_ytd = as.integer(temperature_data_frame$DOY[1]);
-    end_doy_ytd = as.integer(temperature_data_frame$DOY[num_days_ytd]);
     # Read the input_norm temperature datafile into a data frame.
     # The input_norm data has the following 10 columns:
     # STATIONID, LATITUDE, LONGITUDE, ELEV_M, NAME, ST, MMDD, DOY, TMIN, TMAX
@@ -385,26 +401,38 @@ parse_input_data = function(input_ytd, input_norm, num_days_ytd) {
     if (!is_leap_year) {
         norm_data_frame = norm_data_frame[-c(60),];
     }
-    if (start_doy_ytd > 1) {
-        # The year-to-date data starts after Jan 1, so create a
-        # temporary data frame to contain the 30 year normals data
-        # from Jan 1 to the date immediately prior to start_date.
-        tmp_data_frame = temperature_data_frame[FALSE,];
-        for (i in 1:start_doy_ytd-1) {
-            tmp_data_frame[i,] = get_next_normals_row(norm_data_frame, year, is_leap_year, i);
-        }
-        # Next merge the temporary data frame with the year-to-date data frame.
-        temperature_data_frame = rbind(tmp_data_frame, temperature_data_frame);
+    # Set the location to be the station name if the user elected no to enter it.
+    if (is.null(location) | length(location)==0) {
+        location = norm_data_frame$NAME[1];
     }
-    # Define the next row for the year-to-date data from the 30 year normals data.
-    first_normals_append_row = end_doy_ytd + 1;
-    # Append the 30 year normals data to the year-to-date data.
-    for (i in first_normals_append_row:total_days) {
-        temperature_data_frame[i,] = get_next_normals_row(norm_data_frame, year, is_leap_year, i);
+    if (is.null(input_ytd)) {
+        # Convert the 30 year normals data to the year-to-date format.
+        for (i in 1:total_days) {
+            temperature_data_frame[i,] = get_next_normals_row(norm_data_frame, year, is_leap_year, i);
+        }
+    } else {
+        # Merge the year-to-date data with the 30 year normals data.
+        if (start_doy_ytd > 1) {
+            # The year-to-date data starts after Jan 1, so create a
+            # temporary data frame to contain the 30 year normals data
+            # from Jan 1 to the date immediately prior to start_date.
+            tmp_data_frame = temperature_data_frame[FALSE,];
+            for (i in 1:start_doy_ytd-1) {
+                tmp_data_frame[i,] = get_next_normals_row(norm_data_frame, year, is_leap_year, i);
+            }
+            # Next merge the temporary data frame with the year-to-date data frame.
+            temperature_data_frame = rbind(tmp_data_frame, temperature_data_frame);
+        }
+        # Define the next row for the year-to-date data from the 30 year normals data.
+        first_normals_append_row = end_doy_ytd + 1;
+        # Append the 30 year normals data to the year-to-date data.
+        for (i in first_normals_append_row:total_days) {
+            temperature_data_frame[i,] = get_next_normals_row(norm_data_frame, year, is_leap_year, i);
+        }
     }
     # Add a column containing the daylight length for each day.
     temperature_data_frame = add_daylight_length(temperature_data_frame, total_days);
-    return(list(temperature_data_frame, start_date, end_date, start_doy_ytd, end_doy_ytd, is_leap_year, total_days));
+    return(list(temperature_data_frame, start_date, end_date, start_doy_ytd, end_doy_ytd, is_leap_year, total_days, location));
 }
 
 render_chart = function(ticks, date_labels, chart_type, plot_std_error, insect, location, latitude, start_date, end_date, days, maxval,
@@ -501,7 +529,7 @@ if (opt$plot_generations_separately=="yes") {
 cat("Year-to-date number of days: ", opt$num_days_ytd, "\n");
 
 # Parse the inputs.
-data_list = parse_input_data(opt$input_ytd, opt$input_norm, opt$num_days_ytd);
+data_list = parse_input_data(opt$input_ytd, opt$input_norm, opt$num_days_ytd, opt$location);
 temperature_data_frame = data_list[[1]];
 # Information needed for plots.
 start_date = data_list[[2]];
@@ -511,6 +539,7 @@ end_doy_ytd = data_list[[5]];
 is_leap_year = data_list[[6]];
 total_days = data_list[[7]];
 total_days_vector = c(1:total_days);
+location =  data_list[[8]];
 
 # Create copies of the temperature data for generations P, F1 and F2 if we're plotting generations separately.
 if (plot_generations_separately) {
@@ -1440,7 +1469,7 @@ if (plot_generations_separately) {
             par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
             # Egg population size by generation.
             maxval = max(P_eggs+F1_eggs+F2_eggs) + 100;
-            render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude,
+            render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, location, latitude,
                 start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=P_eggs, group_std_error=P_eggs.std_error,
                 group2=F1_eggs, group2_std_error=F1_eggs.std_error, group3=F2_eggs, group3_std_error=F2_eggs.std_error);
             # Turn off device driver to flush output.
@@ -1480,7 +1509,7 @@ if (plot_generations_separately) {
                     group3 = F2_total_nymphs;
                     group3_std_error = F2_total_nymphs.std_error;
                 }
-                render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude,
+                render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, location, latitude,
                     start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=group, group_std_error=group_std_error,
                     group2=group2, group2_std_error=group2_std_error, group3=group3, group3_std_error=group3_std_error, life_stages_nymph=life_stage_nymph);
                 # Turn off device driver to flush output.
@@ -1530,7 +1559,7 @@ if (plot_generations_separately) {
                     group3 = F2_total_adults;
                     group3_std_error = F2_total_adults.std_error;
                 }
-                render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude,
+                render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, location, latitude,
                     start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=group, group_std_error=group_std_error,
                     group2=group2, group2_std_error=group2_std_error, group3=group3, group3_std_error=group3_std_error, life_stages_adult=life_stage_adult);
                 # Turn off device driver to flush output.
@@ -1546,7 +1575,7 @@ if (plot_generations_separately) {
             par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
             # Total population size by generation.
             maxval = max(P+F1+F2) + 100;
-            render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, opt$location, latitude,
+            render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, location, latitude,
                 start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=P, group_std_error=P.std_error,
                 group2=F1, group2_std_error=F1.std_error, group3=F2, group3_std_error=F2.std_error);
             # Turn off device driver to flush output.
@@ -1563,7 +1592,7 @@ if (plot_generations_separately) {
             par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
             # Egg population size.
             maxval = max(eggs+eggs.std_error) + 100;
-            render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, opt$location, latitude,
+            render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, location, latitude,
                 start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=eggs, group_std_error=eggs.std_error);
             # Turn off device driver to flush output.
             dev.off();
@@ -1588,7 +1617,7 @@ if (plot_generations_separately) {
                     group_std_error = old_nymphs.std_error;
                 }
                 maxval = max(group+group_std_error) + 100;
-                render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, opt$location, latitude,
+                render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, location, latitude,
                     start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=group, group_std_error=group_std_error,
                     life_stages_nymph=life_stage_nymph);
                 # Turn off device driver to flush output.
@@ -1619,7 +1648,7 @@ if (plot_generations_separately) {
                     group_std_error = diapausing_adults.std_error
                 }
                 maxval = max(group+group_std_error) + 100;
-                render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, opt$location, latitude,
+                render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, location, latitude,
                     start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=group, group_std_error=group_std_error,
                     life_stages_adult=life_stage_adult);
                 # Turn off device driver to flush output.
@@ -1633,7 +1662,7 @@ if (plot_generations_separately) {
             par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
             # Total population size.
             maxval = max(eggs+eggs.std_error, total_nymphs+total_nymphs.std_error, total_adults+total_adults.std_error) + 100;
-            render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, opt$location, latitude,
+            render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, location, latitude,
                 start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=total_adults, group_std_error=total_adults.std_error,
                 group2=total_nymphs, group2_std_error=total_nymphs.std_error, group3=eggs, group3_std_error=eggs.std_error);
             # Turn off device driver to flush output.

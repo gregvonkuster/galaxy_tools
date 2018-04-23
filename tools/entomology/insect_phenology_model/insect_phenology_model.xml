@@ -30,7 +30,11 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
 --adult_mortality $adult_mortality
 --adult_accumulation $adult_accumulation
 --egg_mortality $egg_mortality
---input_ytd '$input_ytd'
+#if str($merge_ytd_temperature_data_cond.merge_ytd_temperature_data) == "yes":
+    --input_ytd '$merge_ytd_temperature_data_cond.input_ytd'
+    --location '$merge_ytd_temperature_data_cond.location'
+    --num_days_ytd $merge_ytd_temperature_data_cond.input_ytd.metadata.data_lines
+#end if
 --input_norm '$input_norm'
 --insect '$insect'
 --insects_per_replication $insects_per_replication
@@ -41,11 +45,9 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
 #if str($plot_nymph_life_stage) == "yes":
     --life_stages_nymph '$plot_nymph_life_stage_cond.life_stages_nymph'
 #end if
---location '$location'
 --max_clutch_size $max_clutch_size
 --min_clutch_size $min_clutch_size
 --nymph_mortality $nymph_mortality
---num_days_ytd $input_ytd.metadata.data_lines
 --old_nymph_accumulation $old_nymph_accumulation
 --oviposition $oviposition
 --photoperiod $photoperiod
@@ -59,28 +61,37 @@ if [[ $? -ne 0 ]]; then
     exit 1;
 fi]]></command>
     <inputs>
-        <param name="input_ytd" type="data" format="csv" label="Year-to-date temperature data">
-            <validator type="expression" message="Year-to-date temperature data must have 6 columns">value is not None and value.metadata.columns==6</validator>
-        </param>
         <param name="input_norm" type="data" format="csv" label="30 year normals temperature data">
             <validator type="expression" message="30 year normals temperature data must have 10 columns and 366 rows">value is not None and value.metadata.columns==10 and value.metadata.data_lines==366</validator>
         </param>
-        <param name="location" type="text" value="" optional="false" label="Location" />
+        <conditional name="merge_ytd_temperature_data_cond">
+            <param name="merge_ytd_temperature_data" type="select" label="Merge year-to-date temperature data with 30 year normals temperature data?">
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
+            </param>
+            <when value="yes">
+                <param name="input_ytd" type="data" format="csv" label="Year-to-date temperature data">
+                    <validator type="expression" message="Year-to-date temperature data must have 6 columns">value is not None and value.metadata.columns==6</validator>
+                </param>
+                <param name="location" type="text" value="" optional="true" label="Location" help="Enter the location or leave blank to use the station name from 30 year normals data."/>
+            </when>
+            <when value="no"/>
+        </conditional>
         <param name="insect" type="select" label="Select insect">
             <option value="BMSB" selected="True">Brown Marmorated Stink Bug</option>
         </param>
-        <param name="replications" type="integer" value="10" min="2" label="Number of replications" />
-        <param name="insects_per_replication" type="integer" value="1000" min="1" label="Number of insects with which to start each replication" />
-        <param name="photoperiod" type="float" value="13.5" min="0" label="Critical photoperiod for diapause induction/termination" />
-        <param name="egg_mortality" type="integer" value="1" min="0" label="Adjustment rate for egg mortality" />
-        <param name="nymph_mortality" type="integer" value="1" min="0" label="Adjustment rate for nymph mortality" />
-        <param name="adult_mortality" type="integer" value="1" min="0" label="Adjustment rate for adult mortality" />
-        <param name="oviposition" type="integer" value="1" min="0" label="Adjustment oviposition rate" />
-        <param name="min_clutch_size" type="integer" value="0" min="0" label="Adjustment of minimum clutch size" />
-        <param name="max_clutch_size" type="integer" value="0" min="0" label="Adjustment of maximum clutch size" />
-        <param name="young_nymph_accumulation" type="integer" value="0" min="0" label="Adjustment of degree-days accumulation (egg->young nymph)" />
-        <param name="old_nymph_accumulation" type="integer" value="0" min="0" label="Adjustment of degree-days accumulation (young nymph->old nymph)" />
-        <param name="adult_accumulation" type="integer" value="0" min="0" label="Adjustment of degree-days accumulation (old nymph->adult)" />
+        <param name="replications" type="integer" value="10" min="2" label="Number of replications"/>
+        <param name="insects_per_replication" type="integer" value="1000" min="1" label="Number of insects with which to start each replication"/>
+        <param name="photoperiod" type="float" value="13.5" min="0" label="Critical photoperiod for diapause induction/termination"/>
+        <param name="egg_mortality" type="integer" value="1" min="0" label="Adjustment rate for egg mortality"/>
+        <param name="nymph_mortality" type="integer" value="1" min="0" label="Adjustment rate for nymph mortality"/>
+        <param name="adult_mortality" type="integer" value="1" min="0" label="Adjustment rate for adult mortality"/>
+        <param name="oviposition" type="integer" value="1" min="0" label="Adjustment oviposition rate"/>
+        <param name="min_clutch_size" type="integer" value="0" min="0" label="Adjustment of minimum clutch size"/>
+        <param name="max_clutch_size" type="integer" value="0" min="0" label="Adjustment of maximum clutch size"/>
+        <param name="young_nymph_accumulation" type="integer" value="0" min="0" label="Adjustment of degree-days accumulation (egg->young nymph)"/>
+        <param name="old_nymph_accumulation" type="integer" value="0" min="0" label="Adjustment of degree-days accumulation (young nymph->old nymph)"/>
+        <param name="adult_accumulation" type="integer" value="0" min="0" label="Adjustment of degree-days accumulation (old nymph->adult)"/>
         <param name="plot_generations_separately" type="select" label="Plot generations separately?">
             <option value="yes" selected="True">Yes</option>
             <option value="no">No</option>
@@ -125,22 +136,21 @@ fi]]></command>
     </inputs>
     <outputs>
         <collection name="output_data_collection" type="list" label="${tool.name} (data), on ${on_string}">
-            <discover_datasets pattern="__name__" directory="output_data_dir" format="csv" />
+            <discover_datasets pattern="__name__" directory="output_data_dir" format="csv"/>
         </collection>
         <collection name="output_plots_collection" type="list" label="${tool.name} (plots), on ${on_string}">
-            <discover_datasets pattern="__name__" directory="output_plots_dir" format="pdf" />
+            <discover_datasets pattern="__name__" directory="output_plots_dir" format="pdf"/>
         </collection>
     </outputs>
     <tests>
         <test>
-            <param name="input_ytd" value="state_college_partial.csv" ftype="csv" />
-            <param name="input_norm" value="30_year_normals.csv" ftype="csv" />
-            <param name="location" value="State College PA" />
-            <param name="replications" value="2" />
-            <param name="plot_generations_separately" value="no" />
-            <param name="plot_egg_life_stage" value="no" />
-            <param name="life_stages_nymph" value="Young" />
-            <param name="life_stages_adult" value="Pre-vittelogenic" />
+            <param name="input_norm" value="30_year_normals.csv" ftype="csv"/>
+            <param name="merge_ytd_temperature_data" value="no"/>
+            <param name="replications" value="2"/>
+            <param name="plot_generations_separately" value="no"/>
+            <param name="plot_egg_life_stage" value="no"/>
+            <param name="life_stages_nymph" value="Young"/>
+            <param name="life_stages_adult" value="Pre-vittelogenic"/>
             <output_collection name="output_data_collection" type="list">
                 <element name="04_combined_generations.csv" file="output_combined1.csv" ftype="csv" compare="contains"/>
             </output_collection>
@@ -150,11 +160,28 @@ fi]]></command>
             </output_collection>
         </test>
         <test>
-            <param name="input_ytd" value="state_college_ytd.csv" ftype="csv" />
-            <param name="input_norm" value="30_year_normals.csv" ftype="csv" />
-            <param name="location" value="State College PA" />
-            <param name="replications" value="2" />
-            <param name="plot_generations_separately" value="no" />
+            <param name="input_norm" value="30_year_normals.csv" ftype="csv"/>
+            <param name="input_ytd" value="state_college_partial.csv" ftype="csv"/>
+            <param name="location" value="State College PA"/>
+            <param name="replications" value="2"/>
+            <param name="plot_generations_separately" value="no"/>
+            <param name="plot_egg_life_stage" value="no"/>
+            <param name="life_stages_nymph" value="Young"/>
+            <param name="life_stages_adult" value="Pre-vittelogenic"/>
+            <output_collection name="output_data_collection" type="list">
+                <element name="04_combined_generations.csv" file="output_combined1.csv" ftype="csv" compare="contains"/>
+            </output_collection>
+            <output_collection name="output_plots_collection" type="list">
+                <element name="02_young_nymph_pop.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
+                <element name="05_pre-vittelogenic_adult_pop.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
+            </output_collection>
+        </test>
+        <test>
+            <param name="input_norm" value="30_year_normals.csv" ftype="csv"/>
+            <param name="input_ytd" value="state_college_ytd.csv" ftype="csv"/>
+            <param name="location" value="State College PA"/>
+            <param name="replications" value="2"/>
+            <param name="plot_generations_separately" value="no"/>
             <output_collection name="output_data_collection" type="list">
                 <element name="04_combined_generations.csv" file="output_combined2.csv" ftype="csv" compare="contains"/>
             </output_collection>
@@ -166,13 +193,13 @@ fi]]></command>
             </output_collection>
         </test>
         <test>
-            <param name="input_ytd" value="state_college_partial.csv" ftype="csv" />
-            <param name="input_norm" value="30_year_normals.csv" ftype="csv" />
-            <param name="location" value="State College PA" />
-            <param name="replications" value="2" />
-            <param name="plot_egg_life_stage" value="no" />
-            <param name="life_stages_nymph" value="Old" />
-            <param name="plot_adult_life_stage" value="no" />
+            <param name="input_norm" value="30_year_normals.csv" ftype="csv"/>
+            <param name="input_ytd" value="state_college_partial.csv" ftype="csv"/>
+            <param name="location" value="State College PA"/>
+            <param name="replications" value="2"/>
+            <param name="plot_egg_life_stage" value="no"/>
+            <param name="life_stages_nymph" value="Old"/>
+            <param name="plot_adult_life_stage" value="no"/>
             <output_collection name="output_data_collection" type="list">
                 <element name="01_generation_P.csv" file="output_p_3.csv" ftype="csv" compare="contains"/>
                 <element name="02_generation_F1.csv" file="output_f1_3.csv" ftype="csv" compare="contains"/>
@@ -184,10 +211,10 @@ fi]]></command>
             </output_collection>
         </test>
         <test>
-            <param name="input_ytd" value="state_college_ytd.csv" ftype="csv" />
-            <param name="input_norm" value="30_year_normals.csv" ftype="csv" />
-            <param name="location" value="State College PA" />
-            <param name="replications" value="2" />
+            <param name="input_norm" value="30_year_normals.csv" ftype="csv"/>
+            <param name="input_ytd" value="state_college_ytd.csv" ftype="csv"/>
+            <param name="location" value="State College PA"/>
+            <param name="replications" value="2"/>
             <output_collection name="output_data_collection" type="list">
                 <element name="01_generation_P.csv" file="output_p_4.csv" ftype="csv" compare="contains"/>
                 <element name="02_generation_F1.csv" file="output_f1_4.csv" ftype="csv" compare="contains"/>
@@ -211,8 +238,12 @@ Provides an agent-based stochastic model expressing stage-specific phenology and
 
 **Required options**
 
+ * **30 year normals temperature data** - the dataset from your history containing the 30-year normals temperature data (available at http://pestwatch.psu.edu/ghcn).
+ * **Merge year-to-date temperature data with 30 year normals temperature data** - select Yes to merge a year-to-date temperature dataset from your history into the selected 30 year normals temperature data.
+
+  * **Year-to-date temperature data** - the dataset from your history containing the year-to-date temperature data (available at http://pestwatch.psu.edu/minmax).
+
  * **Location** - the location associated with the selected temperature data.
- * **Temperature data** - select the dataset from your history containing the temperature data.
  * **Select insect** - currently only the Brown Marmorated Stink Bug can be analyzed.
  * **Number of replications** - number of replications.
  * **Number of insects with which to start each replication** - the analysis for each replication will start with this number of insects.
