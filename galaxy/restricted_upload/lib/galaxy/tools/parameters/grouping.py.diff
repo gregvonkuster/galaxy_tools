@@ -1,0 +1,15 @@
+index 69d8105..282bd15 100644
+--- a/lib/galaxy/tools/parameters/grouping.py
++++ b/lib/galaxy/tools/parameters/grouping.py
+@@ -355,7 +355,10 @@ class UploadDataset(Group):
+                             looks_like_url = True
+                             break
+ 
+-                    return looks_like_url
++                    # Always return False for the restricted upload
++                    # so that URLs will be treated like pasted text.
++                    #return looks_like_url
++                    return False
+ 
+                 if start_of_url(url_paste):
+                     url_paste = url_paste.replace('\r', '').split('\n')
