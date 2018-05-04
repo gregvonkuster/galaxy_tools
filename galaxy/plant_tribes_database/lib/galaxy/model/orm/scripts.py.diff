@@ -1,0 +1,16 @@
+diff --git a/lib/galaxy/model/orm/scripts.py b/lib/galaxy/model/orm/scripts.py
+index 3ba69b1..6d514d8 100644
+--- a/lib/galaxy/model/orm/scripts.py
++++ b/lib/galaxy/model/orm/scripts.py
+@@ -44,6 +44,13 @@ DATABASE = {
+             'default_sqlite_file': './database/install.sqlite',
+             'config_override': 'GALAXY_INSTALL_CONFIG_',
+         },
++    "plant_tribes":
++        {
++            'repo': 'lib/galaxy/model/plant_tribes/migrate',
++            'config_prefix': 'plant_tribes',
++            'default_sqlite_file': './database/plant_tribes.sqlite',
++            'config_override': 'GALAXY_PLANT_TRIBES_CONFIG_',
++        },
+ }

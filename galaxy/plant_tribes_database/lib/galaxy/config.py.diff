@@ -1,0 +1,45 @@
+diff --git a/lib/galaxy/config.py b/lib/galaxy/config.py
+index f258f66..70e3724 100644
+--- a/lib/galaxy/config.py
++++ b/lib/galaxy/config.py
+@@ -190,6 +190,10 @@ class Configuration(object):
+         self.install_database_connection = kwargs.get("install_database_connection", None)
+         self.install_database_engine_options = get_database_engine_options(kwargs, model_prefix="install_")
+ 
++        # PlantTribes database related configuration.
++        self.plant_tribes_database_connection = kwargs.get("plant_tribes_database_connection", None)
++        self.plant_tribes_database_engine_options = get_database_engine_options(kwargs, model_prefix="plant_tribes")
++
+         # Where dataset files are stored
+         self.file_path = resolve_path(kwargs.get("file_path", "database/files"), self.root)
+         # new_file_path and legacy_home_dir can be overridden per destination in job_conf.
+@@ -1055,6 +1059,7 @@ class ConfiguresGalaxyMixin(object):
+         """
+         db_url = get_database_url(self.config)
+         install_db_url = self.config.install_database_connection
++        plant_tribes_db_url = self.config.plant_tribes_database_connection
+         # TODO: Consider more aggressive check here that this is not the same
+         # database file under the hood.
+         combined_install_database = not(install_db_url and install_db_url != db_url)
+@@ -1072,6 +1077,9 @@ class ConfiguresGalaxyMixin(object):
+             if not combined_install_database:
+                 from galaxy.model.tool_shed_install.migrate.check import create_or_verify_database as tsi_create_or_verify_database
+                 tsi_create_or_verify_database(install_db_url, self.config.install_database_engine_options, app=self)
++            # Handle the plant_tribes database.
++            from galaxy.model.plant_tribes.migrate.check import create_or_verify_database as pt_create_or_verify_database
++            pt_create_or_verify_database(plant_tribes_db_url, self.config.plant_tribes_database_engine_options, app=self)
+ 
+         if check_migrate_tools:
+             # Alert the Galaxy admin to tools that have been moved from the distribution to the tool shed.
+@@ -1098,6 +1106,11 @@ class ConfiguresGalaxyMixin(object):
+             install_db_engine_options = self.config.install_database_engine_options
+             self.install_model = install_mapping.init(install_db_url,
+                                                       install_db_engine_options)
++        # Handle the plant_tribes database.
++        from galaxy.model.plant_tribes import mapping as plant_tribes_mapping
++        log.info("PlantTribes database using its own connection %s" % plant_tribes_db_url)
++        plant_tribes_db_engine_options = self.config.plant_tribes_database_engine_options
++        self.plant_tribes_model = plant_tribes_mapping.init(plant_tribes_db_url, plant_tribes_db_engine_options)
+ 
+     def _configure_signal_handlers(self, handlers):
+         for sig, handler in handlers.items():

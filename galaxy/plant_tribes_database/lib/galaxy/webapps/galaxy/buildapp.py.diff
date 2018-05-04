@@ -1,0 +1,36 @@
+diff --git a/lib/galaxy/model/orm/scripts.py b/lib/galaxy/model/orm/scripts.py
+index 3ba69b1..6d514d8 100644
+--- a/lib/galaxy/model/orm/scripts.py
++++ b/lib/galaxy/model/orm/scripts.py
+@@ -44,6 +44,13 @@ DATABASE = {
+             'default_sqlite_file': './database/install.sqlite',
+             'config_override': 'GALAXY_INSTALL_CONFIG_',
+         },
++    "plant_tribes":
++        {
++            'repo': 'lib/galaxy/model/plant_tribes/migrate',
++            'config_prefix': 'plant_tribes',
++            'default_sqlite_file': './database/plant_tribes.sqlite',
++            'config_override': 'GALAXY_PLANT_TRIBES_CONFIG_',
++        },
+ }
+ 
+ 
+greg@bigsky:~/work/git_workspace/galaxy$ git diff lib/galaxy/webapps/galaxy/buildapp.py
+diff --git a/lib/galaxy/webapps/galaxy/buildapp.py b/lib/galaxy/webapps/galaxy/buildapp.py
+index 766e1c6..d2f9050 100644
+--- a/lib/galaxy/webapps/galaxy/buildapp.py
++++ b/lib/galaxy/webapps/galaxy/buildapp.py
+@@ -163,6 +163,12 @@ def app_factory(global_conf, load_app_kwds={}, **kwargs):
+             galaxy.model.tool_shed_install.mapping.metadata.bind.dispose()
+     except Exception:
+         log.exception("Unable to dispose of pooled toolshed install model database connections.")
++    try:
++        # This model may not actually be bound.
++        if galaxy.model.plant_tribes.mapping.metadata.bind:
++            galaxy.model.plant_tribes.mapping.metadata.bind.dispose()
++    except Exception:
++        log.exception("Unable to dispose of pooled planttribes model database connections.")
+ 
+     app.application_stack.register_postfork_function(postfork_setup)
+
