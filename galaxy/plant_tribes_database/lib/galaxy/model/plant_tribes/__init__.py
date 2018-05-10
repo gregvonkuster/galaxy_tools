@@ -6,14 +6,15 @@ log = logging.getLogger(__name__)
 
 
 class PlantTribesScaffold(Dictifiable):
-    dict_collection_visible_keys = ['id', 'description', 'genes', 'orthogroups']
+    dict_collection_visible_keys = ['id', 'description', 'scaffold', 'num_genes', 'num_orthogroups']
 
-    def __init__(self, id=None, create_time=None, description=None, genes=None, orthogroups=None):
+    def __init__(self, id=None, create_time=None, description=None, scaffold=None, num_genes=None, num_orthogroups=None):
         self.id = id
         self.create_time = create_time
         self.description = description
-        self.genes = genes
-        self.orthogroups = orthogroups
+        self.scaffold = scaffold
+        self.num_genes = num_genes
+        self.num_orthogroups = num_orthogroups
 
     def as_dict(self, value_mapper=None):
         return self.to_dict(view='element', value_mapper=value_mapper)
@@ -37,12 +38,13 @@ class PlantTribesScaffold(Dictifiable):
 
 
 class PlantTribesTaxa(Dictifiable):
-    dict_collection_visible_keys = ['id', 'genes', 'species_family', 'species_order', 'species_group', 'species_clade']
+    dict_collection_visible_keys = ['id', 'num_genes', 'species', 'species_family', 'species_order', 'species_group', 'species_clade']
 
-    def __init__(self, id=None, create_time=None, genes=None, species_family=None, species_order=None, species_group=None, species_clade=None):
+    def __init__(self, id=None, create_time=None, num_genes=None, species=None, species_family=None, species_order=None, species_group=None, species_clade=None):
         self.id = id
         self.create_time = create_time
-        self.genes = genes
+        self.num_genes = num_genes
+        self.species = species
         self.species_family = species_family
         self.species_order = species_order
         self.species_group = species_group
@@ -70,17 +72,21 @@ class PlantTribesTaxa(Dictifiable):
 
 
 class PlantTribesOrthogroup(Dictifiable):
-    dict_collection_visible_keys = ['id', 'taxa', 'genes', 'super_ortho_1_2', 'super_ortho_1_5', 'super_ortho_1_8', 'super_ortho_2_0', 'super_ortho_2_5',
-                                    'super_ortho_3_0', 'super_ortho_3_5', 'super_ortho_4_0', 'super_ortho_4_5', 'super_ortho_5_0', 'ahdr_desc', 'tair_desc',
-                                    'pfam_desc', 'iprscan_desc', 'go_mf_desc', 'go_bp_desc', 'go_cc_desc']
+    dict_collection_visible_keys = ['id', 'num_taxa', 'num_genes', 'super_ortho_1_2', 'super_ortho_1_5', 'super_ortho_1_8',
+                                    'super_ortho_2_0', 'super_ortho_2_5', 'super_ortho_3_0', 'super_ortho_3_5', 'super_ortho_4_0',
+                                    'super_ortho_4_5', 'super_ortho_5_0', 'ahdr_description', 'tair_description', 'pfam_description',
+                                    'interproscan__description', 'gene_ontology_molecular_funcion_description', 'gene_ontology_biological_process_description',
+                                    'gene_ontology_celular_component_description']
 
-    def __init__(self, id=None, create_time=None, taxa=None, genes=None, super_ortho_1_2=None, super_ortho_1_5=None, super_ortho_1_8=None, super_ortho_2_0=None,
-                 super_ortho_2_5=None, super_ortho_3_0=None, super_ortho_3_5=None, super_ortho_4_0=None, super_ortho_4_5=None, super_ortho_5_0=None,
-                 ahdr_desc=None, tair_desc=None, pfam_desc=None, iprscan_desc=None, go_mf_desc=None, go_bp_desc=None, go_cc_desc=None):
+    def __init__(self, id=None, create_time=None, num_taxa=None, num_genes=None, super_ortho_1_2=None, super_ortho_1_5=None,
+                 super_ortho_1_8=None, super_ortho_2_0=None, super_ortho_2_5=None, super_ortho_3_0=None, super_ortho_3_5=None,
+                 super_ortho_4_0=None, super_ortho_4_5=None, super_ortho_5_0=None, ahdr_description=None, tair_description=None,
+                 pfam_description=None, interproscan__description=None, gene_ontology_molecular_funcion_description=None,
+                 gene_ontology_biological_process_description=None, gene_ontology_celular_component_description=None):
         self.id = id
         self.create_time = create_time
-        self.taxa = taxa
-        self.genes = genes
+        self.num_taxa = num_taxa
+        self.num_genes = num_genes
         self.super_ortho_1_2 = super_ortho_1_2
         self.super_ortho_1_5 = super_ortho_1_5
         self.super_ortho_1_8 = super_ortho_1_8
@@ -91,13 +97,13 @@ class PlantTribesOrthogroup(Dictifiable):
         self.super_ortho_4_0 = super_ortho_4_0
         self.super_ortho_4_5 = super_ortho_4_5
         self.super_ortho_5_0 = super_ortho_5_0
-        self.ahdr_desc = ahdr_desc
-        self.tair_desc = tair_desc
-        self.pfam_desc = pfam_desc
-        self.iprscan_desc = iprscan_desc
-        self.go_mf_desc = go_mf_desc
-        self.go_bp_desc = go_bp_desc
-        self.go_cc_desc = go_cc_desc
+        self.ahdr_description = ahdr_description
+        self.tair_description = tair_description
+        self.pfam_description = pfam_description
+        self.interproscan__description = interproscan__description
+        self.gene_ontology_molecular_funcion_description = gene_ontology_molecular_funcion_description
+        self.gene_ontology_biological_process_description = gene_ontology_biological_process_description
+        self.gene_ontology_celular_component_description = gene_ontology_celular_component_description
 
     def as_dict(self, value_mapper=None):
         return self.to_dict(view='element', value_mapper=value_mapper)
@@ -150,25 +156,32 @@ class PlantTribesGene(Dictifiable):
         return rval
 
 
-class ScaffoldAssociation(Dictifiable):
-    dict_collection_visible_keys = ['id', 'scaffold', 'scaffold_id', 'taxa_id', 'orthogroup_id', 'gene_id']
+class TaxaScaffoldAssociation(Dictifiable):
+    dict_collection_visible_keys = ['id', 'taxa_id', 'scaffold_id']
 
-    def __init__(self, id=None, create_time=None, scaffold=None, scaffold_id=None, taxa_id=None, orthogroup_id=None, gene_id=None):
+    def __init__(self, id=None, create_time=None, taxa_id=None, scaffold_id=None):
         self.id = id
         self.create_time = create_time
-        self.scaffold = scaffold
-        self.scaffold_id = scaffold_id
         self.taxa_id = taxa_id
-        self.orthogroup_id = orthogroup_id
+        self.scaffold_id = scaffold_id
+
+
+class TaxaGeneAssociation(Dictifiable):
+    dict_collection_visible_keys = ['id', 'taxa_id', 'gene_id']
+
+    def __init__(self, id=None, create_time=None, taxa_id=None, gene_id=None):
+        self.id = id
+        self.create_time = create_time
+        self.taxa_id = taxa_id
         self.gene_id = gene_id
 
 
-class SpeciesAssociation(Dictifiable):
-    dict_collection_visible_keys = ['id', 'species', 'taxa_id', 'gene_id']
+class ScaffoldAssociation(Dictifiable):
+    dict_collection_visible_keys = ['id', 'scaffold_id', 'taxa_id', 'orthogroup_id', 'gene_id']
 
-    def __init__(self, id=None, create_time=None, species=None, taxa_id=None, gene_id=None):
+    def __init__(self, id=None, scaffold_id=None, taxa_id=None, orthogroup_id=None, gene_id=None):
         self.id = id
-        self.create_time = create_time
-        self.species = species
+        self.scaffold_id = scaffold_id
         self.taxa_id = taxa_id
+        self.orthogroup_id = orthogroup_id
         self.gene_id = gene_id

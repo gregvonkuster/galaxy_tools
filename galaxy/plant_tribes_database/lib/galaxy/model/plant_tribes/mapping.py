@@ -95,7 +95,7 @@ mapper(plant_tribes_model.PlantTribesTaxa, plant_tribes_model.PlantTribesTaxa.ta
        properties=dict(scaffolds=relation(plant_tribes_model.TaxaScaffoldAssociation,
                                           primaryjoin=(plant_tribes_model.PlantTribesTaxa.table.c.id == plant_tribes_model.TaxaScaffoldAssociation.table.c.taxa_id)),
                        genes=relation(plant_tribes_model.TaxaGeneAssociation,
-                                        primaryjoin=(plant_tribes_model.PlantTribesTaxa.table.c.id == plant_tribes_model.TaxaGeneAssociation.table.c.taxa_id))))
+                                      primaryjoin=(plant_tribes_model.PlantTribesTaxa.table.c.id == plant_tribes_model.TaxaGeneAssociation.table.c.taxa_id))))
 
 mapper(plant_tribes_model.PlantTribesOrthogroup, plant_tribes_model.PlantTribesOrthogroup.table)
 
@@ -105,9 +105,7 @@ mapper(plant_tribes_model.TaxaScaffoldAssociation, plant_tribes_model.TaxaScaffo
 
 mapper(plant_tribes_model.TaxaGeneAssociation, plant_tribes_model.TaxaGeneAssociation.table)
 
-mapper(plant_tribes_model.PlantTribesOrthogroup, plant_tribes_model.PlantTribesOrthogroup.table)
-
-mapper(plant_tribes_model.PlantTribesGene, plant_tribes_model.PlantTribesGene.table)
+mapper(plant_tribes_model.ScaffoldAssociation, plant_tribes_model.ScaffoldAssociation.table)
 
 
 def init(url, engine_options={}, create_tables=False):
