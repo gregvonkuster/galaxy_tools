@@ -36,9 +36,11 @@ class PlantTribesScaffold(Dictifiable):
 
 
 class PlantTribesTaxa(Dictifiable):
-    dict_collection_visible_keys = ['scaffold_id', 'num_genes', 'species', 'species_family', 'species_order', 'species_group', 'species_clade']
+    dict_collection_visible_keys = ['scaffold_id', 'num_genes', 'species', 'species_family', 'species_order', 'species_group',
+                                    'species_clade']
 
-    def __init__(self, scaffold_id=None, num_genes=None, species=None, species_family=None, species_order=None, species_group=None, species_clade=None):
+    def __init__(self, scaffold_id=None, num_genes=None, species=None, species_family=None, species_order=None, species_group=None,
+                 species_clade=None):
         self.scaffold_id = scaffold_id
         self.num_genes = num_genes
         self.species = species
@@ -69,19 +71,20 @@ class PlantTribesTaxa(Dictifiable):
 
 
 class PlantTribesOrthogroup(Dictifiable):
-    dict_collection_visible_keys = ['ortho_id', 'scaffold_id', 'num_taxa', 'num_genes', 'super_ortho_1_2', 'super_ortho_1_5', 'super_ortho_1_8',
-                                    'super_ortho_2_0', 'super_ortho_2_5', 'super_ortho_3_0', 'super_ortho_3_5', 'super_ortho_4_0',
-                                    'super_ortho_4_5', 'super_ortho_5_0', 'ahdr_description', 'tair_description', 'pfam_description',
-                                    'interproscan__description', 'gene_ontology_molecular_funcion_description', 'gene_ontology_biological_process_description',
-                                    'gene_ontology_celular_component_description']
+    dict_collection_visible_keys = ['ortho_id', 'scaffold_id', 'clustering_method', 'num_taxa', 'num_genes', 'super_ortho_1_2',
+                                    'super_ortho_1_5', 'super_ortho_1_8', 'super_ortho_2_0', 'super_ortho_2_5', 'super_ortho_3_0',
+                                    'super_ortho_3_5', 'super_ortho_4_0', 'super_ortho_4_5', 'super_ortho_5_0', 'ahdr_description',
+                                    'tair_description', 'pfam_description', 'interproscan__description', 'gene_ontology_molecular_funcion_description',
+                                    'gene_ontology_biological_process_description', 'gene_ontology_celular_component_description']
 
-    def __init__(self, ortho_id=None, scaffold_id=None, num_taxa=None, num_genes=None, super_ortho_1_2=None, super_ortho_1_5=None,
-                 super_ortho_1_8=None, super_ortho_2_0=None, super_ortho_2_5=None, super_ortho_3_0=None, super_ortho_3_5=None,
-                 super_ortho_4_0=None, super_ortho_4_5=None, super_ortho_5_0=None, ahdr_description=None, tair_description=None,
-                 pfam_description=None, interproscan__description=None, gene_ontology_molecular_funcion_description=None,
+    def __init__(self, ortho_id=None, scaffold_id=None, clustering_method=None, num_taxa=None, num_genes=None, super_ortho_1_2=None,
+                 super_ortho_1_5=None, super_ortho_1_8=None, super_ortho_2_0=None, super_ortho_2_5=None, super_ortho_3_0=None,
+                 super_ortho_3_5=None, super_ortho_4_0=None, super_ortho_4_5=None, super_ortho_5_0=None, ahdr_description=None,
+                 tair_description=None, pfam_description=None, interproscan__description=None, gene_ontology_molecular_funcion_description=None,
                  gene_ontology_biological_process_description=None, gene_ontology_celular_component_description=None):
         self.ortho_id = ortho_id
         self.scaffold_id = scaffold_id
+        self.clustering_method = clustering_method
         self.num_taxa = num_taxa
         self.num_genes = num_genes
         self.super_ortho_1_2 = super_ortho_1_2
