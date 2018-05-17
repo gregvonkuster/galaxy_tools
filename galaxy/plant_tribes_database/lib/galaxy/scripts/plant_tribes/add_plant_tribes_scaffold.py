@@ -7,11 +7,8 @@ PostgreSQL 9.1 or greater is required.
 from __future__ import print_function
 
 import argparse
-import datetime
 import glob
-import inspect
 import os
-import shutil
 import sys
 
 import psycopg2
@@ -69,12 +66,10 @@ class AddScaffold(object):
     def _update(self, sql, args):
         try:
             cur = self.conn.cursor()
-            #print('Executing SQL')
             cur.execute(sql, args)
-            #print('Database status: %s' % cur.statusmessage)
-        except Exception, e:
-            # TODO: figure out what to do here.
-            raise(e)
+        except:
+            print('Caught exception executing SQL:\n%s\n' % sql.format(args))
+            raise
         return cur
 
     def process_orthogroup_fasta_files(self):
@@ -84,6 +79,7 @@ class AddScaffold(object):
         aa_dict = {}
         gene_id = None
         dna_dict = {}
+        # Populate aa_dict and dna_dict.
         for clustering_method in self.clustering_methods:
             file_dir = os.path.join(self.args.scaffold_id, 'fasta', clustering_method)
             print("file_dir: %s" % str(file_dir))
@@ -102,37 +98,40 @@ class AddScaffold(object):
                             # Skip blank lines (shoudn't happen).
                             continue
                         if line.startswith(">"):
+                            # Example line:
                             # >gnl_Ambtr1.0.27_AmTr_v1.0_scaffold00001.110
                             aid = line.lstrip(">")
-                            if aid not in adict:
-                                # The value will be a list containing both
-                                # clustering_method and the dna string.
-                                adict[aid] = [clustering_method, ""]
+                            # The dictionary keys will combine the clustering method and
+                            # the gene id using the format <clustering_method>^^<gene_id>.
+                            combined_id = "%s^^%s" % (clustering_method, aid)
+                            if combined_id not in adict:
+                                # The value will be the dna sequence string..
+                                adict[combined_id] = ""
                         else:
+                            # Example line:
                             # ATGGAGAAGGACTTT
-                            val_list = adict[aid]
-                            dna = val_list[1]
-                            dna = "%s%s" % (dna, line)
-                            val_list[1] = dna
-                            adict[aid] = val_list
-        #print("sorted(dna_dict.keys()):\n%s\n" % sorted(dna_dict.keys()))
-        for gene_id in sorted(dna_dict.keys()):
-            print("Populating the plant_tribes_gene table with gene_id: %s..." % str(gene_id))
+                            # Here combined_id is set because the fasta format specifies
+                            # that all lines following the gene id defined in the if block
+                            # above will be the sequence associated with that gene until
+                            # the next gene id line is encountered.
+                            sequence = adict[combined_id]
+                            sequence = "%s%s" % (sequence, line)
+                            adict[combined_id] = sequence
+        # Populate the plant_tribes_gene and gen_scaffold_association tables
+        # from the contents of aa_dict and dna_dict.
+        for combined_id in sorted(dna_dict.keys()):
+            # The dictionary keys combine the clustering method and
+            # the gene id using the format <clustering_method>^^<gene_id>.
+            items = combined_id.split("^^")
+            clustering_method = items[0]
+            gene_id = items[1]
+            print("Populating the plant_tribes_gene and gene_scaffold_association tables with gene_id: %s..." % str(gene_id))
             # The value will be a list containing both
             # clustering_method and the dna string.
-            dna_val_list = dna_dict[gene_id]
-            aa_val_list = aa_dict[gene_id]
-            clustering_method = dna_val_list[0]
-            dna_sequence = dna_val_list[1]
-            aa_sequence = aa_val_list[1]
-            # Get the scaffold_rec for the current scaffold_id and clustering_method.
-            # The list is [<scaffold_id_db>, <scaffold_id>, <clustering_method>]
-            for scaffold_rec in self.scaffold_recs:
-                if scaffold_id in scaffold_rec and clustering_method in scaffold_rec:
-                    scaffold_id_db = scaffold_rec[0]
+            dna_sequence = dna_dict[combined_id]
+            aa_sequence = aa_dict[combined_id]
             # Get the species_code from the gene_id.
             species_code = gene_id.split("_")[1]
-            #print("species_code: %s" % str(species_code))
             # Strip the version from the species_code.
             species_code = species_code[0:5]
             # Get the species_name from self.species_ids_dict.
@@ -142,41 +141,50 @@ class AddScaffold(object):
             cur = self.conn.cursor()
             cur.execute(sql)
             taxa_id = cur.fetchone()[0]
-            # Insert a row into the plant_tribes_gene table.
-            #print("Inserting a row into the plant_tribes_gene table...")
-            """
-             Column("id", Integer, primary_key=True),
-             Column("gene_id", Integer, index=True, nullable=False),
-             Column("scaffold_id", Integer, ForeignKey("plant_tribes_scaffold.id"), index=True, nullable=False),
-             Column("taxa_id", Integer, ForeignKey("plant_tribes_taxa.id"), index=True, nullable=False),
-             Column("dna_sequence", TEXT, nullable=False),
-             Column("aa_sequence", TEXT, nullable=False))
-            """
-            args = [gene_id, scaffold_id_db, taxa_id, dna_sequence, aa_sequence]
+            # If the plant_tribes_gene table contains a row that has the gene_id,
+            # then we'll add a row only to the gene_scaffold_association table.
+            sql = "SELECT id FROM plant_tribes_gene WHERE gene_id = '%s';" % gene_id
+            cur = self.conn.cursor()
+            cur.execute(sql)
+            try:
+                gene_id_db = cur.fetchone()[0]
+            except:
+                # Insert a row into the plant_tribes_gene table.
+                args = [gene_id, taxa_id, dna_sequence, aa_sequence]
+                sql = """
+                    INSERT INTO plant_tribes_gene
+                         VALUES (nextval('plant_tribes_gene_id_seq'), %s, %s, %s, %s)
+                         RETURNING id;
+                """
+                cur = self._update(sql, tuple(args))
+                self._flush()
+                gene_id_db = cur.fetchone()[0]
+            # Insert a row into the gene_scaffold_association table.
+            # Get the scaffold_rec for the current scaffold_id and clustering_method.
+            # The list is [<scaffold_id_db>, <scaffold_id>, <clustering_method>]
+            for scaffold_rec in self.scaffold_recs:
+                if scaffold_id in scaffold_rec and clustering_method in scaffold_rec:
+                    scaffold_id_db = scaffold_rec[0]
+            args = [gene_id_db, scaffold_id_db]
             sql = """
-                INSERT INTO plant_tribes_gene
-                     VALUES (nextval('plant_tribes_gene_id_seq'), %s, %s, %s, %s, %s);
+                INSERT INTO gene_scaffold_association
+                     VALUES (nextval('gene_scaffold_association_id_seq'), %s, %s);
             """
             cur = self._update(sql, tuple(args))
             self._flush()
 
-
     def process_scaffold_config_files(self):
         """
         1. Parse ~/<scaffold_id>/<scaffold_id>/.rootingOrder.config
-        (e.g., ~/22Gv1.1/22Gv1.1..rootingOrder.config) to populate
-        .
-
+        (e.g., ~/22Gv1.1/22Gv1.1..rootingOrder.config) to populate.
         2. Calculate the number of genes found
         for each species and add the number to self.species_genes_dict.
-
         3. Parse ~/<scaffold_id>/<scaffold_id>.taxaLineage.config to
         populate the plant_tribes_taxa table.
         """
         scaffold_id = os.path.basename(self.args.scaffold_id)
         print("scaffold_id: %s" % str(scaffold_id))
         file_dir = self.args.scaffold_id
-        #print("file_dir: %s" % str(file_dir))
         file_name = os.path.join(file_dir, '%s.rootingOrder.config' % scaffold_id)
         print("file_name: %s" % str(file_name))
         # Populate self.species_ids_dict.
@@ -190,35 +198,25 @@ class AddScaffold(object):
                 # Physcomitrella patens=Phypa
                 items = line.split("=")
                 self.species_ids_dict[items[1]] = items[0]
-        #print("sorted(self.species_ids_dict.keys())\n%s\n\n" % sorted(self.species_ids_dict.keys()))
         # Get lineage information for orthogrpoup taxa.
         for scaffold_genes_dict_key in sorted(self.scaffold_genes_dict.keys()):
             # The format of key is <clustering_method>^^<orthogroup_id>.
             # For example: {"gfam^^1" : "gnl_Musac1.0_GSMUA_Achr1T11000_001"
-            #print("scaffold_genes_dict_key: %s" % str(scaffold_genes_dict_key))
             scaffold_genes_dict_key_items = scaffold_genes_dict_key.split("^^")
             clustering_method = scaffold_genes_dict_key_items[0]
-            #print("clustering_method: %s" % str(clustering_method))
-            orthogroup_id = scaffold_genes_dict_key_items[1]
-            #print("orthogroup_id: %s" % str(orthogroup_id))
             # Get the list of genes for the current scaffold_genes_dict_key.
             gene_list = self.scaffold_genes_dict[scaffold_genes_dict_key]
             for gene_id in gene_list:
-                #print("gene_id: %s" % str(gene_id))
                 # Example species_code: Musac1.0, where
                 # species_name is Musac and version is 1.0.
                 species_code = gene_id.split("_")[1]
-                #print("species_code: %s" % str(species_code))
                 # Strip the version from the species_code.
                 species_code = species_code[0:5]
-                #print("species_code: %s" % str(species_code))
                 # Get the species_name from self.species_ids_dict.
                 species_name = self.species_ids_dict[species_code]
-                #print("species_name: %s" % str(species_name))
                 # Create a key for self.species_genes_dict, with the format:
                 # <clustering_method>^^<species_code>
                 species_genes_dict_key = "%s^^%s" % (clustering_method, species_code)
-                #print("species_genes_dict_key: %s" % str(species_genes_dict_key))
                 # Add an entry to self.species_genes_dict, where the value
                 # is a list containing species_name and num_genes.
                 if species_genes_dict_key in self.species_genes_dict:
@@ -227,7 +225,6 @@ class AddScaffold(object):
                     self.species_genes_dict[species_genes_dict_key] = tup
                 else:
                     self.species_genes_dict[species_genes_dict_key] = [species_name, 1]
-        #print("sorted(self.species_genes_dict.keys())\n%s\n\n" % sorted(self.species_genes_dict.keys()))
         # Populate the plant_tribes_taxa table.
         file_name = os.path.join(file_dir, '%s.taxaLineage.config' % scaffold_id)
         print("file_name: %s" % str(file_name))
@@ -239,11 +236,9 @@ class AddScaffold(object):
                     continue
                 # Example line: Populus trichocarpa\tSalicaceae\tMalpighiales\tRosids\tCore Eudicots
                 items = line.split("\t")
-                #print("items: %s" % str(items))
                 species_name = items[0]
                 print("Calculating the number of genes for species_name: %s" % str(species_name))
                 for species_genes_dict_key in sorted(self.species_genes_dict.keys()):
-                    #print("species_genes_dict_key: %s" % str(species_genes_dict_key))
                     # The format of species_genes_dict_key is <clustering_method>^^<species_code>.
                     species_genes_dict_key_items = species_genes_dict_key.split("^^")
                     clustering_method = species_genes_dict_key_items[0]
@@ -255,19 +250,17 @@ class AddScaffold(object):
                             scaffold_id_db = scaffold_rec[0]
                     # The value is a list containing species_name and num_genes.
                     val = self.species_genes_dict[species_genes_dict_key]
-                    #print("val: %s" % str(val))
                     if species_name == val[0]:
                         num_genes = val[1]
                     else:
                         num_genes = 0
                     # Insert a row in to the plant_tribes_scaffold table.
-                    #print("Inserting a row into the plant_tribes_taxa table...")
                     args = [species_name, scaffold_id_db, num_genes, items[1], items[2], items[3], items[4]]
                     sql = """
                         INSERT INTO plant_tribes_taxa
                              VALUES (nextval('plant_tribes_taxa_id_seq'), %s, %s, %s, %s, %s, %s, %s);
                     """
-                    cur = self._update(sql, tuple(args))
+                    self._update(sql, tuple(args))
                     self._flush()
 
     def process_annot_dir(self):
@@ -279,9 +272,7 @@ class AddScaffold(object):
         self.scaffold_genes_dict.
         """
         scaffold_id = os.path.basename(self.args.scaffold_id)
-        #print("scaffold_id: %s" % str(scaffold_id))
         file_dir = os.path.join(self.args.scaffold_id, 'annot')
-        #print("file_dir: %s" % str(file_dir))
         # The scaffol naming convention must follow this pattern:
         # <integer1>Gv<integer2>.<integer3>
         # where integer 1 is the number of genomes in the scaffold_id.  For example:
@@ -291,7 +282,6 @@ class AddScaffold(object):
         num_genomes = int(scaffold_id.split("Gv")[0])
         super_ortho_start_index = num_genomes + 1
         for file_name in glob.glob(os.path.join(file_dir, "*min_evalue.summary")):
-            #print("filename: %s" % str(file_name))
             items = os.path.basename(file_name).split(".")
             clustering_method = items[0]
             # Save all clustering methods for later processing.
@@ -311,7 +301,7 @@ class AddScaffold(object):
             self.scaffold_recs.append([scaffold_id_db, scaffold_id, clustering_method])
             with open(file_name, "r") as fh:
                 for i, line in enumerate(fh):
-                    if i== 0:
+                    if i == 0:
                         # Skip first line.
                         continue
                     num_genes = 0
@@ -339,7 +329,6 @@ class AddScaffold(object):
                     cur = self._update(sql, tuple(args))
                     self._flush()
         for file_name in glob.glob(os.path.join(file_dir, "*list")):
-            #print("filename: %s" % str(file_name))
             items = os.path.basename(file_name).split(".")
             clustering_method = items[0]
             with open(file_name, "r") as fh:
@@ -361,7 +350,6 @@ class AddScaffold(object):
             print("--dry-run specified, all changes rolled back")
         else:
             self.conn.commit()
-            #print("All changes committed")
 
     def _shutdown(self):
         self.conn.close()
@@ -369,8 +357,5 @@ class AddScaffold(object):
 
 if __name__ == '__main__':
     add_scaffold = AddScaffold()
-    try:
-        add_scaffold._run()
-    except Exception, e:
-        print('Caught exception in run sequence:\n%s' % str(e))
+    add_scaffold._run()
     add_scaffold._shutdown()

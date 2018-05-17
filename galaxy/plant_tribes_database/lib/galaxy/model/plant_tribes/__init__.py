@@ -130,15 +130,43 @@ class PlantTribesOrthogroup(Dictifiable):
 
 
 class PlantTribesGene(Dictifiable):
-    dict_collection_visible_keys = ['id', 'gene_id', 'scaffold_id', 'taxa_id', 'dna_sequence', 'aa_sequence']
+    dict_collection_visible_keys = ['id', 'gene_id', 'taxa_id', 'dna_sequence', 'aa_sequence']
 
-    def __init__(self, id=None, gene_id=None, scaffold_id=None, taxa_id=None, dna_sequence=None, aa_sequence=None):
+    def __init__(self, id=None, gene_id=None, taxa_id=None, dna_sequence=None, aa_sequence=None):
         self.id = id,
         self.gene_id = gene_id
-        self.scaffold_id = scaffold_id
         self.taxa_id = taxa_id,
         self.dna_sequence = dna_sequence
         self.aa_sequence = aa_sequence
+
+    def as_dict(self, value_mapper=None):
+        return self.to_dict(view='element', value_mapper=value_mapper)
+
+    def to_dict(self, view='collection', value_mapper=None):
+        if value_mapper is None:
+            value_mapper = {}
+        rval = {}
+        try:
+            visible_keys = self.__getattribute__('dict_' + view + '_visible_keys')
+        except AttributeError:
+            raise Exception('Unknown API view: %s' % view)
+        for key in visible_keys:
+            try:
+                rval[key] = self.__getattribute__(key)
+                if key in value_mapper:
+                    rval[key] = value_mapper.get(key, rval[key])
+            except AttributeError:
+                rval[key] = None
+        return rval
+
+
+class GeneScaffoldAssociation(object):
+    dict_collection_visible_keys = ['id', 'gene_id', 'scaffold_id']
+
+    def __init__(self, id=None, gene_id=None, scaffold_id=None):
+        self.id = id
+        self.gene_id = gene_id
+        self.scaffold_id = scaffold_id
 
     def as_dict(self, value_mapper=None):
         return self.to_dict(view='element', value_mapper=value_mapper)

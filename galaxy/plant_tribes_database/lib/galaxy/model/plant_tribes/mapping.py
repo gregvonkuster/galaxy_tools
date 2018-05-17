@@ -60,10 +60,14 @@ plant_tribes_model.PlantTribesOrthogroup.table = Table("plant_tribes_orthogroup"
 plant_tribes_model.PlantTribesGene.table = Table("plant_tribes_gene", metadata,
                                                  Column("id", Integer, primary_key=True),
                                                  Column("gene_id", TrimmedString(100), index=True, nullable=False),
-                                                 Column("scaffold_id", Integer, ForeignKey("plant_tribes_scaffold.id"), index=True, nullable=False),
                                                  Column("taxa_id", Integer, ForeignKey("plant_tribes_taxa.id"), index=True, nullable=False),
                                                  Column("dna_sequence", TEXT, nullable=False),
                                                  Column("aa_sequence", TEXT, nullable=False))
+
+plant_tribes_model.GeneScaffoldAssociation.table = Table("gene_scaffold_association", metadata,
+                                                         Column("id", Integer, primary_key=True),
+                                                         Column("gene_id",Integer, ForeignKey("plant_tribes_gene.id"), index=True, nullable=False),
+                                                         Column("scaffold_id", Integer, ForeignKey("plant_tribes_scaffold.id"), index=True, nullable=False))
 
 mapper(plant_tribes_model.PlantTribesScaffold, plant_tribes_model.PlantTribesScaffold.table,
        properties=dict(orthogroup=relation(plant_tribes_model.PlantTribesOrthogroup,
@@ -80,10 +84,13 @@ mapper(plant_tribes_model.PlantTribesOrthogroup, plant_tribes_model.PlantTribesO
 mapper(plant_tribes_model.PlantTribesGene, plant_tribes_model.PlantTribesGene.table,
        properties=dict(taxa=relation(plant_tribes_model.PlantTribesTaxa,
                                      backref="gene",
-                                     primaryjoin=(plant_tribes_model.PlantTribesGene.table.c.taxa_id == plant_tribes_model.PlantTribesTaxa.table.c.id)),
+                                     primaryjoin=(plant_tribes_model.PlantTribesGene.table.c.taxa_id == plant_tribes_model.PlantTribesTaxa.table.c.id))))
+
+mapper(plant_tribes_model.GeneScaffoldAssociation, plant_tribes_model.GeneScaffoldAssociation.table,
+       properties=dict(gene=relation(plant_tribes_model.PlantTribesGene),
                        scaffold=relation(plant_tribes_model.PlantTribesScaffold,
-                                     backref="gene",
-                                     primaryjoin=(plant_tribes_model.PlantTribesGene.table.c.scaffold_id == plant_tribes_model.PlantTribesScaffold.table.c.id))))
+                                         lazy=False,
+                                         backref="gene")))
 
 
 def init(url, engine_options={}, create_tables=False):
