@@ -130,12 +130,12 @@ class PlantTribesOrthogroup(Dictifiable):
 
 
 class PlantTribesGene(Dictifiable):
-    dict_collection_visible_keys = ['id', 'gene_id', 'taxa_id', 'dna_sequence', 'aa_sequence']
+    dict_collection_visible_keys = ['id', 'gene_id', 'taxon_id', 'dna_sequence', 'aa_sequence']
 
-    def __init__(self, id=None, gene_id=None, taxa_id=None, dna_sequence=None, aa_sequence=None):
+    def __init__(self, id=None, gene_id=None, taxon_id=None, dna_sequence=None, aa_sequence=None):
         self.id = id,
         self.gene_id = gene_id
-        self.taxa_id = taxa_id,
+        self.taxon_id = taxon_id,
         self.dna_sequence = dna_sequence
         self.aa_sequence = aa_sequence
 

@@ -52,7 +52,7 @@ PlantTribesOrthogroup_table = Table("plant_tribes_orthogroup", metadata,
 PlantTribesGene_table = Table("plant_tribes_gene", metadata,
     Column("id", Integer, primary_key=True),
     Column("gene_id", TrimmedString(100), index=True, nullable=False),
-    Column("taxa_id", Integer, ForeignKey("plant_tribes_taxa.id"), index=True, nullable=False),
+    Column("taxon_id", Integer, ForeignKey("plant_tribes_taxa.id"), index=True, nullable=False),
     Column("dna_sequence", TEXT, nullable=False),
     Column("aa_sequence", TEXT, nullable=False))
 
