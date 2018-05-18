@@ -52,10 +52,10 @@ plant_tribes_model.PlantTribesOrthogroup.table = Table("plant_tribes_orthogroup"
                                                        Column("ahdr_description", TEXT, index=True, nullable=False),
                                                        Column("tair_description", TEXT, index=True, nullable=False),
                                                        Column("pfam_description", TEXT, index=True, nullable=False),
-                                                       Column("interproscan__description", TEXT, index=True, nullable=False),
-                                                       Column("gene_ontology_molecular_funcion_description", TEXT, index=True, nullable=False),
-                                                       Column("gene_ontology_biological_process_description", TEXT, index=True, nullable=False),
-                                                       Column("gene_ontology_celular_component_description", TEXT, index=True, nullable=False))
+                                                       Column("interproscan_description", TEXT, index=True, nullable=False),
+                                                       Column("molecular_function", TEXT, index=True, nullable=False),
+                                                       Column("biological_process", TEXT, index=True, nullable=False),
+                                                       Column("cellular_component", TEXT, index=True, nullable=False))
 
 plant_tribes_model.PlantTribesGene.table = Table("plant_tribes_gene", metadata,
                                                  Column("id", Integer, primary_key=True),

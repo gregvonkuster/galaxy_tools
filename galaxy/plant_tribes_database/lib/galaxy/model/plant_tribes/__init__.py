@@ -75,15 +75,15 @@ class PlantTribesOrthogroup(Dictifiable):
     dict_collection_visible_keys = ['id', 'orthogroup_id', 'scaffold_id', 'clustering_method', 'num_species', 'num_genes',
                                     'super_ortho_1_2', 'super_ortho_1_5', 'super_ortho_1_8', 'super_ortho_2_0', 'super_ortho_2_5',
                                     'super_ortho_3_0', 'super_ortho_3_5', 'super_ortho_4_0', 'super_ortho_4_5', 'super_ortho_5_0',
-                                    'ahdr_description', 'tair_description', 'pfam_description', 'interproscan__description',
-                                    'gene_ontology_molecular_funcion_description', 'gene_ontology_biological_process_description',
-                                    'gene_ontology_celular_component_description']
+                                    'ahdr_description', 'tair_description', 'pfam_description', 'interproscan_description',
+                                    'molecular_function', 'biological_process',
+                                    'cellular_component']
 
     def __init__(self, id=None, orthogroup_id=None, scaffold_id=None, clustering_method=None, num_species=None, num_genes=None,
                  super_ortho_1_2=None, super_ortho_1_5=None, super_ortho_1_8=None, super_ortho_2_0=None, super_ortho_2_5=None,
                  super_ortho_3_0=None, super_ortho_3_5=None, super_ortho_4_0=None, super_ortho_4_5=None, super_ortho_5_0=None,
-                 ahdr_description=None, tair_description=None, pfam_description=None, interproscan__description=None, gene_ontology_molecular_funcion_description=None,
-                 gene_ontology_biological_process_description=None, gene_ontology_celular_component_description=None):
+                 ahdr_description=None, tair_description=None, pfam_description=None, interproscan_description=None, molecular_function=None,
+                 biological_process=None, cellular_component=None):
         self.id = id
         self.orthogroup_id = orthogroup_id
         self.scaffold_id = scaffold_id
@@ -103,10 +103,10 @@ class PlantTribesOrthogroup(Dictifiable):
         self.ahdr_description = ahdr_description
         self.tair_description = tair_description
         self.pfam_description = pfam_description
-        self.interproscan__description = interproscan__description
-        self.gene_ontology_molecular_funcion_description = gene_ontology_molecular_funcion_description
-        self.gene_ontology_biological_process_description = gene_ontology_biological_process_description
-        self.gene_ontology_celular_component_description = gene_ontology_celular_component_description
+        self.interproscan_description = interproscan_description
+        self.molecular_function = molecular_function
+        self.biological_process = biological_process
+        self.cellular_component = cellular_component
 
     def as_dict(self, value_mapper=None):
         return self.to_dict(view='element', value_mapper=value_mapper)
