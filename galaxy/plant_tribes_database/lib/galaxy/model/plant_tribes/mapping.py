@@ -64,10 +64,11 @@ plant_tribes_model.PlantTribesGene.table = Table("plant_tribes_gene", metadata,
                                                  Column("dna_sequence", TEXT, nullable=False),
                                                  Column("aa_sequence", TEXT, nullable=False))
 
-plant_tribes_model.GeneScaffoldAssociation.table = Table("gene_scaffold_association", metadata,
+plant_tribes_model.GeneScaffoldOrthogroupAssociation.table = Table("gene_scaffold_orthogroup_association", metadata,
                                                          Column("id", Integer, primary_key=True),
                                                          Column("gene_id",Integer, ForeignKey("plant_tribes_gene.id"), index=True, nullable=False),
-                                                         Column("scaffold_id", Integer, ForeignKey("plant_tribes_scaffold.id"), index=True, nullable=False))
+                                                         Column("scaffold_id", Integer, ForeignKey("plant_tribes_scaffold.id"), index=True, nullable=False),
+                                                         Column("orthogroup_id", Integer, ForeignKey("plant_tribes_orthogroup.id"), index=True, nullable=False))
 
 mapper(plant_tribes_model.PlantTribesScaffold, plant_tribes_model.PlantTribesScaffold.table,
        properties=dict(orthogroup=relation(plant_tribes_model.PlantTribesOrthogroup,
@@ -86,11 +87,14 @@ mapper(plant_tribes_model.PlantTribesGene, plant_tribes_model.PlantTribesGene.ta
                                      backref="gene",
                                      primaryjoin=(plant_tribes_model.PlantTribesGene.table.c.taxon_id == plant_tribes_model.PlantTribesTaxa.table.c.id))))
 
-mapper(plant_tribes_model.GeneScaffoldAssociation, plant_tribes_model.GeneScaffoldAssociation.table,
+mapper(plant_tribes_model.GeneScaffoldOrthogroupAssociation, plant_tribes_model.GeneScaffoldOrthogroupAssociation.table,
        properties=dict(gene=relation(plant_tribes_model.PlantTribesGene),
                        scaffold=relation(plant_tribes_model.PlantTribesScaffold,
                                          lazy=False,
-                                         backref="gene")))
+                                         backref="gene"),
+                       orthogroup=relation(plant_tribes_model.PlantTribesOrthogroup,
+                                           lazy=False,
+                                           backref="gene")))
 
 
 def init(url, engine_options={}, create_tables=False):

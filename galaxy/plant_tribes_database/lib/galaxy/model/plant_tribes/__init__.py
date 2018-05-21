@@ -160,13 +160,14 @@ class PlantTribesGene(Dictifiable):
         return rval
 
 
-class GeneScaffoldAssociation(object):
-    dict_collection_visible_keys = ['id', 'gene_id', 'scaffold_id']
+class GeneScaffoldOrthogroupAssociation(object):
+    dict_collection_visible_keys = ['id', 'gene_id', 'scaffold_id', 'orthogroup_id']
 
     def __init__(self, id=None, gene_id=None, scaffold_id=None):
         self.id = id
         self.gene_id = gene_id
         self.scaffold_id = scaffold_id
+        self.orthogroup_id = orthogroup_id
 
     def as_dict(self, value_mapper=None):
         return self.to_dict(view='element', value_mapper=value_mapper)

@@ -56,10 +56,11 @@ PlantTribesGene_table = Table("plant_tribes_gene", metadata,
     Column("dna_sequence", TEXT, nullable=False),
     Column("aa_sequence", TEXT, nullable=False))
 
-GeneScaffoldAssociation_table = Table("gene_scaffold_association", metadata,
+GeneScaffoldOrthogroupAssociation_table = Table("gene_scaffold_orthogroup_association", metadata,
     Column("id", Integer, primary_key=True),
     Column("gene_id", Integer, ForeignKey("plant_tribes_gene.id"), index=True, nullable=False),
-    Column("scaffold_id", Integer, ForeignKey("plant_tribes_scaffold.id"), index=True, nullable=False))
+    Column("scaffold_id", Integer, ForeignKey("plant_tribes_scaffold.id"), index=True, nullable=False),
+    Column("orthogroup_id", Integer, ForeignKey("plant_tribes_orthogroup.id"), index=True, nullable=False))
 
 
 def upgrade(migrate_engine):
