@@ -1,4 +1,4 @@
-<tool id="plant_tribes_gene_family_phylogeny_builder" name="GeneFamilyPhylogenyBuilder" version="@WRAPPER_VERSION@.3.0">
+<tool id="plant_tribes_gene_family_phylogeny_builder" name="GeneFamilyPhylogenyBuilder" version="@WRAPPER_VERSION@.3.1">
     <description>builds phylogenetic trees of aligned orthologous gene family clusters</description>
     <macros>
         <import>macros.xml</import>
@@ -77,7 +77,7 @@ fi
     </inputs>
     <outputs>
         <collection name="tree" type="list" label="${tool.name} (phylogenetic trees) on ${on_string}">
-            <discover_datasets pattern="__name__" directory="geneFamilyPhylogenies_dir/orthogroups_tree" format="nhx" />
+            <discover_datasets pattern="__name__" directory="geneFamilyPhylogenies_dir/orthogroups_tree" format="newick" />
         </collection>
         <collection name="phylip" type="list" label="${tool.name} (orthogroup phylip multiple sequence alignments) on ${on_string}">
             <filter>tree_inference_cond['tree_inference'] == 'raxml'</filter>
@@ -93,7 +93,7 @@ fi
             </param>
             <param name="tree_inference" value="fasttree"/>
             <output_collection name="tree" type="list">
-                <element name="3722.faa.aln.tree" file="3722.faa.aln.tree" ftype="nhx"/>
+                <element name="3722.faa.aln.tree" file="3722.faa.aln.tree" ftype="newick"/>
             </output_collection>
         </test>
     </tests>
