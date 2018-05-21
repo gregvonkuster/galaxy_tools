@@ -143,8 +143,8 @@ class AddScaffold(object):
             orthogroup_id_db = cur.fetchone()[0]
             # If the plant_tribes_gene table contains a row that has the gene_id,
             # then we'll add a row only to the gene_scaffold_orthogroup_association table.
-            # Get the taxon_id  for the species_name from the plant_tribes_taxa table.
-            sql = "SELECT id FROM plant_tribes_taxa WHERE species_name = '%s';" % species_name
+            # Get the taxon_id  for the species_name from the plant_tribes_taxon table.
+            sql = "SELECT id FROM plant_tribes_taxon WHERE species_name = '%s';" % species_name
             cur = self.conn.cursor()
             cur.execute(sql)
             taxon_id = cur.fetchone()[0]
@@ -187,7 +187,7 @@ class AddScaffold(object):
         2. Calculate the number of genes found
         for each species and add the number to self.species_genes_dict.
         3. Parse ~/<scaffold_id>/<scaffold_id>.taxaLineage.config to
-        populate the plant_tribes_taxa table.
+        populate the plant_tribes_taxon table.
         """
         scaffold_id = os.path.basename(self.args.scaffold_id)
         print("scaffold_id: %s" % str(scaffold_id))
@@ -232,7 +232,7 @@ class AddScaffold(object):
                     self.species_genes_dict[species_genes_dict_key] = tup
                 else:
                     self.species_genes_dict[species_genes_dict_key] = [species_name, 1]
-        # Populate the plant_tribes_taxa table.
+        # Populate the plant_tribes_taxon table.
         file_name = os.path.join(file_dir, '%s.taxaLineage.config' % scaffold_id)
         print("file_name: %s" % str(file_name))
         with open(file_name, "r") as fh:
@@ -264,8 +264,8 @@ class AddScaffold(object):
                     # Insert a row in to the plant_tribes_scaffold table.
                     args = [species_name, scaffold_id_db, num_genes, items[1], items[2], items[3], items[4]]
                     sql = """
-                        INSERT INTO plant_tribes_taxa
-                             VALUES (nextval('plant_tribes_taxa_id_seq'), %s, %s, %s, %s, %s, %s, %s);
+                        INSERT INTO plant_tribes_taxon
+                             VALUES (nextval('plant_tribes_taxon_id_seq'), %s, %s, %s, %s, %s, %s, %s);
                     """
                     self._update(sql, tuple(args))
                     self._flush()

@@ -14,7 +14,7 @@ PlantTribesScaffold_table = Table("plant_tribes_scaffold", metadata,
     Column("clustering_method", TrimmedString(30), index=True, nullable=False))
 
 
-PlantTribesTaxa_table = Table("plant_tribes_taxa", metadata,
+PlantTribesTaxon_table = Table("plant_tribes_taxon", metadata,
     Column("id", Integer, primary_key=True),
     Column("species_name", TrimmedString(50), index=True, nullable=False),
     Column("scaffold_id", Integer, ForeignKey("plant_tribes_scaffold.id"), index=True, nullable=False),
@@ -52,7 +52,7 @@ PlantTribesOrthogroup_table = Table("plant_tribes_orthogroup", metadata,
 PlantTribesGene_table = Table("plant_tribes_gene", metadata,
     Column("id", Integer, primary_key=True),
     Column("gene_id", TrimmedString(100), index=True, nullable=False),
-    Column("taxon_id", Integer, ForeignKey("plant_tribes_taxa.id"), index=True, nullable=False),
+    Column("taxon_id", Integer, ForeignKey("plant_tribes_taxon.id"), index=True, nullable=False),
     Column("dna_sequence", TEXT, nullable=False),
     Column("aa_sequence", TEXT, nullable=False))
 

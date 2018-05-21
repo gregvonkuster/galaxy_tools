@@ -34,7 +34,7 @@ class PlantTribesScaffold(Dictifiable):
         return rval
 
 
-class PlantTribesTaxa(Dictifiable):
+class PlantTribesTaxon(Dictifiable):
     dict_collection_visible_keys = ['id', 'species_name', 'scaffold_id', 'clustering_method', 'num_genes', 'species_family',
                                     'species_order', 'species_group', 'species_clade']
 

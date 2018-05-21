@@ -23,15 +23,15 @@ plant_tribes_model.PlantTribesScaffold.table = Table("plant_tribes_scaffold", me
                                                      Column("scaffold_id", TrimmedString(10), index=True, nullable=False),
                                                      Column("clustering_method", TrimmedString(30), index=True, nullable=False))
 
-plant_tribes_model.PlantTribesTaxa.table = Table('plant_tribes_taxa', metadata,
-                                                 Column("id", Integer, primary_key=True),
-                                                 Column("species_name", TrimmedString(50), index=True, nullable=False),
-                                                 Column("scaffold_id", Integer, ForeignKey("plant_tribes_scaffold.id"), index=True, nullable=False),
-                                                 Column("num_genes", Integer, nullable=False),
-                                                 Column("species_family", TrimmedString(50), nullable=False),
-                                                 Column("species_order", TrimmedString(50), nullable=False),
-                                                 Column("species_group", TrimmedString(50), nullable=False),
-                                                 Column("species_clade", TrimmedString(50), nullable=False))
+plant_tribes_model.PlantTribesTaxon.table = Table('plant_tribes_taxon', metadata,
+                                                  Column("id", Integer, primary_key=True),
+                                                  Column("species_name", TrimmedString(50), index=True, nullable=False),
+                                                  Column("scaffold_id", Integer, ForeignKey("plant_tribes_scaffold.id"), index=True, nullable=False),
+                                                  Column("num_genes", Integer, nullable=False),
+                                                  Column("species_family", TrimmedString(50), nullable=False),
+                                                  Column("species_order", TrimmedString(50), nullable=False),
+                                                  Column("species_group", TrimmedString(50), nullable=False),
+                                                  Column("species_clade", TrimmedString(50), nullable=False))
 
 plant_tribes_model.PlantTribesOrthogroup.table = Table("plant_tribes_orthogroup", metadata,
                                                        Column("id", Integer, primary_key=True),
@@ -60,32 +60,32 @@ plant_tribes_model.PlantTribesOrthogroup.table = Table("plant_tribes_orthogroup"
 plant_tribes_model.PlantTribesGene.table = Table("plant_tribes_gene", metadata,
                                                  Column("id", Integer, primary_key=True),
                                                  Column("gene_id", TrimmedString(100), index=True, nullable=False),
-                                                 Column("taxon_id", Integer, ForeignKey("plant_tribes_taxa.id"), index=True, nullable=False),
+                                                 Column("taxon_id", Integer, ForeignKey("plant_tribes_taxon.id"), index=True, nullable=False),
                                                  Column("dna_sequence", TEXT, nullable=False),
                                                  Column("aa_sequence", TEXT, nullable=False))
 
 plant_tribes_model.GeneScaffoldOrthogroupAssociation.table = Table("gene_scaffold_orthogroup_association", metadata,
-                                                         Column("id", Integer, primary_key=True),
-                                                         Column("gene_id",Integer, ForeignKey("plant_tribes_gene.id"), index=True, nullable=False),
-                                                         Column("scaffold_id", Integer, ForeignKey("plant_tribes_scaffold.id"), index=True, nullable=False),
-                                                         Column("orthogroup_id", Integer, ForeignKey("plant_tribes_orthogroup.id"), index=True, nullable=False))
+                                                                   Column("id", Integer, primary_key=True),
+                                                                   Column("gene_id",Integer, ForeignKey("plant_tribes_gene.id"), index=True, nullable=False),
+                                                                   Column("scaffold_id", Integer, ForeignKey("plant_tribes_scaffold.id"), index=True, nullable=False),
+                                                                   Column("orthogroup_id", Integer, ForeignKey("plant_tribes_orthogroup.id"), index=True, nullable=False))
 
 mapper(plant_tribes_model.PlantTribesScaffold, plant_tribes_model.PlantTribesScaffold.table,
        properties=dict(orthogroup=relation(plant_tribes_model.PlantTribesOrthogroup,
                                            backref="scaffold",
                                            primaryjoin=(plant_tribes_model.PlantTribesScaffold.table.c.id == plant_tribes_model.PlantTribesOrthogroup.table.c.scaffold_id))))
 
-mapper(plant_tribes_model.PlantTribesTaxa, plant_tribes_model.PlantTribesTaxa.table,
+mapper(plant_tribes_model.PlantTribesTaxon, plant_tribes_model.PlantTribesTaxon.table,
        properties=dict(scaffold=relation(plant_tribes_model.PlantTribesScaffold,
                                          backref="taxa",
-                                         primaryjoin=(plant_tribes_model.PlantTribesTaxa.table.c.scaffold_id == plant_tribes_model.PlantTribesScaffold.table.c.id))))
+                                         primaryjoin=(plant_tribes_model.PlantTribesTaxon.table.c.scaffold_id == plant_tribes_model.PlantTribesScaffold.table.c.id))))
 
 mapper(plant_tribes_model.PlantTribesOrthogroup, plant_tribes_model.PlantTribesOrthogroup.table)
 
 mapper(plant_tribes_model.PlantTribesGene, plant_tribes_model.PlantTribesGene.table,
-       properties=dict(taxa=relation(plant_tribes_model.PlantTribesTaxa,
+       properties=dict(taxa=relation(plant_tribes_model.PlantTribesTaxon,
                                      backref="gene",
-                                     primaryjoin=(plant_tribes_model.PlantTribesGene.table.c.taxon_id == plant_tribes_model.PlantTribesTaxa.table.c.id))))
+                                     primaryjoin=(plant_tribes_model.PlantTribesGene.table.c.taxon_id == plant_tribes_model.PlantTribesTaxon.table.c.id))))
 
 mapper(plant_tribes_model.GeneScaffoldOrthogroupAssociation, plant_tribes_model.GeneScaffoldOrthogroupAssociation.table,
        properties=dict(gene=relation(plant_tribes_model.PlantTribesGene),
