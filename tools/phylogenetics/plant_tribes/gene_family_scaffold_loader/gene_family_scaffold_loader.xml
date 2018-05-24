@@ -1,0 +1,45 @@
+<tool id="plant_tribes_gene_family_scaffold_loader" name="Load scaffold" version="@WRAPPER_VERSION@.0.0">
+    <description>into Galaxy PlantTribes database</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <command detect_errors="exit_code"><![CDATA[
+python '$__tool_directory__/gene_family_scaffold_loader.py'
+--database_connection_string '$__app__.config.plant_tribes_database_connection'
+--output '$output'
+--scaffold_path '$GALAXY_DATA_INDEX_DIR/plant_tribes/scaffolds/$scaffold'
+--output '$output']]></command>
+    <inputs>
+        <expand macro="param_scaffold" />
+    </inputs>
+    <outputs>
+        <data name="output" format="txt"/>
+    </outputs>
+    <tests>
+        <test>
+            <!--Testing this tool is a bit difficult at the current time.-->
+        </test>
+    </tests>
+    <help>
+This tool is one of the PlantTribes collection of automated modular analysis pipelines for comparative and evolutionary
+analyses of genome-scale gene families and transcriptomes. This tool analyzes scaffolds installed into Galaxy by the
+PlantTribes Scaffolds Downloader data manager tool and inserts information about them into the Galaxy PlantTribes database
+for querying and additional analysis.
+
+-----
+
+**Required options**
+
+ * **Gene family scaffold** - one of the PlantTribes gene family scaffolds, installed into Galaxy by the PlantTribes Scaffold Data Manager tool, that has not yet been analyzed and loaded into the Galaxy PlantTribes database.
+    </help>
+    <citations>
+        <citation type="bibtex">
+            @unpublished{None,
+            author = {Greg Von Kuster,Eric Wafula},
+            title = {None},
+            year = {None},
+            eprint = {None},
+            url = {https://github.com/dePamphilis/PlantTribes}}
+        </citation>
+    </citations>
+</tool>

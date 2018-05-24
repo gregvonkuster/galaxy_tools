@@ -1,0 +1,13 @@
+name: plant_tribes_gene_family_scaffold_loader
+owner: greg
+description: |
+  Contains a tool that analyzes a PlantTribes scaffold and inserts information about it into the Galaxy PlantTribes database.
+homepage_url: https://github.com/dePamphilis/PlantTribes
+long_description: |
+  Contains a tool that analyzes a PlantTribes scaffold, installed into Galaxy via the PlantTribes Scaffolds Downloader
+  data manager tool, and inserts information about it into the Galaxy PlantTribes database for querying and additional
+  analysis.
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/phylogenetics/plant_tribes/gene_family_scaffold_loader
+type: unrestricted
+categories:
+- Phylogenetics
