@@ -6,6 +6,7 @@ option_list <- list(
     make_option(c("--adult_mortality"), action="store", dest="adult_mortality", type="integer", help="Adjustment rate for adult mortality"),
     make_option(c("--adult_accumulation"), action="store", dest="adult_accumulation", type="integer", help="Adjustment of degree-days accumulation (old nymph->adult)"),
     make_option(c("--egg_mortality"), action="store", dest="egg_mortality", type="integer", help="Adjustment rate for egg mortality"),
+    make_option(c("--end_date"), action="store", dest="end_date", default=NULL, help="End date for custom date interval"),
     make_option(c("--input_norm"), action="store", dest="input_norm", help="30 year normals temperature data for selected station"),
     make_option(c("--input_ytd"), action="store", dest="input_ytd", default=NULL, help="Year-to-date temperature data for selected location"),
     make_option(c("--insect"), action="store", dest="insect", help="Insect name"),
@@ -24,6 +25,7 @@ option_list <- list(
     make_option(c("--plot_generations_separately"), action="store", dest="plot_generations_separately", help="Plot Plot P, F1 and F2 as separate lines or pool across them"),
     make_option(c("--plot_std_error"), action="store", dest="plot_std_error", help="Plot Standard error"),
     make_option(c("--replications"), action="store", dest="replications", type="integer", help="Number of replications"),
+    make_option(c("--start_date"), action="store", dest="start_date", default=NULL, help="Start date for custom date interval"),
     make_option(c("--young_nymph_accumulation"), action="store", dest="young_nymph_accumulation", type="integer", help="Adjustment of degree-days accumulation (egg->young nymph)")
 )
 
@@ -61,6 +63,27 @@ append_vector = function(data_frame, vec, new_column_name) {
     # Reset the column names with the additional column for later access.
     colnames(data_frame) = append(current_column_names, new_column_name);
     return(data_frame);
+}
+
+extract_date_interval_rows = function(df, start_date, end_date) {
+    date_interval_rows = df[df$DATE >= start_date & df$DATE <= end_date];
+    return(date_interval_rows);
+}
+
+from_30_year_normals = function(start_date_doy, end_date_doy) {
+    # The data we want is fully contained within the 30 year normals data.
+    first_norm_row = which(norm_data_frame$DOY==start_date_doy);
+    last_norm_row = which(norm_data_frame$DOY==end_date_doy);
+    norm_data_frame_rows = last_norm_row - first_norm_row;
+    # Create temperature_data_frame to contain the data
+    # taken from norm_data_frame for the date interval.
+    temperature_data_frame = data.frame(matrix(ncol=6, nrow=norm_data_frame_rows));
+    j = 0;
+    for (i in first_norm_row:last_norm_row) {
+        j = j + 1;
+        temperature_data_frame[j,] = get_next_normals_row(norm_data_frame, year, is_leap_year, i);
+    }
+    return (temperature_data_frame);
 }
 
 get_file_path = function(life_stage, base_name, life_stage_nymph=NULL, life_stage_adult=NULL) {
@@ -143,7 +166,7 @@ get_next_normals_row = function(norm_data_frame, year, is_leap_year, index) {
     return(list(latitude, longitude, date_str, doy, tmin, tmax));
 }
 
-get_temperature_at_hour = function(latitude, temperature_data_frame, row, num_days) {
+get_temperature_at_hour = function(latitude, temperature_data_frame, row) {
     # Base development threshold for Brown Marmorated Stink Bug
     # insect phenology model.
     threshold = 14.17;
@@ -353,81 +376,230 @@ mortality.nymph = function(temperature) {
     return(mortality.probability);
 }
 
-parse_input_data = function(input_ytd, input_norm, num_days_ytd, location) {
+parse_input_data = function(input_ytd, input_norm, num_days, location, start_date, end_date) {
+    # The received value of num_days will be:
+    # - NULL if the values of input_ytd, start_date and end_date are all NULL.
+    # - the number of rows in input_ytd if start_date and end_date are NULL.
+    # - the number of days in the date interval between start_date and end_date
+    #   if both of them have values.
     if (is.null(input_ytd)) {
-        # We're analysing only the 30 year normals data, so create an empty
-        # data frame for containing temperature data after it is converted
-        # from the 30 year normals format to the year-to-date format.
-        temperature_data_frame = data.frame(matrix(ncol=6, nrow=0));
-        colnames(temperature_data_frame) = c("LATITUDE", "LONGITUDE", "DATE", "DOY", "TMIN", "TMAX");
-        # Base all dates on the current date since 30 year
-        # normals data does not include any dates.
-        year = format(Sys.Date(), "%Y");
-        start_date = paste(year, "01", "01", sep="-");
-        end_date = paste(year, "12", "31", sep="-");
-        # Set invalid start and end DOY.
-        start_doy_ytd = 0;
-        end_doy_ytd = 0;
+        processing_year_to_date_data = FALSE;
     } else {
-        # Read the input_ytd temperature datafile into a data frame.
-        # The input_ytd data has the following 6 columns:
-        # LATITUDE, LONGITUDE, DATE, DOY, TMIN, TMAX
-        temperature_data_frame = read.csv(file=input_ytd, header=T, strip.white=TRUE, stringsAsFactors=FALSE, sep=",");
-        # Set the temperature_data_frame column names for access.
-        colnames(temperature_data_frame) = c("LATITUDE", "LONGITUDE", "DATE", "DOY", "TMIN", "TMAX");
-        # Get the start date.
-        start_date = temperature_data_frame$DATE[1];
-        end_date = temperature_data_frame$DATE[num_days_ytd];
-        # Extract the year from the start date.
-        date_str = format(start_date);
-        date_str_items = strsplit(date_str, "-")[[1]];
-        year = date_str_items[1];
-        # Save the first DOY to later check if start_date is Jan 1.
-        start_doy_ytd = as.integer(temperature_data_frame$DOY[1]);
-        end_doy_ytd = as.integer(temperature_data_frame$DOY[num_days_ytd]);
+        processing_year_to_date_data = TRUE;
     }
-    # See if we're in a leap year.
-    is_leap_year = is_leap_year(start_date);
-    # Get the number of days in the year.
-    total_days = get_total_days(is_leap_year);
+    if (is.null(start_date) && is.null(end_date)) {
+        restricted_date_interval = FALSE;
+    } else {
+        restricted_date_interval = TRUE;
+        # Get the DOY for start_date and end_date.
+        start_date_doy = strftime(start_date, format="%j");
+        end_date_doy = strftime(end_date, format="%j");
+    }
     # Read the input_norm temperature datafile into a data frame.
     # The input_norm data has the following 10 columns:
     # STATIONID, LATITUDE, LONGITUDE, ELEV_M, NAME, ST, MMDD, DOY, TMIN, TMAX
     norm_data_frame = read.csv(file=input_norm, header=T, strip.white=TRUE, stringsAsFactors=FALSE, sep=",");
     # Set the norm_data_frame column names for access.
     colnames(norm_data_frame) = c("STATIONID", "LATITUDE","LONGITUDE", "ELEV_M", "NAME", "ST", "MMDD", "DOY", "TMIN", "TMAX");
+    if (processing_year_to_date_data) {
+        # Read the input_ytd temperature data file into a data frame.
+        # The input_ytd data has the following 6 columns:
+        # LATITUDE, LONGITUDE, DATE, DOY, TMIN, TMAX
+        temperature_data_frame = read.csv(file=input_ytd, header=T, strip.white=TRUE, stringsAsFactors=FALSE, sep=",");
+        # Set the temperature_data_frame column names for access.
+        colnames(temperature_data_frame) = c("LATITUDE", "LONGITUDE", "DATE", "DOY", "TMIN", "TMAX");
+        if (restricted_date_interval) {
+            # The value of num_days is the number
+            # of days between start_date and end_date.
+            start_date_ytd_row = which(temperature_data_frame$DATE==start_date);
+            if (start_date_ytd_row > 0) {
+                # The start date is contained within the input_ytd data.
+                start_doy_ytd = temperature_data_frame$DOY[start_date_ytd_row];
+            } else {
+                # The start date is contained within the input_norm data.
+                start_date_norm_row = norm_
+            }
+            end_date_ytd_row = which(temperature_data_frame$DATE==end_date);
+            if (end_date_ytd_row > 0) {
+                # The end date is contained within the input_ytd data.
+                end_doy_ytd = temperature_data_frame$DOY[end_date_ytd_row];
+            }
+            date_str = start_date;
+        } else {
+            # The value of num_days is the number of rows in input_ytd.
+            # Get the start date and end date from temperature_data_frame.
+            start_date_ytd_row = 1;
+            start_date = temperature_data_frame$DATE[1];
+            end_date_ytd_row = num_days;
+            end_date = temperature_data_frame$DATE[num_days];
+            date_str = format(start_date);
+            # Save the first DOY to later check if start_date is Jan 1.
+            start_doy_ytd = as.integer(temperature_data_frame$DOY[1]);
+            end_doy_ytd = as.integer(temperature_data_frame$DOY[num_days]);
+        }
+        # Extract the year from the start date.
+        date_str_items = strsplit(date_str, "-")[[1]];
+        year = date_str_items[1];
+    } else {
+        # We're processing only the 30 year normals data, so create an empty
+        # data frame for containing temperature data after it is converted
+        # from the 30 year normals format to the year-to-date format.
+        temperature_data_frame = data.frame(matrix(ncol=6, nrow=0));
+        colnames(temperature_data_frame) = c("LATITUDE", "LONGITUDE", "DATE", "DOY", "TMIN", "TMAX");
+        if (restricted_date_interval) {
+            # Extract the year, month and day from the start date.
+            start_date_str = format(start_date);
+            start_date_str_items = strsplit(start_date_str, "-")[[1]];
+            year = start_date_str_items[1];
+            start_date_month = start_date_str_items[2];
+            start_date_day = start_date_str_items[3];
+            start_date = paste(year, start_date_month, start_date_day, sep="-");
+            # Extract the month and day from the end date.
+            end_date_str = format(start_date);
+            end_date_str_items = strsplit(end_date_str, "-")[[1]];
+            end_date_month = end_date_str_items[2];
+            end_date_day = end_date_str_items[3];
+            end_date = paste(year, start_date_month, start_date_day, sep="-");
+        } else {
+            # Base all dates on the current date since 30 year
+            # normals data does not include any dates.
+            year = format(Sys.Date(), "%Y");
+            start_date = paste(year, "01", "01", sep="-");
+            end_date = paste(year, "12", "31", sep="-");
+        }
+        # Set invalid start and end DOY.
+        start_doy_ytd = 0;
+        end_doy_ytd = 0;
+    }
+    # See if we're in a leap year.
+    is_leap_year = is_leap_year(start_date);
     # All normals data includes Feb 29 which is row 60 in
     # the data, so delete that row if we're not in a leap year.
     if (!is_leap_year) {
         norm_data_frame = norm_data_frame[-c(60),];
     }
-    # Set the location to be the station name if the user elected no to enter it.
-    if (is.null(location) | length(location)==0) {
+    # Set the location to be the station name if the user elected not to enter it.
+    if (is.null(location) | length(location) == 0) {
         location = norm_data_frame$NAME[1];
     }
-    if (is.null(input_ytd)) {
-        # Convert the 30 year normals data to the year-to-date format.
-        for (i in 1:total_days) {
-            temperature_data_frame[i,] = get_next_normals_row(norm_data_frame, year, is_leap_year, i);
+    if (processing_year_to_date_data) {
+        # Merge the year-to-date data with the 30 year normals data.
+        if (restricted_date_interval) {
+            # The values of start_date_ytd_row and end_date_ytd_row were set above.
+            if (start_date_ytd_row > 0 & end_date_ytd_row > 0) {
+                # The date interval is contained within the input_ytd
+                # data, so we don't need to merge the 30 year normals data.
+                temperature_data_frame = temperature_data_frame[start_date_ytd_row:end_date_ytd_row,];
+                # Set the value of total_days.
+                total_days = dim(temperature_data_frame)[1];
+            } else if (start_date_ytd_row == 0 & end_date_ytd_row > 0) {
+                # Prepend the 30 year normals data to the year-to-date
+                # data to create the date interval.
+                first_norm_row = which(norm_data_frame$DOY==start_date_doy);
+                # Get the first DOY from temperature_data_frame.
+                first_ytd_doy = temperature_data_frame$DOY[1];
+                # Get the number of rows for the restricted date interval
+                # that are contained in temperature_data_frame.
+                temperature_data_frame_rows = end_date_ytd_row;
+                # Get the last row needed from the 30 year normals data.
+                last_norm_row = which(norm_data_frame$DOY==first_ytd_doy)-1;
+                # Get the number of rows for the restricted date interval
+                # that are contained in norm_data_frame.
+                norm_data_frame_rows = last_norm_row - first_norm_row;
+                # Set the value of total_days.
+                total_days = temperature_data_frame_rows + norm_data_frame_rows;
+                # Create a temporary data frame to contain the 30 year normals
+                # data from the start date to the date immediately prior to the
+                # first row of the input_ytd data.
+                tmp_norm_data_frame = data.frame(matrix(ncol=6, nrow=total_days));
+                for (i in first_norm_row:last_norm_row) {
+                    # Populate the temp_data_frame row with
+                    # values from norm_data_frame.
+                    tmp_norm_data_frame[i,] = get_next_normals_row(norm_data_frame, year, is_leap_year, i);
+                }
+                # Create a second temporary data frame containing the
+                # appropriate rows from temperature_data_frame.
+                tmp_temperature_data_frame = temperature_data_frame[1:first_norm_row-1,];
+                # Merge the 2 temporary data frames.
+                temperature_data_frame = rbind(tmp_norm_data_frame, tmp_temperature_data_frame);
+            } else if (start_date_ytd_row > 0 & end_date_ytd_row == 0) {
+                # Append the 30 year normals data to the year-to-date
+                # data to create the date interval.  First get the rows
+                # from temperature_data_frame starting with the start_date.
+                num_rows = dim(temperature_data_frame)[1];
+                # Get the number of rows for the restricted date interval
+                # that are contained in temperature_data_frame.
+                temperature_data_frame_rows = num_rows - start_date_ytd_row
+                # Get the DOY of the last row in the input_ytd data.
+                last_ytd_doy = temperature_data_frame$DOY[num_rows];
+                # Get the DOY for the first row needed from norm_data_frame.
+                first_norm_doy = last_ytd_doy + 1;
+                # Get the row from norm_data_frame containing first_norm_doy.
+                first_norm_row = which(norm_data_frame$DOY==first_norm_doy);
+                # Get the row from norm_data_frame containing end_date_doy.
+                last_norm_row = which(norm_data_frame$DOY==end_date_doy);
+                # Get the number of rows for the restricted date interval
+                # that are contained in norm_data_frame.
+                norm_data_frame_rows = last_norm_row - first_norm_row;
+                # Set the value of total_days.
+                total_days = temperature_data_frame_rows + norm_data_frame_rows;
+                # Create a temporary data frame to contain the data
+                # taken from both temperateu_data_frame and norm_data_frame
+                # for the date interval.
+                tmp_data_frame = data.frame(matrix(ncol=6, nrow=total_days));
+                # Populate tmp_data_frame with the appropriate rows from temperature_data_frame.
+                tmp_data_frame[temperature_data_frame_rows,] = temperature_data_frame[start_date_ytd_row:temperature_data_frame_rows,];
+                # Apppend the appropriate rows from norm_data_frame to tmp_data_frame.
+                for (i in first_norm_row:last_norm_row) {
+                    tmp_data_frame[i,] = get_next_normals_row(norm_data_frame, year, is_leap_year, i);
+                }
+                temperature_data_frame = tmp_data_frame[,];
+            } else if (start_date_ytd_row == 0 & end_date_ytd_row == 0) {
+                temperature_data_frame = from_30_year_normals(start_date_doy, end_date_doy);
+                # Set the value of total_days.
+                total_days = dim(temperature_data_frame)[1];
+            }
+        } else {
+            # We're plotting an entire year.
+            if (start_doy_ytd > 1) {
+                # The year-to-date data starts after Jan 1, so create a
+                # temporary data frame to contain the 30 year normals data
+                # from Jan 1 to the date immediately prior to start_date.
+                tmp_data_frame = temperature_data_frame[FALSE,];
+                # Populate tmp_data_frame with appropriate rows from temperature_data_frame.
+                for (i in 1:start_doy_ytd-1) {
+                    tmp_data_frame[i,] = get_next_normals_row(norm_data_frame, year, is_leap_year, i);
+                }
+                # Next merge the temporary data frame with the year-to-date data frame.
+                temperature_data_frame = rbind(tmp_data_frame, temperature_data_frame);
+                # Set the value of total_days.
+                total_days = dim(temperature_data_frame)[1];
+            }
+            # Set the value of total_days.
+            total_days = get_total_days(is_leap_year);
+            temperature_data_frame = data.frame(matrix(ncol=6, nrow=total_days));
+            # Define the next row for the year-to-date data from the 30 year normals data.
+            first_normals_append_row = end_doy_ytd + 1;
+            # Append the 30 year normals data to the year-to-date data.
+            for (i in first_normals_append_row:total_days) {
+                temperature_data_frame[i,] = get_next_normals_row(norm_data_frame, year, is_leap_year, i);
+            }
         }
     } else {
-        # Merge the year-to-date data with the 30 year normals data.
-        if (start_doy_ytd > 1) {
-            # The year-to-date data starts after Jan 1, so create a
-            # temporary data frame to contain the 30 year normals data
-            # from Jan 1 to the date immediately prior to start_date.
-            tmp_data_frame = temperature_data_frame[FALSE,];
-            for (i in 1:start_doy_ytd-1) {
-                tmp_data_frame[i,] = get_next_normals_row(norm_data_frame, year, is_leap_year, i);
+        # We're processing only the 30 year normals data.
+        if (restricted_date_interval) {
+            # The value of num_days is the number of
+            # days between start_date and end_date.
+            temperature_data_frame = from_30_year_normals(start_date_doy, end_date_doy);
+            # Set the value of total_days.
+            total_days = dim(temperature_data_frame)[1];
+        } else {
+            # The value of num_days is NULL.
+            total_days = get_total_days(is_leap_year);
+            temperature_data_frame = data.frame(matrix(ncol=6, nrow=total_days));
+            for (i in 1:total_days) {
+                temperature_data_frame[i,] = get_next_normals_row(norm_data_frame, year, is_leap_year, i);
             }
-            # Next merge the temporary data frame with the year-to-date data frame.
-            temperature_data_frame = rbind(tmp_data_frame, temperature_data_frame);
-        }
-        # Define the next row for the year-to-date data from the 30 year normals data.
-        first_normals_append_row = end_doy_ytd + 1;
-        # Append the 30 year normals data to the year-to-date data.
-        for (i in first_normals_append_row:total_days) {
-            temperature_data_frame[i,] = get_next_normals_row(norm_data_frame, year, is_leap_year, i);
         }
     }
     # Add a column containing the daylight length for each day.
@@ -519,19 +691,73 @@ render_chart = function(ticks, date_labels, chart_type, plot_std_error, insect, 
     }
 }
 
+stop_err = function(msg) {
+    cat(msg, file=stderr());
+    quit(save="no", status=1);
+}
+
+validate_date = function(date_str) {
+    valid_date = as.Date(date_str, format="%Y-%m-%d");
+    if( class(valid_date)=="try-error" || is.na(valid_date)) {
+        msg = paste("Invalid date: ", date_str, ", valid date format is yyyy-mm-dd.", sep="");
+        stop_err(msg);
+    }
+    return(valid_date);
+}
+
+if (is.null(input_ytd)) {
+    processing_year_to_date_data = FALSE;
+} else {
+    processing_year_to_date_data = TRUE;
+}
 # Determine if we're plotting generations separately.
 if (opt$plot_generations_separately=="yes") {
     plot_generations_separately = TRUE;
 } else {
     plot_generations_separately = FALSE;
 }
-# Display the total number of days in the Galaxy history item blurb.
-cat("Year-to-date number of days: ", opt$num_days_ytd, "\n");
-
+if (is.null(opt$start_date) && is.null(opt$end_date)) {
+    # We're plotting an entire year.
+    restricted_date_interval = FALSE;
+    if (processing_year_to_date_data) {
+        num_days = opt$num_days_ytd;
+    } else {
+        # We're processing only the 30 year normals data,
+        # so we'll set this to NULL since we don't yet
+        # know if we're in a leap year.
+        num_days = NULL;
+    }
+    # Display the total number of days in the Galaxy history item blurb.
+    cat("Year-to-date number of days: ", num_days, "\n");
+} else {
+    # FIXME: currently custom date fields are free text, but
+    # Galaxy should soon include support for a date selector
+    # at which point this tool should be enhanced to use it.
+    # Validate start_date.
+    restricted_date_interval = TRUE;
+    # Calaculate the number of days in the date interval rather
+    # than using the number of rows in the input temperature data.
+    start_date = validate_date(opt$start_date);
+    # Validate end_date.
+    end_date = validate_date(opt$end_date);
+    if (start_date >= end_date) {
+        stop_err("The start date must be between 1 and 50 days before the end date when setting date intervals for plots.");
+    }
+    # Calculate the number of days in the date interval.
+    num_days = difftime(start_date, end_date, units=c("days"));
+    if (num_days > 50) {
+        # We need to restrict date intervals since
+        # plots render tick marks for each day.
+        stop_err("Date intervals for plotting cannot exceed 50 days.");
+    }
+    # Display the total number of days in the Galaxy history item blurb.
+    cat("Date interval number of days: ", num_days, "\n");
+}
 # Parse the inputs.
-data_list = parse_input_data(opt$input_ytd, opt$input_norm, opt$num_days_ytd, opt$location);
+data_list = parse_input_data(opt$input_ytd, opt$input_norm, num_days, opt$location, opt$start_date, opt$end_date);
 temperature_data_frame = data_list[[1]];
-# Information needed for plots.
+# Information needed for plots, some of these values are
+# being reset here since in some case they were set above.
 start_date = data_list[[2]];
 end_date = data_list[[3]];
 start_doy_ytd = data_list[[4]];
@@ -778,7 +1004,7 @@ for (current_replication in 1:opt$replications) {
         doy = temperature_data_frame$DOY[row];
         # Photoperiod in the day.
         photoperiod = temperature_data_frame$DAYLEN[row];
-        temp.profile = get_temperature_at_hour(latitude, temperature_data_frame, row, total_days);
+        temp.profile = get_temperature_at_hour(latitude, temperature_data_frame, row);
         mean.temp = temp.profile[1];
         averages.temp = temp.profile[2];
         averages.day[row] = averages.temp;

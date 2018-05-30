@@ -8,6 +8,7 @@
 #set output_data_dir = "output_data_dir"
 #set output_plots_dir = "output_plots_dir"
 #set error_file = $os.path.join($output_data_dir, "04_combined_generations.csv")
+#set custom_date_interval = $custom_date_interval_cond.custom_date_interval
 #set life_stages = list()
 #set plot_adult_life_stage = $plot_adult_life_stage_cond.plot_adult_life_stage
 #set plot_nymph_life_stage = $plot_nymph_life_stage_cond.plot_nymph_life_stage
@@ -51,9 +52,13 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
 --old_nymph_accumulation $old_nymph_accumulation
 --oviposition $oviposition
 --photoperiod $photoperiod
---replications $replications
 --plot_generations_separately $plot_generations_separately
 --plot_std_error $plot_std_error
+--replications $replications
+#if str($custom_date_interval) == "yes":
+    --start_date '$custom_date_interval_cond.start_date'
+    --end_date '$custom_date_interval_cond.end_date'
+#end if
 --young_nymph_accumulation $young_nymph_accumulation
 &>ipm_log.txt;
 if [[ $? -ne 0 ]]; then
@@ -92,6 +97,21 @@ fi]]></command>
         <param name="young_nymph_accumulation" type="integer" value="0" min="0" label="Adjustment of degree-days accumulation (egg->young nymph)"/>
         <param name="old_nymph_accumulation" type="integer" value="0" min="0" label="Adjustment of degree-days accumulation (young nymph->old nymph)"/>
         <param name="adult_accumulation" type="integer" value="0" min="0" label="Adjustment of degree-days accumulation (old nymph->adult)"/>
+        <conditional name="custom_date_interval_cond">
+            <param name="custom_date_interval" type="select" label="Set date interval for plots?" help="Scales the x axis in plots from weeks to days">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no"/>
+            <when value="yes">
+                <param name="start_date" type="text" value="" label="Start date" help="Format must be yyyy-mm-dd">
+                    <validator type="expression" message="Date must have the format yyyy-mm-dd">len(value.split('-')[0])==4 and int(value.split('-')[0]) and len(value.split('-')[1])==2 and int(value.split('-')[1]) and len(value.split('-')[2])==2 and int(value.split('-')[2])</validator>
+                </param>
+                <param name="end_date" type="text" value="" label="End date" help="Format must be yyyy-mm-dd">
+                    <validator type="expression" message="Date must have the format yyyy-mm-dd">len(value.split('-')[0])==4 and int(value.split('-')[0]) and len(value.split('-')[1])==2 and int(value.split('-')[1]) and len(value.split('-')[2])==2 and int(value.split('-')[2])</validator>
+                </param>
+            </when>
+        </conditional>
         <param name="plot_generations_separately" type="select" label="Plot generations separately?">
             <option value="yes" selected="True">Yes</option>
             <option value="no">No</option>
