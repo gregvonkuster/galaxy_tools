@@ -70,14 +70,11 @@ extract_date_interval_rows = function(df, start_date, end_date) {
     return(date_interval_rows);
 }
 
-from_30_year_normals = function(start_date_doy, end_date_doy) {
+from_30_year_normals = function(temperature_data_frame, start_date_doy, end_date_doy) {
     # The data we want is fully contained within the 30 year normals data.
     first_norm_row = which(norm_data_frame$DOY==start_date_doy);
     last_norm_row = which(norm_data_frame$DOY==end_date_doy);
     norm_data_frame_rows = last_norm_row - first_norm_row;
-    # Create temperature_data_frame to contain the data
-    # taken from norm_data_frame for the date interval.
-    temperature_data_frame = data.frame(matrix(ncol=6, nrow=norm_data_frame_rows));
     j = 0;
     for (i in first_norm_row:last_norm_row) {
         j = j + 1;
@@ -555,7 +552,7 @@ parse_input_data = function(input_ytd, input_norm, num_days, location, start_dat
                 }
                 temperature_data_frame = tmp_data_frame[,];
             } else if (start_date_ytd_row == 0 & end_date_ytd_row == 0) {
-                temperature_data_frame = from_30_year_normals(start_date_doy, end_date_doy);
+                temperature_data_frame = from_30_year_normals(temperature_data_frame, start_date_doy, end_date_doy);
                 # Set the value of total_days.
                 total_days = dim(temperature_data_frame)[1];
             }
@@ -577,7 +574,6 @@ parse_input_data = function(input_ytd, input_norm, num_days, location, start_dat
             }
             # Set the value of total_days.
             total_days = get_total_days(is_leap_year);
-            temperature_data_frame = data.frame(matrix(ncol=6, nrow=total_days));
             # Define the next row for the year-to-date data from the 30 year normals data.
             first_normals_append_row = end_doy_ytd + 1;
             # Append the 30 year normals data to the year-to-date data.
@@ -590,13 +586,12 @@ parse_input_data = function(input_ytd, input_norm, num_days, location, start_dat
         if (restricted_date_interval) {
             # The value of num_days is the number of
             # days between start_date and end_date.
-            temperature_data_frame = from_30_year_normals(start_date_doy, end_date_doy);
+            temperature_data_frame = from_30_year_normals(temperature_data_frame, start_date_doy, end_date_doy);
             # Set the value of total_days.
             total_days = dim(temperature_data_frame)[1];
         } else {
             # The value of num_days is NULL.
             total_days = get_total_days(is_leap_year);
-            temperature_data_frame = data.frame(matrix(ncol=6, nrow=total_days));
             for (i in 1:total_days) {
                 temperature_data_frame[i,] = get_next_normals_row(norm_data_frame, year, is_leap_year, i);
             }
