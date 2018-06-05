@@ -218,8 +218,8 @@ class ScaffoldLoader(object):
                 # Get the species_name from self.species_ids_dict.
                 species_name = self.species_ids_dict[species_code]
                 # Create a key for self.species_genes_dict, with the format:
-                # <clustering_method>^^<species_code>
-                species_genes_dict_key = "%s^^%s" % (clustering_method, species_code)
+                # <clustering_method>^^<species_name>
+                species_genes_dict_key = "%s^^%s" % (clustering_method, species_name)
                 # Add an entry to self.species_genes_dict, where the value
                 # is a list containing species_name and num_genes.
                 if species_genes_dict_key in self.species_genes_dict:
@@ -241,11 +241,10 @@ class ScaffoldLoader(object):
                 items = line.split("\t")
                 species_name = items[0]
                 i = 0
-                for species_genes_dict_key in sorted(self.species_genes_dict.keys()):
-                    # The format of species_genes_dict_key is <clustering_method>^^<species_code>.
+                for clustering_method in self.clustering_methods:
+                    species_genes_dict_key = "%s^^%s" % (clustering_method, species_name)
+                    # The format of species_genes_dict_key is <clustering_method>^^<species_name>.
                     species_genes_dict_key_items = species_genes_dict_key.split("^^")
-                    clustering_method = species_genes_dict_key_items[0]
-                    species_code = species_genes_dict_key_items[1]
                     # Get the scaffold_rec for the current scaffold_id and clustering_method.
                     # The list is [<scaffold_id_db>, <scaffold_id>, <clustering_method>]
                     for scaffold_rec in self.scaffold_recs:
@@ -273,7 +272,7 @@ class ScaffoldLoader(object):
         1. Analyze all of the scaffold .fna and .faa files for each clustering
         method to populate the aa_dict and dna_dict sequence dictionaries.
         2. Use the populated sequence dictionaries to populate the plant_tribes_gene
-        and gene_scaffold_orthogroup_association tables.
+        and gene_scaffold_orthogroup_taxon_association tables.
         """
         scaffold_id = os.path.basename(self.args.scaffold_path)
         aa_dict = {}
@@ -317,9 +316,9 @@ class ScaffoldLoader(object):
                             sequence = adict[combined_id]
                             sequence = "%s%s" % (sequence, line)
                             adict[combined_id] = sequence
-        # Populate the plant_tribes_gene and gene_scaffold_orthogroup_association tables
+        # Populate the plant_tribes_gene and gene_scaffold_orthogroup_taxon_association tables
         # from the contents of aa_dict and dna_dict.
-        self.log("Populating the plant_tribes_gene and gene_scaffold_orthogroup_association tables.")
+        self.log("Populating the plant_tribes_gene and gene_scaffold_orthogroup_taxon_association tables.")
         gi = 0
         for gsoai, combined_id in enumerate(sorted(dna_dict.keys())):
             # The dictionary keys combine the orthogroup_id, clustering method and
@@ -345,14 +344,14 @@ class ScaffoldLoader(object):
             cur.execute(sql)
             orthogroup_id_db = cur.fetchone()[0]
             # If the plant_tribes_gene table contains a row that has the gene_id,
-            # then we'll add a row only to the gene_scaffold_orthogroup_association table.
+            # then we'll add a row only to the gene_scaffold_orthogroup_taxon_association table.
             # Get the taxon_id  for the species_name from the plant_tribes_taxon table.
             sql = "SELECT id FROM plant_tribes_taxon WHERE species_name = '%s';" % species_name
             cur = self.conn.cursor()
             cur.execute(sql)
-            taxon_id = cur.fetchone()[0]
+            taxon_id_db = cur.fetchone()[0]
             # If the plant_tribes_gene table contains a row that has the gene_id,
-            # then we'll add a row only to the gene_scaffold_orthogroup_association table.
+            # then we'll add a row only to the gene_scaffold_orthogroup_taxon_association table.
             sql = "SELECT id FROM plant_tribes_gene WHERE gene_id = '%s';" % gene_id
             cur = self.conn.cursor()
             cur.execute(sql)
@@ -360,10 +359,10 @@ class ScaffoldLoader(object):
                 gene_id_db = cur.fetchone()[0]
             except:
                 # Insert a row into the plant_tribes_gene table.
-                args = [gene_id, taxon_id, dna_sequence, aa_sequence]
+                args = [gene_id, dna_sequence, aa_sequence]
                 sql = """
                     INSERT INTO plant_tribes_gene
-                         VALUES (nextval('plant_tribes_gene_id_seq'), %s, %s, %s, %s)
+                         VALUES (nextval('plant_tribes_gene_id_seq'), %s, %s, %s)
                          RETURNING id;
                 """
                 cur = self.update(sql, tuple(args))
@@ -372,23 +371,23 @@ class ScaffoldLoader(object):
                 gi += 1
                 if gi % 1000 == 0:
                     self.log("Inserted 1000 more rows into the plant_tribes_gene table.")
-            # Insert a row into the gene_scaffold_orthogroup_association table.
+            # Insert a row into the gene_scaffold_orthogroup_taxon_association table.
             # Get the scaffold_rec for the current scaffold_id and clustering_method.
             # The list is [<scaffold_id_db>, <scaffold_id>, <clustering_method>]
             for scaffold_rec in self.scaffold_recs:
                 if scaffold_id in scaffold_rec and clustering_method in scaffold_rec:
                     scaffold_id_db = scaffold_rec[0]
-            args = [gene_id_db, scaffold_id_db, orthogroup_id_db]
+            args = [gene_id_db, scaffold_id_db, orthogroup_id_db, taxon_id_db]
             sql = """
-                INSERT INTO gene_scaffold_orthogroup_association
-                     VALUES (nextval('gene_scaffold_orthogroup_association_id_seq'), %s, %s, %s);
+                INSERT INTO gene_scaffold_orthogroup_taxon_association
+                     VALUES (nextval('gene_scaffold_orthogroup_taxon_association_id_seq'), %s, %s, %s, %s);
             """
             cur = self.update(sql, tuple(args))
             self.flush()
             if gsoai % 1000 == 0:
-                self.log("Inserted 1000 more rows into the gene_scaffold_orthogroup_association table.")
+                self.log("Inserted 1000 more rows into the gene_scaffold_orthogroup_taxon_association table.")
         self.log("Inserted a total of %d rows into the plant_tribes_gene table." % gi)
-        self.log("Inserted a total of %d rows into the gene_scaffold_orthogroup_association table." % gsoai)
+        self.log("Inserted a total of %d rows into the gene_scaffold_orthogroup_taxon_association table." % gsoai)
 
 if __name__ == '__main__':
     scaffold_loader = ScaffoldLoader()

@@ -60,15 +60,15 @@ plant_tribes_model.PlantTribesOrthogroup.table = Table("plant_tribes_orthogroup"
 plant_tribes_model.PlantTribesGene.table = Table("plant_tribes_gene", metadata,
                                                  Column("id", Integer, primary_key=True),
                                                  Column("gene_id", TrimmedString(100), index=True, nullable=False),
-                                                 Column("taxon_id", Integer, ForeignKey("plant_tribes_taxon.id"), index=True, nullable=False),
                                                  Column("dna_sequence", TEXT, nullable=False),
                                                  Column("aa_sequence", TEXT, nullable=False))
 
-plant_tribes_model.GeneScaffoldOrthogroupAssociation.table = Table("gene_scaffold_orthogroup_association", metadata,
-                                                                   Column("id", Integer, primary_key=True),
-                                                                   Column("gene_id",Integer, ForeignKey("plant_tribes_gene.id"), index=True, nullable=False),
-                                                                   Column("scaffold_id", Integer, ForeignKey("plant_tribes_scaffold.id"), index=True, nullable=False),
-                                                                   Column("orthogroup_id", Integer, ForeignKey("plant_tribes_orthogroup.id"), index=True, nullable=False))
+plant_tribes_model.GeneScaffoldOrthogroupTaxonAssociation.table = Table("gene_scaffold_orthogroup_taxon_association", metadata,
+                                                                        Column("id", Integer, primary_key=True),
+                                                                        Column("gene_id",Integer, ForeignKey("plant_tribes_gene.id"), index=True, nullable=False),
+                                                                        Column("scaffold_id", Integer, ForeignKey("plant_tribes_scaffold.id"), index=True, nullable=False),
+                                                                        Column("orthogroup_id", Integer, ForeignKey("plant_tribes_orthogroup.id"), index=True, nullable=False),
+                                                                        Column("taxon_id", Integer, ForeignKey("plant_tribes_taxon.id"), index=True, nullable=False))
 
 mapper(plant_tribes_model.PlantTribesScaffold, plant_tribes_model.PlantTribesScaffold.table,
        properties=dict(orthogroup=relation(plant_tribes_model.PlantTribesOrthogroup,
@@ -82,19 +82,19 @@ mapper(plant_tribes_model.PlantTribesTaxon, plant_tribes_model.PlantTribesTaxon.
 
 mapper(plant_tribes_model.PlantTribesOrthogroup, plant_tribes_model.PlantTribesOrthogroup.table)
 
-mapper(plant_tribes_model.PlantTribesGene, plant_tribes_model.PlantTribesGene.table,
-       properties=dict(taxa=relation(plant_tribes_model.PlantTribesTaxon,
-                                     backref="gene",
-                                     primaryjoin=(plant_tribes_model.PlantTribesGene.table.c.taxon_id == plant_tribes_model.PlantTribesTaxon.table.c.id))))
+mapper(plant_tribes_model.PlantTribesGene, plant_tribes_model.PlantTribesGene.table)
 
-mapper(plant_tribes_model.GeneScaffoldOrthogroupAssociation, plant_tribes_model.GeneScaffoldOrthogroupAssociation.table,
+mapper(plant_tribes_model.GeneScaffoldOrthogroupTaxonAssociation, plant_tribes_model.GeneScaffoldOrthogroupTaxonAssociation.table,
        properties=dict(gene=relation(plant_tribes_model.PlantTribesGene),
                        scaffold=relation(plant_tribes_model.PlantTribesScaffold,
                                          lazy=False,
                                          backref="gene"),
                        orthogroup=relation(plant_tribes_model.PlantTribesOrthogroup,
                                            lazy=False,
-                                           backref="gene")))
+                                           backref="gene"),
+                       taxon=relation(plant_tribes_model.PlantTribesTaxon,
+                                      lazy=False,
+                                      backref="gene")))
 
 
 def init(url, engine_options={}, create_tables=False):
