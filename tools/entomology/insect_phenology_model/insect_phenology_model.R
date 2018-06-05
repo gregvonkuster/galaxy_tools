@@ -485,8 +485,7 @@ parse_input_data = function(input_ytd, input_norm, location, start_date, end_dat
     # The start DOY for norm data appended to ytd data.
     append_start_doy_norm = 0;
     if (is.null(start_date) && is.null(end_date)) {
-        # We're processing the entire year, possibly merging
-        # data from input_norm with data from input_ytd.
+        # We're not dealing with a date interval.
         date_interval = FALSE;
         if (is.null(input_ytd)) {
             # Base all dates on the current date since 30 year
@@ -503,6 +502,11 @@ parse_input_data = function(input_ytd, input_norm, location, start_date, end_dat
     if (is.null(input_ytd)) {
         # We're processing only the 30 year normals data.
         processing_year_to_date_data = FALSE;
+        if (is.null(start_date) && is.null(end_date)) {
+            # We're processing the entire year, so we can
+            # set the start_date to Jan 1.
+            start_date = paste(year, "01", "01", sep="-");
+        }
     } else {
         processing_year_to_date_data = TRUE;
         # Read the input_ytd temperature data file into a data frame.
