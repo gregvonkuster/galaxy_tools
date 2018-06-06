@@ -248,6 +248,46 @@ fi]]></command>
                 <element name="09_total_pop_by_generation.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
             </output_collection>
         </test>
+        <test>
+            <param name="input_norm" value="30_year_normals.csv" ftype="csv"/>
+            <param name="input_ytd" value="state_college_partial.csv" ftype="csv"/>
+            <param name="location" value="State College PA"/>
+            <param name="replications" value="2"/>
+            <param name="custom_date_interval" value="yes"/>
+            <param name="start_date" value="2017-04-01"/>
+            <param name="end_date" value="2017-04-15"/>
+            <param name="plot_generations_separately" value="no"/>
+            <param name="plot_egg_life_stage" value="no"/>
+            <param name="life_stages_nymph" value="Young"/>
+            <param name="life_stages_adult" value="Pre-vittelogenic"/>
+            <output_collection name="output_data_collection" type="list">
+                <element name="04_combined_generations.csv" file="output_combined6.csv" ftype="csv" compare="contains"/>
+            </output_collection>
+            <output_collection name="output_plots_collection" type="list">
+                <element name="02_young_nymph_pop.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
+                <element name="05_pre-vittelogenic_adult_pop.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
+            </output_collection>
+        </test>
+        <test>
+            <param name="input_norm" value="30_year_normals.csv" ftype="csv"/>
+            <param name="input_ytd" value="state_college_partial.csv" ftype="csv"/>
+            <param name="location" value="State College PA"/>
+            <param name="replications" value="2"/>
+            <param name="custom_date_interval" value="yes"/>
+            <param name="start_date" value="2017-01-01"/>
+            <param name="end_date" value="2017-01-15"/>
+            <param name="plot_generations_separately" value="no"/>
+            <param name="plot_egg_life_stage" value="no"/>
+            <param name="life_stages_nymph" value="Young"/>
+            <param name="life_stages_adult" value="Pre-vittelogenic"/>
+            <output_collection name="output_data_collection" type="list">
+                <element name="04_combined_generations.csv" file="output_combined7.csv" ftype="csv" compare="contains"/>
+            </output_collection>
+            <output_collection name="output_plots_collection" type="list">
+                <element name="02_young_nymph_pop.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
+                <element name="05_pre-vittelogenic_adult_pop.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
+            </output_collection>
+        </test>
     </tests>
     <help>
 **What it does**
