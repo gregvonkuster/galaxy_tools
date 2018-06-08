@@ -90,10 +90,7 @@ python '$__tool_directory__/gene_family_classifier.py'
     ]]></command>
     <inputs>
         <param name="input" format="fasta" type="data" label="Proteins fasta file"/>
-        <param name="scaffold" type="select" label="Gene family scaffold">
-            <options from_data_table="plant_tribes_scaffolds" />
-            <validator type="no_options" message="No PlantTribes scaffolds are available.  Use the PlantTribes Scaffolds Download Data Manager tool in Galaxy to install and populate the PlantTribes scaffolds data table."/>
-        </param>
+        <expand macro="param_scaffold" />
         <param name="method" type="select" label="Protein clustering method">
             <option value="gfam" selected="true">GFam</option>
             <option value="orthofinder">OrthoFinder</option>
