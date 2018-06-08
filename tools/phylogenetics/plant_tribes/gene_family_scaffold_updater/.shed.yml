@@ -1,0 +1,12 @@
+name: plant_tribes_gene_family_scaffold_updater
+owner: greg
+description: |
+  Contains a tool that adds a new genome to a PlantTribes scaffold.
+homepage_url: https://github.com/dePamphilis/PlantTribes
+long_description: |
+  Contains a tool that adds a new genome to a PlantTribes scaffold installed into Galaxy via the PlantTribes Scaffolds
+  Downloader data manager tool.
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/phylogenetics/plant_tribes/gene_family_scaffold_updater
+type: unrestricted
+categories:
+- Phylogenetics

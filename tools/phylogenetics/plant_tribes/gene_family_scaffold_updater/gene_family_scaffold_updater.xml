@@ -1,0 +1,74 @@
+<tool id="plant_tribes_gene_family_scaffold_updater" name="Update PlantTribes scaffold" version="@WRAPPER_VERSION@.0.0">
+    <description>with a new genome</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <requirements>
+        <requirement type="package" version="2.7.1">blast</requirement>
+        <requirement type="package" version="3.1b2">hmmer</requirement>
+        <requirement type="package" version="7.313">mafft</requirement>
+        <requirement type="package" version="5.22.0_0">perl</requirement>
+        <requirement type="package" version="1.641">perl-dbi</requirement>
+        <requirement type="package" version="3.5.3">perl-dbd-pg</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+perl '$__tool_directory__/gene_family_scaffold_updater.pl'
+--database_connection_string '$__app__.config.plant_tribes_database_connection'
+--proteins '$input_proteins'
+--coding_sequences '$input_coding_sequences'
+--scaffold '$GALAXY_DATA_INDEX_DIR/plant_tribes/scaffolds/$scaffold'
+--species_name '$species_name'
+--rooting_order '$rooting_order_config'
+--taxa_lineage '$taxa_lineage_config'
+--num_threads \${GALAXY_SLOTS:-4}
+&>'$output']]></command>
+    <inputs>
+        <expand macro="param_scaffold"/>
+        <param name="input_proteins" format="fasta" type="data" label="Proteins fasta file">
+            <validator type="empty_field"/>
+        </param>
+        <param name="input_coding_sequences" format="fasta" type="data" label="Coding sequences fasta file">
+            <validator type="empty_field"/>
+        </param>
+        <param name="species_name" type="text" value="" label="Species name">
+            <validator type="empty_field"/>
+        </param>
+        <param name="taxa_lineage_config" format="tabular" type="data" label="Taxa lineage config file">
+            <validator type="empty_field"/>
+        </param>
+        <param name="rooting_order_config" format="txt" type="data" label="Rooting order config file">
+            <validator type="empty_field"/>
+        </param>
+    </inputs>
+    <outputs>
+        <data name="output" format="txt"/>
+    </outputs>
+    <tests>
+        <test>
+            <!--Testing this tool is a bit difficult at the current time.-->
+        </test>
+    </tests>
+    <help>
+This tool is one of the PlantTribes collection of automated modular analysis pipelines for comparative and evolutionary
+analyses of genome-scale gene families and transcriptomes. This tool adds a new genome to a scaffold installed into Galaxy
+by the PlantTribes Scaffolds Downloader data manager tool.
+
+-----
+
+**Required options**
+
+ * **Proteins fasta file** - amino acids (proteins) sequences fasta file for new genome.
+ * **Coding sequences fasta file** - corresponding coding sequences (CDS) fasta file for new genome.
+ * **Gene family scaffold** - one of the PlantTribes gene family scaffolds, installed into Galaxy by the PlantTribes Scaffold Data Manager tool.
+    </help>
+    <citations>
+        <citation type="bibtex">
+            @unpublished{None,
+            author = {Eric Wafula},
+            title = {None},
+            year = {None},
+            eprint = {None},
+            url = {https://github.com/dePamphilis/PlantTribes}}
+        </citation>
+    </citations>
+</tool>
