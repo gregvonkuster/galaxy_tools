@@ -61,7 +61,7 @@ my $usage = <<__EOUSAGE__;
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #  Example Usage:
 #
-#  GeneFamilyScaffoldUpdater --database_connection_string postgresql://me:mypassword@localhost/galaxy_plant_tribes
+#  GeneFamilyScaffoldUpdater --database_connection_string postgresql://<user>:<password>@<host>/<database name>
                              --proteins proteins.fasta --coding_sequences cds.fasta --scaffold 22Gv1.1
 #                            --species_name Fake genome --rooting_order rootingOrder.txt --taxa_lineage taxaLineage.txt  
 #
