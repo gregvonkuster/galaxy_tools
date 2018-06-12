@@ -2,7 +2,7 @@
 # Author: Eric Wafula
 # Email: ekw10@psu.edu
 # Institution: Penn State University, Biology Dept, Claude dePamphilis Lab
-# Date: 01-31-2015
+# Date: June 2018
 
 use strict;
 use warnings;
@@ -24,79 +24,92 @@ my $usage = <<__EOUSAGE__;
 #  Required Options:
 #
 #
-#  --database_connection_string <string>     : Postgres database connection string using format
-#                                              postgresql://<user>:<password>@<host>/<database name>
+#  --database_connection_string <string>    : Postgres database connection string using format
+#                                             postgresql://<user>:<password>@<host>/<database name>
 #
-#  --proteins <string>                       : Amino acids (proteins) sequences fasta file (proteins.fasta)
-#                                              This can either be an absolute path or just the file name
+#  --proteins <string>                      : Amino acids (proteins) sequences fasta file (proteins.fasta)
+#                                             This can either be an absolute path or just the file name
 #
-#  --coding_sequences <string>               : Corresponding coding sequences (CDS) fasta file (cds.fasta)
+#  --coding_sequences <string>              : Corresponding coding sequences (CDS) fasta file (cds.fasta)
 #
-#  --scaffold <string>                       : Orthogroups or gene families proteins scaffold.  This can either be an absolute
-#                                              path to the directory containing the scaffolds (e.g., /home/scaffolds/22Gv1.1)
-#                                              or just the scaffold (e.g., 22Gv1.1).  If the latter, ~home/data is prepended to
-#                                              the scaffold to create the absolute path.
-#                                              the scaffold to create the absolute path.
-#                                              If Monocots clusters (version 1.0): 12Gv1.0
-#                                              If Angiosperms clusters (version 1.0): 22Gv1.0
-#                                              If Angiosperms clusters (version 1.1): 22Gv1.1
-#                                              If Green plants clusters (version 1.0): 31Gv1.0
-#                                              If Other non PlantTribes clusters: XGvY.Z, where "X" is the number species in the scaffold,
-#                                              and "Y.Z" version number such as 12Gv1.0. Please look at one of the PlantTribes scaffold
-#                                              data on how data files and directories are named, formated, and organized.
+#  --scaffold <string>                      : Orthogroups or gene families proteins scaffold.  This can either be an absolute
+#                                             path to the directory containing the scaffolds (e.g., /home/scaffolds/22Gv1.1)
+#                                             or just the scaffold (e.g., 22Gv1.1).  If the latter, ~home/data is prepended to
+#                                             the scaffold to create the absolute path.
+#                                             the scaffold to create the absolute path.
+#                                             If Monocots clusters (version 1.0): 12Gv1.0
+#                                             If Angiosperms clusters (version 1.0): 22Gv1.0
+#                                             If Angiosperms clusters (version 1.1): 22Gv1.1
+#                                             If Green plants clusters (version 1.0): 31Gv1.0
+#                                             If Other non PlantTribes clusters: XGvY.Z, where "X" is the number species in the scaffold,
+#                                             and "Y.Z" version number such as 12Gv1.0. Please look at one of the PlantTribes scaffold
+#                                               data on how data files and directories are named, formated, and organized.
 #
 #
 #  --species_name <string>                  : Name of the species
 #
-#  --rooting_order <string>                 : Scaffold taxa rooting order config file 
+#  --species_family <string>                : Family of the species
 #
-#  --taxa_lineage <string>                  : Scaffold taxa lineage config file 
+#  --species_order <string>                 : Order of the species
 #
-# # # # # # # # # # # # # # # # # # 
+#  --species_group <string>                 : Group of the species
+#
+#  --species_clade <string>                 : Clade of the species
+#
+#  --rooting_order <string>                 : Scaffold taxa rooting order config file
+##
+# # # # # # # # # # # # # # # # # #
 #  Others Options:
 #
 #  --num_threads <int>                      : number of threads (CPUs) to used for HMMScan, BLASTP, and MAFFT
-#                                             Default: 1 
+#                                             Default: 1
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #  Example Usage:
 #
 #  GeneFamilyScaffoldUpdater --database_connection_string postgresql://<user>:<password>@<host>/<database name>
                              --proteins proteins.fasta --coding_sequences cds.fasta --scaffold 22Gv1.1
-#                            --species_name Fake genome --rooting_order rootingOrder.txt --taxa_lineage taxaLineage.txt  
+#                            --species_name Fake genome --species_family Brassicaceae --species_order Brassicales
+                             --species_group Rosids --species_clade Core Eudicots --rooting_order rootingOrder.txt
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
- 
+
 __EOUSAGE__
-    ; 
+    ;
 
 # Declare and initialize variables;
 my $database_connection_string;
 my $proteins;
 my $species_name;
+my $species_family;
+my $species_order;
+my $species_group;
+my $species_clade;
 my $coding_sequences;
 my $scaffold;
 my $rooting_order;
-my $taxa_lineage;
 my $num_threads;
 
 my $options = GetOptions ( 'database_connection_string=s' => \$database_connection_string,
                            'proteins=s' => \$proteins,
                            'species_name=s' => \$species_name,
+                           'species_family=s' => \$species_family,
+                           'species_order=s' => \$species_order,
+                           'species_group=s' => \$species_group,
+                           'species_clade=s' => \$species_clade,
                            'coding_sequences=s' => \$coding_sequences,
-                           'scaffold=s' => \$scaffold, 
+                           'scaffold=s' => \$scaffold,
                            'rooting_order=s' => \$rooting_order,
-                           'taxa_lineage=s' => \$taxa_lineage,
                            'num_threads=i' => \$num_threads,
                          );
 
 # # # # # # # # # # # # # # # # # # # # # # # # #  validate options and set variables  # # # # # # # # # # # # # # # # # # # # # # # # # #
 # check if options are set
 unless ( $options ) { die $usage; }
-unless ( $database_connection_string and $proteins and $species_name and $coding_sequences and $scaffold and $rooting_order and $taxa_lineage ) { 
+unless ( $database_connection_string and $proteins and $species_name and $species_family and $species_order and $species_group and $species_clade and $coding_sequences and $scaffold and $rooting_order ) {
     print "\nOne or more required options not set\n"; die $usage; }
 # get scaffold directory
-my $scaffold_dir;    
+my $scaffold_dir;
 if (File::Spec->file_name_is_absolute($scaffold)) {
     $scaffold_dir = $scaffold;
     $scaffold = basename($scaffold);
@@ -105,13 +118,13 @@ if (File::Spec->file_name_is_absolute($scaffold)) {
     else { print "\n --scaffold option is not set\n\n"; die $usage; }
 }
 # get scaffold clustering methods
-my %methods; 
+my %methods;
 my $annotation_dir = "$scaffold_dir/annot";
 opendir (DIR, "$annotation_dir") or die "can't open $annotation_dir directory\n";
 while (my $filename = readdir(DIR)) {
     if ($filename =~ /(\w+)\.list$/) { $methods{$1} = $1; }
 }
-# validate scaffold and update type options           
+# validate scaffold and update type options
 if ( $scaffold !~ /^\d+Gv\d+\.\d+$/) { print "\nOrthogroups or gene families proteins scaffold name $scaffold is not in the required format";
     print " i.e. XGvY.Z, where X is number species in the scaffold, and Y.Z version number such as 12Gv1.0.\n"; die $usage; }
 # set defaults
@@ -122,23 +135,43 @@ if (!$num_threads) { $num_threads = 1; }
 print "\n";
 print localtime()." - Starting gene family scaffold updating\n";
 
-# create output directory
-my $dirname = "./geneFamilyScaffoldUpdate_dir";
-if (-d $dirname) { die "Exiting...!\nGene family scaffold update output directory ($dirname) already exists!\n\n"; }
-make_directory($dirname);
+# Create working directory.
+my $working_dir = "./geneFamilyScaffoldUpdate_dir";
+if (-d $working_dir) {
+    die "Exiting...!\nGene family scaffold update output directory ($working_dir) already exists!\n\n";
+}
+make_directory($working_dir);
 
-# copy data directory 
-print "-- ".localtime()." - Copying scaffold data\n\n";
-my $copy_scaffold_data = system "cp -r $scaffold_dir $dirname >/dev/null";
-if ($copy_scaffold_data != 0) { print "\n-- ".localtime()." - Copying scaffold data failed\n\n"; exit(1); }
-
-update_config_files ( $scaffold, $rooting_order, $taxa_lineage, $dirname );
-
-foreach my $method (keys %methods) {
-    sort_sequences ( $proteins, $coding_sequences, $scaffold, $method, $num_threads, $species_name, $dirname, $scaffold_dir );
+# Copy original scaffold data to a working directory.
+print "-- ".localtime()." - Copying original scaffold data to working directory\n\n";
+my $copy_scaffold_data = system "cp -r $scaffold_dir $working_dir";
+if ($copy_scaffold_data != 0) {
+    print "\n-- ".localtime()." - Copying original scaffold data to working directory failed\n\n"; exit(1);
 }
 
-update_database_tables ( $database_connection_string, $proteins, $scaffold, \%methods, $species_name, $dirname );
+# Update the scaffold config files in the working directory with the new genome.
+update_config_files ( $scaffold, $rooting_order, $species_name, $species_family, $species_order, $species_group, $species_clade, $working_dir );
+
+# Update the scaffold files in the working directory with the new genome.
+foreach my $method (keys %methods) {
+    sort_sequences ( $proteins, $coding_sequences, $scaffold, $method, $num_threads, $species_name, $working_dir, $scaffold_dir );
+}
+
+# Move updated scaffold data to original directory.
+my $updated_scaffold_dir = "$working_dir/$scaffold";
+print "-- ".localtime()." - Removing original scaffold data directory\n$scaffold_dir\n\n";
+my $remove_scaffold_data = system "rm -rf $scaffold_dir";
+if ($remove_scaffold_data != 0) {
+    print "\n-- ".localtime()." - Removing original scaffold data directory failed\n\n"; exit(1);
+}
+print "-- ".localtime()." - Moving updated scaffold data from\n$updated_scaffold_dir\nto original directory\n$scaffold_dir\n\n";
+my $move_scaffold_data = system "mv $updated_scaffold_dir $scaffold_dir";
+if ($move_scaffold_data != 0) {
+    print "\n-- ".localtime()." - Moving updated scaffold data to original directory failed\n\n"; exit(1);
+}
+
+# Update the database tables with the new genome.
+update_database_tables ( $database_connection_string, $proteins, $scaffold, \%methods, $species_name, $species_family, $species_order, $species_group, $species_clade, $scaffold_dir, $working_dir );
 
 print localtime()." - Completed gene family scaffold updating\n\n";
 
@@ -154,21 +187,25 @@ sub make_directory {
 }
 
 sub update_config_files {
-    my ( $scaffold, $rooting_order, $taxa_lineage, $dirname ) = @_;
-    print localtime()." - Updating scaffold config files\n\n"; 
+    my ( $scaffold, $rooting_order, $species_name, $species_family, $species_order, $species_group, $species_clade, $working_dir ) = @_;
+    print localtime()." - Updating scaffold config files in working directory\n\n";
     # update scaffold config files
-    my $update_rooting_order = system "cp $rooting_order $dirname/$scaffold/$scaffold.rootingOrder.config >/dev/null";
-    if ($update_rooting_order != 0) { print "\n-- ".localtime()." - Updating rooting order config failed\n\n"; exit(1); }
-    my $update_taxa_lineage = system "cp $taxa_lineage $dirname/$scaffold/$scaffold.taxaLineage.config >/dev/null";
-    if ($update_taxa_lineage != 0) { print "\n-- ".localtime()." - Updating taxa lineage config failed\n\n"; exit(1); }
+    my $update_rooting_order = system "cp $rooting_order $working_dir/$scaffold/$scaffold.rootingOrder.config >/dev/null";
+    if ($update_rooting_order != 0) {
+        print "\n-- ".localtime()." - Updating rooting order config in working directory failed\n\n"; exit(1);
+    }
+    print("UUU In update_config_files, opening $working_dir/$scaffold/$scaffold.taxaLineage.config\n");
+    open (OUT, ">>$working_dir/$scaffold/$scaffold.taxaLineage.config") or die "can't open $working_dir/$scaffold/$scaffold.taxaLineage.config file\n";
+    print OUT "$species_name\t$species_family\t$species_order\t$species_group\t$species_clade\n";
+    close OUT;
 
 }
 
 sub sort_sequences {
-    my ( $proteins, $coding_sequences, $scaffold, $method, $num_threads, $species_name, $dirname, $scaffold_dir ) = @_;
-    my $method_dir = "$dirname/$method";
+    my ( $proteins, $coding_sequences, $scaffold, $method, $num_threads, $species_name, $working_dir, $scaffold_dir ) = @_;
+    my $method_dir = "$working_dir/$method";
     make_directory($method_dir);
-    print localtime()." - Sorting protein sequences in the $method clustering method\n";
+    print localtime()." - Sorting working directory protein sequences in the $method clustering method\n";
     print "-- ".localtime()." - Running BLASTP\n\n";
     my $blastp_call = system "blastp -outfmt 6 -evalue 1e-5 -num_threads $num_threads -query $proteins -db $scaffold_dir/db/blast/$method -out $method_dir/proteins.blastp  >/dev/null";
     if ($blastp_call != 0) { print "\n-- ".localtime()." - Running BLASTP failed\n\n"; exit(1); }
@@ -180,10 +217,10 @@ sub sort_sequences {
     if ($hmmscan_call != 0) { print "\n-- ".localtime()." - Running HMMScan failed\n\n"; exit(1); }
     print "-- ".localtime()." - Getting best HMMScan hits\n\n";
     my $hmmscan_results = "proteins.hmmscan";
-    get_best_hmmscan_orthos ( $hmmscan_results, $scaffold, $method, $method_dir, $scaffold_dir );    
+    get_best_hmmscan_orthos ( $hmmscan_results, $scaffold, $method, $method_dir, $scaffold_dir );
     get_blast_hmmscan_orthos ( $scaffold, $method, $method_dir, $scaffold_dir );
     get_orthogroup_fasta ( $proteins, $coding_sequences, $method, $method_dir, $scaffold_dir );
-    update_scaffold_data( $proteins, $scaffold, $method, $num_threads, $method_dir, $species_name, $dirname, $scaffold_dir );
+    update_scaffold_data( $proteins, $scaffold, $method, $num_threads, $method_dir, $species_name, $working_dir, $scaffold_dir );
 }
 
 sub  get_best_blastp_orthos {
@@ -204,7 +241,7 @@ sub  get_best_blastp_orthos {
                 $max{$F[0]} = $F[11];
             }
         }
-    } 
+    }
     close IN;
     open (IN, "$scaffold_dir/annot/$method.list") or die "can't open $scaffold_dir/annot/$method.list file\n";
     while (<IN>) {
@@ -212,9 +249,9 @@ sub  get_best_blastp_orthos {
         my @F=split(/\t/, $_);
         $list{$F[1]} = $F[0];
     }
-    close IN;    
+    close IN;
     open (OUT, ">$method_dir/$blast_results.bestOrthos") or die "can't open $method_dir/$blast_results.bestOrthos file\n";
-    print OUT "Gene ID\tOrthogroup ID\n"; 
+    print OUT "Gene ID\tOrthogroup ID\n";
     foreach (keys %best) {
         my @F = split(/\t/, $best{$_});
         print OUT "$F[0]\t$list{$F[1]}\n";
@@ -230,19 +267,19 @@ sub  get_best_hmmscan_orthos {
         if (/^#/){next;}
         my @F = split(/\s+/, $_);
         $hits{$F[2]}{$F[0]} = $F[5];
-    }    
+    }
     close IN;
     open (OUT, ">$method_dir/$hmmscan_results.bestOrthos") or die "can't open $method_dir/$hmmscan_results.bestOrthos file\n";
-    print OUT "Gene ID\tOrthogroup ID\n"; 
+    print OUT "Gene ID\tOrthogroup ID\n";
     for my $hit (keys %hits) {
         my $score = 0;
         my $best_target;
         for my $target (keys %{$hits{$hit}}) {
             if ($hits{$hit}{$target} >= $score) {
                 $score = $hits{$hit}{$target};
-                $best_target = $target; 
+                $best_target = $target;
             }
-        }    
+        }
         print OUT "$hit\t$best_target\n";
      }
     close OUT;
@@ -250,10 +287,10 @@ sub  get_best_hmmscan_orthos {
 
 sub get_blast_hmmscan_orthos {
     my ( $scaffold, $method, $method_dir, $scaffold_dir ) = @_;
-    my (%blastp, %hmmscan, %genes);    
+    my (%blastp, %hmmscan, %genes);
     opendir (DIR, "$method_dir") or die "can't open $method_dir directory\n";
     while (my $filename = readdir(DIR)) {
-        if ($filename =~ /^proteins\.blastp\.bestOrthos$/){ 
+        if ($filename =~ /^proteins\.blastp\.bestOrthos$/){
             open (IN, "$method_dir/$filename") or die "can't open $method_dir/$filename file\n";
             while (<IN>) {
                 chomp;
@@ -264,7 +301,7 @@ sub get_blast_hmmscan_orthos {
             }
             close IN;
         }
-        if ($filename =~ /^proteins\.hmmscan\.bestOrthos$/){ 
+        if ($filename =~ /^proteins\.hmmscan\.bestOrthos$/){
             open (IN, "$method_dir/$filename") or die "can't open $method_dir/$filename file\n";
             while (<IN>) {
                 chomp;
@@ -285,7 +322,7 @@ sub get_blast_hmmscan_orthos {
         elsif ($blastp{$_} == $hmmscan{$_}) { print OUT "$_\t$blastp{$_}\n"; next }
         else { print OUT "$_\t$hmmscan{$_}\n"; }
     }
-    close OUT;    
+    close OUT;
 }
 
 sub get_orthogroup_fasta {
@@ -315,7 +352,7 @@ sub get_orthogroup_fasta {
             if ($coding_sequences) {
                 $cds{$seq_id} =~ s/.{80}(?=.)/$&\n/g;
                 print CDS ">$seq_id\n$cds{$seq_id}\n";
-            }                
+            }
         }
         close PEP;
         close CDS;
@@ -343,7 +380,7 @@ sub get_orthogroup_fasta {
     }
     my $integrated_orthogroup_fasta = "$method_dir/integrated_orthogroup_fasta";
     make_directory($integrated_orthogroup_fasta);
-    integrate_orthogroup_fasta ( $formated_fasta, $method, $integrated_orthogroup_fasta, $scaffold_dir );    
+    integrate_orthogroup_fasta ( $formated_fasta, $method, $integrated_orthogroup_fasta, $scaffold_dir );
 }
 
 sub get_sequences {
@@ -355,7 +392,7 @@ sub get_sequences {
         else { s/\s+//g; $sequences{$id} .= $_; }
     }
     close IN;
-    return %sequences; 
+    return %sequences;
 }
 
 sub integrate_orthogroup_fasta {
@@ -368,34 +405,34 @@ sub integrate_orthogroup_fasta {
         if ($filename =~ /^(\d+)\.fna$/) { $cds{$1} = $1; }
     }
     closedir DIR;
-    if (keys(%cds) and (keys(%pep) != keys(%cds))) { 
+    if (keys(%cds) and (keys(%pep) != keys(%cds))) {
         die "Exiting...!\nOrthogroup classification protein and CDS fasta files not equivalent in $formated_fasta directory\n\n";
-    }    
-    foreach my $ortho_id (keys %pep) { 
+    }
+    foreach my $ortho_id (keys %pep) {
         my $merging_call = system "cat $scaffold_dir/fasta/$method/$ortho_id.faa $formated_fasta/$ortho_id.faa > $integrated_orthogroup_fasta/$ortho_id.faa";
         if ($merging_call != 0) { print "\n-- ".localtime()." - Merging orthogroup $ortho_id failed\n\n"; exit(1); }
         if (keys(%cds) and $cds{$ortho_id}) {
             my $merging_call = system "cat $scaffold_dir/fasta/$method/$ortho_id.fna $formated_fasta/$ortho_id.fna > $integrated_orthogroup_fasta/$ortho_id.fna";
             if ($merging_call != 0) { print "\n-- ".localtime()." - Merging orthogroup $ortho_id failed\n\n"; exit(1); }
         }
-    }     
+    }
 }
 
 sub update_scaffold_data {
-    my ( $proteins, $scaffold, $method, $num_threads, $method_dir, $species_name, $dirname, $scaffold_dir ) = @_;
+    my ( $proteins, $scaffold, $method, $num_threads, $method_dir, $species_name, $working_dir, $scaffold_dir ) = @_;
     print localtime()." - Updating scaffold data files\n";
     # update orthogroup annotation files
     print "-- ".localtime()." - Updating orthogroup annotation files\n\n";
     my %annot;
-    open (OUT, ">>$dirname/$scaffold/annot/$method.list") or die "can't open $dirname/$scaffold/annot/$method.list file\n";
+    open (OUT, ">>$working_dir/$scaffold/annot/$method.list") or die "can't open $working_dir/$scaffold/annot/$method.list file\n";
     opendir (DIR, "$method_dir/orthogroups_fasta") or die "can't open $method_dir/orthogroups_fasta directory\n";
     while ( my $filename = readdir(DIR) ) {
         my $seq_count = 0;
-        my $ortho_id; 
-        if ($filename =~ /^(\d+)\.faa$/) { 
-            $ortho_id = $1; 
+        my $ortho_id;
+        if ($filename =~ /^(\d+)\.faa$/) {
+            $ortho_id = $1;
             open (IN, "$method_dir/orthogroups_fasta/$filename") or die "can't open $method_dir/orthogroups_fasta/$filename file\n";
-            while (<IN>) { 
+            while (<IN>) {
                 chomp;
                 if (/^>(\S+)/) {
                     print OUT "$ortho_id\t$1\n";
@@ -405,34 +442,34 @@ sub update_scaffold_data {
             close IN;
         }
         else { next; }
-        $annot{$ortho_id} =  $seq_count;        
+        $annot{$ortho_id} =  $seq_count;
     }
     closedir DIR;
     close OUT;
     my ($fields, %avg_summary, %min_summary);
     if (File::Spec->file_name_is_absolute($proteins)) { $proteins = basename($proteins); }
-    open (IN, "$dirname/$scaffold/annot/$method.avg_evalue.summary") or die "can't open $dirname/$scaffold/annot/$method.avg_evalue.summary file\n";
+    open (IN, "$working_dir/$scaffold/annot/$method.avg_evalue.summary") or die "can't open $working_dir/$scaffold/annot/$method.avg_evalue.summary file\n";
     while (<IN>) {
         chomp;
         if (/^Orthogroup\s+ID\s+(.*)/) { $fields = "Orthogroup ID\t$species_name\t$1"; next; }
         else { /(\d+)\s+(.*)/; $avg_summary{$1} = $2; }
     }
     close IN;
-    open (OUT, ">$dirname/$scaffold/annot/$method.avg_evalue.summary") or die "can't open $dirname/$scaffold/annot/$method.avg_evalue.summary file\n";
+    open (OUT, ">$working_dir/$scaffold/annot/$method.avg_evalue.summary") or die "can't open $working_dir/$scaffold/annot/$method.avg_evalue.summary file\n";
     print OUT "$fields\n";
     foreach (sort {$a<=>$b} keys %avg_summary) {
         if ($annot{$_}) { print OUT "$_\t$annot{$_}\t$avg_summary{$_}\n"; }
         else { print OUT "$_\t0\t$avg_summary{$_}\n"; }
     }
     close OUT;
-    open (IN, "$dirname/$scaffold/annot/$method.min_evalue.summary") or die "can't open $dirname/$scaffold/annot/$method.min_evalue.summary file\n";
+    open (IN, "$working_dir/$scaffold/annot/$method.min_evalue.summary") or die "can't open $working_dir/$scaffold/annot/$method.min_evalue.summary file\n";
     while (<IN>) {
         chomp;
         if (/^Orthogroup\s+ID\s+(.*)/) { $fields = "Orthogroup ID\t$species_name\t$1"; next; }
         else { /(\d+)\s+(.*)/; $min_summary{$1} = $2; }
     }
     close IN;
-    open (OUT, ">$dirname/$scaffold/annot/$method.min_evalue.summary") or die "can't open $dirname/$scaffold/annot/$method.min_evalue.summary file\n";
+    open (OUT, ">$working_dir/$scaffold/annot/$method.min_evalue.summary") or die "can't open $working_dir/$scaffold/annot/$method.min_evalue.summary file\n";
     print OUT "$fields\n";
     foreach (sort {$a<=>$b} keys %min_summary) {
         if ($annot{$_}) { print OUT "$_\t$annot{$_}\t$min_summary{$_}\n"; }
@@ -445,7 +482,7 @@ sub update_scaffold_data {
     opendir (DIR, "$method_dir/integrated_orthogroup_fasta") or die "can't open $method_dir/integrated_orthogroup_fasta directory\n";
     while ( my $filename = readdir(DIR) ) {
         if (($filename =~ /^(\d+)\.faa$/) or ($filename =~ /^(\d+)\.fna$/)) {
-            my $update_orthogroup_fasta = system "cp $method_dir/integrated_orthogroup_fasta/$filename $dirname/$scaffold/fasta/$method/$filename >/dev/null";
+            my $update_orthogroup_fasta = system "cp $method_dir/integrated_orthogroup_fasta/$filename $working_dir/$scaffold/fasta/$method/$filename >/dev/null";
             if ($update_orthogroup_fasta != 0) { print "\n-- ".localtime()." - Updating orthogroup fasta $filename failed\n\n"; exit(1); }
         }
     }
@@ -458,50 +495,50 @@ sub update_scaffold_data {
     while ( my $filename = readdir(DIR) ) {
         if ($filename =~ /^(\d+)\.faa$/) {
             my $ortho_id = $1;
-            my $align_fasta = system "mafft --thread $num_threads --add $method_dir/orthogroups_fasta/formated_fasta/$filename $dirname/$scaffold/alns/$method/$ortho_id.aln > $method_dir/orthogroups_fasta/formated_fasta/$ortho_id.aln 2>/dev/null";
+            my $align_fasta = system "mafft --thread $num_threads --add $method_dir/orthogroups_fasta/formated_fasta/$filename $working_dir/$scaffold/alns/$method/$ortho_id.aln > $method_dir/orthogroups_fasta/formated_fasta/$ortho_id.aln 2>/dev/null";
             if ($align_fasta != 0) { print "\n-- ".localtime()." - aligning orthogroup fasta file $filename failed\n\n"; exit(1); }
-            my $update_orthogroup_alignment = system "mv $method_dir/orthogroups_fasta/formated_fasta/$ortho_id.aln $dirname/$scaffold/alns/$method/$ortho_id.aln >/dev/null";
+            my $update_orthogroup_alignment = system "mv $method_dir/orthogroups_fasta/formated_fasta/$ortho_id.aln $working_dir/$scaffold/alns/$method/$ortho_id.aln >/dev/null";
             if ($update_orthogroup_alignment != 0) { print "\n-- ".localtime()." - Updating orthogroup alignment $ortho_id.aln failed\n\n"; exit(1); }
         }
     }
     closedir DIR;
 
-    # update orthogroup hmm profiles        
+    # update orthogroup hmm profiles
     print "-- ".localtime()." - Updating hmm profiles\n\n";
-    opendir (DIR, "$dirname/$scaffold/alns/$method") or die "can't open $dirname/$scaffold/alns/$method directory\n";
+    opendir (DIR, "$working_dir/$scaffold/alns/$method") or die "can't open $working_dir/$scaffold/alns/$method directory\n";
     while ( my $filename = readdir(DIR) ) {
         if ($filename =~ /^(\d+)\.aln$/) {
             my $ortho_id = $1;
-            my $update_orthogroup_hmm = system "hmmbuild -n $ortho_id --amino --cpu $num_threads $dirname/$ortho_id.hmm $dirname/$scaffold/alns/$method/$ortho_id.aln >/dev/null"; 
+            my $update_orthogroup_hmm = system "hmmbuild -n $ortho_id --amino --cpu $num_threads $working_dir/$ortho_id.hmm $working_dir/$scaffold/alns/$method/$ortho_id.aln >/dev/null";
             if ($update_orthogroup_hmm != 0) { print "\n-- ".localtime()." - Updating orthogroup hmm profile $ortho_id.hmm failed\n\n"; exit(1); }
-            my $convert_hmm_format = system "hmmconvert $dirname/$ortho_id.hmm > $dirname/$scaffold/hmms/$method/$ortho_id.hmm";
+            my $convert_hmm_format = system "hmmconvert $working_dir/$ortho_id.hmm > $working_dir/$scaffold/hmms/$method/$ortho_id.hmm";
             if ($convert_hmm_format != 0) { print "\n-- ".localtime()." - Converting orthogroup hmm profile $ortho_id.hmm format failed\n\n"; exit(1); }
-            my $remove_tmp_file = system "rm  $dirname/$ortho_id.hmm >/dev/null";
+            my $remove_tmp_file = system "rm  $working_dir/$ortho_id.hmm >/dev/null";
             if ($remove_tmp_file != 0) { print "\n-- ".localtime()." - Could not remove temporary hmm profile $ortho_id.hmm\n\n"; exit(1); }
         }
     }
 
     # update orthogroup blast and hmm databases
     print "-- ".localtime()." - Updating blast and hmm databases\n\n";
-    my $update_blast_database = system "cat $method_dir/orthogroups_fasta/*.faa >> $dirname/$scaffold/db/blast/$method";
+    my $update_blast_database = system "cat $method_dir/orthogroups_fasta/*.faa >> $working_dir/$scaffold/db/blast/$method";
     if ($update_blast_database != 0) { print "\n-- ".localtime()." - Updating blast database failed\n\n"; exit(1); }
-    my $index_blast_database = system "makeblastdb -in $dirname/$scaffold/db/blast/$method -dbtype prot >/dev/null";
+    my $index_blast_database = system "makeblastdb -in $working_dir/$scaffold/db/blast/$method -dbtype prot >/dev/null";
     if ($index_blast_database != 0) { print "\n-- ".localtime()." - Indexing blast database failed\n\n"; exit(1); }
-    my $update_hmm_database = system "cat $dirname/$scaffold/hmms/$method/*.hmm > $dirname/$scaffold/db/hmm/$method";
+    my $update_hmm_database = system "cat $working_dir/$scaffold/hmms/$method/*.hmm > $working_dir/$scaffold/db/hmm/$method";
     if ($update_hmm_database != 0) { print "\n-- ".localtime()." - Updating hmm database failed\n\n"; exit(1); }
-    my $index_hmm_database = system "hmmpress -f $dirname/$scaffold/db/hmm/$method >/dev/null";
+    my $index_hmm_database = system "hmmpress -f $working_dir/$scaffold/db/hmm/$method >/dev/null";
     if ($index_hmm_database != 0) { print "\n-- ".localtime()." - Indexing hmm database failed\n\n"; exit(1); }
 }
 
 sub update_database_tables {
-    my ( $database_connection_string, $proteins, $scaffold, $methods, $species_name, $dirname ) = @_;
+    my ( $database_connection_string, $proteins, $scaffold, $methods, $species_name, $species_family, $species_order, $species_group, $species_clade, $scaffold_dir, $working_dir ) = @_;
     print localtime()." - Updating for database tables \n";
     my ( $species_code, %method_genes, %gene_sequences, %dna, %aa );
     # database connection and variables, the format of database_connection_string is
     # postgresql://<user>:<password>@<host>/<database name>
     my @conn_part = split(/:\/\//, $database_connection_string);
     my $conn_part_str = $conn_part[1];
-    my $driver = "Pg"; 
+    my $driver = "Pg";
     my @conn_part2 = split(/\//, $conn_part_str);
     my $database = $conn_part2[1];
     my $dsn = "DBI:$driver:dbname = $database;host = 127.0.0.1;port = 5432";
@@ -513,18 +550,16 @@ sub update_database_tables {
     my $password = $conn_part3[1];
     my $dbh = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "$DBI::errstr\nError : Unable to open database galaxy_plant_tribes\n";
     print "Successfully connected to database $database\n\n";
+    my $gsot_association_prep_file = "$working_dir/gene_scaffold_orthogroup_taxon_association.tsv";
 
-    # output files
-    open (ORTHO, ">$dirname/plant_tribes_orthogroup.tsv") or die "can't open $dirname/plant_tribes_orthogroup.tsv file\n";
-    print ORTHO "orthogroup_id\tscaffold_id\tclustering_method\tnum_species\tnum_genes\n";
-    open (TAXON, ">$dirname/plant_tribes_taxon.tsv") or die "can't open $dirname/plant_tribes_taxon.tsv file\n";
-    print TAXON "species_name\tscaffold_id\tclustering_method\tnum_genes\tspecies_family\tspecies_order\tspecies_group\tspecies_clade\n";
-    open (ASSOC, ">$dirname/gene_scaffold_orthogroup_taxon_association.tsv") or die "can't open $dirname/gene_scaffold_orthogroup_taxon_association.tsv file\n";
+    # Output a prep file that stores information for updating
+    # the gene_scaffold_orthogroup_taxon_association table.
+    open (ASSOC, ">$gsot_association_prep_file") or die "can't open $gsot_association_prep_file file\n";
     print ASSOC "gene_id\tscaffold_id\tclustering_method\torthogroup_id\tspecies_name\n";
     # get new species name and code
     if (File::Spec->file_name_is_absolute($proteins)) { $proteins = basename($proteins); }
     $species_name =~ s/\_/ /g;
-    open(IN, "$dirname/$scaffold/$scaffold.rootingOrder.config") or die "can't open $dirname/$scaffold/$scaffold.rootingOrder.config file\n";
+    open(IN, "$scaffold_dir/$scaffold.rootingOrder.config") or die "can't open $scaffold_dir/$scaffold.rootingOrder.config file\n";
     while (<IN>){
         chomp;
         if (/^\#/ or /^\s+/ or /^\[/){ next; }
@@ -532,8 +567,8 @@ sub update_database_tables {
     }
     close IN;
     foreach my $clustering_method (keys %$methods) {
-        # Updating orthogroup database table 
-        print "-- ".localtime()." - Updating $clustering_method records for orthogroup database table\n\n";
+        # Updating orthogroup database table
+        print "-- ".localtime()." - Updating $clustering_method records for the plant_tribes_orthogroup database table\n\n";
         my ( $stmt, $sth, $rv, $scaffold_id );
         $stmt = qq(SELECT id FROM plant_tribes_scaffold WHERE scaffold_id = '$scaffold' AND clustering_method = '$clustering_method';);
         $sth = $dbh->prepare( $stmt );
@@ -542,7 +577,7 @@ sub update_database_tables {
         while (my @row = $sth->fetchrow_array()) {
             $scaffold_id = $row[0];
         }
-        my $scaffold_annotation_dir = "$dirname/$scaffold/annot";
+        my $scaffold_annotation_dir = "$scaffold_dir/annot";
         opendir (DIR, $scaffold_annotation_dir) or die "can't open $scaffold_annotation_dir directory\n";
         while ( my $filename = readdir(DIR) ) {
             if ($filename =~ /$clustering_method.min_evalue\.summary/) {
@@ -557,9 +592,8 @@ sub update_database_tables {
                     my $genomes = $1 + 1;
                     for (1..$genomes){
                         if ($fields[$_] > 0){ $num_species++; }
-                        $num_genes += $fields[$_];                    
+                        $num_genes += $fields[$_];
                     }
-                    print ORTHO "$fields[0]\t$scaffold\t$clustering_method\t$num_species\t$num_genes\n";
                     $stmt = qq(UPDATE plant_tribes_orthogroup SET num_species = $num_species, num_genes = $num_genes WHERE orthogroup_id = $fields[0] AND scaffold_id = $scaffold_id;);
                     $rv = $dbh->do($stmt) or die $DBI::errstr;
                     if($rv < 0) {
@@ -567,7 +601,7 @@ sub update_database_tables {
                     }
                 }
                 close IN;
-                
+
             }
             if ($filename =~ /$clustering_method\.list/) {
                 open (IN, "$scaffold_annotation_dir/$filename") or die "can't open $scaffold_annotation_dir/$filename file\n";
@@ -581,31 +615,30 @@ sub update_database_tables {
                      }
                 }
                 close IN;
-            }    
+            }
         }
         close DIR;
-        print "$scaffold $clustering_method records successfully updated in the orthogroup table\n\n";
+        print "$scaffold $clustering_method records successfully updated in the plant_tribes_orthogroup table\n\n";
         # Updating taxon database table
-        print "-- ".localtime()." - Updating $clustering_method records for taxon database table\n\n";
+        print "-- ".localtime()." - Inserting $clustering_method records into the plant_tribes_taxon database table\n\n";
         my $num_genes = 0;
         foreach my $ortho_id (keys %{$method_genes{$clustering_method}}){
             foreach (keys %{$method_genes{$clustering_method}{$ortho_id}}){
                 $num_genes++;
             }
         }
-        open(IN, "$dirname/$scaffold/$scaffold.taxaLineage.config") or die "can't open $dirname/$scaffold/$scaffold.taxaLineage.config file\n";
+        open(IN, "$scaffold_dir/$scaffold.taxaLineage.config") or die "can't open $scaffold_dir/$scaffold.taxaLineage.config file\n";
         while (<IN>){
             chomp;
             my @fields = split(/\t/, $_);
             if ($fields[0] ne $species_name) { next; }
-            print TAXON "$fields[0]\t$scaffold\t$clustering_method\t$num_genes\t$fields[1]\t$fields[2]\t$fields[3]\t$fields[4]\n";
             $stmt = qq(INSERT INTO plant_tribes_taxon (species_name, scaffold_id, num_genes, species_family, species_order, species_group, species_clade) VALUES ('$fields[0]', $scaffold_id, $num_genes, '$fields[1]', '$fields[2]', '$fields[3]', '$fields[4]'));
             $rv = $dbh->do($stmt) or die $DBI::errstr;
         }
         close IN;
-        print "$species_name $scaffold $clustering_method record successfully created in the taxon table\n\n";
+        print "$species_name $scaffold $clustering_method record successfully inserted into the plant_tribes_taxon table\n\n";
         my ($dna_id, $aa_id);
-        my $orthogroups_fasta_dir = "$dirname/$clustering_method/orthogroups_fasta/formated_fasta";
+        my $orthogroups_fasta_dir = "$scaffold_dir/$clustering_method/orthogroups_fasta/formated_fasta";
         opendir (DIR, $orthogroups_fasta_dir) or die "can't open $orthogroups_fasta_dir directory\n";
         while ( my $filename = readdir(DIR) ) {
             if ($filename =~ /^(\d+)\.fna$/) {
@@ -613,18 +646,18 @@ sub update_database_tables {
                 open(IN, "$orthogroups_fasta_dir/$filename") or die "can't open $orthogroups_fasta_dir/$filename file\n";
                 while(<IN>){
                     chomp;
-                    if (/^>(\S+)/){ 
+                    if (/^>(\S+)/){
                         $dna_id = $1;
                         print ASSOC "$dna_id\t$scaffold\t$clustering_method\t$ortho_id\t$species_name\n";
-                        next; 
+                        next;
                     }
-                    else { s/\s+//g; $dna{$dna_id} .= $_; } 
+                    else { s/\s+//g; $dna{$dna_id} .= $_; }
                 }
                 close IN;
             }
             if ($filename =~ /^(\d+)\.faa$/) {
                 open(IN, "$orthogroups_fasta_dir/$filename") or die "can't open $orthogroups_fasta_dir/$filename file\n";
-                while(<IN>){ 
+                while(<IN>){
                     chomp;
                     if (/^>(\S+)/){ $aa_id = $1; next; }
                     else { s/\s+//g; $aa{$aa_id} .= $_; }
@@ -632,25 +665,19 @@ sub update_database_tables {
                 close IN;
             }
         }
-        close DIR;        
+        close DIR;
     }
-    close ORTHO;
-    close TAXON;
     close ASSOC;
     # Updating gene database table
-    print "-- ".localtime()." - Updating records for gene database table\n\n";
-    open (GENE, ">$dirname/plant_tribes_gene.tsv") or die "can't open $dirname/plant_tribes_gene.tsv file\n";
-    print GENE "gene_id\tdna_sequence\taa_sequence\n";
+    print "-- ".localtime()." - Inserting records into the plant_tribes_gene database table\n\n";
     foreach my $gene_id (sort keys %dna) {
-        print GENE "$gene_id\t$dna{$gene_id}\t$aa{$gene_id}\n";
         my $stmt = qq(INSERT INTO plant_tribes_gene (gene_id, dna_sequence, aa_sequence) VALUES ('$gene_id', '$dna{$gene_id}', '$aa{$gene_id}'));
         my $rv = $dbh->do($stmt) or die $DBI::errstr;
     }
-    close GENE;
-    print "$species_name $scaffold records successfully created in gene table\n\n";    
+    print "$species_name $scaffold records successfully inserted into the plantr_tribes_gene table\n\n";
     # Updaing gene-scaffold-orthogroup-taxon-association database table
-    print "-- ".localtime()." - Updating records for data association database table\n\n";
-    open(IN, "$dirname/gene_scaffold_orthogroup_taxon_association.tsv") or die "can't open $dirname/gene_scaffold_orthogroup_taxon_association.tsv file\n";
+    print "-- ".localtime()." - Inserting  records into the gene_scaffold_orthogroup_taxon_association database table\n\n";
+    open(IN, "$gsot_association_prep_file") or die "can't open $gsot_association_prep_file file\n";
     while(<IN>){
         chomp;
         if (/^gene_id/){ next; }
@@ -689,7 +716,6 @@ sub update_database_tables {
 
     }
     close IN;
-    print "$species_name $scaffold records successfully created in the data association table\n\n";
+    print "$species_name $scaffold records successfully inserted into the gene_scaffold_orthogroup_taxon_association table\n\n";
     $dbh->disconnect();
 }
-
