@@ -638,7 +638,7 @@ sub update_database_tables {
         close IN;
         print "$species_name $scaffold $clustering_method record successfully inserted into the plant_tribes_taxon table\n\n";
         my ($dna_id, $aa_id);
-        my $orthogroups_fasta_dir = "$scaffold_dir/$clustering_method/orthogroups_fasta/formated_fasta";
+        my $orthogroups_fasta_dir = "$working_dir/$clustering_method/orthogroups_fasta/formated_fasta";
         opendir (DIR, $orthogroups_fasta_dir) or die "can't open $orthogroups_fasta_dir directory\n";
         while ( my $filename = readdir(DIR) ) {
             if ($filename =~ /^(\d+)\.fna$/) {
