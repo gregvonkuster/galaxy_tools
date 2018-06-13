@@ -7,7 +7,7 @@
         <requirement type="package" version="2.7.1">blast</requirement>
         <requirement type="package" version="3.1b2">hmmer</requirement>
         <requirement type="package" version="7.313">mafft</requirement>
-        <requirement type="package" version="5.22.0_0">perl</requirement>
+        <requirement type="package" version="5.22.0">perl</requirement>
         <requirement type="package" version="1.641">perl-dbi</requirement>
         <requirement type="package" version="3.5.3">perl-dbd-pg</requirement>
     </requirements>
@@ -18,23 +18,43 @@ perl '$__tool_directory__/gene_family_scaffold_updater.pl'
 --coding_sequences '$input_coding_sequences'
 --scaffold '$GALAXY_DATA_INDEX_DIR/plant_tribes/scaffolds/$scaffold'
 --species_name '$species_name'
+--species_code '$species_code'
 --species_family '$species_family'
 --species_order '$species_order'
 --species_group '$species_group'
 --species_clade '$species_clade'
---rooting_order '$rooting_order_config'
+--rooting_order_species_code '$rooting_order_species_code'
 --num_threads \${GALAXY_SLOTS:-4}
 &>'$output']]></command>
     <inputs>
         <expand macro="param_scaffold"/>
-        <param name="input_proteins" format="fasta" type="data" optional="false" label="Proteins fasta file"/>
-        <param name="input_coding_sequences" format="fasta" type="data" optional="false" label="Coding sequences fasta file"/>
-        <param name="species_name" type="text" optional="false" value="" label="Species name"/>
-        <param name="species_family" type="text" optional="false" value="" label="Species family"/>
-        <param name="species_order" type="text" optional="false" value="" label="Species order"/>
-        <param name="species_group" type="text" optional="false" value="" label="Species group"/>
-        <param name="species_clade" type="text" optional="false" value="" label="Species clade"/>
-        <param name="rooting_order_config" format="txt" type="data" optional="false" label="Rooting order config file"/>
+        <param name="input_proteins" format="fasta" type="data" label="Proteins fasta file">
+            <validator type="empty_field"/>
+        </param>
+        <param name="input_coding_sequences" format="fasta" type="data" label="Coding sequences fasta file">
+            <validator type="empty_field"/>
+        </param>
+        <param name="species_name" type="text" value="" label="Species name">
+            <validator type="empty_field"/>
+        </param>
+        <param name="species_code" type="text" value="" label="Species code">
+            <validator type="empty_field"/>
+        </param>
+        <param name="species_family" type="text" value="" label="Species family">
+            <validator type="empty_field"/>
+        </param>
+        <param name="species_order" type="text" value="" label="Species order">
+            <validator type="empty_field"/>
+        </param>
+        <param name="species_group" type="text" value="" label="Species group">
+            <validator type="empty_field"/>
+        </param>
+        <param name="species_clade" type="text" value="" label="Species clade">
+            <validator type="empty_field"/>
+        </param>
+        <param name="rooting_order_species_code" type="text" label="Species code for rooting order" help="The new species above will be placed immediately after this species code in the rooting order configuration file">
+            <validator type="empty_field"/>
+        </param>
     </inputs>
     <outputs>
         <data name="output" format="txt"/>
