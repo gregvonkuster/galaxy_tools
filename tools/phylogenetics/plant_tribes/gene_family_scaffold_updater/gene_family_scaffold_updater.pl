@@ -135,6 +135,16 @@ if ( $scaffold !~ /^\d+Gv\d+\.\d+$/) {
 # intensive and an invalid species code will force an error.
 validate_rooting_order_species_code($scaffold_dir, $rooting_order_species_code);
 
+# Get a database connection.
+my $dbh = get_database_connection($database_connection_string);
+
+# The gene_family_scaffold_loader tool must be executed before
+# this tool so that the information about the scaffold is
+# avaialble in the galaxy_plant_tribes database.  Check to make
+# sure the scaffold has been loaded into the databse before
+# continuing with the update.
+validate_scaffold($dbh, $scaffold);
+
 # get scaffold clustering methods
 my %methods;
 my $annotation_dir = "$scaffold_dir/annot";
@@ -186,7 +196,7 @@ if ($move_scaffold_data != 0) {
 }
 
 # Update the database tables with the new genome.
-update_database_tables ( $database_connection_string, $proteins, $scaffold, \%methods, $species_name, $species_family, $species_order, $species_group, $species_clade, $scaffold_dir, $working_dir );
+update_database_tables ( $dbh, $proteins, $scaffold, \%methods, $species_name, $species_family, $species_order, $species_group, $species_clade, $scaffold_dir, $working_dir );
 
 log_msg("Completed gene family scaffold updating.");
 
@@ -225,11 +235,45 @@ sub validate_rooting_order_species_code {
     stop_err("Invalid rooting order species code $rooting_order_species_code is not found in $rooting_order_config");
 }
 
+sub validate_scaffold {
+    my ($dbh, $scaffold) = @_;
+    my ($stmt, $sth, $rv);
+    $stmt = qq(SELECT id FROM plant_tribes_scaffold WHERE scaffold_id = '$scaffold';);
+    $sth = $dbh->prepare( $stmt );
+    $rv = $sth->execute() or die $DBI::errstr;
+    if ($rv < 0) { print $DBI::errstr; }
+    if ($sth->rows > 0) {
+        return;
+    }
+    stop_err("The scaffold $scaffold has not been loaded into the database - use the GeneFamilyScaffoldLoader tool to load the scaffold before attempting  to update the scaffold with this tool.");
+}
+
 sub make_directory {
         my ( $new_dir ) = @_;
         if (!-d $new_dir) {
                 mkdir($new_dir, 0755);
         }
+}
+
+sub get_database_connection {
+    my ($database_connection_string) = @_;
+    # Database connection and variables, the format of database_connection_string is
+    # postgresql://<user>:<password>@<host>/<database name>
+    my @conn_part = split(/:\/\//, $database_connection_string);
+    my $conn_part_str = $conn_part[1];
+    my $driver = "Pg";
+    my @conn_part2 = split(/\//, $conn_part_str);
+    my $database = $conn_part2[1];
+    my $dsn = "DBI:$driver:dbname = $database;host = 127.0.0.1;port = 5432";
+    @conn_part2 = split(/:/, $conn_part_str);
+    my $userid = $conn_part2[0];
+    @conn_part2 = split(/@/, $conn_part_str);
+    my $conn_part2_str = $conn_part2[0];
+    my @conn_part3 = split(/:/, $conn_part2_str);
+    my $password = $conn_part3[1];
+    my $dbh = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "$DBI::errstr\nError : Unable to open database galaxy_plant_tribes\n";
+    log_msg("Successfully connected to database $database.");
+    return $dbh;
 }
 
 sub update_config_files {
@@ -643,25 +687,9 @@ sub update_scaffold_data {
 }
 
 sub update_database_tables {
-    my ( $database_connection_string, $proteins, $scaffold, $methods, $species_name, $species_family, $species_order, $species_group, $species_clade, $scaffold_dir, $working_dir ) = @_;
+    my ( $dbh, $proteins, $scaffold, $methods, $species_name, $species_family, $species_order, $species_group, $species_clade, $scaffold_dir, $working_dir ) = @_;
     log_msg("Updating for database tables.");
     my ( $species_code, %method_genes, %gene_sequences, %dna, %aa );
-    # database connection and variables, the format of database_connection_string is
-    # postgresql://<user>:<password>@<host>/<database name>
-    my @conn_part = split(/:\/\//, $database_connection_string);
-    my $conn_part_str = $conn_part[1];
-    my $driver = "Pg";
-    my @conn_part2 = split(/\//, $conn_part_str);
-    my $database = $conn_part2[1];
-    my $dsn = "DBI:$driver:dbname = $database;host = 127.0.0.1;port = 5432";
-    @conn_part2 = split(/:/, $conn_part_str);
-    my $userid = $conn_part2[0];
-    @conn_part2 = split(/@/, $conn_part_str);
-    my $conn_part2_str = $conn_part2[0];
-    my @conn_part3 = split(/:/, $conn_part2_str);
-    my $password = $conn_part3[1];
-    my $dbh = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) or die "$DBI::errstr\nError : Unable to open database galaxy_plant_tribes\n";
-    log_msg("Successfully connected to database $database.");
     my $gsot_association_prep_file = "$working_dir/gene_scaffold_orthogroup_taxon_association.tsv";
     my $num_recs = 0;
 
