@@ -15,6 +15,9 @@ mkdir $input_dir &&
     #set name = $i.name
     ln -s $filename $input_dir/$name &&
 #end for
+export TOOLS_DIR=\$(dirname `which GeneFamilyAligner`) &&
+export PASTA_TOOLS_RUNDIR=\$TOOLS_DIR &&
+export PASTA_TOOLS_DEVDIR=\$TOOLS_DIR &&
 GeneFamilyAligner
 --alignment_method $alignment_method
 #if str($alignment_method) == 'pasta':
