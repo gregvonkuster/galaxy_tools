@@ -83,6 +83,8 @@ groupadd -f -g $SLURMUSER slurm
 useradd  -m -c "SLURM workload manager" -d /var/lib/slurm -u $SLURMUSER -g slurm  -s /bin/bash slurm
 yum install munge munge-libs munge-devel
 rngd -r /dev/urandom
+## NOTE: Don't worry about it if the above command produces this error:
+## Failed to init entropy source 1: TPM RNG Device
 /usr/sbin/create-munge-key -r
 dd if=/dev/urandom bs=1 count=1024 > /etc/munge/munge.key
 chown munge: /etc/munge/munge.key
@@ -100,10 +102,10 @@ munge -n
 yum install openssl openssl-devel pam-devel numactl numactl-devel hwloc hwloc-devel lua lua-devel readline-devel rrdtool-devel ncurses-devel man2html libibmad libibumad -y
 
 # Download slurm workflow manager from https://www.schedmd.com/downloads.php into the home directory for root
-wget https://download.schedmd.com/slurm/slurm-17.11.0-0rc2.tar.bz2
-bunzip2 slurm-17.11.0-0rc2.tar.bz2
-tar -xvf slurm-17.11.0-0rc2.tar
-cd slurm-17.11.0-0rc2
+wget https://download.schedmd.com/slurm/slurm-17.11.7.tar.bz2
+bunzip2 slurm-17.11.7.tar.bz2
+tar -xvf slurm-17.11.7.tar
+cd slurm-17.11.7
 
 export CFLAGS='-Wl,-rpath,\$$ORIGIN/../lib -Wl,-rpath,/usr/local/lib'
 # This will configure it to be installed into the default location /usr/local
@@ -205,7 +207,7 @@ ConstrainCores=yes
 # ===============================================================
 # Make sure slurm is configured properly
 # ===============================================================
-cp ~/slurm-17.11.0-0rc2/etc/*.service /usr/lib/systemd/system/
+cp ~/slurm-17.11.7/etc/*.service /usr/lib/systemd/system/
 systemctl enable slurmd.service && systemctl enable slurmctld.service
 systemctl start slurmd.service && systemctl start slurmctld.service
 slurmd -c
