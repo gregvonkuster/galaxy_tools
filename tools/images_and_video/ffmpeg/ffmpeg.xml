@@ -81,7 +81,7 @@ mkdir output &&
     <help>
 **What it does**
 
-Converts video files to images and image files to video files.
+Converts video files to image files and image files to video files.
 
 -----
 
