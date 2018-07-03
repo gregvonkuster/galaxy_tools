@@ -1,7 +1,10 @@
-tools/images_and_video/diffusion_signal_reconstruction
-tools/images_and_video/dmri
-tools/images_and_video/fast_fiber_tracking
-tools/images_and_video/linear_fascile_evaluation
+tools/images_and_video/ffmpeg
+tools/images_and_video/neuroimaging/create_streamlines
+tools/images_and_video/neuroimaging/diffusion_signal_reconstruction
+tools/images_and_video/neuroimaging/dmri
+tools/images_and_video/neuroimaging/fast_fiber_tracking
+tools/images_and_video/neuroimaging/linear_fascile_evaluation
+tools/images_and_video/yolo
 tools/phylogenetics/plant_tribes/assembly_post_processor
 tools/phylogenetics/plant_tribes/gene_family_aligner
 tools/phylogenetics/plant_tribes/gene_family_classifier
