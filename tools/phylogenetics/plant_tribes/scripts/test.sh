@@ -9,7 +9,7 @@
 . /scratch/biotools/galaxy/test/.venv/bin/activate
 
 # Set up the environment
-CONDA_CHANNELS='gregvonkuster,iuc,bioconda,conda-forge,defaults,r'
+CONDA_CHANNELS='iuc,bioconda,conda-forge,defaults'
 CONDA_EXEC='/scratch/biotools/galaxy/_conda/bin/conda'
 CONDA_PREFIX='/scratch/biotools/galaxy/_conda'
 GALAXY_ROOT_PRISTINE='/scratch/biotools/galaxy/test/galaxy_pristine'
@@ -46,11 +46,13 @@ for arg in "$@"; do
             mkdir -p $TOOL_OUTPUTS_DIR
 
             echo $TOOL_NAME >> $LOG_FILE
-            planemo lint $TOOL_DIR/$TOOL_NAME.xml >> $LOG_FILE 
+            planemo -v lint $TOOL_DIR/$TOOL_NAME.xml >> $LOG_FILE
             echo -e "\n\n" >> $LOG_FILE
 
-            planemo test $BASE_PARAMS --conda_ensure_channels $CONDA_CHANNELS --conda_exec $CONDA_EXEC --conda_prefix $CONDA_PREFIX --galaxy_root $GALAXY_ROOT_PRISTINE --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR >> $LOG_FILE
+            planemo -v test $BASE_PARAMS --conda_ensure_channels $CONDA_CHANNELS --conda_exec $CONDA_EXEC --conda_prefix $CONDA_PREFIX --galaxy_root $GALAXY_ROOT_PRISTINE --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR >> $LOG_FILE
             echo -e "\n\n" >> $LOG_FILE
+
+            planemo -v test_reports $TEST_OUTPUT_JSON --test_output_text $TOOL_OUTPUTS_DIR/$TOOL_NAME.txt
             ;;
 
         --gene_family_classifier)
@@ -67,11 +69,13 @@ for arg in "$@"; do
             mkdir -p $TOOL_OUTPUTS_DIR
 
             echo $TOOL_NAME >> $LOG_FILE
-            planemo lint $TOOL_DIR/$TOOL_NAME.xml >> $LOG_FILE 
+            planemo -v lint $TOOL_DIR/$TOOL_NAME.xml >> $LOG_FILE
             echo -e "\n\n" >> $LOG_FILE
 
-            planemo test $BASE_PARAMS --conda_ensure_channels $CONDA_CHANNELS --conda_exec $CONDA_EXEC --conda_prefix $CONDA_PREFIX --galaxy_root $GALAXY_ROOT_PRISTINE --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR >> $LOG_FILE
+            planemo -v test $BASE_PARAMS --conda_ensure_channels $CONDA_CHANNELS --conda_exec $CONDA_EXEC --conda_prefix $CONDA_PREFIX --galaxy_root $GALAXY_ROOT_PRISTINE --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR >> $LOG_FILE
             echo -e "\n\n" >> $LOG_FILE
+
+            planemo -v test_reports $TEST_OUTPUT_JSON --test_output_text $TOOL_OUTPUTS_DIR/$TOOL_NAME.txt
             ;;
 
         --gene_family_integrator)
@@ -88,11 +92,13 @@ for arg in "$@"; do
             mkdir -p $TOOL_OUTPUTS_DIR
 
             echo $TOOL_NAME >> $LOG_FILE
-            planemo lint $TOOL_DIR/$TOOL_NAME.xml >> $LOG_FILE 
+            planemo -v lint $TOOL_DIR/$TOOL_NAME.xml >> $LOG_FILE
             echo -e "\n\n" >> $LOG_FILE
 
-            planemo test $BASE_PARAMS --conda_ensure_channels $CONDA_CHANNELS --conda_exec $CONDA_EXEC --conda_prefix $CONDA_PREFIX --galaxy_root $GALAXY_ROOT_PRISTINE --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR >> $LOG_FILE
+            planemo -v test $BASE_PARAMS --conda_ensure_channels $CONDA_CHANNELS --conda_exec $CONDA_EXEC --conda_prefix $CONDA_PREFIX --galaxy_root $GALAXY_ROOT_PRISTINE --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR >> $LOG_FILE
             echo -e "\n\n" >> $LOG_FILE
+
+            planemo -v test_reports $TEST_OUTPUT_JSON --test_output_text $TOOL_OUTPUTS_DIR/$TOOL_NAME.txt
             ;;
 
         --gene_family_aligner)
@@ -109,11 +115,13 @@ for arg in "$@"; do
             mkdir -p $TOOL_OUTPUTS_DIR
 
             echo $TOOL_NAME >> $LOG_FILE
-            planemo lint $TOOL_DIR/$TOOL_NAME.xml >> $LOG_FILE 
+            planemo -v lint $TOOL_DIR/$TOOL_NAME.xml >> $LOG_FILE
             echo -e "\n\n" >> $LOG_FILE
 
-            planemo test $BASE_PARAMS --conda_ensure_channels $CONDA_CHANNELS --conda_exec $CONDA_EXEC --conda_prefix $CONDA_PREFIX --galaxy_root $GALAXY_ROOT_PRISTINE --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR >> $LOG_FILE
+            planemo -v test $BASE_PARAMS --conda_ensure_channels $CONDA_CHANNELS --conda_exec $CONDA_EXEC --conda_prefix $CONDA_PREFIX --galaxy_root $GALAXY_ROOT_PRISTINE --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR >> $LOG_FILE
             echo -e "\n\n" >> $LOG_FILE
+
+            planemo -v test_reports $TEST_OUTPUT_JSON --test_output_text $TOOL_OUTPUTS_DIR/$TOOL_NAME.txt
             ;;
 
         --gene_family_phylogeny_builder)
@@ -130,11 +138,13 @@ for arg in "$@"; do
             mkdir -p $TOOL_OUTPUTS_DIR
 
             echo $TOOL_NAME >> $LOG_FILE
-            planemo lint $TOOL_DIR/$TOOL_NAME.xml >> $LOG_FILE 
+            planemo -v lint $TOOL_DIR/$TOOL_NAME.xml >> $LOG_FILE
             echo -e "\n\n" >> $LOG_FILE
 
-            planemo test $BASE_PARAMS --conda_ensure_channels $CONDA_CHANNELS --conda_exec $CONDA_EXEC --conda_prefix $CONDA_PREFIX --galaxy_root $GALAXY_ROOT_PRISTINE --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR >> $LOG_FILE
+            planemo -v test $BASE_PARAMS --conda_ensure_channels $CONDA_CHANNELS --conda_exec $CONDA_EXEC --conda_prefix $CONDA_PREFIX --galaxy_root $GALAXY_ROOT_PRISTINE --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR >> $LOG_FILE
             echo -e "\n\n" >> $LOG_FILE
+
+            planemo -v test_reports $TEST_OUTPUT_JSON --test_output_text $TOOL_OUTPUTS_DIR/$TOOL_NAME.txt
             ;;
 
         --kaks_analysis)
@@ -151,11 +161,13 @@ for arg in "$@"; do
             mkdir -p $TOOL_OUTPUTS_DIR
 
             echo $TOOL_NAME >> $LOG_FILE
-            planemo lint $TOOL_DIR/$TOOL_NAME.xml >> $LOG_FILE 
+            planemo -v lint $TOOL_DIR/$TOOL_NAME.xml >> $LOG_FILE
             echo -e "\n\n" >> $LOG_FILE
 
-            planemo test $BASE_PARAMS --conda_ensure_channels $CONDA_CHANNELS --conda_exec $CONDA_EXEC --conda_prefix $CONDA_PREFIX --galaxy_root $GALAXY_ROOT_PRISTINE --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR >> $LOG_FILE
+            planemo -v test $BASE_PARAMS --conda_ensure_channels $CONDA_CHANNELS --conda_exec $CONDA_EXEC --conda_prefix $CONDA_PREFIX --galaxy_root $GALAXY_ROOT_PRISTINE --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR >> $LOG_FILE
             echo -e "\n\n" >> $LOG_FILE
+
+            planemo -v test_reports $TEST_OUTPUT_JSON --test_output_text $TOOL_OUTPUTS_DIR/$TOOL_NAME.txt
             ;;
 
         --ks_distribution)
@@ -172,11 +184,13 @@ for arg in "$@"; do
             mkdir -p $TOOL_OUTPUTS_DIR
 
             echo $TOOL_NAME >> $LOG_FILE
-            planemo lint $TOOL_DIR/$TOOL_NAME.xml >> $LOG_FILE 
+            planemo -v lint $TOOL_DIR/$TOOL_NAME.xml >> $LOG_FILE
             echo -e "\n\n" >> $LOG_FILE
 
-            planemo test $BASE_PARAMS --conda_ensure_channels $CONDA_CHANNELS --conda_exec $CONDA_EXEC --conda_prefix $CONDA_PREFIX --galaxy_root $GALAXY_ROOT_PRISTINE --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR >> $LOG_FILE
+            planemo -v test $BASE_PARAMS --conda_ensure_channels $CONDA_CHANNELS --conda_exec $CONDA_EXEC --conda_prefix $CONDA_PREFIX --galaxy_root $GALAXY_ROOT_PRISTINE --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR >> $LOG_FILE
             echo -e "\n\n" >> $LOG_FILE
+
+            planemo -v test_reports $TEST_OUTPUT_JSON --test_output_text $TOOL_OUTPUTS_DIR/$TOOL_NAME.txt
             ;;
     esac
 done
