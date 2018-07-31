@@ -668,7 +668,7 @@ sub update_scaffold_data {
 
     # update orthogroup blast and hmm databases
     log_msg("Updating blast and hmm databases.");
-    my $update_blast_database = system "cat $method_dir/orthogroups_fasta/*.faa >> $working_dir/$scaffold/db/blast/$method";
+    my $update_blast_database = system "find $method_dir/orthogroups_fasta/ -name \"*.faa\" -print0 | xargs -0 cat >> $working_dir/$scaffold/db/blast/$method";
     if ($update_blast_database != 0) {
         stop_err("Updating blast database failed.");
     }
@@ -676,7 +676,7 @@ sub update_scaffold_data {
     if ($index_blast_database != 0) {
         stop_err("Indexing blast database failed.");
     }
-    my $update_hmm_database = system "cat $working_dir/$scaffold/hmms/$method/*.hmm > $working_dir/$scaffold/db/hmm/$method";
+    my $update_hmm_database = system "find $working_dir/$scaffold/hmms/$method/ -name \"*.hmm\" -print0 | xargs -0 cat > $working_dir/$scaffold/db/hmm/$method";
     if ($update_hmm_database != 0) {
         stop_err("Updating hmm database failed.");
     }
