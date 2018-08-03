@@ -1,0 +1,13 @@
+name: extract_ipm_date_interval
+owner: greg
+description: |
+  Contains a tool that extracts a date interval from the dataset collection produced by the insect_phenology_model tool.
+homepage_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/entomology/extract_ipm_date_interval
+long_description: |
+  Contains a tool that extracts a date interval from the (data) dataset collection produced by the insect_phenology_model
+  tool and zooms into the interval by producing plots with daily ticks on the x axis instead of weekly) tick marks.  The
+  (data) dataset collection consisting of the restricted date interval is also produced.
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/entomology/extract_ipm_date_interval
+type: unrestricted
+categories:
+- Entomology

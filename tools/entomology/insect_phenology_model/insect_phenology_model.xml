@@ -8,7 +8,6 @@
 #set output_data_dir = "output_data_dir"
 #set output_plots_dir = "output_plots_dir"
 #set error_file = $os.path.join($output_data_dir, "04_combined_generations.csv")
-#set custom_date_interval = $custom_date_interval_cond.custom_date_interval
 #set life_stages = list()
 #set plot_adult_life_stage = $plot_adult_life_stage_cond.plot_adult_life_stage
 #set plot_nymph_life_stage = $plot_nymph_life_stage_cond.plot_nymph_life_stage
@@ -55,10 +54,7 @@ Rscript '$__tool_directory__/insect_phenology_model.R'
 --plot_generations_separately $plot_generations_separately
 --plot_std_error $plot_std_error
 --replications $replications
-#if str($custom_date_interval) == "yes":
-    --start_date '$custom_date_interval_cond.start_date'
-    --end_date '$custom_date_interval_cond.end_date'
-#end if
+--script_dir '$__tool_directory__'
 --young_nymph_accumulation $young_nymph_accumulation
 &>ipm_log.txt;
 if [[ $? -ne 0 ]]; then
@@ -97,21 +93,6 @@ fi]]></command>
         <param name="young_nymph_accumulation" type="integer" value="0" min="0" label="Adjustment of degree-days accumulation (egg->young nymph)"/>
         <param name="old_nymph_accumulation" type="integer" value="0" min="0" label="Adjustment of degree-days accumulation (young nymph->old nymph)"/>
         <param name="adult_accumulation" type="integer" value="0" min="0" label="Adjustment of degree-days accumulation (old nymph->adult)"/>
-        <conditional name="custom_date_interval_cond">
-            <param name="custom_date_interval" type="select" label="Set date interval for plots?" help="Scales the x axis in plots from weeks to days">
-                <option value="no" selected="true">No</option>
-                <option value="yes">Yes</option>
-            </param>
-            <when value="no"/>
-            <when value="yes">
-                <param name="start_date" type="text" value="" label="Start date" help="Format must be yyyy-mm-dd">
-                    <validator type="expression" message="Date must have the format yyyy-mm-dd">len(value.split('-')[0])==4 and int(value.split('-')[0]) and len(value.split('-')[1])==2 and int(value.split('-')[1]) and len(value.split('-')[2])==2 and int(value.split('-')[2])</validator>
-                </param>
-                <param name="end_date" type="text" value="" label="End date" help="Format must be yyyy-mm-dd">
-                    <validator type="expression" message="Date must have the format yyyy-mm-dd">len(value.split('-')[0])==4 and int(value.split('-')[0]) and len(value.split('-')[1])==2 and int(value.split('-')[1]) and len(value.split('-')[2])==2 and int(value.split('-')[2])</validator>
-                </param>
-            </when>
-        </conditional>
         <param name="plot_generations_separately" type="select" label="Plot generations separately?">
             <option value="yes" selected="True">Yes</option>
             <option value="no">No</option>
@@ -246,46 +227,6 @@ fi]]></command>
                 <element name="04_total_nymph_pop_by_generation.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
                 <element name="08_total_adult_pop_by_generation.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
                 <element name="09_total_pop_by_generation.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
-            </output_collection>
-        </test>
-        <test>
-            <param name="input_norm" value="30_year_normals.csv" ftype="csv"/>
-            <param name="input_ytd" value="state_college_partial.csv" ftype="csv"/>
-            <param name="location" value="State College PA"/>
-            <param name="replications" value="2"/>
-            <param name="custom_date_interval" value="yes"/>
-            <param name="start_date" value="2017-04-01"/>
-            <param name="end_date" value="2017-04-15"/>
-            <param name="plot_generations_separately" value="no"/>
-            <param name="plot_egg_life_stage" value="no"/>
-            <param name="life_stages_nymph" value="Young"/>
-            <param name="life_stages_adult" value="Pre-vittelogenic"/>
-            <output_collection name="output_data_collection" type="list">
-                <element name="04_combined_generations.csv" file="output_combined6.csv" ftype="csv" compare="contains"/>
-            </output_collection>
-            <output_collection name="output_plots_collection" type="list">
-                <element name="02_young_nymph_pop.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
-                <element name="05_pre-vittelogenic_adult_pop.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
-            </output_collection>
-        </test>
-        <test>
-            <param name="input_norm" value="30_year_normals.csv" ftype="csv"/>
-            <param name="input_ytd" value="state_college_partial.csv" ftype="csv"/>
-            <param name="location" value="State College PA"/>
-            <param name="replications" value="2"/>
-            <param name="custom_date_interval" value="yes"/>
-            <param name="start_date" value="2017-01-01"/>
-            <param name="end_date" value="2017-01-15"/>
-            <param name="plot_generations_separately" value="no"/>
-            <param name="plot_egg_life_stage" value="no"/>
-            <param name="life_stages_nymph" value="Young"/>
-            <param name="life_stages_adult" value="Pre-vittelogenic"/>
-            <output_collection name="output_data_collection" type="list">
-                <element name="04_combined_generations.csv" file="output_combined7.csv" ftype="csv" compare="contains"/>
-            </output_collection>
-            <output_collection name="output_plots_collection" type="list">
-                <element name="02_young_nymph_pop.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
-                <element name="05_pre-vittelogenic_adult_pop.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
             </output_collection>
         </test>
     </tests>
