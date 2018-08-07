@@ -55,38 +55,31 @@ fi]]></command>
     </outputs>
     <tests>
         <test>
-            <param name="input">
+            <!--
+            FIXME: Here is a sort of layout for a test, but since the input collection will be uploaded, the test
+            will fail bacused the job parameters for the inputs will not be those produced by the insect_phenology_model
+            tool.  Testing this tool will require using the workflow testing approach.
+            <param name="input_data">
                 <collection type="list">
-                    <element name="04_combined_generations.csv"/>
+                    <element name="input_p_1.csv" value="input_p_1.csv" ftype="csv"/>
+                    <element name="input_f1_1.csv" value="input_f1_1.csv" ftype="csv"/>
+                    <element name="input_f2_1.csv" value="input_f2_1.csv" ftype="csv"/>
+                    <element name="input_combined1.csv" value="input_combined1.csv" ftype="csv"/>
                 </collection>
             </param>
             <param name="start_date" value="2017-04-01"/>
             <param name="end_date" value="2017-04-15"/>
             <output_collection name="output_data_collection" type="list">
-                <element name="04_combined_generations.csv" file="output_combined6.csv" ftype="csv" compare="contains"/>
+                <element name="01_generation_P.csv" file="output_p_1.csv" ftype="csv" compare="contains"/>
+                <element name="02_generation_F1.csv" file="output_f1_1.csv" ftype="csv" compare="contains"/>
+                <element name="03_generation_F2.csv" file="output_f2_1.csv" ftype="csv" compare="contains"/>
+                <element name="04_combined_generations.csv" file="output_combined1.csv" ftype="csv" compare="contains"/>
             </output_collection>
-            <!--
             <output_collection name="output_plot_collection" type="list">
-                <element name="02_young_nymph_pop.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
-                <element name="05_pre-vittelogenic_adult_pop.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
-            </output_collection>
-            -->
-        </test>
-        <test>
-            <param name="input">
-                <collection type="list">
-                    <element name="04_combined_generations.csv"/>
-                </collection>
-            </param>
-            <param name="start_date" value="2017-01-01"/>
-            <param name="end_date" value="2017-01-15"/>
-            <output_collection name="output_data_collection" type="list">
-                <element name="04_combined_generations.csv" file="output_combined7.csv" ftype="csv" compare="contains"/>
-            </output_collection>
-            <!--
-            <output_collection name="output_plot_collection" type="list">
-                <element name="02_young_nymph_pop.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
-                <element name="05_pre-vittelogenic_adult_pop.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
+                <element name="01_egg_pop_by_generation.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
+                <element name="04_total_nymph_pop_by_generation.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
+                <element name="08_total_adult_pop_by_generation.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
+                <element name="09_total_pop_by_generation.pdf" file="plot.pdf" ftype="pdf" compare="contains"/>
             </output_collection>
             -->
         </test>
