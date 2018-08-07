@@ -1,15 +1,12 @@
 #!/usr/bin/env Rscript
 
-get_file_path = function(life_stage, base_name, life_stage_nymph=NULL, life_stage_adult=NULL) {
-    if (!is.null(life_stage_nymph)) {
-        lsi = get_life_stage_index(life_stage, life_stage_nymph=life_stage_nymph);
-        file_name = paste(lsi, tolower(life_stage_nymph), base_name, sep="_");
-    } else if (!is.null(life_stage_adult)) {
-        lsi = get_life_stage_index(life_stage, life_stage_adult=life_stage_adult);
-        file_name = paste(lsi, tolower(life_stage_adult), base_name, sep="_");
-    } else {
+get_file_path = function(life_stage, base_name, sub_life_stage=NULL) {
+    if (is.null(sub_life_stage)) {
         lsi = get_life_stage_index(life_stage);
         file_name = paste(lsi, base_name, sep="_");
+    } else {
+        lsi = get_life_stage_index(life_stage, sub_life_stage=sub_life_stage);
+        file_name = paste(lsi, tolower(sub_life_stage), base_name, sep="_");
     }
     file_path = paste("output_plots_dir", file_name, sep="/");
     return(file_path);
@@ -20,27 +17,27 @@ get_year_from_date = function(date_str) {
     return (date_str_items[1]);
 }
 
-get_life_stage_index = function(life_stage, life_stage_nymph=NULL, life_stage_adult=NULL) {
+get_life_stage_index = function(life_stage, sub_life_stage=NULL) {
     # Name collection elements so that they
     # are displayed in logical order.
     if (life_stage=="Egg") {
         lsi = "01";
     } else if (life_stage=="Nymph") {
-        if (life_stage_nymph=="Young") {
+        if (sub_life_stage=="Young") {
             lsi = "02";
-        } else if (life_stage_nymph=="Old") {
+        } else if (sub_life_stage=="Old") {
             lsi = "03";
-        } else if (life_stage_nymph=="Total") {
+        } else if (sub_life_stage=="Total") {
             lsi="04";
         }
     } else if (life_stage=="Adult") {
-        if (life_stage_adult=="Pre-vittelogenic") {
+        if (sub_life_stage=="Pre-vittelogenic") {
             lsi = "05";
-        } else if (life_stage_adult=="Vittelogenic") {
+        } else if (sub_life_stage=="Vittelogenic") {
             lsi = "06";
-        } else if (life_stage_adult=="Diapausing") {
+        } else if (sub_life_stage=="Diapausing") {
             lsi = "07";
-        } else if (life_stage_adult=="Total") {
+        } else if (sub_life_stage=="Total") {
             lsi = "08";
         }
     } else if (life_stage=="Total") {
@@ -222,8 +219,8 @@ get_x_axis_ticks_and_labels = function(temperature_data_frame, prepend_end_doy_n
 }
 
 render_chart = function(ticks, date_labels, chart_type, plot_std_error, insect, location, latitude, start_date, end_date, days, maxval,
-        replications, life_stage, group, group_std_error, group2=NULL, group2_std_error=NULL, group3=NULL, group3_std_error=NULL,
-        life_stages_adult=NULL, life_stages_nymph=NULL) {
+            replications, life_stage, group, group_std_error, group2=NULL, group2_std_error=NULL, group3=NULL, group3_std_error=NULL,
+            sub_life_stage=NULL) {
     if (chart_type=="pop_size_by_life_stage") {
         if (life_stage=="Total") {
             title = paste(insect, ": Reps", replications, ":", life_stage, "Pop :", location, ": Lat", latitude, ":", start_date, "-", end_date, sep=" ");
@@ -252,14 +249,14 @@ render_chart = function(ticks, date_labels, chart_type, plot_std_error, insect, 
                 legend_text = c(life_stage);
                 columns = c(4);
             } else if (life_stage=="Nymph") {
-                stage = paste(life_stages_nymph, "Nymph Pop :", sep=" ");
+                stage = paste(sub_life_stage, "Nymph Pop :", sep=" ");
                 title = paste(insect, ": Reps", replications, ":", stage, location, ": Lat", latitude, ":", start_date, "-", end_date, sep=" ");
-                legend_text = c(paste(life_stages_nymph, life_stage, sep=" "));
+                legend_text = c(paste(sub_life_stage, life_stage, sep=" "));
                 columns = c(2);
             } else if (life_stage=="Adult") {
-                stage = paste(life_stages_adult, "Adult Pop", sep=" ");
+                stage = paste(sub_life_stage, "Adult Pop", sep=" ");
                 title = paste(insect, ": Reps", replications, ":", stage, location, ": Lat", latitude, ":", start_date, "-", end_date, sep=" ");
-                legend_text = c(paste(life_stages_adult, life_stage, sep=" "));
+                legend_text = c(paste(sub_life_stage, life_stage, sep=" "));
                 columns = c(1);
             }
             plot(days, group, main=title, type="l", ylim=c(0, maxval), axes=FALSE, lwd=2, xlab="", ylab="", cex=3, cex.lab=3, cex.axis=3, cex.main=3);
@@ -278,9 +275,9 @@ render_chart = function(ticks, date_labels, chart_type, plot_std_error, insect, 
         } else if (life_stage=="Egg") {
             title_str = ": Egg Pop by Gen :";
         } else if (life_stage=="Nymph") {
-            title_str = paste(":", life_stages_nymph, "Nymph Pop by Gen", ":", sep=" ");
+            title_str = paste(":", sub_life_stage, "Nymph Pop by Gen", ":", sep=" ");
         } else if (life_stage=="Adult") {
-            title_str = paste(":", life_stages_adult, "Adult Pop by Gen", ":", sep=" ");
+            title_str = paste(":", sub_life_stage, "Adult Pop by Gen", ":", sep=" ");
         }
         title = paste(insect, ": Reps", replications, title_str, location, ": Lat", latitude, ":", start_date, "-", end_date, sep=" ");
         legend_text = c("P", "F1", "F2");

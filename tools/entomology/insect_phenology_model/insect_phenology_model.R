@@ -3,29 +3,29 @@
 suppressPackageStartupMessages(library("optparse"))
 
 option_list <- list(
-            make_option(c("--adult_mortality"), action="store", dest="adult_mortality", type="integer", help="Adjustment rate for adult mortality"),
-            make_option(c("--adult_accumulation"), action="store", dest="adult_accumulation", type="integer", help="Adjustment of degree-days accumulation (old nymph->adult)"),
-            make_option(c("--egg_mortality"), action="store", dest="egg_mortality", type="integer", help="Adjustment rate for egg mortality"),
-            make_option(c("--input_norm"), action="store", dest="input_norm", help="30 year normals temperature data for selected station"),
-            make_option(c("--input_ytd"), action="store", dest="input_ytd", default=NULL, help="Year-to-date temperature data for selected location"),
-            make_option(c("--insect"), action="store", dest="insect", help="Insect name"),
-            make_option(c("--insects_per_replication"), action="store", dest="insects_per_replication", type="integer", help="Number of insects with which to start each replication"),
-            make_option(c("--life_stages"), action="store", dest="life_stages", help="Selected life stages for plotting"),
-            make_option(c("--life_stages_adult"), action="store", dest="life_stages_adult", default=NULL, help="Adult life stages for plotting"),
-            make_option(c("--life_stages_nymph"), action="store", dest="life_stages_nymph", default=NULL, help="Nymph life stages for plotting"),
-            make_option(c("--location"), action="store", dest="location", default=NULL, help="Selected location"),
-            make_option(c("--min_clutch_size"), action="store", dest="min_clutch_size", type="integer", help="Adjustment of minimum clutch size"),
-            make_option(c("--max_clutch_size"), action="store", dest="max_clutch_size", type="integer", help="Adjustment of maximum clutch size"),
-            make_option(c("--num_days_ytd"), action="store", dest="num_days_ytd", default=NULL, type="integer", help="Total number of days in the year-to-date temperature dataset"),
-            make_option(c("--nymph_mortality"), action="store", dest="nymph_mortality", type="integer", help="Adjustment rate for nymph mortality"),
-            make_option(c("--old_nymph_accumulation"), action="store", dest="old_nymph_accumulation", type="integer", help="Adjustment of degree-days accumulation (young nymph->old nymph)"),
-            make_option(c("--oviposition"), action="store", dest="oviposition", type="integer", help="Adjustment for oviposition rate"),
-            make_option(c("--photoperiod"), action="store", dest="photoperiod", type="double", help="Critical photoperiod for diapause induction/termination"),
-            make_option(c("--plot_generations_separately"), action="store", dest="plot_generations_separately", help="Plot Plot P, F1 and F2 as separate lines or pool across them"),
-            make_option(c("--plot_std_error"), action="store", dest="plot_std_error", help="Plot Standard error"),
-            make_option(c("--replications"), action="store", dest="replications", type="integer", help="Number of replications"),
-            make_option(c("--script_dir"), action="store", dest="script_dir", help="R script source directory"),
-            make_option(c("--young_nymph_accumulation"), action="store", dest="young_nymph_accumulation", type="integer", help="Adjustment of degree-days accumulation (egg->young nymph)")
+    make_option(c("--adult_mortality"), action="store", dest="adult_mortality", type="integer", help="Adjustment rate for adult mortality"),
+    make_option(c("--adult_accumulation"), action="store", dest="adult_accumulation", type="integer", help="Adjustment of degree-days accumulation (old nymph->adult)"),
+    make_option(c("--egg_mortality"), action="store", dest="egg_mortality", type="integer", help="Adjustment rate for egg mortality"),
+    make_option(c("--input_norm"), action="store", dest="input_norm", help="30 year normals temperature data for selected station"),
+    make_option(c("--input_ytd"), action="store", dest="input_ytd", default=NULL, help="Year-to-date temperature data for selected location"),
+    make_option(c("--insect"), action="store", dest="insect", help="Insect name"),
+    make_option(c("--insects_per_replication"), action="store", dest="insects_per_replication", type="integer", help="Number of insects with which to start each replication"),
+    make_option(c("--life_stages"), action="store", dest="life_stages", help="Selected life stages for plotting"),
+    make_option(c("--life_stages_adult"), action="store", dest="life_stages_adult", default=NULL, help="Adult life stages for plotting"),
+    make_option(c("--life_stages_nymph"), action="store", dest="life_stages_nymph", default=NULL, help="Nymph life stages for plotting"),
+    make_option(c("--location"), action="store", dest="location", default=NULL, help="Selected location"),
+    make_option(c("--min_clutch_size"), action="store", dest="min_clutch_size", type="integer", help="Adjustment of minimum clutch size"),
+    make_option(c("--max_clutch_size"), action="store", dest="max_clutch_size", type="integer", help="Adjustment of maximum clutch size"),
+    make_option(c("--num_days_ytd"), action="store", dest="num_days_ytd", default=NULL, type="integer", help="Total number of days in the year-to-date temperature dataset"),
+    make_option(c("--nymph_mortality"), action="store", dest="nymph_mortality", type="integer", help="Adjustment rate for nymph mortality"),
+    make_option(c("--old_nymph_accumulation"), action="store", dest="old_nymph_accumulation", type="integer", help="Adjustment of degree-days accumulation (young nymph->old nymph)"),
+    make_option(c("--oviposition"), action="store", dest="oviposition", type="integer", help="Adjustment for oviposition rate"),
+    make_option(c("--photoperiod"), action="store", dest="photoperiod", type="double", help="Critical photoperiod for diapause induction/termination"),
+    make_option(c("--plot_generations_separately"), action="store", dest="plot_generations_separately", help="Plot Plot P, F1 and F2 as separate lines or pool across them"),
+    make_option(c("--plot_std_error"), action="store", dest="plot_std_error", help="Plot Standard error"),
+    make_option(c("--replications"), action="store", dest="replications", type="integer", help="Number of replications"),
+    make_option(c("--script_dir"), action="store", dest="script_dir", help="R script source directory"),
+    make_option(c("--young_nymph_accumulation"), action="store", dest="young_nymph_accumulation", type="integer", help="Adjustment of degree-days accumulation (egg->young nymph)")
 )
 
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list);
@@ -1279,10 +1279,10 @@ if (process_adults) {
         if (life_stage_adult == "Pre-vittelogenic") {
             # Mean value for previttelogenic adults.
             previttelogenic_adults = apply(Previttelogenic.replications, 1, mean);
-            temperature_data_frame = append_vector(temperature_data_frame, previttelogenic_adults, "PRE-VITADULT");
+            temperature_data_frame = append_vector(temperature_data_frame, previttelogenic_adults, "PRE.VITADULT");
             # Standard error for previttelogenic adults.
             previttelogenic_adults.std_error = apply(Previttelogenic.replications, 1, sd) / sqrt(opt$replications);
-            temperature_data_frame = append_vector(temperature_data_frame, previttelogenic_adults.std_error, "PRE-VITADULTSE");
+            temperature_data_frame = append_vector(temperature_data_frame, previttelogenic_adults.std_error, "PRE.VITADULTSE");
         } else if (life_stage_adult == "Vittelogenic") {
             # Mean value for vittelogenic adults.
             vittelogenic_adults = apply(Vittelogenic.replications, 1, mean);
@@ -1320,121 +1320,121 @@ if (plot_generations_separately) {
         m_se = get_mean_and_std_error(P_eggs.replications, F1_eggs.replications, F2_eggs.replications);
         P_eggs = m_se[[1]];
         P_eggs.std_error = m_se[[2]];
-        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_eggs, "EGG-P");
-        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_eggs.std_error, "EGG-P-SE");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_eggs, "EGG.P");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_eggs.std_error, "EGG.P.SE");
         F1_eggs = m_se[[3]];
         F1_eggs.std_error = m_se[[4]];
-        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_eggs, "EGG-F1");
-        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_eggs.std_error, "EGG-F1-SE");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_eggs, "EGG.F1");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_eggs.std_error, "EGG.F1.SE");
         F2_eggs = m_se[[5]];
         F2_eggs.std_error = m_se[[6]];
-        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_eggs, "EGG-F2");
-        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_eggs.std_error, "EGG-F2-SE");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_eggs, "EGG.F2");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_eggs.std_error, "EGG.F2.SE");
     }
     if (process_young_nymphs) {
         m_se = get_mean_and_std_error(P_young_nymphs.replications, F1_young_nymphs.replications, F2_young_nymphs.replications);
         P_young_nymphs = m_se[[1]];
         P_young_nymphs.std_error = m_se[[2]];
-        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_young_nymphs, "YOUNGNYMPH-P");
-        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_young_nymphs.std_error, "YOUNGNYMPH-P-SE");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_young_nymphs, "YOUNGNYMPH.P");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_young_nymphs.std_error, "YOUNGNYMPH.P.SE");
         F1_young_nymphs = m_se[[3]];
         F1_young_nymphs.std_error = m_se[[4]];
-        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_young_nymphs, "YOUNGNYMPH-F1");
-        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_young_nymphs.std_error, "YOUNGNYMPH-F1-SE");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_young_nymphs, "YOUNGNYMPH.F1");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_young_nymphs.std_error, "YOUNGNYMPH.F1.SE");
         F2_young_nymphs = m_se[[5]];
         F2_young_nymphs.std_error = m_se[[6]];
-        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_young_nymphs, "YOUNGNYMPH-F2");
-        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_young_nymphs.std_error, "YOUNGNYMPH-F2-SE");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_young_nymphs, "YOUNGNYMPH.F2");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_young_nymphs.std_error, "YOUNGNYMPH.F2.SE");
     }
     if (process_old_nymphs) {
         m_se = get_mean_and_std_error(P_old_nymphs.replications, F1_old_nymphs.replications, F2_old_nymphs.replications);
         P_old_nymphs = m_se[[1]];
         P_old_nymphs.std_error = m_se[[2]];
-        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_old_nymphs, "OLDNYMPH-P");
-        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_old_nymphs.std_error, "OLDNYMPH-P-SE");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_old_nymphs, "OLDNYMPH.P");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_old_nymphs.std_error, "OLDNYMPH.P.SE");
         F1_old_nymphs = m_se[[3]];
         F1_old_nymphs.std_error = m_se[[4]];
-        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_old_nymphs, "OLDNYMPH-F1");
-        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_old_nymphs.std_error, "OLDNYMPH-F1-SE");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_old_nymphs, "OLDNYMPH.F1");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_old_nymphs.std_error, "OLDNYMPH.F1.SE");
         F2_old_nymphs = m_se[[5]];
         F2_old_nymphs.std_error = m_se[[6]];
-        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_old_nymphs, "OLDNYMPH-F2");
-        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_old_nymphs.std_error, "OLDNYMPH-F2-SE");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_old_nymphs, "OLDNYMPH.F2");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_old_nymphs.std_error, "OLDNYMPH.F2.SE");
     }
     if (process_total_nymphs) {
         m_se = get_mean_and_std_error(P_total_nymphs.replications, F1_total_nymphs.replications, F2_total_nymphs.replications);
         P_total_nymphs = m_se[[1]];
         P_total_nymphs.std_error = m_se[[2]];
-        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_total_nymphs, "TOTALNYMPH-P");
-        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_total_nymphs.std_error, "TOTALNYMPH-P-SE");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_total_nymphs, "TOTALNYMPH.P");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_total_nymphs.std_error, "TOTALNYMPH.P.SE");
         F1_total_nymphs = m_se[[3]];
         F1_total_nymphs.std_error = m_se[[4]];
-        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_total_nymphs, "TOTALNYMPH-F1");
-        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_total_nymphs.std_error, "TOTALNYMPH-F1-SE");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_total_nymphs, "TOTALNYMPH.F1");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_total_nymphs.std_error, "TOTALNYMPH.F1.SE");
         F2_total_nymphs = m_se[[5]];
         F2_total_nymphs.std_error = m_se[[6]];
-        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_total_nymphs, "TOTALNYMPH-F2");
-        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_total_nymphs.std_error, "TOTALNYMPH-F2-SE");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_total_nymphs, "TOTALNYMPH.F2");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_total_nymphs.std_error, "TOTALNYMPH.F2.SE");
     }
     if (process_previttelogenic_adults) {
         m_se = get_mean_and_std_error(P_previttelogenic_adults.replications, F1_previttelogenic_adults.replications, F2_previttelogenic_adults.replications);
         P_previttelogenic_adults = m_se[[1]];
         P_previttelogenic_adults.std_error = m_se[[2]];
-        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_previttelogenic_adults, "PRE-VITADULT-P");
-        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_previttelogenic_adults.std_error, "PRE-VITADULT-P-SE");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_previttelogenic_adults, "PRE.VITADULT.P");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_previttelogenic_adults.std_error, "PRE.VITADULT.P.SE");
         F1_previttelogenic_adults = m_se[[3]];
         F1_previttelogenic_adults.std_error = m_se[[4]];
-        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_previttelogenic_adults, "PRE-VITADULT-F1");
-        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_previttelogenic_adults.std_error, "PRE-VITADULT-F1-SE");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_previttelogenic_adults, "PRE.VITADULT.F1");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_previttelogenic_adults.std_error, "PRE.VITADULT.F1.SE");
         F2_previttelogenic_adults = m_se[[5]];
         F2_previttelogenic_adults.std_error = m_se[[6]];
-        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_previttelogenic_adults, "PRE-VITADULT-F2");
-        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_previttelogenic_adults.std_error, "PRE-VITADULT-F2-SE");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_previttelogenic_adults, "PRE.VITADULT.F2");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_previttelogenic_adults.std_error, "PRE.VITADULT.F2.SE");
     }
     if (process_vittelogenic_adults) {
         m_se = get_mean_and_std_error(P_vittelogenic_adults.replications, F1_vittelogenic_adults.replications, F2_vittelogenic_adults.replications);
         P_vittelogenic_adults = m_se[[1]];
         P_vittelogenic_adults.std_error = m_se[[2]];
-        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_vittelogenic_adults, "VITADULT-P");
-        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_vittelogenic_adults.std_error, "VITADULT-P-SE");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_vittelogenic_adults, "VITADULT.P");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_vittelogenic_adults.std_error, "VITADULT.P.SE");
         F1_vittelogenic_adults = m_se[[3]];
         F1_vittelogenic_adults.std_error = m_se[[4]];
-        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_vittelogenic_adults, "VITADULT-F1");
-        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_vittelogenic_adults.std_error, "VITADULT-F1-SE");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_vittelogenic_adults, "VITADULT.F1");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_vittelogenic_adults.std_error, "VITADULT.F1.SE");
         F2_vittelogenic_adults = m_se[[5]];
         F2_vittelogenic_adults.std_error = m_se[[6]];
-        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_vittelogenic_adults, "VITADULT-F2");
-        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_vittelogenic_adults.std_error, "VITADULT-F2-SE");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_vittelogenic_adults, "VITADULT.F2");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_vittelogenic_adults.std_error, "VITADULT.F2.SE");
     }
     if (process_diapausing_adults) {
         m_se = get_mean_and_std_error(P_diapausing_adults.replications, F1_diapausing_adults.replications, F2_diapausing_adults.replications);
         P_diapausing_adults = m_se[[1]];
         P_diapausing_adults.std_error = m_se[[2]];
-        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_diapausing_adults, "DIAPAUSINGADULT-P");
-        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_diapausing_adults.std_error, "DIAPAUSINGADULT-P-SE");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_diapausing_adults, "DIAPAUSINGADULT.P");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_diapausing_adults.std_error, "DIAPAUSINGADULT.P.SE");
         F1_diapausing_adults = m_se[[3]];
         F1_diapausing_adults.std_error = m_se[[4]];
-        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_diapausing_adults, "DIAPAUSINGADULT-F1");
-        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_diapausing_adults.std_error, "DIAPAUSINGADULT-F1-SE");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_diapausing_adults, "DIAPAUSINGADULT.F1");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_diapausing_adults.std_error, "DIAPAUSINGADULT.F1.SE");
         F2_diapausing_adults = m_se[[5]];
         F2_diapausing_adults.std_error = m_se[[6]];
-        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_diapausing_adults, "DIAPAUSINGADULT-F2");
-        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_diapausing_adults.std_error, "DIAPAUSINGADULT-F2-SE");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_diapausing_adults, "DIAPAUSINGADULT.F2");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_diapausing_adults.std_error, "DIAPAUSINGADULT.F2.SE");
     }
     if (process_total_adults) {
         m_se = get_mean_and_std_error(P_total_adults.replications, F1_total_adults.replications, F2_total_adults.replications);
         P_total_adults = m_se[[1]];
         P_total_adults.std_error = m_se[[2]];
-        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_total_adults, "TOTALADULT-P");
-        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_total_adults.std_error, "TOTALADULT-P-SE");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_total_adults, "TOTALADULT.P");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P_total_adults.std_error, "TOTALADULT.P.SE");
         F1_total_adults = m_se[[3]];
         F1_total_adults.std_error = m_se[[4]];
-        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_total_adults, "TOTALADULT-F1");
-        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_total_adults.std_error, "TOTALADULT-F1-SE");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_total_adults, "TOTALADULT.F1");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1_total_adults.std_error, "TOTALADULT.F1.SE");
         F2_total_adults = m_se[[5]];
         F2_total_adults.std_error = m_se[[6]];
-        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_total_adults, "TOTALADULT-F2");
-        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_total_adults.std_error, "TOTALADULT-F2-SE");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_total_adults, "TOTALADULT.F2");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_total_adults.std_error, "TOTALADULT.F2.SE");
     }
 }
 
@@ -1465,15 +1465,15 @@ if (plot_generations_separately) {
             # Egg population size by generation.
             maxval = max(P_eggs+F1_eggs+F2_eggs) + 100;
             render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, location, latitude,
-                                    start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=P_eggs, group_std_error=P_eggs.std_error,
-                                    group2=F1_eggs, group2_std_error=F1_eggs.std_error, group3=F2_eggs, group3_std_error=F2_eggs.std_error);
+                start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=P_eggs, group_std_error=P_eggs.std_error,
+                group2=F1_eggs, group2_std_error=F1_eggs.std_error, group3=F2_eggs, group3_std_error=F2_eggs.std_error);
             # Turn off device driver to flush output.
             dev.off();
         } else if (life_stage == "Nymph") {
             for (life_stage_nymph in life_stages_nymph) {
                 # Start PDF device driver.
                 dev.new(width=20, height=30);
-                file_path = get_file_path(life_stage, "nymph_pop_by_generation.pdf", life_stage_nymph=life_stage_nymph)
+                file_path = get_file_path(life_stage, "nymph_pop_by_generation.pdf", sub_life_stage=life_stage_nymph)
                 pdf(file=file_path, width=20, height=30, bg="white");
                 par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
                 if (life_stage_nymph=="Young") {
@@ -1505,8 +1505,8 @@ if (plot_generations_separately) {
                     group3_std_error = F2_total_nymphs.std_error;
                 }
                 render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, location, latitude,
-                                            start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=group, group_std_error=group_std_error,
-                                            group2=group2, group2_std_error=group2_std_error, group3=group3, group3_std_error=group3_std_error, life_stages_nymph=life_stage_nymph);
+                    start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=group, group_std_error=group_std_error,
+                    group2=group2, group2_std_error=group2_std_error, group3=group3, group3_std_error=group3_std_error, sub_life_stage=life_stage_nymph);
                 # Turn off device driver to flush output.
                 dev.off();
             }
@@ -1514,7 +1514,7 @@ if (plot_generations_separately) {
             for (life_stage_adult in life_stages_adult) {
                 # Start PDF device driver.
                 dev.new(width=20, height=30);
-                file_path = get_file_path(life_stage, "adult_pop_by_generation.pdf", life_stage_adult=life_stage_adult)
+                file_path = get_file_path(life_stage, "adult_pop_by_generation.pdf", sub_life_stage=life_stage_adult)
                 pdf(file=file_path, width=20, height=30, bg="white");
                 par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
                 if (life_stage_adult=="Pre-vittelogenic") {
@@ -1555,8 +1555,8 @@ if (plot_generations_separately) {
                     group3_std_error = F2_total_adults.std_error;
                 }
                 render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, location, latitude,
-                                            start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=group, group_std_error=group_std_error,
-                                            group2=group2, group2_std_error=group2_std_error, group3=group3, group3_std_error=group3_std_error, life_stages_adult=life_stage_adult);
+                    start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=group, group_std_error=group_std_error,
+                    group2=group2, group2_std_error=group2_std_error, group3=group3, group3_std_error=group3_std_error, sub_life_stage=life_stage_adult);
                 # Turn off device driver to flush output.
                 dev.off();
             }
@@ -1571,8 +1571,8 @@ if (plot_generations_separately) {
             # Total population size by generation.
             maxval = max(P+F1+F2) + 100;
             render_chart(ticks, date_labels, "pop_size_by_generation", opt$plot_std_error, opt$insect, location, latitude,
-                                    start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=P, group_std_error=P.std_error,
-                                    group2=F1, group2_std_error=F1.std_error, group3=F2, group3_std_error=F2.std_error);
+                start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=P, group_std_error=P.std_error,
+                group2=F1, group2_std_error=F1.std_error, group3=F2, group3_std_error=F2.std_error);
             # Turn off device driver to flush output.
             dev.off();
         }
@@ -1588,14 +1588,14 @@ if (plot_generations_separately) {
             # Egg population size.
             maxval = max(eggs+eggs.std_error) + 100;
             render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, location, latitude,
-                                    start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=eggs, group_std_error=eggs.std_error);
+                start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=eggs, group_std_error=eggs.std_error);
             # Turn off device driver to flush output.
             dev.off();
         } else if (life_stage == "Nymph") {
             for (life_stage_nymph in life_stages_nymph) {
                 # Start PDF device driver.
                 dev.new(width=20, height=30);
-                file_path = get_file_path(life_stage, "nymph_pop.pdf", life_stage_nymph=life_stage_nymph)
+                file_path = get_file_path(life_stage, "nymph_pop.pdf", sub_life_stage=life_stage_nymph)
                 pdf(file=file_path, width=20, height=30, bg="white");
                 par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
                 if (life_stage_nymph=="Total") {
@@ -1613,8 +1613,8 @@ if (plot_generations_separately) {
                 }
                 maxval = max(group+group_std_error) + 100;
                 render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, location, latitude,
-                                            start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=group, group_std_error=group_std_error,
-                                            life_stages_nymph=life_stage_nymph);
+                    start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=group, group_std_error=group_std_error,
+                    sub_life_stage=life_stage_nymph);
                 # Turn off device driver to flush output.
                 dev.off();
             }
@@ -1622,7 +1622,7 @@ if (plot_generations_separately) {
             for (life_stage_adult in life_stages_adult) {
                 # Start PDF device driver.
                 dev.new(width=20, height=30);
-                file_path = get_file_path(life_stage, "adult_pop.pdf", life_stage_adult=life_stage_adult)
+                file_path = get_file_path(life_stage, "adult_pop.pdf", sub_life_stage=life_stage_adult)
                 pdf(file=file_path, width=20, height=30, bg="white");
                 par(mar=c(5, 6, 4, 4), mfrow=c(3, 1));
                 if (life_stage_adult=="Total") {
@@ -1644,8 +1644,8 @@ if (plot_generations_separately) {
                 }
                 maxval = max(group+group_std_error) + 100;
                 render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, location, latitude,
-                                            start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=group, group_std_error=group_std_error,
-                                            life_stages_adult=life_stage_adult);
+                    start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=group, group_std_error=group_std_error,
+                    sub_life_stage=life_stage_adult);
                 # Turn off device driver to flush output.
                 dev.off();
             }
@@ -1658,8 +1658,8 @@ if (plot_generations_separately) {
             # Total population size.
             maxval = max(eggs+eggs.std_error, total_nymphs+total_nymphs.std_error, total_adults+total_adults.std_error) + 100;
             render_chart(ticks, date_labels, "pop_size_by_life_stage", opt$plot_std_error, opt$insect, location, latitude,
-                                    start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=total_adults, group_std_error=total_adults.std_error,
-                                    group2=total_nymphs, group2_std_error=total_nymphs.std_error, group3=eggs, group3_std_error=eggs.std_error);
+                start_date, end_date, total_days_vector, maxval, opt$replications, life_stage, group=total_adults, group_std_error=total_adults.std_error,
+                group2=total_nymphs, group2_std_error=total_nymphs.std_error, group3=eggs, group3_std_error=eggs.std_error);
             # Turn off device driver to flush output.
             dev.off();
         }
