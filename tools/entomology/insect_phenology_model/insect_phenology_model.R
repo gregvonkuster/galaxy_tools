@@ -564,11 +564,13 @@ process_previttelogenic_adults = FALSE;
 process_vittelogenic_adults = FALSE;
 process_diapausing_adults = FALSE;
 process_total_adults = FALSE;
+process_total = FALSE;
 for (life_stage in life_stages) {
     if (life_stage=="Total") {
         process_eggs = TRUE;
         process_nymphs = TRUE;
         process_adults = TRUE;
+        process_total = TRUE;
     } else if (life_stage=="Egg") {
         process_eggs = TRUE;
     } else if (life_stage=="Nymph") {
@@ -1435,6 +1437,14 @@ if (plot_generations_separately) {
         F2_total_adults.std_error = m_se[[6]];
         temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_total_adults, "TOTALADULT.F2");
         temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2_total_adults.std_error, "TOTALADULT.F2.SE");
+    }
+    if (process_total) {
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P, "ALL.TOTAL.P");
+        temperature_data_frame_P = append_vector(temperature_data_frame_P, P.std_error, "ALL.TOTAL.P.SE");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1, "ALL.TOTAL.F1");
+        temperature_data_frame_F1 = append_vector(temperature_data_frame_F1, F1.std_error, "ALL.TOTAL.F1.SE");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2, "ALL.TOTAL.F2");
+        temperature_data_frame_F2 = append_vector(temperature_data_frame_F2, F2.std_error, "ALL.TOTAL.F2.SE");
     }
 }
 
