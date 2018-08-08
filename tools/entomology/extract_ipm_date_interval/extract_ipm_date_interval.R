@@ -398,6 +398,12 @@ for (input_data_file in input_data_files) {
                 P_total_adults.std_error = temperature_data_frame$TOTALADULT.P.SE;
             }
         }
+        if (process_total) {
+            P_all_total = temperature_data_frame$ALL.TOTAL.P;
+            if (plot_std_error) {
+                P_all_total.std_error = temperature_data_frame$ALL.TOTAL.P.SE;
+            }
+        }
     } else if (file_name == "02_generation_F1.csv") {
         if (process_eggs) {
             F1_eggs = temperature_data_frame$EGG.F1;
@@ -447,6 +453,12 @@ for (input_data_file in input_data_files) {
                 F1_total_adults.std_error = temperature_data_frame$TOTALADULT.F1.SE;
             }
         }
+        if (process_total) {
+            F1_all_total = temperature_data_frame$ALL.TOTAL.F1;
+            if (plot_std_error) {
+                F1_all_total.std_error = temperature_data_frame$ALL.TOTAL.F1.SE;
+            }
+        }
     } else if (file_name == "03_generation_F2.csv") {
         if (process_eggs) {
             F2_eggs = temperature_data_frame$EGG.F2;
@@ -494,6 +506,12 @@ for (input_data_file in input_data_files) {
             F2_total_adults = temperature_data_frame$TOTALADULT.F2;
             if (plot_std_error) {
                 F2_total_adults.std_error = temperature_data_frame$TOTALADULT.F2.SE;
+            }
+        }
+        if (process_total) {
+            F2_all_total = temperature_data_frame$ALL.TOTAL.F2;
+            if (plot_std_error) {
+                F2_all_total.std_error = temperature_data_frame$ALL.TOTAL.F2.SE;
             }
         }
     }
@@ -602,22 +620,10 @@ if (plot_generations_separately) {
         # Total population size for egg, nymph and adult by generation.
         file_path = get_file_path(life_stage, "total_pop_by_generation.pdf")
         maxval = max(total_adults+eggs+total_nymphs) + 100;
-        # P == total_adults
-        # P.std_error == total_adults.std_error
-        # F1 == eggs
-        # F1.std_error == eggs.std_error
-        # F2 == ???
-        # F2.std_error == ???
-        # FIXME: testing demonstrates that P and F1 are properly assigned
-        # above, but F2 cannot be determined.  F2 should undoubtedly be
-        # total_nymphs, but the data is not the same bewteen the output
-        # from the insect_phenology_model tool and the date interval from
-        # this tool.  We won't plot the total until we get time to figure
-        # this out.
-        #prepare_plot(life_stage, file_path, maxval, ticks, date_labels, chart_type, params_hash$plot_std_error,
-        #    params_hash$insect, params_hash$location, latitude, start_date, end_date, total_days_vector,
-        #    params_hash$replications, group=total_adults, group_std_error=total_adults.std_error, group2=eggs,
-        #    group2_std_error=eggs.std_error, group3=total_nymphs, group3_std_error=total_nymphs.std_error);
+        prepare_plot(life_stage, file_path, maxval, ticks, date_labels, chart_type, params_hash$plot_std_error,
+            params_hash$insect, params_hash$location, latitude, start_date, end_date, total_days_vector,
+            params_hash$replications, group=P_all_total, group_std_error=P_all_total.std_error, group2=F1_all_total,
+            group2_std_error=F1_all_total.std_error, group3=F2_all_total, group3_std_error=F2_all_total.std_error);
     }
 } else {
     chart_type = "pop_size_by_life_stage";
