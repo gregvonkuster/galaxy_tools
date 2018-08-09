@@ -245,7 +245,7 @@ start_date = validate_date(start_date);
 # Validate end_date.
 end_date = validate_date(end_date);
 if (start_date >= end_date) {
-    stop_err("The start date must be between 1 and 50 days before the end date when setting date intervals for plots.");
+    stop_err("The start date must be between 1 and 50 days before the end date.\n");
 }
 # Calculate the number of days in the date interval.
 num_days = difftime(end_date, start_date, units=c("days"));
@@ -268,6 +268,9 @@ for (input_data_file in input_data_files) {
     temperature_data_frame = get_new_temperature_data_frame(input_data_file);
     start_date_row = which(temperature_data_frame$DATE==start_date);
     end_date_row = which(temperature_data_frame$DATE==end_date);
+    if (length(start_date_row)==0 | length(end_date_row)==0) {
+        stop_err("Invalid date interval, make sure the start and end dates are both contained within the selected input data files.\n");
+    }
     # Extract the date interval.
     temperature_data_frame = temperature_data_frame[start_date_row:end_date_row,];
     # Save the date interval data into an output file

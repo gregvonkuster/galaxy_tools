@@ -41,7 +41,7 @@ fi]]></command>
         <param name="start_date" type="text" value="" label="Start date" help="Format must be yyyy-mm-dd">
             <validator type="expression" message="Date must have the format yyyy-mm-dd">len(value.split('-')[0])==4 and int(value.split('-')[0]) and len(value.split('-')[1])==2 and int(value.split('-')[1]) and len(value.split('-')[2])==2 and int(value.split('-')[2])</validator>
         </param>
-        <param name="end_date" type="text" value="" label="End date" help="Format must be yyyy-mm-dd">
+        <param name="end_date" type="text" value="" label="End date" help="Format must be yyyy-mm-dd, and the date must be between 1 and 50 days after the start date">
             <validator type="expression" message="Date must have the format yyyy-mm-dd">len(value.split('-')[0])==4 and int(value.split('-')[0]) and len(value.split('-')[1])==2 and int(value.split('-')[1]) and len(value.split('-')[2])==2 and int(value.split('-')[2])</validator>
         </param>
     </inputs>
@@ -87,7 +87,29 @@ fi]]></command>
     <help>
 **What it does**
 
-Provides an agent-based stochastic model expressing stage-specific phenology and population dynamics for an insect species across geographic regions.
+Extracts a date interval from the data produced by the Insect Phenology Model tool, providing a "zoomed in" view of the plots.
+
+The Insect Phenology Model tool produces 2 data set collections, one consisting of the the analyzed data files and another consisting
+of plots based on the data files.  The data consists of a complete year, and the X axis displays weekly tick marks (on Sundays)
+as well as the first day of each month.
+
+This tool accepts the Insect Phenology Model collection of data files as input and extracts the user-specified date interval from
+the files, producing a collection of data files with the same names, but containing only the extracted date interval.  A collection
+of plots is also produced, each with the same name as those produced by the Insect Phenology Model tool, but restricted to the
+date interval, which is cannot be more than 50 days.  The X axis displays daily tick marks, essentially zooming in on the original
+data.
+
+This tool inspects the parameters values that were specified when the Insect Phenology Model tool was executed in order to
+generate the plots, so it is essential that the dataset collection selected as the input to this tool was produced by the
+Insect Phenology Model tool.
+
+-----
+
+**Required options**
+
+ * **Insect phenology model data files** - select the collection of data files produced by the Insect Phenology Model tool.
+ * **Start date** - enter a start date for the interval using the format YYYY-MM-DD, making sure that the year coincides with the selected collection of input data files.
+ * **End date** - enter an end date for the interval using the format YYYY-MM-DD which is between 1 and 50 days after the start date.
 
 -----
 
