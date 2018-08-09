@@ -89,7 +89,7 @@ fi]]></command>
 
 Extracts a date interval from the data produced by the Insect Phenology Model tool, providing a "zoomed in" view of the plots.
 
-The Insect Phenology Model tool produces 2 data set collections, one consisting of the the analyzed data files and another consisting
+The Insect Phenology Model tool produces 2 dataset collections, one consisting of the the analyzed data files and another consisting
 of plots based on the data files.  The data consists of a complete year, and the X axis displays weekly tick marks (on Sundays)
 as well as the first day of each month.
 
@@ -99,7 +99,7 @@ of plots is also produced, each with the same name as those produced by the Inse
 date interval, which is cannot be more than 50 days.  The X axis displays daily tick marks, essentially zooming in on the original
 data.
 
-This tool inspects the parameters values that were specified when the Insect Phenology Model tool was executed in order to
+This tool inspects the parameter values that were specified when the Insect Phenology Model tool was executed in order to
 generate the plots, so it is essential that the dataset collection selected as the input to this tool was produced by the
 Insect Phenology Model tool.
 
