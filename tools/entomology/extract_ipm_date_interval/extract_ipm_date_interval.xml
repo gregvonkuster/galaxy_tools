@@ -110,12 +110,6 @@ Insect Phenology Model tool.
  * **Insect phenology model data files** - select the collection of data files produced by the Insect Phenology Model tool.
  * **Start date** - enter a start date for the interval using the format YYYY-MM-DD, making sure that the year coincides with the selected collection of input data files.
  * **End date** - enter an end date for the interval using the format YYYY-MM-DD which is between 1 and 50 days after the start date.
-
------
-
-**Required options**
-
- * **Plot standard error** - add standard error lines to plot.
     </help>
     <citations>
         <citation type="doi">10.3389/fphys.2016.00165</citation>
