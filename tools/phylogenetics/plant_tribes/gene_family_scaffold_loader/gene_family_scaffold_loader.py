@@ -242,9 +242,8 @@ class ScaffoldLoader(object):
                 species_name = items[0]
                 i = 0
                 for clustering_method in self.clustering_methods:
-                    species_genes_dict_key = "%s^^%s" % (clustering_method, species_name)
                     # The format of species_genes_dict_key is <clustering_method>^^<species_name>.
-                    species_genes_dict_key_items = species_genes_dict_key.split("^^")
+                    species_genes_dict_key = "%s^^%s" % (clustering_method, species_name)
                     # Get the scaffold_rec for the current scaffold_id and clustering_method.
                     # The list is [<scaffold_id_db>, <scaffold_id>, <clustering_method>]
                     for scaffold_rec in self.scaffold_recs:
@@ -388,6 +387,7 @@ class ScaffoldLoader(object):
                 self.log("Inserted 1000 more rows into the gene_scaffold_orthogroup_taxon_association table.")
         self.log("Inserted a total of %d rows into the plant_tribes_gene table." % gi)
         self.log("Inserted a total of %d rows into the gene_scaffold_orthogroup_taxon_association table." % gsoai)
+
 
 if __name__ == '__main__':
     scaffold_loader = ScaffoldLoader()
