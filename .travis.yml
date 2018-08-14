@@ -18,17 +18,36 @@ before_install:
   - unset JAVA_HOME
 
 install:
-  - pip install flake8 flake8-import-order planemo
+  - pip install planemo
   - planemo conda_init
   - export PATH="$PLANEMO_CONDA_PREFIX/bin:$PATH"
   - conda create -y -q -c bioconda --name iuc_conda bcftools
   - . activate iuc_conda
   - planemo --version
   - conda --version
+  - git diff --quiet "$TRAVIS_COMMIT_RANGE" -- ; GIT_DIFF_EXIT_CODE=$?
   - |
-      planemo ci_find_repos --exclude_from .tt_blacklist \
-                            --exclude packages --exclude data_managers \
-                            --output changed_repositories.list
+    if [ "$GIT_DIFF_EXIT_CODE" -gt 1 ] ; then
+        git remote set-branches --add origin master
+        git fetch
+        TRAVIS_COMMIT_RANGE=origin/master...
+    fi
+  - echo $TRAVIS_COMMIT_RANGE
+  - |
+    planemo ci_find_repos --exclude data_managers \
+                          --exclude packages \
+                          --exclude_from .tt_blacklist \
+                          --changed_in_commit_range "$TRAVIS_COMMIT_RANGE" \
+                          --output changed_repositories.list
+  - touch changed_repositories.list changed_tools.list
+  - |
+    if [ -s changed_repositories.list ]; then
+        if [ $(wc -l < changed_repositories.list) -eq 1 ]; then
+            planemo ci_find_tools --output changed_tools.list $(cat changed_repositories.list)
+        else
+            planemo ci_find_repos --output changed_repositories.list $(cat changed_repositories.list)
+        fi
+    fi
   - cat changed_repositories.list
 
 script:
