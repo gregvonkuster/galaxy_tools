@@ -1,3 +1,5 @@
+tools/entomology/ipm_temperature_data
+tools/entomology/extract_ipm_date_interval
 tools/images_and_video/ffmpeg
 tools/images_and_video/neuroimaging/create_streamlines
 tools/images_and_video/neuroimaging/diffusion_signal_reconstruction

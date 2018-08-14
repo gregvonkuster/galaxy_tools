@@ -1,0 +1,6 @@
+30_year_normals:
+  class: File
+  path: 30_year_normals.csv
+state_college_ytd:
+  class: File
+  path: state_college_ytd.csv

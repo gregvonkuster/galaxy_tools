@@ -1,0 +1,150 @@
+{
+    "a_galaxy_workflow": "true",
+    "annotation": "",
+    "format-version": "0.1",
+    "name": "extract_ipm_date_interval_1",
+    "steps": {
+        "0": {
+            "annotation": "",
+            "content_id": null,
+            "errors": null,
+            "id": 0,
+            "input_connections": {},
+            "inputs": [
+                {
+                    "description": "",
+                    "name": "30_year_normals"
+                }
+            ],
+            "label": null,
+            "name": "Input dataset",
+            "outputs": [],
+            "position": {
+                "left": 10,
+                "top": 10
+            },
+            "tool_id": null,
+            "tool_state": "{\"name\": \"30_year_normals\"}",
+            "tool_version": null,
+            "type": "data_input",
+            "uuid": "2011fb9e-5274-4079-9aaa-9f7026e5bccb",
+            "workflow_outputs": []
+        },
+        "1": {
+            "annotation": "",
+            "content_id": null,
+            "errors": null,
+            "id": 1,
+            "input_connections": {},
+            "inputs": [
+                {
+                    "description": "",
+                    "name": "state_college_ytd"
+                }
+            ],
+            "label": null,
+            "name": "Input dataset",
+            "outputs": [],
+            "position": {
+                "left": 10,
+                "top": 130
+            },
+            "tool_id": null,
+            "tool_state": "{\"name\": \"state_college_ytd\"}",
+            "tool_version": null,
+            "type": "data_input",
+            "uuid": "b2c7ab61-d096-44e9-89f0-159cfcb546d6",
+            "workflow_outputs": []
+        },
+        "2": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/greg/insect_phenology_model/insect_phenology_model/1.1.0",
+            "errors": null,
+            "id": 2,
+            "input_connections": {
+                "input_norm": {
+                    "id": 0,
+                    "output_name": "output"
+                },
+                "merge_ytd_temperature_data_cond|input_ytd": {
+                    "id": 1,
+                    "output_name": "output"
+                }
+            },
+            "inputs": [],
+            "label": null,
+            "name": "Insect phenology model",
+            "outputs": [
+                {
+                    "name": "output_data_collection",
+                    "type": "input"
+                },
+                {
+                    "name": "output_plots_collection",
+                    "type": "input"
+                }
+            ],
+            "position": {
+                "left": 230,
+                "top": 10
+            },
+            "post_job_actions": {},
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/greg/insect_phenology_model/insect_phenology_model/1.1.0",
+            "tool_shed_repository": {
+                "changeset_revision": "35bf606a11df",
+                "name": "insect_phenology_model",
+                "owner": "greg",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"nymph_mortality\": \"\\\"1\\\"\", \"merge_ytd_temperature_data_cond\": \"{\\\"merge_ytd_temperature_data\\\": \\\"yes\\\", \\\"input_ytd\\\": null, \\\"location\\\": \\\"State College, PA\\\", \\\"__current_case__\\\": 0}\", \"plot_generations_separately\": \"\\\"yes\\\"\", \"old_nymph_accumulation\": \"\\\"0\\\"\", \"max_clutch_size\": \"\\\"0\\\"\", \"input_norm\": \"null\", \"insects_per_replication\": \"\\\"1000\\\"\", \"plot_egg_life_stage\": \"\\\"yes\\\"\", \"__page__\": null, \"__rerun_remap_job_id__\": null, \"plot_nymph_life_stage_cond\": \"{\\\"plot_nymph_life_stage\\\": \\\"yes\\\", \\\"life_stages_nymph\\\": [\\\"Total\\\", \\\"Young\\\", \\\"Old\\\"], \\\"__current_case__\\\": 0}\", \"adult_accumulation\": \"\\\"0\\\"\", \"plot_adult_life_stage_cond\": \"{\\\"life_stages_adult\\\": [\\\"Total\\\", \\\"Pre-vittelogenic\\\", \\\"Vittelogenic\\\", \\\"Diapausing\\\"], \\\"__current_case__\\\": 0, \\\"plot_adult_life_stage\\\": \\\"yes\\\"}\", \"insect\": \"\\\"BMSB\\\"\", \"photoperiod\": \"\\\"13.5\\\"\", \"plot_std_error\": \"\\\"yes\\\"\", \"oviposition\": \"\\\"1\\\"\", \"replications\": \"\\\"2\\\"\", \"min_clutch_size\": \"\\\"0\\\"\", \"egg_mortality\": \"\\\"1\\\"\", \"young_nymph_accumulation\": \"\\\"0\\\"\", \"chromInfo\": \"\\\"/home/greg/work/git_workspace/galaxy/tool-data/shared/ucsc/chrom/?.len\\\"\", \"adult_mortality\": \"\\\"1\\\"\"}",
+            "tool_version": "1.1.0",
+            "type": "tool",
+            "uuid": "859e741d-4433-4843-adfa-40651ce7d8eb",
+            "workflow_outputs": []
+        },
+        "3": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/greg/extract_ipm_date_interval/ipm_date_interval/1.1.0",
+            "errors": null,
+            "id": 3,
+            "input_connections": {
+                "input_data": {
+                    "id": 2,
+                    "output_name": "output_data_collection"
+                }
+            },
+            "inputs": [],
+            "label": null,
+            "name": "Extract date interval",
+            "outputs": [
+                {
+                    "name": "output_data_collection",
+                    "type": "input"
+                },
+                {
+                    "name": "output_plot_collection",
+                    "type": "input"
+                }
+            ],
+            "position": {
+                "left": 450,
+                "top": 10
+            },
+            "post_job_actions": {},
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/greg/extract_ipm_date_interval/ipm_date_interval/1.1.0",
+            "tool_shed_repository": {
+                "changeset_revision": "2a438187d051",
+                "name": "extract_ipm_date_interval",
+                "owner": "greg",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"__page__\": null, \"end_date\": \"\\\"2018-07-15\\\"\", \"__rerun_remap_job_id__\": null, \"input_data\": \"null\", \"chromInfo\": \"\\\"/home/greg/work/git_workspace/galaxy/tool-data/shared/ucsc/chrom/?.len\\\"\", \"start_date\": \"\\\"2018-06-01\\\"\"}",
+            "tool_version": "1.1.0",
+            "type": "tool",
+            "uuid": "2840553a-9779-44ce-9428-30ef865306aa",
+            "workflow_outputs": []
+        }
+    },
+    "tags": [],
+    "uuid": "6bc39d89-0772-46e3-9689-a1792d19f8b6"
+}

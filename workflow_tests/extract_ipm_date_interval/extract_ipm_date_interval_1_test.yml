@@ -1,0 +1,56 @@
+- doc: Test extract_ipm_date_interval tool.
+  job: extract_ipm_date_interval_job.yml
+  outputs:
+    01_generation_P.csv:
+      asserts:
+        has_line:
+          line: "LATITUDE","LONGITUDE","DATE","DOY","TMIN","TMAX","DAYLEN","EGG.P","EGG.P.SE","YOUNGNYMPH.P","YOUNGNYMPH.P.SE","OLDNYMPH.P","OLDNYMPH.P.SE","TOTALNYMPH.P","TOTALNYMPH.P.SE","PRE.VITADULT.P","PRE.VITADULT.P.SE","VITADULT.P","VITADULT.P.SE","DIAPAUSINGADULT.P","DIAPAUSINGADULT.P.SE","TOTALADULT.P","TOTALADULT.P.SE","ALL.TOTAL.P","ALL.TOTAL.P.SE"
+    02_generation_F1.csv:
+      asserts:
+        has_line:
+          line: "LATITUDE","LONGITUDE","DATE","DOY","TMIN","TMAX","DAYLEN","EGG.F1","EGG.F1.SE","YOUNGNYMPH.F1","YOUNGNYMPH.F1.SE","OLDNYMPH.F1","OLDNYMPH.F1.SE","TOTALNYMPH.F1","TOTALNYMPH.F1.SE","PRE.VITADULT.F1","PRE.VITADULT.F1.SE","VITADULT.F1","VITADULT.F1.SE","DIAPAUSINGADULT.F1","DIAPAUSINGADULT.F1.SE","TOTALADULT.F1","TOTALADULT.F1.SE","ALL.TOTAL.F1","ALL.TOTAL.F1.SE"
+    03_generation_F2.csv:
+      asserts:
+        has_line:
+          line: "LATITUDE","LONGITUDE","DATE","DOY","TMIN","TMAX","DAYLEN","EGG.F2","EGG.F2.SE","YOUNGNYMPH.F2","YOUNGNYMPH.F2.SE","OLDNYMPH.F2","OLDNYMPH.F2.SE","TOTALNYMPH.F2","TOTALNYMPH.F2.SE","PRE.VITADULT.F2","PRE.VITADULT.F2.SE","VITADULT.F2","VITADULT.F2.SE","DIAPAUSINGADULT.F2","DIAPAUSINGADULT.F2.SE","TOTALADULT.F2","TOTALADULT.F2.SE","ALL.TOTAL.F2","ALL.TOTAL.F2.SE"
+    04_combined_generations.csv:
+      asserts:
+        has_line:
+          line: "LATITUDE","LONGITUDE","DATE","DOY","TMIN","TMAX","DAYLEN","EGG","EGGSE","TOTALNYMPH","TOTALNYMPHSE","YOUNGNYMPH","YOUNGNYMPHSE","OLDNYMPH","OLDNYMPHSE","TOTALADULT","TOTALADULTSE","PRE.VITADULT","PRE.VITADULTSE","VITADULT","VITADULTSE","DIAPAUSINGADULT","DIAPAUSINGADULTSE"
+    01_egg_pop_by_generation.pdf:
+      asserts:
+        has_line:
+          line: /Title (R Graphics Output)
+    02_young_nymph_pop_by_generation.pdf:
+      asserts:
+        has_line:
+          line: /Title (R Graphics Output)
+    03_old_nymph_pop_by_generation.pdf:
+      asserts:
+        has_line:
+          line: /Title (R Graphics Output)
+    04_total_nymph_pop_by_generation.pdf:
+      asserts:
+        has_line:
+          line: /Title (R Graphics Output)
+    05_previttelogenic_adult_pop_by_generation.pdf:
+      asserts:
+        has_line:
+          line: /Title (R Graphics Output)
+    06_vittelogenic_adult_pop_by_generation.pdf:
+      asserts:
+        has_line:
+          line: /Title (R Graphics Output)
+    07_diapausing_adult_pop_by_generation.pdf:
+      asserts:
+        has_line:
+          line: /Title (R Graphics Output)
+    08_total_adult_pop_by_generation.pdf:
+      asserts:
+        has_line:
+          line: /Title (R Graphics Output)
+    09_total_pop_by_generation.pdf:
+      asserts:
+        has_line:
+          line: /Title (R Graphics Output)
+
