@@ -9,7 +9,6 @@
 LOG_DIR='/scratch/biotools/galaxy/test/log'
 LOG_FILE=$LOG_DIR/test.log
 PLANTTRIBES_TEST_ROOT='/scratch/biotools/galaxy/test/galaxy_tools/tools/phylogenetics/plant_tribes'
-TEST_ROOT='/scratch/biotools/galaxy/test'
 BASE_PARAMS='--no_cleanup'
 ORIG_PATH=$PATH
 
@@ -19,11 +18,11 @@ touch $LOG_FILE
 echo -e "\n\n========================================" >> $LOG_FILE
 echo -e "`date`\n\n" >> $LOG_FILE
 export PATH=/scratch/users/galaxy/miniconda3/bin:$PATH
-echo -e "\nUsing planemo: " `which planemo` "\n\n" >> $LOG_FILE
+echo -e "PATH:\n" $PATH "\n\n" >> $LOG_FILE
+echo -e "Using planemo: " `which planemo` "\n\n" >> $LOG_FILE
 echo -e "========================================\n\n" >> $LOG_FILE
 
 for arg in "$@"; do
-    echo -e "\narg: $arg\n" >> $LOG_FILE
     case "$arg" in
         --assembly_post_processor)
             echo -e "-------------------------------------\n" >> $LOG_FILE
@@ -38,14 +37,12 @@ for arg in "$@"; do
 
             mkdir -p $TOOL_OUTPUTS_DIR
 
-            echo $TOOL_NAME >> $LOG_FILE
             planemo -v lint $TOOL_DIR/$TOOL_NAME.xml &>> $LOG_FILE 
             echo -e "\n\n" >> $LOG_FILE
 
-            planemo -v test --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR &>> $LOG_FILE
+            planemo -v test $BASE_PARAMS --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR &>> $LOG_FILE
             echo -e "\n\n" >> $LOG_FILE
 
-            planemo -v test_reports $TEST_OUTPUT_JSON --test_output_text $TOOL_OUTPUTS_DIR/$TOOL_NAME.txt
             ;;
 
         --gene_family_classifier)
@@ -61,14 +58,12 @@ for arg in "$@"; do
 
             mkdir -p $TOOL_OUTPUTS_DIR
 
-            echo $TOOL_NAME >> $LOG_FILE
             planemo -v lint $TOOL_DIR/$TOOL_NAME.xml &>> $LOG_FILE 
             echo -e "\n\n" >> $LOG_FILE
 
-            planemo -v test --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR &>> $LOG_FILE
+            planemo -v test $BASE_PARAMS --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR &>> $LOG_FILE
             echo -e "\n\n" >> $LOG_FILE
 
-            planemo -v test_reports $TEST_OUTPUT_JSON --test_output_text $TOOL_OUTPUTS_DIR/$TOOL_NAME.txt
             ;;
 
         --gene_family_integrator)
@@ -84,14 +79,12 @@ for arg in "$@"; do
 
             mkdir -p $TOOL_OUTPUTS_DIR
 
-            echo $TOOL_NAME >> $LOG_FILE
             planemo -v lint $TOOL_DIR/$TOOL_NAME.xml &>> $LOG_FILE 
             echo -e "\n\n" >> $LOG_FILE
 
-            planemo -v test --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR &>> $LOG_FILE
+            planemo -v test $BASE_PARAMS --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR &>> $LOG_FILE
             echo -e "\n\n" >> $LOG_FILE
 
-            planemo -v test_reports $TEST_OUTPUT_JSON --test_output_text $TOOL_OUTPUTS_DIR/$TOOL_NAME.txt
             ;;
 
         --gene_family_aligner)
@@ -108,14 +101,12 @@ for arg in "$@"; do
             echo -e "\n Making directory: $TOOL_OUTPUTS_DIR\n" >> $LOG_FILE
             mkdir -p $TOOL_OUTPUTS_DIR
 
-            echo $TOOL_NAME >> $LOG_FILE
             planemo -v lint $TOOL_DIR/$TOOL_NAME.xml &>> $LOG_FILE 
             echo -e "\n\n" >> $LOG_FILE
 
-            planemo -v test --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR &>> $LOG_FILE
+            planemo -v test $BASE_PARAMS --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR &>> $LOG_FILE
             echo -e "\n\n" >> $LOG_FILE
 
-            planemo -v test_reports $TEST_OUTPUT_JSON --test_output_text $TOOL_OUTPUTS_DIR/$TOOL_NAME.txt
             ;;
 
         --gene_family_phylogeny_builder)
@@ -131,14 +122,12 @@ for arg in "$@"; do
 
             mkdir -p $TOOL_OUTPUTS_DIR
 
-            echo $TOOL_NAME >> $LOG_FILE
             planemo -v lint $TOOL_DIR/$TOOL_NAME.xml &>> $LOG_FILE 
             echo -e "\n\n" >> $LOG_FILE
 
-            planemo -v test --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR &>> $LOG_FILE
+            planemo -v test $BASE_PARAMS --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR &>> $LOG_FILE
             echo -e "\n\n" >> $LOG_FILE
 
-            planemo -v test_reports $TEST_OUTPUT_JSON --test_output_text $TOOL_OUTPUTS_DIR/$TOOL_NAME.txt
             ;;
 
         --kaks_analysis)
@@ -154,14 +143,12 @@ for arg in "$@"; do
 
             mkdir -p $TOOL_OUTPUTS_DIR
 
-            echo $TOOL_NAME >> $LOG_FILE
             planemo -v lint $TOOL_DIR/$TOOL_NAME.xml &>> $LOG_FILE 
             echo -e "\n\n" >> $LOG_FILE
 
-            planemo -v test --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR &>> $LOG_FILE
+            planemo -v test $BASE_PARAMS --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR &>> $LOG_FILE
             echo -e "\n\n" >> $LOG_FILE
 
-            planemo -v test_reports $TEST_OUTPUT_JSON --test_output_text $TOOL_OUTPUTS_DIR/$TOOL_NAME.txt
             ;;
 
         --ks_distribution)
@@ -177,14 +164,12 @@ for arg in "$@"; do
 
             mkdir -p $TOOL_OUTPUTS_DIR
 
-            echo $TOOL_NAME >> $LOG_FILE
             planemo -v lint $TOOL_DIR/$TOOL_NAME.xml &>> $LOG_FILE 
             echo -e "\n\n" >> $LOG_FILE
 
-            planemo -v test --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR &>> $LOG_FILE
+            planemo -v test $BASE_PARAMS --job_output_files $JOB_OUTPUT_FILES --test_data $TOOL_DIR/test-data --test_output $TEST_OUTPUT --test_output_json $TEST_OUTPUT_JSON $TOOL_DIR &>> $LOG_FILE
             echo -e "\n\n" >> $LOG_FILE
 
-            planemo -v test_reports $TEST_OUTPUT_JSON --test_output_text $TOOL_OUTPUTS_DIR/$TOOL_NAME.txt
             ;;
     esac
 done
