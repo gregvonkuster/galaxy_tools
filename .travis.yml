@@ -8,7 +8,7 @@ env:
     - PLANEMO_TEST_STYLE=serve_and_test
     - PLANEMO_TARGET="planemo==0.52.0"
     - PLANEMO_GALAXY_BRANCH="release_18.05"
-   matrix:
+  matrix:
     - WORKFLOW_TEST=test/workflow/extract_ipm_date_interval/extract_ipm_date_interval_1.ga
 
 script:
@@ -16,3 +16,4 @@ script:
 
 services:
   - postgres
+
