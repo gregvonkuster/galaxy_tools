@@ -91,7 +91,7 @@
             "post_job_actions": {},
             "tool_id": "toolshed.g2.bx.psu.edu/repos/greg/insect_phenology_model/insect_phenology_model/1.1.0",
             "tool_shed_repository": {
-                "changeset_revision": "35bf606a11df",
+                "changeset_revision": "e2d12bafe9d7",
                 "name": "insect_phenology_model",
                 "owner": "greg",
                 "tool_shed": "toolshed.g2.bx.psu.edu"
@@ -131,9 +131,9 @@
                 "top": 10
             },
             "post_job_actions": {},
-            "tool_id": "toolshed.g2.bx.psu.edu/repos/greg/extract_ipm_date_interval/ipm_date_interval/1.1.0",
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/greg/extract_ipm_date_interval/extract_ipm_date_interval/1.1.0",
             "tool_shed_repository": {
-                "changeset_revision": "2a438187d051",
+                "changeset_revision": "d62034b36200",
                 "name": "extract_ipm_date_interval",
                 "owner": "greg",
                 "tool_shed": "toolshed.g2.bx.psu.edu"
