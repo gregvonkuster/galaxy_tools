@@ -9,7 +9,7 @@ env:
     - PLANEMO_TARGET="planemo==0.52.0"
     - PLANEMO_GALAXY_BRANCH="release_18.05"
   matrix:
-    - WORKFLOW_TEST=test/workflow/extract_ipm_date_interval/extract_ipm_date_interval_1.ga
+    - WORKFLOW_TEST=test/workflow/extract_ipm_date_interval/extract_ipm_date_interval.ga
 
 script:
   - bash <(curl -s "$PLANEMO_TEST_SCRIPT") "$WORKFLOW_TEST"
