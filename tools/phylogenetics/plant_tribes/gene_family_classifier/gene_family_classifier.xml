@@ -6,6 +6,7 @@
     <requirements>
         <requirement type="package" version="1.0.3">plant_tribes_gene_family_classifier</requirement>
     </requirements>
+    <code file="get_clustering_methods.py"/>
     <command detect_errors="exit_code"><![CDATA[
 #if str($options_type.options_type_selector) == 'advanced':
     #set specify_super_orthogroups_cond = $options_type.specify_super_orthogroups_cond
@@ -91,11 +92,7 @@ python '$__tool_directory__/gene_family_classifier.py'
     <inputs>
         <param name="input" format="fasta" type="data" label="Proteins fasta file"/>
         <expand macro="param_scaffold" />
-        <param name="method" type="select" label="Protein clustering method">
-            <option value="gfam" selected="true">GFam</option>
-            <option value="orthofinder">OrthoFinder</option>
-            <option value="orthomcl">OrthoMCL</option>
-        </param>
+        <expand macro="param_method" />
         <conditional name="save_hmmscan_log_cond">
             <param name="classifier" type="select" label="Protein classifier">
                 <option value="blastp" selected="true">blastp</option>

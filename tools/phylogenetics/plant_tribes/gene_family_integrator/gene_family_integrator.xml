@@ -6,6 +6,7 @@
     <requirements>
         <requirement type="package" version="1.0.3">plant_tribes_gene_family_integrator</requirement>
     </requirements>
+    <code file="get_clustering_methods.py"/>
     <command detect_errors="exit_code"><![CDATA[
 #set input_dir = 'input_dir'
 mkdir $input_dir &&

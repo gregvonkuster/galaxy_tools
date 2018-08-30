@@ -6,6 +6,7 @@
     <requirements>
         <requirement type="package" version="1.0.3">plant_tribes_assembly_post_processor</requirement>
     </requirements>
+    <code file="get_clustering_methods.py"/>
     <command detect_errors="exit_code"><![CDATA[
 #set output_dir = 'assemblyPostProcessing_dir'
 AssemblyPostProcessor
@@ -92,15 +93,8 @@ fi]]></command>
                     <when value="no" />
                     <when value="yes">
                         <param name="orthogroups" format="tabular" type="data" label="Targeted gene families"/>
-                        <param name="scaffold" type="select" label="Gene family scaffold">
-                            <options from_data_table="plant_tribes_scaffolds" />
-                            <validator type="no_options" message="No PlantTribes scaffolds are available.  Use the PlantTribes Scaffolds Download Data Manager tool in Galaxy to install and populate the PlantTribes scaffolds data table."/>
-                        </param>
-                        <param name="method" type="select" label="Protein clustering method">
-                            <option value="gfam" selected="true">GFam</option>
-                            <option value="orthofinder">OrthoFinder</option>
-                            <option value="orthomcl">OrthoMCL</option>
-                        </param>
+                        <expand macro="param_scaffold"/>
+                        <expand macro="param_method"/>
                         <param name="gap_trimming" type="float" value="0.1" min="0" max="1.0" label="Trim alignments"/>
                         <param name="min_coverage" type="float" value="0" min="0" max="1.0" label="Minimum alignment coverage"/>
                     </when>
