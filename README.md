@@ -5,6 +5,10 @@ This repository contains tools that can be installed from the Galaxy Tool Shed [
 
 Highlights
 ----------
+ * ChIP-seq - [Mahony lab](http://mahonylab.org)  at Penn State University
+
+   * MultiGPS - a framework for analyzing collections of multi-condition ChIP-seq datasets and characterizing differential binding events between conditions.  MultiGPS encourages consistency in the reported binding event locations across conditions and provides accurate estimation of ChIP enrichment levels at each event.
+
  * Entomology - [Fleischer lab](https://ento.psu.edu/directory/sjf4)  at Penn State University
 
    * Temperature data for insect phenology model - data source tool for retrieving temperature data from the remote data source [Pestwatch](http://www.pestwatch.psu.edu/)
