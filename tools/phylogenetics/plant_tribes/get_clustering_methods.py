@@ -6,7 +6,6 @@ def get_clustering_method_options(file_path):
     if not os.path.isdir(file_path):
         return options
     methods_dir = os.path.join(file_path, "alns")
-    for i, file_name in enumerate(os.listdir(methods_dir)):
-        full_path = os.path.join(file_path, file_name)
-        options.append((file_name, full_path, i == 0))
+    for i, dir_name in enumerate(os.listdir(methods_dir)):
+        options.append((dir_name, dir_name, i == 0))
     return options

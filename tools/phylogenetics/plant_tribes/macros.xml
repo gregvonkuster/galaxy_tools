@@ -9,6 +9,7 @@
             <options from_data_table="plant_tribes_scaffolds">
                 <column name="name" index="1"/>
                 <column name="value" index="2"/>
+                <column name="path" index="2"/>
                 <filter type="sort_by" column="1"/>
                 <validator type="no_options" message="No PlantTribes scaffolds are available.  Use the PlantTribes Scaffolds Download Data Manager tool in Galaxy to install and populate the PlantTribes scaffolds data table."/>
             </options>
