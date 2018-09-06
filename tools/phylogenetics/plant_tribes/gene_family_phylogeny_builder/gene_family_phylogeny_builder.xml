@@ -1,4 +1,4 @@
-<tool id="plant_tribes_gene_family_phylogeny_builder" name="GeneFamilyPhylogenyBuilder" version="@WRAPPER_VERSION@.3.1">
+<tool id="plant_tribes_gene_family_phylogeny_builder" name="GeneFamilyPhylogenyBuilder" version="@WRAPPER_VERSION@.3.1" profile="18.09">
     <description>builds phylogenetic trees of aligned orthologous gene family clusters</description>
     <macros>
         <import>macros.xml</import>
