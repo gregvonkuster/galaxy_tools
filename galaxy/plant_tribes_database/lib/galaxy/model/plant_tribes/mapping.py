@@ -49,13 +49,13 @@ plant_tribes_model.PlantTribesOrthogroup.table = Table("plant_tribes_orthogroup"
                                                        Column("super_ortho_4_0", TrimmedString(10), nullable=False),
                                                        Column("super_ortho_4_5", TrimmedString(10), nullable=False),
                                                        Column("super_ortho_5_0", TrimmedString(10), nullable=False),
-                                                       Column("ahdr_description", TEXT, index=True, nullable=False),
-                                                       Column("tair_description", TEXT, index=True, nullable=False),
-                                                       Column("pfam_description", TEXT, index=True, nullable=False),
-                                                       Column("interproscan_description", TEXT, index=True, nullable=False),
-                                                       Column("molecular_function", TEXT, index=True, nullable=False),
-                                                       Column("biological_process", TEXT, index=True, nullable=False),
-                                                       Column("cellular_component", TEXT, index=True, nullable=False))
+                                                       Column("ahdr_description", TEXT, nullable=False),
+                                                       Column("tair_description", TEXT, nullable=False),
+                                                       Column("pfam_description", TEXT, nullable=False),
+                                                       Column("interproscan_description", TEXT, nullable=False),
+                                                       Column("molecular_function", TEXT, nullable=False),
+                                                       Column("biological_process", TEXT, nullable=False),
+                                                       Column("cellular_component", TEXT, nullable=False))
 
 plant_tribes_model.PlantTribesGene.table = Table("plant_tribes_gene", metadata,
                                                  Column("id", Integer, primary_key=True),
