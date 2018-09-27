@@ -7,8 +7,7 @@
 python '$__tool_directory__/gene_family_scaffold_loader.py'
 --database_connection_string '$__app__.config.plant_tribes_database_connection'
 --output '$output'
---scaffold_path '$GALAXY_DATA_INDEX_DIR/plant_tribes/scaffolds/$scaffold'
---output '$output']]></command>
+--scaffold_path '$GALAXY_DATA_INDEX_DIR/plant_tribes/scaffolds/$scaffold']]></command>
     <inputs>
         <expand macro="param_scaffold" />
     </inputs>

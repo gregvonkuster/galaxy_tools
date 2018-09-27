@@ -105,7 +105,7 @@ class ScaffoldLoader(object):
         """
         scaffold_id = os.path.basename(self.args.scaffold_path)
         file_dir = os.path.join(self.args.scaffold_path, 'annot')
-        # The scaffol naming convention must follow this pattern:
+        # The scaffold naming convention must follow this pattern:
         # <integer1>Gv<integer2>.<integer3>
         # where integer 1 is the number of genomes in the scaffold_id.  For example:
         # 22Gv1.1 -> 22 genomes
@@ -137,6 +137,7 @@ class ScaffoldLoader(object):
                     if i2 == 0:
                         # Skip first line.
                         continue
+                    line = line.rstrip('\n')
                     num_genes = 0
                     num_species = 0
                     items = line.split("\t")
