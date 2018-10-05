@@ -1,0 +1,97 @@
+<tool id="affr2vcf" name="Convert Affymetrix" version="1.9">
+    <description>genotype calls and intensities to VCF</description>
+    <requirements>
+        <requirement type="package" version="1.9">bcftools-gtc2vcf-plugin</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+#set text_outputs_dir = 'text_outputs'
+mkdir $text_outputs_dir &&
+bcftools +affy2vcf.so
+#if str($reference_genome_source_cond.reference_genome_source) == "history":
+    --fasta_ref '$reference_genome_source_cond.history_item'
+#else:
+    --fasta_ref '$reference_genome_source_cond.locally_cached_item'
+#end if
+--annot '$annot'
+--snp-posteriors '$text_outputs_dir/snp_posteriors.txt'
+--summary '$text_outputs_dir/summary.txt'
+--report '$text_outputs_dir/report.txt'
+--calls '$text_outputs_dir/calls.txt'
+--confidences '$text_outputs_dir/confidences.txt'
+#if str($output_gender_estimate) == "yes"
+    --sex '$text_outputs_dir/gender_estimate.txt'
+#end if
+#if str($append_version) == "no":
+    --no-version
+#end if
+--output '$output'
+--output_type $output_type
+--threads \${GALAXY_SLOTS:-4}
+    ]]></command>
+    <inputs>
+        <param name="annot" type="data" format="csv" label="Probeset annotation file" />
+        <conditional name="reference_genome_source_cond">
+            <param name="reference_genome_source" type="select" label="Will you select a reference reference genome from your history or use a locally cached genome index?">
+                <option value="history" selected="true">Use a reference genome from my history</option>
+                <option value="cached">Use a locally cached genome index</option>
+            </param>
+            <when value="history">
+                <param name="history_item" type="data" format="fasta" label="Select reference genome" />
+            </when>
+            <when value="cached">
+                <param name="locally_cached_item" type="select" format="fasta" label="Fasta reference sequence">
+                    <options from_data_table="all_fasta">
+                        <column name="name" index="1"/>
+                        <column name="value" index="2"/>
+                        <column name="path" index="2"/>
+                        <filter type="sort_by" column="1"/>
+                        <validator type="no_options" message="No cached Fasta genome references are available." />
+                    </options>
+                </param>
+            </when>
+        </conditional>
+        <param name="output_gender_estimate" type="select" force_select="true" label="Output apt-probeset-genotype gender estimate?">
+            <option value="no" selected="true">No</option>
+            <option value="yes">Yes</option>
+        </param>
+        <param name="append_version" type="select" force_select="true" label="Append version and command line to the header?">
+            <option value="no" selected="true">No</option>
+            <option value="yes">Yes</option>
+        </param>
+        <param name="output_type" type="select" force_select="true" label="Select format for output?">
+            <option value="v" selected="true">Uncompressed VCF</option>
+            <option value="z">Compressed VCF</option>
+            <option value="u" selected="true">Uncompressed BCF</option>
+            <option value="b">Compressed BCF</option>
+        </param>
+    </inputs>
+    <outputs>
+        <collection name="txt_outputs" type="list" label="${tool.name} (reports) on ${on_string}">
+            <discover_datasets pattern="__name__" directory="output" format="txt" />
+        </collection>
+        <data name="output" format="vcf" />
+    </outputs>
+    <tests>
+        <test>
+        </test>
+    </tests>
+    <help>
+This tool converts Affymetrix genotype calls and intensity files to VCF format.
+
+-----
+
+**Required options**
+
+**Other options**
+    </help>
+    <citations>
+        <citation type="bibtex">
+            @misc{None,
+            journal = {None},
+            author = {Genovese, Giulio},
+            title = {None},
+            year = {None},
+            url = {https://github.com/freeseek/gtc2vcf},}
+        </citation>
+    </citations>
+</tool>

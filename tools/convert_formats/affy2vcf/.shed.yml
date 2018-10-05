@@ -1,0 +1,11 @@
+name: affy2vcf
+owner: greg
+description: |
+  Contains a tool that converts Affymetrix genotype calls and intensity files to VCF format.
+homepage_url: https://github.com/freeseek/gtc2vcf
+long_description: |
+  Contains a tool that converts Affymetrix genotype calls and intensity files to VCF format.
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/convert_formats/affy2vcf
+type: unrestricted
+categories:
+  - Convert Formats
