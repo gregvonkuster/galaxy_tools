@@ -1,0 +1,17 @@
+diff --git a/lib/galaxy/webapps/galaxy/buildapp.py b/lib/galaxy/webapps/galaxy/buildapp.py
+index 36cf058..6f45f5a 100644
+--- a/lib/galaxy/webapps/galaxy/buildapp.py
++++ b/lib/galaxy/webapps/galaxy/buildapp.py
+@@ -167,6 +167,12 @@ def app_factory(global_conf, load_app_kwds={}, **kwargs):
+             galaxy.model.tool_shed_install.mapping.metadata.bind.dispose()
+     except Exception:
+         log.exception("Unable to dispose of pooled toolshed install model database connections.")
++    try:
++        # This model may not actually be bound.
++        if galaxy.model.corals.mapping.metadata.bind:
++            galaxy.model.corals.mapping.metadata.bind.dispose()
++    except Exception:
++        log.exception("Unable to dispose of pooled corals model database connections.")
+ 
+     app.application_stack.register_postfork_function(postfork_setup)
+ 

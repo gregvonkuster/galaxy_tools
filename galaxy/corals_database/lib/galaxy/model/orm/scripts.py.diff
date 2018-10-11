@@ -1,0 +1,18 @@
+diff --git a/lib/galaxy/model/orm/scripts.py b/lib/galaxy/model/orm/scripts.py
+index 746d2b9..064f9e0 100644
+--- a/lib/galaxy/model/orm/scripts.py
++++ b/lib/galaxy/model/orm/scripts.py
+@@ -44,6 +44,13 @@ DATABASE = {
+             'default_sqlite_file': './database/install.sqlite',
+             'config_override': 'GALAXY_INSTALL_CONFIG_',
+         },
++    "corals":
++        {
++            'repo': 'lib/galaxy/model/corals/migrate',
++            'config_prefix': 'corals',
++            'default_sqlite_file': './database/corals.sqlite',
++            'config_override': 'GALAXY_CORALS_CONFIG_',
++        },
+ }
+ 
+
