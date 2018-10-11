@@ -1,450 +1,288 @@
+"""
+Details of how the corals data model objects are mapped onto the relational database
+are encapsulated here.
+"""
+
 import logging
 
-from galaxy.util.dictifiable import Dictifiable
+from sqlalchemy import (
+    and_,
+    asc,
+    Boolean,
+    Column,
+    DateTime,
+    desc,
+    false,
+    ForeignKey,
+    func,
+    Integer,
+    MetaData,
+    not_,
+    Numeric,
+    select,
+    String, Table,
+    TEXT,
+    Text,
+    true,
+    Unicode,
+    UniqueConstraint,
+    VARCHAR
+)
+from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.ext.orderinglist import ordering_list
+from sqlalchemy.orm import backref, class_mapper, column_property, deferred, mapper, object_session, relation
+from sqlalchemy.orm.collections import attribute_mapped_collection
+from sqlalchemy.sql import exists
+from sqlalchemy.types import BigInteger
+
+import galaxy.model.corals as corals_model
+from galaxy.model.base import ModelMapping
+from galaxy.model.custom_types import JSONType, MetadataType, TrimmedString, UUIDType
+from galaxy.model.orm.engine_factory import build_engine
+from galaxy.model.orm.now import now
+from galaxy.security import GalaxyRBACAgent
 
 log = logging.getLogger(__name__)
 
-
-class Collector(Dictifiable):
-    dict_collection_visible_keys = ['id', 'person_id', 'contact_id']
-
-    def __init__(self, person_id=None, contact_id=None):
-        self.person_id = person_id
-        self.contact_id = contact_id
-
-    def as_dict(self, value_mapper=None):
-        return self.to_dict(view='element', value_mapper=value_mapper)
-
-    def to_dict(self, view='collection', value_mapper=None):
-        if value_mapper is None:
-            value_mapper = {}
-        rval = {}
-        try:
-            visible_keys = self.__getattribute__('dict_' + view + '_visible_keys')
-        except AttributeError:
-            raise Exception('Unknown API view: %s' % view)
-        for key in visible_keys:
-            try:
-                rval[key] = self.__getattribute__(key)
-                if key in value_mapper:
-                    rval[key] = value_mapper.get(key, rval[key])
-            except AttributeError:
-                rval[key] = None
-        return rval
+metadata = MetaData()
 
 
-class Colony(Dictifiable):
-    dict_collection_visible_keys = ['id', 'latitude', 'longitude', 'depth', 'reef_id']
+corals_model.Collector.table = Table("collector", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("create_time", DateTime, default=now),
+    Column("update_time", DateTime, default=now, onupdate=now),
+    Column("person_id", Integer, ForeignKey("person.id"), index=True),
+    Column("contact_id", Integer, ForeignKey("person.id"), index=True))
 
-    def __init__(self, latitude=None, longitude=None, depth=None, reef_id=None):
-        # Latitude in decimal degrees, WGS84 datum, geographic location of
-        # the wild donor colony from which the sample was collected.
-        self.latitude = latitude
-        # Longitude in decimal degrees, WGS84 datum, geographic location of
-        # the wild donor colony from which the sample was collected.
-        self.longitude = longitude
-        # Depth in meters of the wild donor colony.
-        self.depth = depth
-        self.reef_id = reef_id
+corals_model.Colony.table = Table("colony", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("create_time", DateTime, default=now),
+    Column("update_time", DateTime, default=now, onupdate=now),
+    Column("latitude", Numeric(15, 10)),
+    Column("longitude", Numeric(15, 10)),
+    Column("depth", Integer),
+    Column("reef_id", Integer, ForeignKey("reef.id"), index=True))
 
-    def as_dict(self, value_mapper=None):
-        return self.to_dict(view='element', value_mapper=value_mapper)
+corals_model.Coralvcf_allele.table = Table("coralvcf_allele", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("create_time", DateTime, default=now),
+    Column("update_time", DateTime, default=now, onupdate=now),
+    Column("chr", TrimmedString(255)),
+    Column("pos", Integer),
+    Column("sample_id", ForeignKey("sample.id"), index=True),
+    Column("ref", TrimmedString(255)),
+    Column("alt", TrimmedString(255)),
+    Column("qual", Numeric(10, 5)),
+    Column("filter", TrimmedString(255)),
+    Column("ac", Integer),
+    Column("an", Integer),
+    Column("bqb", Numeric(10, 5)),
+    Column("dp", Integer),
+    Column("hob", Numeric(10, 5)),
+    Column("icb", Numeric(10, 5)),
+    Column("idf", Integer),
+    Column("imf", Numeric(10, 5)),
+    Column("indel", Boolean),
+    Column("mq", Integer),
+    Column("mqof", Numeric(10, 5)),
+    Column("mqb", Numeric(10, 5)),
+    Column("mqsb", Numeric(10, 5)),
+    Column("rpb", Numeric(10, 5)),
+    Column("sgb", Numeric(10, 5)),
+    Column("vdb", Numeric(10, 5)))
 
-    def to_dict(self, view='collection', value_mapper=None):
-        if value_mapper is None:
-            value_mapper = {}
-        rval = {}
-        try:
-            visible_keys = self.__getattribute__('dict_' + view + '_visible_keys')
-        except AttributeError:
-            raise Exception('Unknown API view: %s' % view)
-        for key in visible_keys:
-            try:
-                rval[key] = self.__getattribute__(key)
-                if key in value_mapper:
-                    rval[key] = value_mapper.get(key, rval[key])
-            except AttributeError:
-                rval[key] = None
-        return rval
+corals_model.Experiment.table = Table("experiment", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("create_time", DateTime, default=now),
+    Column("update_time", DateTime, default=now, onupdate=now),
+    Column("seq_facility", String),
+    Column("array_version", TrimmedString(255)),
+    Column("data_sharing", TrimmedString(255)),
+    Column("data_hold", TrimmedString(255)))
 
+corals_model.Genotype.table = Table("genotype", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("create_time", DateTime, default=now),
+    Column("update_time", DateTime, default=now, onupdate=now),
+    Column("coral_mlg_clonal_id", TrimmedString(255)),
+    Column("symbiot_mlg_clonal_id", TrimmedString(255)),
+    Column("genetic_coral_species_call", TrimmedString(255)),
+    Column("percent_missing_data", Numeric(10, 5)),
+    Column("percent_apalm", Numeric(10, 5)),
+    Column("percent_acerv", Numeric(10, 5)),
+    Column("percent_mixed", Numeric(10, 5)))
 
-class Coralvcf_allele(Dictifiable):
-    dict_collection_visible_keys = ['id', 'chr', 'pos', 'sample_id', 'ref', 'alt', 'qual', 'filter',
-        'ac', 'an', 'bqb', 'dp', 'hob', 'icb', 'idf', 'imf', 'indel', 'mq', 'mqof', 'mqb', 'mqsb',
-        'rpb', 'sgb', 'vdb']
+corals_model.Idx_annotation.table = Table("idx_annotation", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("create_time", DateTime, default=now),
+    Column("update_time", DateTime, default=now, onupdate=now),
+    Column("probe_set_id", TrimmedString(255)),
+    Column("chr_id", Integer),
+    Column("start", Integer),
+    Column("stop", Integer),
+    Column("strand", TrimmedString(255)),
+    Column("dbsnp_rs_id", TrimmedString(255)),
+    Column("strand_vs_dbsnp", TrimmedString(255)),
+    Column("probe_count", Integer),
+    Column("cytoband", TrimmedString(255)),
+    Column("chrx_par", Integer),
+    Column("allele_a", TrimmedString(255)),
+    Column("allele_b", TrimmedString(255)))
 
-    def __init__(self, chr=None, pos=None, sample_id=None, ref=None, alt=None, qual=None,
-                 filter=None, ac=None, an=None, bqb=None, dp=None, hob=None, icb=None, idf=None,
-                 imf=None, indel=None, mq=None, mqof=None, mqb=None, mqsb=None, rpb=None, sgb=None,
-                 vdb=None):
-        self.chr = chr
-        self.pos = pos
-        self.sample_id = sample_id
-        self.ref = ref
-        self.alt = alt
-        self.qual = qual
-        self.filter = filter
-        self.ac = ac
-        self.an = an
-        self.bqb = bqb
-        self.dp = dp
-        self.hob = hob
-        self.icb = icb
-        self.idf = idf
-        self.imf = imf
-        self.indel = indel
-        self.mq = mq
-        self.mqof = mqof
-        self.mqb = mqb
-        self.mqsb = mqsb
-        self.rpb = rpb
-        self.sgb = sgb
-        self.vdb = vdb
+corals_model.Person.table = Table("person", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("create_time", DateTime, default=now),
+    Column("update_time", DateTime, default=now, onupdate=now),
+    Column("lastname", TrimmedString(255)),
+    Column("firstname", TrimmedString(255)),
+    Column("organization", TrimmedString(255)),
+    Column("email", TrimmedString(255)))
 
-    def as_dict(self, value_mapper=None):
-        return self.to_dict(view='element', value_mapper=value_mapper)
+corals_model.Probe_annotation.table = Table("probe_annotation", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("create_time", DateTime, default=now),
+    Column("update_time", DateTime, default=now, onupdate=now),
+    Column("probe_set_id", TrimmedString(255)),
+    Column("affy_snp_id", TrimmedString(255)),
+    Column("chr_id", Integer),
+    Column("start", Integer),
+    Column("stop", Integer),
+    Column("strand", TrimmedString(255)),
+    Column("dbsnp_rs_id", TrimmedString(255)),
+    Column("dbsnp_loctype", Integer),
+    Column("in_hapmap", TrimmedString(255)),
+    Column("strand_vs_dbsnp", TrimmedString(255)),
+    Column("probe_count", Integer),
+    Column("cytoband", TrimmedString(255)),
+    Column("chrx_par", Integer),
+    Column("flank", TrimmedString(255)),
+    Column("allele_a", TrimmedString(255)),
+    Column("allele_b", TrimmedString(255)),
+    Column("ref_allele", TrimmedString(255)),
+    Column("alt_allele", TrimmedString(255)),
+    Column("associated_gene", TrimmedString(255)),
+    Column("genetic_map", TrimmedString(255)),
+    Column("microsatellite", TrimmedString(255)),
+    Column("heterozygous_allele_frequencies", TrimmedString(255)),
+    Column("allele_frequency_count", TrimmedString(255)),
+    Column("allele_frequencies", TrimmedString(255)),
+    Column("minor_allele", TrimmedString(255)),
+    Column("minor_allele_frequency", TrimmedString(255)),
+    Column("omim", TrimmedString(255)),
+    Column("biomedical", TrimmedString(255)),
+    Column("annotation_notes", TrimmedString(255)),
+    Column("allele_count", TrimmedString(255)),
+    Column("ordered_alleles", TrimmedString(255)),
+    Column("chrtype", TrimmedString(255)),
+    Column("custchr", TrimmedString(255)),
+    Column("custid", TrimmedString(255)),
+    Column("custpos", TrimmedString(255)),
+    Column("organism", TrimmedString(255)),
+    Column("pconvert", TrimmedString(255)),
+    Column("recommendation", TrimmedString(255)),
+    Column("ref_str", TrimmedString(255)),
+    Column("snp_priority", TrimmedString(255)))
 
-    def to_dict(self, view='collection', value_mapper=None):
-        if value_mapper is None:
-            value_mapper = {}
-        rval = {}
-        try:
-            visible_keys = self.__getattribute__('dict_' + view + '_visible_keys')
-        except AttributeError:
-            raise Exception('Unknown API view: %s' % view)
-        for key in visible_keys:
-            try:
-                rval[key] = self.__getattribute__(key)
-                if key in value_mapper:
-                    rval[key] = value_mapper.get(key, rval[key])
-            except AttributeError:
-                rval[key] = None
-        return rval
+corals_model.Reef.table = Table("reef", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("create_time", DateTime, default=now),
+    Column("update_time", DateTime, default=now, onupdate=now),
+    Column("name", TrimmedString(255)),
+    Column("region", TrimmedString(255)),
+    Column("latitude", Numeric(15, 10)),
+    Column("longitude", Numeric(15, 10)))
 
+corals_model.Sample.table = Table("sample", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("create_time", DateTime, default=now),
+    Column("update_time", DateTime, default=now, onupdate=now),
+    Column("sample_id", TrimmedString(255), index=True, nullable=False),
+    Column("genotype_id", Integer, ForeignKey("genotype.id"), index=True),
+    Column("experiment_id", Integer, ForeignKey("experiment.id"), index=True),
+    Column("colony_id", Integer, ForeignKey("colony.id"), index=True),
+    Column("taxonomy_id", Integer, ForeignKey("taxonomy.id"), index=True),
+    Column("collector_id", Integer, ForeignKey("collector.id"), index=True),
+    Column("collection_date", DateTime),
+    Column("user_specimen_id", TrimmedString(255)),
+    Column("depth", Integer),
+    Column("dna_extraction_method", TrimmedString(255)),
+    Column("dna_concentration", Numeric(10, 5)),
+    Column("duplicate_sample", Boolean))
 
-class Experiment(Dictifiable):
-    dict_collection_visible_keys = ['id', 'seq_facility', 'array_version', 'data_sharing', 'data_hold']
+corals_model.Taxonomy.table = Table("taxonomy", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("create_time", DateTime, default=now),
+    Column("update_time", DateTime, default=now, onupdate=now),
+    Column("species_name", TrimmedString(255)),
+    Column("genus_name", TrimmedString(255)))
 
-    def __init__(self, seq_facility=None, array_version=None, data_sharing=None, data_hold=None):
-        # Description of experiment metadata.
-        self.seq_facility = seq_facility
-        self.array_version = array_version
-        self.data_sharing = data_sharing
-        self.data_hold = data_hold
+# With the tables defined we can define the mappers and setup the
+# relationships between the model objects.
+mapper(corals_model.Collector, corals_model.Collector.table, properties=dict(
+    person=relation(corals_model.Person,
+                    primaryjoin=(corals_model.Collector.table.c.person_id == corals_model.Person.table.c.id)),
+    contact=relation(corals_model.Person,
+                    primaryjoin=(corals_model.Collector.table.c.contact_id == corals_model.Person.table.c.id))))
 
-    def as_dict(self, value_mapper=None):
-        return self.to_dict(view='element', value_mapper=value_mapper)
+mapper(corals_model.Colony, corals_model.Colony.table, properties=dict(
+    reef=relation(corals_model.Reef,
+                  lazy=False,
+                  backref="colonies",
+                  primaryjoin=(corals_model.Colony.table.c.reef_id == corals_model.Reef.table.c.id))))
 
-    def to_dict(self, view='collection', value_mapper=None):
-        if value_mapper is None:
-            value_mapper = {}
-        rval = {}
-        try:
-            visible_keys = self.__getattribute__('dict_' + view + '_visible_keys')
-        except AttributeError:
-            raise Exception('Unknown API view: %s' % view)
-        for key in visible_keys:
-            try:
-                rval[key] = self.__getattribute__(key)
-                if key in value_mapper:
-                    rval[key] = value_mapper.get(key, rval[key])
-            except AttributeError:
-                rval[key] = None
-        return rval
+mapper(corals_model.Coralvcf_allele, corals_model.Coralvcf_allele.table, properties=dict(
+    sample=relation(corals_model.Sample,
+                  lazy=False,
+                  backref="coralvcf_alleles",
+                  primaryjoin=(corals_model.Coralvcf_allele.table.c.sample_id == corals_model.Sample.table.c.id))))
 
+mapper(corals_model.Experiment, corals_model.Experiment.table, properties=None)
 
-class Genotype(Dictifiable):
-    dict_collection_visible_keys = ['id', 'coral_mlg_clonal_id', 'symbiot_mlg_clonal_id',
-        'genetic_coral_species_call', 'percent_missing_data', 'percent_apalm', 'percent_acerv',
-        'percent_mixed']
+mapper(corals_model.Genotype, corals_model.Genotype.table, properties=None)
 
-    def __init__(self, coral_mlg_clonal_id=None, symbiot_mlg_clonal_id=None, genetic_coral_species_call=None,
-                 percent_missing_data=None, percent_apalm=None, percent_acerv=None, percent_mixed=None):
-        # Description of experiment metadata.
-        self.coral_mlg_clonal_id = coral_mlg_clonal_id
-        self.symbiot_mlg_clonal_id = symbiot_mlg_clonal_id
-        self.genetic_coral_species_call = genetic_coral_species_call
-        self.percent_missing_data = percent_missing_data
-        self.percent_apalm = percent_apalm
-        self.percent_acerv = percent_acerv
-        self.percent_mixed = percent_mixed
+mapper(corals_model.Idx_annotation, corals_model.Idx_annotation.table, properties=None)
 
-    def as_dict(self, value_mapper=None):
-        return self.to_dict(view='element', value_mapper=value_mapper)
+mapper(corals_model.Person, corals_model.Person.table, properties=None)
 
-    def to_dict(self, view='collection', value_mapper=None):
-        if value_mapper is None:
-            value_mapper = {}
-        rval = {}
-        try:
-            visible_keys = self.__getattribute__('dict_' + view + '_visible_keys')
-        except AttributeError:
-            raise Exception('Unknown API view: %s' % view)
-        for key in visible_keys:
-            try:
-                rval[key] = self.__getattribute__(key)
-                if key in value_mapper:
-                    rval[key] = value_mapper.get(key, rval[key])
-            except AttributeError:
-                rval[key] = None
-        return rval
+mapper(corals_model.Probe_annotation, corals_model.Probe_annotation.table, properties=None)
 
+mapper(corals_model.Reef, corals_model.Reef.table, properties=None)
 
-class Idx_annotation(Dictifiable):
-    dict_collection_visible_keys = ['id', 'probe_set_id', 'chr_id', 'start', 'stop', 'strand',
-                                    'dbsnp_rs_id', 'strand_vs_dbsnp', 'probe_count', 'cytoband',
-                                    'chrx_par', 'allele_a', 'allele_b']
+mapper(corals_model.Sample, corals_model.Sample.table, properties=dict(
+    genotype=relation(corals_model.Genotype,
+                      lazy=False,
+                      backref="samples",
+                      primaryjoin=(corals_model.Sample.table.c.genotype_id == corals_model.Genotype.table.c.id)),
+    experiment=relation(corals_model.Experiment,
+                        lazy=False,
+                        backref="samples",
+                        primaryjoin=(corals_model.Sample.table.c.experiment_id == corals_model.Experiment.table.c.id)),
+    colony=relation(corals_model.Colony,
+                    lazy=False,
+                    backref="matching_samples",
+                    primaryjoin=(corals_model.Sample.table.c.colony_id == corals_model.Colony.table.c.id)),
+    taxonomy=relation(corals_model.Taxonomy,
+                      lazy=False,
+                      backref="samples",
+                      primaryjoin=(corals_model.Sample.table.c.taxonomy_id == corals_model.Taxonomy.table.c.id)),
+    collector=relation(corals_model.Collector,
+                       lazy=False,
+                       backref="samples",
+                       primaryjoin=(corals_model.Sample.table.c.collector_id == corals_model.Collector.table.c.id))))
 
-    def __init__(self, probe_set_id=None, chr_id=None, start=None, stop=None, strand=None,
-                 dbsnp_rs_id=None, strand_vs_dbsnp=None, probe_count=None, cytoband=None,
-                 chrx_par=None, allele_a=None, allele_b=None):
-        self.probe_set_id = probe_set_id
-        self.chr_id = chr_id
-        self.start = start
-        self.stop = stop
-        self.strand = strand
-        self.dbsnp_rs_id = dbsnp_rs_id
-        self.strand_vs_dbsnp = strand_vs_dbsnp
-        self.probe_count = probe_count
-        self.cytoband = cytoband
-        self.chrx_par = chrx_par
-        self.allele_a = allele_a
-        self.allele_b = allele_b
+mapper(corals_model.Taxonomy, corals_model.Taxonomy.table, properties=None)
 
-    def as_dict(self, value_mapper=None):
-        return self.to_dict(view='element', value_mapper=value_mapper)
-
-    def to_dict(self, view='collection', value_mapper=None):
-        if value_mapper is None:
-            value_mapper = {}
-        rval = {}
-        try:
-            visible_keys = self.__getattribute__('dict_' + view + '_visible_keys')
-        except AttributeError:
-            raise Exception('Unknown API view: %s' % view)
-        for key in visible_keys:
-            try:
-                rval[key] = self.__getattribute__(key)
-                if key in value_mapper:
-                    rval[key] = value_mapper.get(key, rval[key])
-            except AttributeError:
-                rval[key] = None
-        return rval
-
-
-class Person(Dictifiable):
-    dict_collection_visible_keys = ['id', 'lastname', 'firstname', 'organization', 'email']
-
-    def __init__(self, lastname=None, firstname=None, organization=None, email=None):
-        self.lastname = lastname
-        self.firstname = firstname
-        self.organization = organization
-        self.email = email
-
-    def as_dict(self, value_mapper=None):
-        return self.to_dict(view='element', value_mapper=value_mapper)
-
-    def to_dict(self, view='collection', value_mapper=None):
-        if value_mapper is None:
-            value_mapper = {}
-        rval = {}
-        try:
-            visible_keys = self.__getattribute__('dict_' + view + '_visible_keys')
-        except AttributeError:
-            raise Exception('Unknown API view: %s' % view)
-        for key in visible_keys:
-            try:
-                rval[key] = self.__getattribute__(key)
-                if key in value_mapper:
-                    rval[key] = value_mapper.get(key, rval[key])
-            except AttributeError:
-                rval[key] = None
-        return rval
-
-
-class Probe_annotation(Dictifiable):
-    dict_collection_visible_keys = ['id', 'probe_set_id', 'affy_snp_id', 'chr_id', 'start', 'stop',
-                                    'strand', 'dbsnp_rs_id', 'dbsnp_loctype', 'in_hapmap', 'strand_vs_dbsnp',
-                                    'probe_count', 'cytoband', 'chrx_par', 'flank', 'allele_a', 'allele_b',
-                                    'ref_allele', 'alt_allele', 'associated_gene', 'genetic_map',
-                                    'microsatellite', 'heterozygous_allele_frequencies', 'allele_frequency_count',
-                                    'allele_frequencies', 'minor_allele', 'minor_allele_frequency',
-                                    'omim', 'biomedical', 'annotation_notes', 'allele_count', 'ordered_alleles',
-                                    'chrtype', 'custchr', 'custid', 'custpos', 'organism', 'pconvert',
-                                    'recommendation', 'ref_str', 'snp_priority']
-
-    def __init__(self, probe_set_id=None, affy_snp_id=None, chr_id=None, start=None, stop=None, strand=None,
-                 dbsnp_rs_id=None, dbsnp_loctype=None, in_hapmap=None, strand_vs_dbsnp=None, probe_count=None,
-                 cytoband=None, chrx_par=None, flank=None, allele_a=None, allele_b=None, ref_allele=None,
-                 alt_allele=None, associated_gene=None, genetic_map=None, microsatellite=None,
-                 heterozygous_allele_frequencies=None, allele_frequency_count=None, allele_frequencies=None,
-                 minor_allele=None, minor_allele_frequency=None, omim=None, biomedical=None, annotation_notes=None,
-                 allele_count=None, ordered_alleles=None, chrtype=None, custchr=None, custid=None, custpos=None,
-                 organism=None, pconvert=None, recommendation=None, ref_str=None, snp_priority=None):
-        self.probe_set_id = probe_set_id
-        self.affy_snp_id = affy_snp_id
-        self.chr_id = chr_id
-        self.start = start
-        self.stop = stop
-        self.strand = strand
-        self.dbsnp_rs_id = dbsnp_rs_id
-        self.dbsnp_loctype = dbsnp_loctype
-        self.in_hapmap = in_hapmap
-        self.strand_vs_dbsnp = strand_vs_dbsnp
-        self.probe_count = probe_count
-        self.cytoband = cytoband
-        self.chrx_par = chrx_par
-        self.flank = flank
-        self.allele_a = allele_a
-        self.allele_b = allele_b
-        self.ref_allele = ref_allele
-        self.alt_allele = alt_allele
-        self.associated_gene = associated_gene
-        self.genetic_map = genetic_map
-        self.microsatellite = microsatellite
-        self.heterozygous_allele_frequencies = heterozygous_allele_frequencies
-        self.allele_frequency_count = allele_frequency_count
-        self.allele_frequencies = allele_frequencies
-        self.minor_allele = minor_allele
-        self.minor_allele_frequency = minor_allele_frequency
-        self.omim = omim
-        self.biomedical = biomedical
-        self.annotation_notes = annotation_notes
-        self.allele_count = allele_count
-        self.ordered_alleles = ordered_alleles
-        self.chrtype = chrtype
-        self.custchr = custchr
-        self.custid = custid
-        self.custpos = custpos
-        self.organism = organism
-        self.pconvert = pconvert
-        self.recommendation = recommendation
-        self.ref_str = ref_str
-        self.snp_priority = snp_priority
-
-    def as_dict(self, value_mapper=None):
-        return self.to_dict(view='element', value_mapper=value_mapper)
-
-    def to_dict(self, view='collection', value_mapper=None):
-        if value_mapper is None:
-            value_mapper = {}
-        rval = {}
-        try:
-            visible_keys = self.__getattribute__('dict_' + view + '_visible_keys')
-        except AttributeError:
-            raise Exception('Unknown API view: %s' % view)
-        for key in visible_keys:
-            try:
-                rval[key] = self.__getattribute__(key)
-                if key in value_mapper:
-                    rval[key] = value_mapper.get(key, rval[key])
-            except AttributeError:
-                rval[key] = None
-        return rval
-
-
-class Reef(Dictifiable):
-    dict_collection_visible_keys = ['id', 'name', 'region', 'latitude', 'longitude']
-
-    def __init__(self, name=None, region=None, latitude=None, longitude=None):
-        self.name = name
-        self.region = region
-        # Latitude in decimal degrees, WGS84 datum, geographic location of reef.
-        self.latitude = latitude
-        # Longitude in decimal degrees, WGS84 datum, geographic location of reef.
-        self.longitude = longitude
-
-    def as_dict(self, value_mapper=None):
-        return self.to_dict(view='element', value_mapper=value_mapper)
-
-    def to_dict(self, view='collection', value_mapper=None):
-        if value_mapper is None:
-            value_mapper = {}
-        rval = {}
-        try:
-            visible_keys = self.__getattribute__('dict_' + view + '_visible_keys')
-        except AttributeError:
-            raise Exception('Unknown API view: %s' % view)
-        for key in visible_keys:
-            try:
-                rval[key] = self.__getattribute__(key)
-                if key in value_mapper:
-                    rval[key] = value_mapper.get(key, rval[key])
-            except AttributeError:
-                rval[key] = None
-        return rval
-
-
-class Sample(Dictifiable):
-    dict_collection_visible_keys = ['id', 'sample_id', 'genotype_id', 'experiment_id',
-        'colony_id', 'taxonomy_id', 'collector_id', 'collection_date', 'user_specimen_id',
-         'depth', 'dna_extraction_method', 'dna_concentration', 'duplicate_sample']
-
-    def __init__(self, sample_id=None, genotype_id=None, experiment_id=None, colony_id=None,
-                 taxonomy_id=None, collector_id=None, collection_date=None, user_specimen_id=None,
-                 depth=None, dna_extraction_method=None, dna_concentration=None, duplicate_sample=None):
-        self.sample_id = sample_id
-        self.genotype_id = genotype_id
-        self.experiment_id = experiment_id
-        self.colony_id = colony_id
-        self.taxonomy_id = taxonomy_id
-        self.collector_id = collector_id
-        self.collection_date = collection_date
-        # User specific identification for samples, should limit to some sort of length.
-        self.user_specimen_id = user_specimen_id
-        # Depth in meters of the sample for this entry.
-        self.depth = depth
-        # Method used to extract DNA.
-        self.dna_extraction_method = dna_extraction_method
-        # DNA concentration in ug.
-        self.dna_concentration = dna_concentration
-        # Indicate whether DNA from this colony or sample has been run before
-        self.duplicate_sample = duplicate_sample
-
-    def as_dict(self, value_mapper=None):
-        return self.to_dict(view='element', value_mapper=value_mapper)
-
-    def to_dict(self, view='collection', value_mapper=None):
-        if value_mapper is None:
-            value_mapper = {}
-        rval = {}
-        try:
-            visible_keys = self.__getattribute__('dict_' + view + '_visible_keys')
-        except AttributeError:
-            raise Exception('Unknown API view: %s' % view)
-        for key in visible_keys:
-            try:
-                rval[key] = self.__getattribute__(key)
-                if key in value_mapper:
-                    rval[key] = value_mapper.get(key, rval[key])
-            except AttributeError:
-                rval[key] = None
-        return rval
-
-
-class Taxonomy(Dictifiable):
-    dict_collection_visible_keys = ['id', 'species_name', 'genus_name']
-
-    def __init__(self, species_name=None, genus_name=None):
-        self.species_name = species_name
-        self.genus_name = genus_name
-
-    def as_dict(self, value_mapper=None):
-        return self.to_dict(view='element', value_mapper=value_mapper)
-
-    def to_dict(self, view='collection', value_mapper=None):
-        if value_mapper is None:
-            value_mapper = {}
-        rval = {}
-        try:
-            visible_keys = self.__getattribute__('dict_' + view + '_visible_keys')
-        except AttributeError:
-            raise Exception('Unknown API view: %s' % view)
-        for key in visible_keys:
-            try:
-                rval[key] = self.__getattribute__(key)
-                if key in value_mapper:
-                    rval[key] = value_mapper.get(key, rval[key])
-            except AttributeError:
-                rval[key] = None
-        return rval
+def init(url, engine_options={}, create_tables=False):
+    """Connect mappings to the database"""
+    # Load the appropriate db module
+    engine = build_engine(url, engine_options)
+    # Connect the metadata to the database.
+    metadata.bind = engine
+    result = ModelMapping([corals_model], engine=engine)
+    # Create tables if needed
+    if create_tables:
+        metadata.create_all()
+        # metadata.engine.commit()
+    result.create_tables = create_tables
+    # load local galaxy security policy
+    return result
