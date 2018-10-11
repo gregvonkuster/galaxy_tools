@@ -5,12 +5,13 @@
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
 #set text_outputs_dir = 'text_outputs'
+export BCFTOOLS_PLUGINS=\$(dirname `which bcftools`)/../libexec/bcftools &&
 mkdir $text_outputs_dir &&
-bcftools +affy2vcf.so
+bcftools +\$BCFTOOLS_PLUGINS/affy2vcf.so
 #if str($reference_genome_source_cond.reference_genome_source) == "history":
-    --fasta_ref '$reference_genome_source_cond.history_item'
+    --fasta-ref '$reference_genome_source_cond.history_item'
 #else:
-    --fasta_ref '$reference_genome_source_cond.locally_cached_item'
+    --fasta-ref '$reference_genome_source_cond.locally_cached_item'
 #end if
 --annot '$annot'
 --snp-posteriors '$text_outputs_dir/snp_posteriors.txt'
@@ -25,7 +26,7 @@ bcftools +affy2vcf.so
     --no-version
 #end if
 --output '$output'
---output_type $output_type
+--output-type $output_type
 --threads \${GALAXY_SLOTS:-4}
     ]]></command>
     <inputs>
