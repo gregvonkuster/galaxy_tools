@@ -14,13 +14,13 @@ bcftools +\$BCFTOOLS_PLUGINS/affy2vcf.so
     --fasta-ref '$reference_genome_source_cond.locally_cached_item'
 #end if
 --annot '$annot'
---snp-posteriors '$text_outputs_dir/snp_posteriors.txt'
---summary '$text_outputs_dir/summary.txt'
---report '$text_outputs_dir/report.txt'
---calls '$text_outputs_dir/calls.txt'
---confidences '$text_outputs_dir/confidences.txt'
-#if str($output_gender_estimate) == "yes"
-    --sex '$text_outputs_dir/gender_estimate.txt'
+--snp-posteriors '$snp_posteriors'
+--summary '$summary'
+--report '$report'
+--calls '$calls'
+--confidences '$confidences'
+#if str($output_gender_estimate_cond.output_gender_estimate) == "yes"
+    --sex '$gender_estimate'
 #end if
 #if str($append_version) == "no":
     --no-version
@@ -30,7 +30,6 @@ bcftools +\$BCFTOOLS_PLUGINS/affy2vcf.so
 --threads \${GALAXY_SLOTS:-4}
     ]]></command>
     <inputs>
-        <param name="annot" type="data" format="csv" label="Probeset annotation file" />
         <conditional name="reference_genome_source_cond">
             <param name="reference_genome_source" type="select" label="Will you select a reference reference genome from your history or use a locally cached genome index?">
                 <option value="history" selected="true">Use a reference genome from my history</option>
@@ -51,10 +50,20 @@ bcftools +\$BCFTOOLS_PLUGINS/affy2vcf.so
                 </param>
             </when>
         </conditional>
-        <param name="output_gender_estimate" type="select" force_select="true" label="Output apt-probeset-genotype gender estimate?">
-            <option value="no" selected="true">No</option>
-            <option value="yes">Yes</option>
-        </param>
+        <param name="annot" type="data" format="csv" label="Probeset annotation file" />
+        <param name="summary" type="data" format="txt" label="Apt-probeset genotype summary file" />
+        <param name="snp_posteriors" type="data" format="txt" label="Apt-probeset genotype snp-posteriors file" />
+        <param name="report" type="data" format="txt" label="Apt-probeset genotype report file" />
+        <param name="confidences" type="data" format="txt" label="Apt-probeset genotype confidences file" />
+        <param name="calls" type="data" format="txt" label="Apt-probeset genotype calls file" />
+        <conditional name="output_gender_estimate_cond">
+            <param name="output_gender_estimate" type="select" force_select="true" label="Output apt-probeset-genotype gender estimate?">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no"/>
+            <when value="yes"/>
+        </conditional>
         <param name="append_version" type="select" force_select="true" label="Append version and command line to the header?">
             <option value="no" selected="true">No</option>
             <option value="yes">Yes</option>
@@ -67,13 +76,22 @@ bcftools +\$BCFTOOLS_PLUGINS/affy2vcf.so
         </param>
     </inputs>
     <outputs>
-        <collection name="txt_outputs" type="list" label="${tool.name} (reports) on ${on_string}">
-            <discover_datasets pattern="__name__" directory="output" format="txt" />
-        </collection>
         <data name="output" format="vcf" />
+        <data name="output_gender_estimate" format="txt" label="${tool.name} (gender estimate) on ${on_string}">
+            <filter>output_gender_estimate_cond['output_gender_estimate'] == "yes"</filter>
+        </data>
     </outputs>
     <tests>
         <test>
+            <param name="reference_genome_source" value="history"/>
+            <param name="history_item" value="GCF_000222465.1_Adig_1.1_genomic.fna" ftype="fasta"/>
+            <param name="annot" value="annot.csv" ftype="csv"/>
+            <param name="summary" value="summary.txt" ftype="txt"/>
+            <param name="snp_posteriors" value="snp_posteriors.txt" ftype="txt"/>
+            <param name="report" value="report.txt" ftype="txt"/>
+            <param name="confidences" value="confidences.txt" ftype="txt"/>
+            <param name="calls" value="calls.txt" ftype="txt"/>
+            <output name="output" value="output.vcf" ftype="vcf"/>
         </test>
     </tests>
     <help>
