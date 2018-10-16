@@ -2,6 +2,7 @@ from sqlalchemy import (
     Column,
     ForeignKey,
     Integer,
+    JSON,
     MetaData,
     Table,
     TEXT
@@ -49,17 +50,17 @@ plant_tribes_model.PlantTribesOrthogroup.table = Table("plant_tribes_orthogroup"
                                                        Column("super_ortho_4_0", TrimmedString(10), nullable=False),
                                                        Column("super_ortho_4_5", TrimmedString(10), nullable=False),
                                                        Column("super_ortho_5_0", TrimmedString(10), nullable=False),
-                                                       Column("ahdr_description", TEXT, nullable=False),
-                                                       Column("tair_description", TEXT, nullable=False),
-                                                       Column("pfam_description", TEXT, nullable=False),
-                                                       Column("interproscan_description", TEXT, nullable=False),
-                                                       Column("molecular_function", TEXT, nullable=False),
-                                                       Column("biological_process", TEXT, nullable=False),
-                                                       Column("cellular_component", TEXT, nullable=False))
+                                                       Column("ahdr_description", JSON, nullable=False),
+                                                       Column("tair_description", JSON, nullable=False),
+                                                       Column("pfam_description", JSON, nullable=False),
+                                                       Column("interproscan_description", JSON, nullable=False),
+                                                       Column("molecular_function", JSON, nullable=False),
+                                                       Column("biological_process", JSON, nullable=False),
+                                                       Column("cellular_component", JSON, nullable=False))
 
 plant_tribes_model.PlantTribesGene.table = Table("plant_tribes_gene", metadata,
                                                  Column("id", Integer, primary_key=True),
-                                                 Column("gene_id", TrimmedString(100), index=True, unique=True, nullable=False),
+                                                 Column("gene_id", TrimmedString(100), index=True, nullable=False),
                                                  Column("dna_sequence", TEXT, nullable=False),
                                                  Column("aa_sequence", TEXT, nullable=False))
 
