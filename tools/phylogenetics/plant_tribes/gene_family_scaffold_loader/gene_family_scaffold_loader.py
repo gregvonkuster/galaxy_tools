@@ -10,6 +10,7 @@ import os
 import sys
 
 import psycopg2
+from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.engine.url import make_url
 
 
@@ -27,6 +28,8 @@ class ScaffoldLoader(object):
         self.parse_args()
         self.fh = open(self.args.output, "w")
         self.connect_db()
+        self.engine = create_engine(self.args.database_connection_string)
+        self.metadata = MetaData(self.engine)
 
     def parse_args(self):
         parser = argparse.ArgumentParser()
@@ -103,6 +106,7 @@ class ScaffoldLoader(object):
         1. Parse all of the *.list files in the same directory to populate
         self.scaffold_genes_dict.
         """
+        self.pto_table = Table('plant_tribes_orthogroup', self.metadata, autoload=True)
         scaffold_id = os.path.basename(self.args.scaffold_path)
         file_dir = os.path.join(self.args.scaffold_path, 'annot')
         # The scaffold naming convention must follow this pattern:
@@ -151,16 +155,47 @@ class ScaffoldLoader(object):
                             # The  species has at least 1 gene
                             num_species += 1
                             num_genes += j_int
-                    # Insert a row into the plant_tribes_orthogroup table.
-                    args = [orthogroup_id, scaffold_id_db, num_species, num_genes]
-                    for k in range(super_ortho_start_index, len(items)):
-                        args.append('%s' % str(items[k]))
-                    sql = """
-                        INSERT INTO plant_tribes_orthogroup
-                             VALUES (nextval('plant_tribes_orthogroup_id_seq'), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
-                    """
-                    cur = self.update(sql, tuple(args))
-                    self.flush()
+                    # Get the auto-incremented row id to insert a row inot
+                    # the plant_tribes_orthogroup table.
+                    sql = "SELECT nextval('plant_tribes_orthogroup_id_seq');"
+                    cur = self.conn.cursor()
+                    cur.execute(sql)
+                    plant_tribes_orthogroup_id = cur.fetchone()[0]
+
+                    args = [plant_tribes_orthogroup_id, orthogroup_id, scaffold_id_db, num_species, num_genes]
+                    last_item = len(items)
+                    for k in range(super_ortho_start_index, last_item):
+                        # The last 7 items in this range are as follows.
+                        # items[last_item-6]: AHRD Descriptions
+                        # items[last_item-5]: TAIR Gene(s) Descriptions
+                        # items[last_item-4]: Pfam Domains
+                        # items[last_item-3]: InterProScan Descriptions
+                        # items[last_item-2]: GO Molecular Functions
+                        # items[last_item-1]: GO Biological Processes
+                        # items[last_item]: GO Cellular Components
+                        # We'll translate each of these items into a JSON
+                        # dictionary for inserting into the table.
+                        if k >= (last_item-7) and k <= last_item:
+                            # Here is an example string:
+                            # Phosphate transporter PHO1 [0.327] | Phosphate
+                            # We'll split the string on " | " to create each value.
+                            # The keys will be zero-padded integers to enable sorting.
+                            json_dict = dict()
+                            json_str = str(items[k])
+                            json_vals = json_str.split(' | ')
+                            for key_index, json_val in enumerate(json_vals):
+                                # The zero-padded key is 1 based.
+                                json_key = '%04d' % key_index
+                                json_dict[json_key] = json_val
+                            args.append(json_dict)
+                        else:
+                            args.append('%s' % str(items[k]))
+                    sql = self.pto_table.insert().values(args)
+                    try:
+                        self.engine.execute(sql)
+                    except Exception as e:
+                        msg = "Caught exception executing SQL:\n%s\nvalues:\n%s\nException:\n%s\n" % (str(sql), str(args), e)
+                        self.stop_err(msg)
                     i += 1
                 self.log("Inserted %d rows into the plant_tribes_orthogroup table for scaffold %s and clustering method %s." % (i, scaffold_id, clustering_method))
         for file_name in glob.glob(os.path.join(file_dir, "*list")):
