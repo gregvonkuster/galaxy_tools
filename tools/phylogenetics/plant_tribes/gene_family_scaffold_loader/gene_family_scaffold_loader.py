@@ -13,10 +13,11 @@ import psycopg2
 from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.engine.url import make_url
 
-BLACKLIST_STRINGS = ['Unknown protein(s)',
-                     'No TAIR description(s)',
-                     'Representative annotation below 0.1%'
-                     'Representative AHRD below 0.1%']
+BLACKLIST_STRINGS = [['NULL',
+                     'Unknown protein',
+                     'No TAIR description',
+                     'Representative annotation below 0'
+                     'Representative AHRD below 0']
 
 
 class ScaffoldLoader(object):
