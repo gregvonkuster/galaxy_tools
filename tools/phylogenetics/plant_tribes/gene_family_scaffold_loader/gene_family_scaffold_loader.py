@@ -13,6 +13,11 @@ import psycopg2
 from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.engine.url import make_url
 
+BLACKLIST_STRINGS = ['Unknown protein(s)',
+                     'No TAIR description(s)',
+                     'Representative annotation below 0.1%'
+                     'Representative AHRD below 0.1%']
+
 
 class ScaffoldLoader(object):
     def __init__(self):
@@ -161,10 +166,10 @@ class ScaffoldLoader(object):
                     cur = self.conn.cursor()
                     cur.execute(sql)
                     plant_tribes_orthogroup_id = cur.fetchone()[0]
-
                     args = [plant_tribes_orthogroup_id, orthogroup_id, scaffold_id_db, num_species, num_genes]
                     last_item = len(items)
                     for k in range(super_ortho_start_index, last_item):
+                        bs_found = False
                         # The last 7 items in this range are as follows.
                         # items[last_item-6]: AHRD Descriptions
                         # items[last_item-5]: TAIR Gene(s) Descriptions
@@ -176,18 +181,24 @@ class ScaffoldLoader(object):
                         # We'll translate each of these items into a JSON
                         # dictionary for inserting into the table.
                         if k >= (last_item-7) and k <= last_item:
+                            json_str = str(items[k])
                             # Here is an example string:
                             # Phosphate transporter PHO1 [0.327] | Phosphate
-                            # We'll split the string on " | " to create each value.
-                            # The keys will be zero-padded integers to enable sorting.
-                            json_dict = dict()
-                            json_str = str(items[k])
-                            json_vals = json_str.split(' | ')
-                            for key_index, json_val in enumerate(json_vals):
-                                # The zero-padded key is 1 based.
-                                json_key = '%04d' % key_index
-                                json_dict[json_key] = json_val
-                            args.append(json_dict)
+                            for bs in BLACKLIST_STRINGS:
+                                if json_str.find(bs) >= 0:
+                                    bs_found = True
+                                    args.append(None)
+                                    break
+                            if not bs_found:
+                                # We'll split the string on " | " to create each value.
+                                # The keys will be zero-padded integers to enable sorting.
+                                json_dict = dict()
+                                json_vals = json_str.split(' | ')
+                                for key_index, json_val in enumerate(json_vals):
+                                    # The zero-padded key is 1 based.
+                                    json_key = '%04d' % key_index
+                                    json_dict[json_key] = json_val
+                                args.append(json_dict)
                         else:
                             args.append('%s' % str(items[k]))
                     sql = self.pto_table.insert().values(args)
