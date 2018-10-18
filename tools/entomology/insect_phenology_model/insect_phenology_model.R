@@ -312,6 +312,13 @@ parse_input_data = function(input_ytd, input_norm, location, start_date, end_dat
                 end_date_ytd_row = end_date_ytd_row[1];
                 # The end date is contained within the input_ytd data.
                 end_doy_ytd = as.integer(temperature_data_frame$DOY[end_date_ytd_row]);
+                if (end_doy_ytd > end_date_ytd_row + 1) {
+                    # The input year-to-date dataset is missing 1 or more
+                    # days of data.
+                    days_missing = end_doy_ytd - end_date_ytd_row;
+                    msg = cat("The year-to-date dataset is missing ", days_missing, " days of data.\n");
+                    stop_err(msg);
+                }
             } else {
                 end_date_ytd_row = 0;
             }
@@ -335,6 +342,13 @@ parse_input_data = function(input_ytd, input_norm, location, start_date, end_dat
             # Save the first DOY to later check if start_date is Jan 1.
             start_doy_ytd = as.integer(temperature_data_frame$DOY[1]);
             end_doy_ytd = as.integer(temperature_data_frame$DOY[num_ytd_rows]);
+            if (end_doy_ytd > end_date_ytd_row + 1) {
+                # The input year-to-date dataset is missing 1 or more
+                # days of data.
+                days_missing = end_doy_ytd - end_date_ytd_row;
+                msg = cat("The year-to-date dataset is missing ", days_missing, " days of data.\n");
+                stop_err(msg);
+            }
         }
     } else {
         # We're processing only the 30 year normals data, so create an empty
