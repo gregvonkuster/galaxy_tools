@@ -13,7 +13,7 @@ import psycopg2
 from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.engine.url import make_url
 
-BLACKLIST_STRINGS = [['NULL',
+BLACKLIST_STRINGS = ['NULL',
                      'Unknown protein',
                      'No TAIR description',
                      'Representative annotation below 0'
