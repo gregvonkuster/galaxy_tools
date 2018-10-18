@@ -71,13 +71,13 @@ class PlantTribesTaxon(Dictifiable):
 class PlantTribesOrthogroup(Dictifiable):
     dict_collection_visible_keys = ['id', 'orthogroup_id', 'scaffold_id', 'num_species', 'num_genes', 'super_ortho_1_2',
                                     'super_ortho_1_5', 'super_ortho_1_8', 'super_ortho_2_0', 'super_ortho_2_5', 'super_ortho_3_0',
-                                    'super_ortho_3_5', 'super_ortho_4_0', 'super_ortho_4_5', 'super_ortho_5_0', 'ahdr_description',
+                                    'super_ortho_3_5', 'super_ortho_4_0', 'super_ortho_4_5', 'super_ortho_5_0', 'ahrd_description',
                                     'tair_description', 'pfam_description', 'interproscan_description', 'molecular_function',
                                     'biological_process', 'cellular_component']
 
     def __init__(self, id=None, orthogroup_id=None, scaffold_id=None, num_species=None, num_genes=None, super_ortho_1_2=None,
                  super_ortho_1_5=None, super_ortho_1_8=None, super_ortho_2_0=None, super_ortho_2_5=None, super_ortho_3_0=None,
-                 super_ortho_3_5=None, super_ortho_4_0=None, super_ortho_4_5=None, super_ortho_5_0=None, ahdr_description=None,
+                 super_ortho_3_5=None, super_ortho_4_0=None, super_ortho_4_5=None, super_ortho_5_0=None, ahrd_description=None,
                  tair_description=None, pfam_description=None, interproscan_description=None, molecular_function=None, biological_process=None,
                  cellular_component=None):
         self.id = id
@@ -95,7 +95,7 @@ class PlantTribesOrthogroup(Dictifiable):
         self.super_ortho_4_0 = super_ortho_4_0
         self.super_ortho_4_5 = super_ortho_4_5
         self.super_ortho_5_0 = super_ortho_5_0
-        self.ahdr_description = ahdr_description
+        self.ahrd_description = ahrd_description
         self.tair_description = tair_description
         self.pfam_description = pfam_description
         self.interproscan_description = interproscan_description

@@ -2,11 +2,11 @@ from sqlalchemy import (
     Column,
     ForeignKey,
     Integer,
-    JSON,
     MetaData,
     Table,
     TEXT
 )
+from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import (
     mapper,
     relation
@@ -50,7 +50,7 @@ plant_tribes_model.PlantTribesOrthogroup.table = Table("plant_tribes_orthogroup"
                                                        Column("super_ortho_4_0", TrimmedString(10), nullable=False),
                                                        Column("super_ortho_4_5", TrimmedString(10), nullable=False),
                                                        Column("super_ortho_5_0", TrimmedString(10), nullable=False),
-                                                       Column("ahdr_description", JSON),
+                                                       Column("ahrd_description", JSON),
                                                        Column("tair_description", JSON),
                                                        Column("pfam_description", JSON),
                                                        Column("interproscan_description", JSON),

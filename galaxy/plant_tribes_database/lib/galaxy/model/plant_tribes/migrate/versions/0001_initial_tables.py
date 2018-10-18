@@ -4,11 +4,11 @@ from sqlalchemy import (
     Column,
     ForeignKey,
     Integer,
-    JSON,
     MetaData,
     Table,
     TEXT
 )
+from sqlalchemy.dialects.postgresql import JSON
 
 # Need our custom types, but don't import anything else from model
 from galaxy.model.custom_types import TrimmedString
@@ -49,7 +49,7 @@ PlantTribesOrthogroup_table = Table("plant_tribes_orthogroup", metadata,
     Column("super_ortho_4_0", TrimmedString(10), nullable=False),
     Column("super_ortho_4_5", TrimmedString(10), nullable=False),
     Column("super_ortho_5_0", TrimmedString(10), nullable=False),
-    Column("ahdr_description", JSON),
+    Column("ahrd_description", JSON),
     Column("tair_description", JSON),
     Column("pfam_description", JSON),
     Column("interproscan_description", JSON),
