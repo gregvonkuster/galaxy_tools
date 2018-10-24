@@ -61,7 +61,8 @@ corals_model.Colony.table = Table("colony", metadata,
     Column("latitude", Numeric(15, 10)),
     Column("longitude", Numeric(15, 10)),
     Column("depth", Integer),
-    Column("reef_id", Integer, ForeignKey("reef.id"), index=True))
+    Column("reef_id", Integer, ForeignKey("reef.id"), index=True),
+    Column("public", Boolean))
 
 corals_model.Coralvcf_allele.table = Table("coralvcf_allele", metadata,
     Column("id", Integer, primary_key=True),
@@ -116,6 +117,7 @@ corals_model.Idx_annotation.table = Table("idx_annotation", metadata,
     Column("id", Integer, primary_key=True),
     Column("create_time", DateTime, default=now),
     Column("update_time", DateTime, default=now, onupdate=now),
+    Column("chip_version", TrimmedString(255)),
     Column("probe_set_id", TrimmedString(255)),
     Column("chr_id", Integer),
     Column("start", Integer),
@@ -190,7 +192,8 @@ corals_model.Reef.table = Table("reef", metadata,
     Column("name", TrimmedString(255)),
     Column("region", TrimmedString(255)),
     Column("latitude", Numeric(15, 10)),
-    Column("longitude", Numeric(15, 10)))
+    Column("longitude", Numeric(15, 10)),
+    Column("public", Boolean))
 
 corals_model.Sample.table = Table("sample", metadata,
     Column("id", Integer, primary_key=True),
