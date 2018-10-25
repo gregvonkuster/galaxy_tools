@@ -20,7 +20,7 @@ bcftools +\$BCFTOOLS_PLUGINS/affy2vcf.so
 --calls '$calls'
 --confidences '$confidences'
 #if str($output_gender_estimate_cond.output_gender_estimate) == "yes"
-    --sex '$gender_estimate'
+    --sex '$output_gender_estimate'
 #end if
 #if str($append_version) == "no":
     --no-version
@@ -30,8 +30,14 @@ bcftools +\$BCFTOOLS_PLUGINS/affy2vcf.so
 --threads \${GALAXY_SLOTS:-4}
     ]]></command>
     <inputs>
+        <param name="annot" type="data" format="csv" label="Probeset annotation file" />
+        <param name="summary" type="data" format="txt" label="Apt-probeset genotype summary file" />
+        <param name="snp_posteriors" type="data" format="txt" label="Apt-probeset genotype snp-posteriors file" />
+        <param name="report" type="data" format="txt" label="Apt-probeset genotype report file" />
+        <param name="confidences" type="data" format="txt" label="Apt-probeset genotype confidences file" />
+        <param name="calls" type="data" format="txt" label="Apt-probeset genotype calls file" />
         <conditional name="reference_genome_source_cond">
-            <param name="reference_genome_source" type="select" label="Will you select a reference reference genome from your history or use a locally cached genome index?">
+            <param name="reference_genome_source" type="select" label="Choose the source for the reference genome">
                 <option value="history" selected="true">Use a reference genome from my history</option>
                 <option value="cached">Use a locally cached genome index</option>
             </param>
@@ -45,17 +51,11 @@ bcftools +\$BCFTOOLS_PLUGINS/affy2vcf.so
                         <column name="value" index="2"/>
                         <column name="path" index="2"/>
                         <filter type="sort_by" column="1"/>
-                        <validator type="no_options" message="No cached Fasta genome references are available." />
+                        <validator type="no_options" message="No cached Fasta genome references are available for the build associated with the selected probeset annotation file." />
                     </options>
                 </param>
             </when>
         </conditional>
-        <param name="annot" type="data" format="csv" label="Probeset annotation file" />
-        <param name="summary" type="data" format="txt" label="Apt-probeset genotype summary file" />
-        <param name="snp_posteriors" type="data" format="txt" label="Apt-probeset genotype snp-posteriors file" />
-        <param name="report" type="data" format="txt" label="Apt-probeset genotype report file" />
-        <param name="confidences" type="data" format="txt" label="Apt-probeset genotype confidences file" />
-        <param name="calls" type="data" format="txt" label="Apt-probeset genotype calls file" />
         <conditional name="output_gender_estimate_cond">
             <param name="output_gender_estimate" type="select" force_select="true" label="Output apt-probeset-genotype gender estimate?">
                 <option value="no" selected="true">No</option>
@@ -68,7 +68,7 @@ bcftools +\$BCFTOOLS_PLUGINS/affy2vcf.so
             <option value="no" selected="true">No</option>
             <option value="yes">Yes</option>
         </param>
-        <param name="output_type" type="select" force_select="true" label="Select format for output?">
+        <param name="output_type" type="select" force_select="true" label="Select format for output">
             <option value="v" selected="true">Uncompressed VCF</option>
             <option value="z">Compressed VCF</option>
             <option value="u" selected="true">Uncompressed BCF</option>
@@ -84,13 +84,13 @@ bcftools +\$BCFTOOLS_PLUGINS/affy2vcf.so
     <tests>
         <test>
             <param name="reference_genome_source" value="history"/>
-            <param name="history_item" value="GCF_000222465.1_Adig_1.1_genomic.fna" ftype="fasta"/>
-            <param name="annot" value="annot.csv" ftype="csv"/>
-            <param name="summary" value="summary.txt" ftype="txt"/>
-            <param name="snp_posteriors" value="snp_posteriors.txt" ftype="txt"/>
-            <param name="report" value="report.txt" ftype="txt"/>
-            <param name="confidences" value="confidences.txt" ftype="txt"/>
-            <param name="calls" value="calls.txt" ftype="txt"/>
+            <param name="history_item" value="sub50_adig_genome.fasta" ftype="fasta"/>
+            <param name="annot" value="axiom_acropsnp_coral_annotation.r1.csv" ftype="csv"/>
+            <param name="summary" value="sub50_axiomgt1.summary.txt" ftype="txt"/>
+            <param name="snp_posteriors" value="sub50_axiomgt1.snp_posteriors.txt" ftype="txt"/>
+            <param name="report" value="axiomgt1.report.txt" ftype="txt"/>
+            <param name="confidences" value="sub50_axiomgt1.confidences.txt" ftype="txt"/>
+            <param name="calls" value="sub50_axiomgt1.calls.txt" ftype="txt"/>
             <output name="output" value="output.vcf" ftype="vcf"/>
         </test>
     </tests>
@@ -101,7 +101,19 @@ This tool converts Affymetrix genotype calls and intensity files to VCF format.
 
 **Required options**
 
+ * **Probeset annotation file** - probeset annotation file produced by the sequencing run.
+ * **Apt-probeset genotype summary file** - apt-probeset genotype summary file produced by the sequencing run.
+ * **Apt-probeset genotype snp-posteriors file** - apt-probeset genotype snp-posteriors file produced by the sequencing run.
+ * **Apt-probeset genotype report file** - apt-probeset genotype report file produced by the sequencing run.
+ * **Apt-probeset genotype confidences file** - apt-probeset genotype confidences file produced by the sequencing run.
+ * **Apt-probeset genotype calls file** - apt-probeset genotype calls file produced by the sequencing run.
+ * **Choose the source for the reference genome** - select a reference genome from your history or one installed into your local Galaxy environment by a data manager tool.
+
 **Other options**
+
+ * **Output apt-probeset-genotype gender estimate** - output apt-probeset-genotype gender estimate into an additional dataset.
+ * **Append version and command line to the header** - append version and command line to the header of the output VCF dataset.
+ * **Select format for output** - select one of uncompressed/compressed VCF/BCF.
     </help>
     <citations>
         <citation type="bibtex">
