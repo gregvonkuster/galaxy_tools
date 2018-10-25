@@ -9,7 +9,7 @@ suppressPackageStartupMessages(library("ggplot2"))
 suppressPackageStartupMessages(library("knitr"))
 
 option_list <- list(
-    make_option(c("--input_vcf"), action="store", dest="input_vcf", help="VCF input file")
+    make_option(c("--input_vcf"), action="store", dest="input_vcf", help="VCF input file"),
     make_option(c("--input_pop_info"), action="store", dest="input_pop_info", help="Population information input file")
 )
 
@@ -17,21 +17,26 @@ parser <- OptionParser(usage="%prog [options] file", option_list=option_list);
 args <- parse_args(parser, positional_arguments=TRUE);
 opt <- args$options;
 
-#extract Provesti's distance from the distance matrix
+get_file_path = function(file_name) {
+    file_path = paste("output_plots_dir", file_name, sep="/");
+    return(file_path);
+}
+
+# Extract Provesti's distance from the distance matrix.
 provesti_distance <- function(distance, selection) {
   eval(parse(text=paste("as.matrix(distance)[", selection, "]")));
 }
 
-#Read in VCF input file.
-vcf <- read.vcfR(opts$input_vcf);
+# Read in VCF input file.
+vcf <- read.vcfR(opt$input_vcf);
 
 # Convert VCF file into formats compatiable with the Poppr package.
-gind <- vcfR2genind(vcf);
+genind <- vcfR2genind(vcf);
 # Add population information to the genind object.
 poptab <- read.table(opt$input_pop_info, check.names=FALSE, header=T, na.strings = c("", "NA"));
-gind@pop <- as.factor(poptab$region);
+genind@pop <- as.factor(poptab$region);
 # Convert genind to genclone object
-gclo <- as.genclone(gind);
+gclo <- as.genclone(genind);
 # Calculate the bitwise distance between individuals,
 # the following is similar to Provesti's distance.
 xdis <- bitwise.dist(gclo);
@@ -45,6 +50,10 @@ mll(gclo) <- "original";
 # To determine the distance threshold, we will generate
 # a neighbor-joining tree for all samples.
 
+# Start PDF device driver.
+dev.new(width=20, height=30);
+file_path = get_file_path("phylogeny_tree.pdf");
+pdf(file=file_path, width=20, height=30, bg="white");
 # Create a phylogeny of samples based on distance matrices
 # colors.
 cols <- c("skyblue2","#C38D9E", '#E8A87C',"darkcyan","#e27d60");
@@ -58,7 +67,13 @@ plot.phylo(theTree, tip.color=cols[gclo$pop], label.offset=0.0125, cex=0.7, font
  # Add a scale bar showing 5% difference.
 add.scale.bar(length=0.05, cex=0.65);
 nodelabels(theTree$node.label, cex=.5, adj=c(1.5, -0.1), frame="n", font=3, xpd=TRUE);
+# Turn off device driver to flush output.
+dev.off();
 
+# Start PDF device driver.
+dev.new(width=20, height=30);
+file_path = get_file_path("dissimiliarity_distance_matrix.pdf");
+pdf(file=file_path, width=20, height=30, bg="white");
 # Use of mlg.filter() will create a dissimiliarity distance
 # matrix from the data and then filter based off of that
 # matrix. Here we will use the bitwise distance matrix
@@ -67,20 +82,38 @@ nodelabels(theTree$node.label, cex=.5, adj=c(1.5, -0.1), frame="n", font=3, xpd=
 # Multilocus genotypes (threshold of 1%).
 mlg.filter(gclo, distance= xdis) <- 0.01;
 m <- mlg.table(gclo, background=TRUE, color=TRUE);
+# Turn off device driver to flush output.
+dev.off();
 
+# Start PDF device driver.
+dev.new(width=20, height=30);
+file_path = get_file_path("filter_stats.pdf");
+pdf(file=file_path, width=20, height=30, bg="white");
 # Different clustering methods for tie breakers used by
 # mlg.filter, default is farthest neighbor.
 gclo_filtered <- filter_stats(gclo, distance=xdis, plot=TRUE);
+# Turn off device driver to flush output.
+dev.off();
 
 # Create table of MLGs.
 id <- mlg.id(gclo);
 df <- data.frame(matrix((id), byrow=T));
 
+# Start PDF device driver.
+dev.new(width=20, height=30);
+file_path = get_file_path("genotype_accumulation_curve.pdf");
+pdf(file=file_path, width=20, height=30, bg="white");
 # We can use the genotype_curve() function to create a
 # genotype accumulation curve to determine the minimum
 # number of loci to identify unique MLGs.
-gac <- genotype_curve(gind, sample=5, quiet=TRUE);
+gac <- genotype_curve(genind, sample=5, quiet=TRUE);
+# Turn off device driver to flush output.
+dev.off();
 
+# Start PDF device driver.
+dev.new(width=20, height=30);
+file_path = get_file_path("genotype_accumulation_curve_for_genind.pdf");
+pdf(file=file_path, width=20, height=30, bg="white");
 p <- last_plot();
 p + geom_smooth() + xlim(0, 100) + theme_bw();
 
@@ -106,4 +139,6 @@ gclo_cor <- clonecorrect(gclo, strata=NA);
 # found here.
 dapc.coral <- dapc(gclo_cor, var.contrib=TRUE, scale=FALSE, n.pca=62, n.da=nPop(gclo_cor)-1);
 scatter(dapc.coral, cell=0, pch=18:23, cstar=0, lwd=2, lty=2, legend=TRUE, cleg=0.75, clabel=TRUE, col=cols);
+# Turn off device driver to flush output.
+dev.off();
 

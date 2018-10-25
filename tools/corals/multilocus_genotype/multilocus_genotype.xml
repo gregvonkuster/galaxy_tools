@@ -1,0 +1,53 @@
+<tool id="multilocus_genotype" name="Multilocus genotype" version="1.0.0">
+    <description>unique combination of alleles for loci</description>
+    <requirements>
+        <requirement type="package" version="1.6.0">r-optparse</requirement>
+        <requirement type="package" version="1.8.0">r-vcfr</requirement>
+        <requirement type="package" version="2.8.1">r-poppr</requirement>
+        <requirement type="package" version="2.1.1">r-adegenet</requirement>
+        <requirement type="package" version="5.1">r-ape</requirement>
+        <requirement type="package" version="5.1">r-ape</requirement>
+        <requirement type="package" version="3.0.0">r-ggplot2</requirement>
+        <requirement type="package" version="1.20">r-knitr</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+#set output_plots_dir = 'output_plots_dir'
+mkdir $output_plots_dir &&
+Rscript '$__tool_directory__/multilocus_genotype.R'
+--input_vcf '$input_vcf'
+--input_pop_info '$input_pop_info']]></command>
+    <inputs>
+        <param name="input_vcf" type="data" format="vcf" label="VCF file" />
+        <param name="input_pop_info" type="data" format="txt" label="Population information file" />
+    </inputs>
+    <outputs>
+        <collection name="output_plot_collection" type="list" label="${tool.name} (plots), on ${on_string}">
+            <discover_datasets pattern="__name__" directory="output_plots_dir" format="pdf"/>
+        </collection>
+    </outputs>
+    <tests>
+        <test>
+            <param name="input_vcf" value="baitssnv.recode.vcf" ftype="vcf"/>
+            <param name="input_pop_info" value="pop_info.txt" ftype="txt"/>
+            <output_collection name="output_plot_collection" type="list">
+                <element name="phylogeny_tree.pdf" file="phylogeny_tree.pdf" ftype="pdf" compare="contains"/>
+                <element name="dissimiliarity_distance_matrix.pdf" file="dissimiliarity_distance_matrix.pdf" ftype="pdf" compare="contains"/>
+                <element name="filter_stats.pdf" file="filter_stats.pdf" ftype="pdf" compare="contains"/>
+                <element name="genotype_accumulation_curve.pdf" file="genotype_accumulation_curve.pdf" ftype="pdf" compare="contains"/>
+                <element name="genotype_accumulation_curve_for_gind.pdf" file="genotype_accumulation_curve_for_gind.pdf" ftype="pdf" compare="contains"/>
+            </output_collection>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+Renders the unique combination of the alleles for two or more loci for each individual. The multilocus genotypes
+are critically important for tracking dispersal and population structure of organisms, especially those that
+reproduce clonally (plants, sponges, cnidarians, flatworms, annelids, sea stars, and many more).
+-----
+
+**Required options**
+    </help>
+    <citations>
+    </citations>
+</tool>
