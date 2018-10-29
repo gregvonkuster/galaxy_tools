@@ -1,5 +1,12 @@
+"""
+Migration script to create the initial stag database and populate the
+probe_annotation table from an external CSV file named probe_annotation.csv.
+"""
+from __future__ import print_function
+
 import datetime
 import logging
+import os
 
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, MetaData, Numeric, String, Table, TEXT
 
@@ -10,6 +17,10 @@ now = datetime.datetime.utcnow
 log = logging.getLogger(__name__)
 metadata = MetaData()
 
+# The current working direectory is the Galaxy
+# installation root, so the following file must
+# exist from that location.
+PROBE_ANNOTATION_DATA_FILE = "probe_annotation_data/probe_annotation.csv"
 
 Collector_table = Table("collector", metadata,
     Column("id", Integer, primary_key=True),
@@ -115,17 +126,17 @@ Probe_annotation_table = Table("probe_annotation", metadata,
     Column("update_time", DateTime, default=now, onupdate=now),
     Column("probe_set_id", TrimmedString(255)),
     Column("affy_snp_id", TrimmedString(255)),
-    Column("chr_id", Integer),
-    Column("start", Integer),
-    Column("stop", Integer),
+    Column("chr_id", Integer, nullable=True),
+    Column("start", Integer, nullable=True),
+    Column("stop", Integer, nullable=True),
     Column("strand", TrimmedString(255)),
     Column("dbsnp_rs_id", TrimmedString(255)),
-    Column("dbsnp_loctype", Integer),
+    Column("dbsnp_loctype", Integer, nullable=True),
     Column("in_hapmap", TrimmedString(255)),
     Column("strand_vs_dbsnp", TrimmedString(255)),
-    Column("probe_count", Integer),
+    Column("probe_count", Integer, nullable=True),
     Column("cytoband", TrimmedString(255)),
-    Column("chrx_par", Integer),
+    Column("chrx_par", Integer, nullable=True),
     Column("flank", TrimmedString(255)),
     Column("allele_a", TrimmedString(255)),
     Column("allele_b", TrimmedString(255)),
@@ -151,8 +162,8 @@ Probe_annotation_table = Table("probe_annotation", metadata,
     Column("organism", TrimmedString(255)),
     Column("pconvert", TrimmedString(255)),
     Column("recommendation", TrimmedString(255)),
-    Column("ref_str", TrimmedString(255)),
-    Column("snp_priority", TrimmedString(255)))
+    Column("refstr", TrimmedString(255)),
+    Column("snppriority", TrimmedString(255)))
 
 
 Reef_table = Table("reef", metadata,
@@ -191,7 +202,154 @@ Taxonomy_table = Table("taxonomy", metadata,
     Column("genus_name", TrimmedString(255)))
 
 
+def nextval(migrate_engine, table, col='id'):
+    if migrate_engine.name in ['postgres', 'postgresql']:
+        return "nextval('%s_%s_seq')" % (table, col)
+    elif migrate_engine.name in ['mysql', 'sqlite']:
+        return "null"
+    else:
+        raise Exception('Unable to convert data for unknown database type: %s' % migrate_engine.name)
+
+
+def localtimestamp(migrate_engine):
+    if migrate_engine.name in ['mysql', 'postgres', 'postgresql']:
+        return "LOCALTIMESTAMP"
+    elif migrate_engine.name == 'sqlite':
+        return "current_date || ' ' || current_time"
+    else:
+        raise Exception('Unable to convert data for unknown database type: %s' % migrate_engine.name)
+
+
+def get_latest_id(migrate_engine, table):
+    result = migrate_engine.execute("select id from %s order by id desc" % table)
+    row = result.fetchone()
+    if row:
+        return row[0]
+    else:
+        raise Exception('Unable to get the latest id in the %s table.' % table)
+
+def load_probe_annotation_table(migrate_engine):
+    # Columns:
+    # probeset_id, affy_snp_id, chr_id, start, stop,
+    # strand, dbsnp_rs_id, dbsnp_loctype, in_hapmap, strand_vs_dbsnp,
+    # probe_count, cytoband, chrx_par, flank, allele_a,
+    # allele_b, ref_allele, alt_allele, associated_gene, genetic_map,
+    # microsatellite, heterozygous_allele_frequencies, allele_frequency_count, allele_frequencies, minor_allele,
+    # minor_allele_frequency, omim, biomedical, annotation_notes, allele_count,
+    # ordered_alleles, chrtype, custchr, custid, custpos,
+    # organism, pconvert, recommendation, refstr, snppriority
+    base_cmd = "INSERT INTO probe_annotation VALUES (%s, %s, %s, '%s', '%s', %s, %s, %s, '%s', '%s', %s, '%s', '%s', %s, '%s', %s, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')"
+
+    with open(PROBE_ANNOTATION_DATA_FILE, "r") as fh:
+        for i, line in enumerate(fh):
+            if i == 0:
+                # Skip the header.
+                continue
+            line = line.rstrip('\r\n')
+            items = line.split(",")
+            probeset_id = items[0]
+            affy_snp_id = items[1]
+            chr_id = items[2]
+            if len(chr_id) == 0:
+                chr_id = 0
+            start = items[3]
+            if len(start) == 0:
+                start = 0
+            stop = items[4]
+            if len(stop) == 0:
+                stop = 0
+            strand = items[5]
+            dbsnp_rs_id = items[6]
+            dbsnp_loctype = items[7]
+            if len(dbsnp_loctype) == 0:
+                dbsnp_loctype = 0
+            in_hapmap = items[8]
+            strand_vs_dbsnp = items[9]
+            probe_count = items[10]
+            if len(probe_count) == 0:
+                probe_count = 0
+            cytoband = items[11]
+            chrx_par = items[12]
+            if len(chrx_par) == 0:
+                chrx_par = 0
+            flank = items[13]
+            allele_a = items[14]
+            allele_b = items[15]
+            ref_allele = items[16]
+            alt_allele = items[17]
+            associated_gene = items[18]
+            genetic_map = items[19]
+            microsatellite = items[20]
+            heterozygous_allele_frequencies = items[21]
+            allele_frequency_count = items[22]
+            allele_frequencies = items[23]
+            minor_allele = items[24]
+            minor_allele_frequency = items[25]
+            omim = items[26]
+            biomedical = items[27]
+            annotation_notes = items[28]
+            allele_count = items[29]
+            ordered_alleles = items[30]
+            chrtype = items[31]
+            custchr = items[32]
+            custid = items[33]
+            custpos = items[34]
+            organism = items[35]
+            pconvert = items[36]
+            recommendation = items[37]
+            refstr = items[38]
+            snppriority = items[39]
+            cmd = base_cmd % (nextval(migrate_engine, 'probe_annotation'),
+                              localtimestamp(migrate_engine),
+                              localtimestamp(migrate_engine),
+                              probeset_id,
+                              affy_snp_id,
+                              chr_id,
+                              start,
+                              stop,
+                              strand,
+                              dbsnp_rs_id,
+                              dbsnp_loctype,
+                              in_hapmap,
+                              strand_vs_dbsnp,
+                              probe_count,
+                              cytoband,
+                              chrx_par,
+                              flank,
+                              allele_a,
+                              allele_b,
+                              ref_allele,
+                              alt_allele,
+                              associated_gene,
+                              genetic_map,
+                              microsatellite,
+                              heterozygous_allele_frequencies,
+                              allele_frequency_count,
+                              allele_frequencies,
+                              minor_allele,
+                              minor_allele_frequency,
+                              omim,
+                              biomedical,
+                              annotation_notes,
+                              allele_count,
+                              ordered_alleles,
+                              chrtype,
+                              custchr,
+                              custid,
+                              custpos,
+                              organism,
+                              pconvert,
+                              recommendation,
+                              refstr,
+                              snppriority)
+            migrate_engine.execute(cmd)
+    print("Inserted %d rows into the probe_annotation table." % i)
+
+def downgrade(migrate_engine):
+    pass
+
 def upgrade(migrate_engine):
     print(__doc__)
     metadata.bind = migrate_engine
     metadata.create_all()
+    load_probe_annotation_table(migrate_engine)
