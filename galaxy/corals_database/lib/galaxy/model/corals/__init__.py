@@ -263,52 +263,26 @@ class Person(Dictifiable):
 
 
 class Probe_annotation(Dictifiable):
-    dict_collection_visible_keys = ['id', 'probe_set_id', 'affy_snp_id', 'chr_id', 'start', 'stop',
-                                    'strand', 'dbsnp_rs_id', 'dbsnp_loctype', 'in_hapmap', 'strand_vs_dbsnp',
-                                    'probe_count', 'cytoband', 'chrx_par', 'flank', 'allele_a', 'allele_b',
-                                    'ref_allele', 'alt_allele', 'associated_gene', 'genetic_map',
-                                    'microsatellite', 'heterozygous_allele_frequencies', 'allele_frequency_count',
-                                    'allele_frequencies', 'minor_allele', 'minor_allele_frequency',
-                                    'omim', 'biomedical', 'annotation_notes', 'allele_count', 'ordered_alleles',
-                                    'chrtype', 'custchr', 'custid', 'custpos', 'organism', 'pconvert',
-                                    'recommendation', 'ref_str', 'snp_priority']
+    dict_collection_visible_keys = ['id', 'probe_set_id', 'affy_snp_id', 'chr_id', 'start',
+                                    'strand', 'flank', 'allele_a', 'allele_b', 'allele_frequencies',
+                                    'annotation_notes', 'allele_count', 'ordered_alleles', 'chrtype', 'custchr',
+                                    'custid', 'custpos', 'organism', 'pconvert', 'recommendation',
+                                    'ref_str', 'snp_priority']
 
-    def __init__(self, probe_set_id=None, affy_snp_id=None, chr_id=None, start=None, stop=None, strand=None,
-                 dbsnp_rs_id=None, dbsnp_loctype=None, in_hapmap=None, strand_vs_dbsnp=None, probe_count=None,
-                 cytoband=None, chrx_par=None, flank=None, allele_a=None, allele_b=None, ref_allele=None,
-                 alt_allele=None, associated_gene=None, genetic_map=None, microsatellite=None,
-                 heterozygous_allele_frequencies=None, allele_frequency_count=None, allele_frequencies=None,
-                 minor_allele=None, minor_allele_frequency=None, omim=None, biomedical=None, annotation_notes=None,
-                 allele_count=None, ordered_alleles=None, chrtype=None, custchr=None, custid=None, custpos=None,
-                 organism=None, pconvert=None, recommendation=None, ref_str=None, snp_priority=None):
+    def __init__(self, probe_set_id=None, affy_snp_id=None, chr_id=None, start=None,
+                 strand=None, flank=None, allele_a=None, allele_b=None, allele_frequencies=None,
+                 annotation_notes=None, allele_count=None, ordered_alleles=None, chrtype=None, custchr=None,
+                 custid=None, custpos=None, organism=None, pconvert=None, recommendation=None,
+                 ref_str=None, snp_priority=None):
         self.probe_set_id = probe_set_id
         self.affy_snp_id = affy_snp_id
         self.chr_id = chr_id
         self.start = start
-        self.stop = stop
         self.strand = strand
-        self.dbsnp_rs_id = dbsnp_rs_id
-        self.dbsnp_loctype = dbsnp_loctype
-        self.in_hapmap = in_hapmap
-        self.strand_vs_dbsnp = strand_vs_dbsnp
-        self.probe_count = probe_count
-        self.cytoband = cytoband
-        self.chrx_par = chrx_par
         self.flank = flank
         self.allele_a = allele_a
         self.allele_b = allele_b
-        self.ref_allele = ref_allele
-        self.alt_allele = alt_allele
-        self.associated_gene = associated_gene
-        self.genetic_map = genetic_map
-        self.microsatellite = microsatellite
-        self.heterozygous_allele_frequencies = heterozygous_allele_frequencies
-        self.allele_frequency_count = allele_frequency_count
         self.allele_frequencies = allele_frequencies
-        self.minor_allele = minor_allele
-        self.minor_allele_frequency = minor_allele_frequency
-        self.omim = omim
-        self.biomedical = biomedical
         self.annotation_notes = annotation_notes
         self.allele_count = allele_count
         self.ordered_alleles = ordered_alleles
@@ -378,11 +352,12 @@ class Reef(Dictifiable):
 class Sample(Dictifiable):
     dict_collection_visible_keys = ['id', 'sample_id', 'genotype_id', 'experiment_id',
         'colony_id', 'taxonomy_id', 'collector_id', 'collection_date', 'user_specimen_id',
-         'depth', 'dna_extraction_method', 'dna_concentration', 'duplicate_sample']
+         'depth', 'dna_extraction_method', 'dna_concentration', 'duplicate_sample', 'public']
 
     def __init__(self, sample_id=None, genotype_id=None, experiment_id=None, colony_id=None,
                  taxonomy_id=None, collector_id=None, collection_date=None, user_specimen_id=None,
-                 depth=None, dna_extraction_method=None, dna_concentration=None, duplicate_sample=None):
+                 depth=None, dna_extraction_method=None, dna_concentration=None, duplicate_sample=None,
+                 public=None):
         self.sample_id = sample_id
         self.genotype_id = genotype_id
         self.experiment_id = experiment_id
@@ -400,6 +375,7 @@ class Sample(Dictifiable):
         self.dna_concentration = dna_concentration
         # Indicate whether DNA from this colony or sample has been run before
         self.duplicate_sample = duplicate_sample
+        self.public = public
 
     def as_dict(self, value_mapper=None):
         return self.to_dict(view='element', value_mapper=value_mapper)
