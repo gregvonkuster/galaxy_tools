@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<tool id="averages_temperature_data" name="30 year averages temperature data" tool_type="data_source" version="1.0.0">
+    <description>for insect phenology model</description>
+    <command interpreter="python">data_source.py $output $__app__.config.output_size_limit</command>
+    <inputs action="http://www.pestwatch.psu.edu/ghcn/" check_values="false" method="get">
+        <display>go to PestWatch $GALAXY_URL</display>
+        <param name="GALAXY_URL" type="baseurl" value="/tool_runner" />
+        <param name="tool_id" type="hidden" value="ipm_temperature_data" />
+        <param name="hgta_compressionType" type="hidden" value="none" />
+        <param name="hgta_outputType" type="hidden" value="csv" />
+    </inputs>
+    <request_param_translation>
+        <request_param galaxy_name="URL_method" remote_name="URL_method" missing="post" />
+        <request_param galaxy_name="URL" remote_name="URL" missing=""/>
+        <param name="sendToGalaxy" type="hidden" value="1" />
+        <request_param galaxy_name="year" remote_name="year" missing="" />
+        <request_param galaxy_name="latitude" remote_name="lat" missing="" />
+        <request_param galaxy_name="longitude" remote_name="lon" missing="" />
+    </request_param_translation>
+    <uihints minwidth="800"/>
+    <outputs>
+        <data name="output" format="csv" label="${tool.name}"/>
+    </outputs>
+    <options sanitize="False" refresh="True"/>
+</tool>
