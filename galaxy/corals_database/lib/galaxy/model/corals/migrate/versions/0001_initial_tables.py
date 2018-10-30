@@ -96,6 +96,7 @@ Idx_annotation_table = Table("idx_annotation", metadata,
     Column("id", Integer, primary_key=True),
     Column("create_time", DateTime, default=now),
     Column("update_time", DateTime, default=now, onupdate=now),
+    Column("chip_version", TrimmedString(255)),
     Column("probe_set_id", TrimmedString(255)),
     Column("chr_id", Integer),
     Column("start", Integer),
@@ -172,7 +173,8 @@ Sample_table = Table("sample", metadata,
     Column("depth", Integer),
     Column("dna_extraction_method", TrimmedString(255)),
     Column("dna_concentration", Numeric(10, 5)),
-    Column("duplicate_sample", Boolean))
+    Column("duplicate_sample", Boolean),
+    Column("public", Boolean))
 
 
 Taxonomy_table = Table("taxonomy", metadata,
