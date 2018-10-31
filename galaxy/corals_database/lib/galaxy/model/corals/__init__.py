@@ -68,60 +68,6 @@ class Colony(Dictifiable):
         return rval
 
 
-class Coralvcf_allele(Dictifiable):
-    dict_collection_visible_keys = ['id', 'chr', 'pos', 'sample_id', 'ref', 'alt', 'qual', 'filter',
-        'ac', 'an', 'bqb', 'dp', 'hob', 'icb', 'idf', 'imf', 'indel', 'mq', 'mqof', 'mqb', 'mqsb',
-        'rpb', 'sgb', 'vdb']
-
-    def __init__(self, chr=None, pos=None, sample_id=None, ref=None, alt=None, qual=None,
-                 filter=None, ac=None, an=None, bqb=None, dp=None, hob=None, icb=None, idf=None,
-                 imf=None, indel=None, mq=None, mqof=None, mqb=None, mqsb=None, rpb=None, sgb=None,
-                 vdb=None):
-        self.chr = chr
-        self.pos = pos
-        self.sample_id = sample_id
-        self.ref = ref
-        self.alt = alt
-        self.qual = qual
-        self.filter = filter
-        self.ac = ac
-        self.an = an
-        self.bqb = bqb
-        self.dp = dp
-        self.hob = hob
-        self.icb = icb
-        self.idf = idf
-        self.imf = imf
-        self.indel = indel
-        self.mq = mq
-        self.mqof = mqof
-        self.mqb = mqb
-        self.mqsb = mqsb
-        self.rpb = rpb
-        self.sgb = sgb
-        self.vdb = vdb
-
-    def as_dict(self, value_mapper=None):
-        return self.to_dict(view='element', value_mapper=value_mapper)
-
-    def to_dict(self, view='collection', value_mapper=None):
-        if value_mapper is None:
-            value_mapper = {}
-        rval = {}
-        try:
-            visible_keys = self.__getattribute__('dict_' + view + '_visible_keys')
-        except AttributeError:
-            raise Exception('Unknown API view: %s' % view)
-        for key in visible_keys:
-            try:
-                rval[key] = self.__getattribute__(key)
-                if key in value_mapper:
-                    rval[key] = value_mapper.get(key, rval[key])
-            except AttributeError:
-                rval[key] = None
-        return rval
-
-
 class Experiment(Dictifiable):
     dict_collection_visible_keys = ['id', 'seq_facility', 'array_version', 'data_sharing', 'data_hold']
 
@@ -168,48 +114,6 @@ class Genotype(Dictifiable):
         self.percent_apalm = percent_apalm
         self.percent_acerv = percent_acerv
         self.percent_mixed = percent_mixed
-
-    def as_dict(self, value_mapper=None):
-        return self.to_dict(view='element', value_mapper=value_mapper)
-
-    def to_dict(self, view='collection', value_mapper=None):
-        if value_mapper is None:
-            value_mapper = {}
-        rval = {}
-        try:
-            visible_keys = self.__getattribute__('dict_' + view + '_visible_keys')
-        except AttributeError:
-            raise Exception('Unknown API view: %s' % view)
-        for key in visible_keys:
-            try:
-                rval[key] = self.__getattribute__(key)
-                if key in value_mapper:
-                    rval[key] = value_mapper.get(key, rval[key])
-            except AttributeError:
-                rval[key] = None
-        return rval
-
-
-class Idx_annotation(Dictifiable):
-    dict_collection_visible_keys = ['id', 'probe_set_id', 'chr_id', 'start', 'stop', 'strand',
-                                    'dbsnp_rs_id', 'strand_vs_dbsnp', 'probe_count', 'cytoband',
-                                    'chrx_par', 'allele_a', 'allele_b']
-
-    def __init__(self, probe_set_id=None, chr_id=None, start=None, stop=None, strand=None,
-                 dbsnp_rs_id=None, strand_vs_dbsnp=None, probe_count=None, cytoband=None,
-                 chrx_par=None, allele_a=None, allele_b=None):
-        self.probe_set_id = probe_set_id
-        self.chr_id = chr_id
-        self.start = start
-        self.stop = stop
-        self.strand = strand
-        self.dbsnp_rs_id = dbsnp_rs_id
-        self.strand_vs_dbsnp = strand_vs_dbsnp
-        self.probe_count = probe_count
-        self.cytoband = cytoband
-        self.chrx_par = chrx_par
-        self.allele_a = allele_a
-        self.allele_b = allele_b
 
     def as_dict(self, value_mapper=None):
         return self.to_dict(view='element', value_mapper=value_mapper)

@@ -63,34 +63,6 @@ corals_model.Colony.table = Table("colony", metadata,
     Column("depth", Integer),
     Column("reef_id", Integer, ForeignKey("reef.id"), index=True))
 
-corals_model.Coralvcf_allele.table = Table("coralvcf_allele", metadata,
-    Column("id", Integer, primary_key=True),
-    Column("create_time", DateTime, default=now),
-    Column("update_time", DateTime, default=now, onupdate=now),
-    Column("chr", TrimmedString(255)),
-    Column("pos", Integer),
-    Column("sample_id", ForeignKey("sample.id"), index=True),
-    Column("ref", TrimmedString(255)),
-    Column("alt", TrimmedString(255)),
-    Column("qual", Numeric(10, 5)),
-    Column("filter", TrimmedString(255)),
-    Column("ac", Integer),
-    Column("an", Integer),
-    Column("bqb", Numeric(10, 5)),
-    Column("dp", Integer),
-    Column("hob", Numeric(10, 5)),
-    Column("icb", Numeric(10, 5)),
-    Column("idf", Integer),
-    Column("imf", Numeric(10, 5)),
-    Column("indel", Boolean),
-    Column("mq", Integer),
-    Column("mqof", Numeric(10, 5)),
-    Column("mqb", Numeric(10, 5)),
-    Column("mqsb", Numeric(10, 5)),
-    Column("rpb", Numeric(10, 5)),
-    Column("sgb", Numeric(10, 5)),
-    Column("vdb", Numeric(10, 5)))
-
 corals_model.Experiment.table = Table("experiment", metadata,
     Column("id", Integer, primary_key=True),
     Column("create_time", DateTime, default=now),
@@ -111,24 +83,6 @@ corals_model.Genotype.table = Table("genotype", metadata,
     Column("percent_apalm", Numeric(10, 5)),
     Column("percent_acerv", Numeric(10, 5)),
     Column("percent_mixed", Numeric(10, 5)))
-
-corals_model.Idx_annotation.table = Table("idx_annotation", metadata,
-    Column("id", Integer, primary_key=True),
-    Column("create_time", DateTime, default=now),
-    Column("update_time", DateTime, default=now, onupdate=now),
-    Column("chip_version", TrimmedString(255)),
-    Column("probe_set_id", TrimmedString(255)),
-    Column("chr_id", Integer),
-    Column("start", Integer),
-    Column("stop", Integer),
-    Column("strand", TrimmedString(255)),
-    Column("dbsnp_rs_id", TrimmedString(255)),
-    Column("strand_vs_dbsnp", TrimmedString(255)),
-    Column("probe_count", Integer),
-    Column("cytoband", TrimmedString(255)),
-    Column("chrx_par", Integer),
-    Column("allele_a", TrimmedString(255)),
-    Column("allele_b", TrimmedString(255)))
 
 corals_model.Person.table = Table("person", metadata,
     Column("id", Integer, primary_key=True),
@@ -213,17 +167,9 @@ mapper(corals_model.Colony, corals_model.Colony.table, properties=dict(
                   backref="colonies",
                   primaryjoin=(corals_model.Colony.table.c.reef_id == corals_model.Reef.table.c.id))))
 
-mapper(corals_model.Coralvcf_allele, corals_model.Coralvcf_allele.table, properties=dict(
-    sample=relation(corals_model.Sample,
-                  lazy=False,
-                  backref="coralvcf_alleles",
-                  primaryjoin=(corals_model.Coralvcf_allele.table.c.sample_id == corals_model.Sample.table.c.id))))
-
 mapper(corals_model.Experiment, corals_model.Experiment.table, properties=None)
 
 mapper(corals_model.Genotype, corals_model.Genotype.table, properties=None)
-
-mapper(corals_model.Idx_annotation, corals_model.Idx_annotation.table, properties=None)
 
 mapper(corals_model.Person, corals_model.Person.table, properties=None)
 

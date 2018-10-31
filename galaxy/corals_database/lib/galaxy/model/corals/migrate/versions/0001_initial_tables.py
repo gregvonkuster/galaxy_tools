@@ -40,35 +40,6 @@ Colony_table = Table("colony", metadata,
     Column("reef_id", Integer, ForeignKey("reef.id"), index=True))
 
 
-Coralvcf_allele_table = Table("coralvcf_allele", metadata,
-    Column("id", Integer, primary_key=True),
-    Column("create_time", DateTime, default=now),
-    Column("update_time", DateTime, default=now, onupdate=now),
-    Column("chr", TrimmedString(255)),
-    Column("pos", Integer),
-    Column("sample_id", ForeignKey("sample.id"), index=True),
-    Column("ref", TrimmedString(255)),
-    Column("alt", TrimmedString(255)),
-    Column("qual", Numeric(10, 5)),
-    Column("filter", TrimmedString(255)),
-    Column("ac", Integer),
-    Column("an", Integer),
-    Column("bqb", Numeric(10, 5)),
-    Column("dp", Integer),
-    Column("hob", Numeric(10, 5)),
-    Column("icb", Numeric(10, 5)),
-    Column("idf", Integer),
-    Column("imf", Numeric(10, 5)),
-    Column("indel", Boolean),
-    Column("mq", Integer),
-    Column("mqof", Numeric(10, 5)),
-    Column("mqb", Numeric(10, 5)),
-    Column("mqsb", Numeric(10, 5)),
-    Column("rpb", Numeric(10, 5)),
-    Column("sgb", Numeric(10, 5)),
-    Column("vdb", Numeric(10, 5)))
-
-
 Experiment_table = Table("experiment", metadata,
     Column("id", Integer, primary_key=True),
     Column("create_time", DateTime, default=now),
@@ -90,25 +61,6 @@ Genotype_table = Table("genotype", metadata,
     Column("percent_apalm", Numeric(10, 5)),
     Column("percent_acerv", Numeric(10, 5)),
     Column("percent_mixed", Numeric(10, 5)))
-
-
-Idx_annotation_table = Table("idx_annotation", metadata,
-    Column("id", Integer, primary_key=True),
-    Column("create_time", DateTime, default=now),
-    Column("update_time", DateTime, default=now, onupdate=now),
-    Column("chip_version", TrimmedString(255)),
-    Column("probe_set_id", TrimmedString(255)),
-    Column("chr_id", Integer),
-    Column("start", Integer),
-    Column("stop", Integer),
-    Column("strand", TrimmedString(255)),
-    Column("dbsnp_rs_id", TrimmedString(255)),
-    Column("strand_vs_dbsnp", TrimmedString(255)),
-    Column("probe_count", Integer),
-    Column("cytoband", TrimmedString(255)),
-    Column("chrx_par", Integer),
-    Column("allele_a", TrimmedString(255)),
-    Column("allele_b", TrimmedString(255)))
 
 
 Person_table = Table("person", metadata,
