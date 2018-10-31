@@ -1,0 +1,32 @@
+<tool id="genotype_population_info" name="Generate genotype population info" version="1.0.0">
+    <description>from VCF</description>
+    <command detect_errors="exit_code"><![CDATA[
+python '$__tool_directory__/genotype_population_info.py'
+--database_connection_string '$__app__.config.corals_database_connection'
+--input_vcf '$input_vcf'
+--output '$output']]></command>
+    <inputs>
+        <param name="input_vcf" type="data" format="vcf" label="VCF file"/>
+    </inputs>
+    <outputs>
+        <data name="output" format="tabular"/>
+    </outputs>
+    <tests>
+        <test>
+            <param name="input_vcf" value="baitssnv.recode.vcf" ftype="vcf"/>
+            <output name="output" file="output.tabular" ftype="tabular"/>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+Generates a file that contains the genotype population information that can be used as input
+to the multilocus_genotype tool.  This tool can be used only within a Galaxy instance which
+includes the complementaty stag database.
+-----
+
+**Required options**
+    </help>
+    <citations>
+    </citations>
+</tool>
