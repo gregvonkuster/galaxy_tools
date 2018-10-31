@@ -63,6 +63,12 @@ corals_model.Colony.table = Table("colony", metadata,
     Column("depth", Integer),
     Column("reef_id", Integer, ForeignKey("reef.id"), index=True))
 
+corals_model.Colony_location.table = Table("colony_location", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("create_time", DateTime, default=now),
+    Column("update_time", DateTime, default=now, onupdate=now),
+    Column("location", TrimmedString(255)))
+
 corals_model.Experiment.table = Table("experiment", metadata,
     Column("id", Integer, primary_key=True),
     Column("create_time", DateTime, default=now),
@@ -71,6 +77,12 @@ corals_model.Experiment.table = Table("experiment", metadata,
     Column("array_version", TrimmedString(255)),
     Column("data_sharing", TrimmedString(255)),
     Column("data_hold", TrimmedString(255)))
+
+corals_model.Fragment.table = Table("fragment", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("create_time", DateTime, default=now),
+    Column("update_time", DateTime, default=now, onupdate=now),
+    Column("colony_id", Integer, ForeignKey("colony.id"), index=True))
 
 corals_model.Genotype.table = Table("genotype", metadata,
     Column("id", Integer, primary_key=True),
@@ -116,8 +128,8 @@ corals_model.Probe_annotation.table = Table("probe_annotation", metadata,
     Column("organism", TrimmedString(255)),
     Column("pconvert", TrimmedString(255)),
     Column("recommendation", TrimmedString(255)),
-    Column("ref_str", TrimmedString(255)),
-    Column("snp_priority", TrimmedString(255)))
+    Column("refstr", TrimmedString(255)),
+    Column("snppriority", TrimmedString(255)))
 
 corals_model.Reef.table = Table("reef", metadata,
     Column("id", Integer, primary_key=True),
@@ -136,6 +148,8 @@ corals_model.Sample.table = Table("sample", metadata,
     Column("genotype_id", Integer, ForeignKey("genotype.id"), index=True),
     Column("experiment_id", Integer, ForeignKey("experiment.id"), index=True),
     Column("colony_id", Integer, ForeignKey("colony.id"), index=True),
+    Column("colony_location_id", Integer, ForeignKey("colony_location.id"), index=True),
+    Column("fragment_id", Integer, ForeignKey("fragment.id"), index=True),
     Column("taxonomy_id", Integer, ForeignKey("taxonomy.id"), index=True),
     Column("collector_id", Integer, ForeignKey("collector.id"), index=True),
     Column("collection_date", DateTime),
@@ -143,7 +157,6 @@ corals_model.Sample.table = Table("sample", metadata,
     Column("depth", Integer),
     Column("dna_extraction_method", TrimmedString(255)),
     Column("dna_concentration", Numeric(10, 5)),
-    Column("duplicate_sample", Boolean),
     Column("public", Boolean))
 
 corals_model.Taxonomy.table = Table("taxonomy", metadata,
@@ -167,7 +180,15 @@ mapper(corals_model.Colony, corals_model.Colony.table, properties=dict(
                   backref="colonies",
                   primaryjoin=(corals_model.Colony.table.c.reef_id == corals_model.Reef.table.c.id))))
 
+mapper(corals_model.Colony_location, corals_model.Colony_location.table, properties=None)
+
 mapper(corals_model.Experiment, corals_model.Experiment.table, properties=None)
+
+mapper(corals_model.Fragment, corals_model.Fragment.table, properties=dict(
+    colony=relation(corals_model.Colony,
+                    lazy=False,
+                    backref="fragments",
+                    primaryjoin=(corals_model.Fragment.table.c.colony_id == corals_model.Colony.table.c.id)))
 
 mapper(corals_model.Genotype, corals_model.Genotype.table, properties=None)
 
@@ -186,10 +207,17 @@ mapper(corals_model.Sample, corals_model.Sample.table, properties=dict(
                         lazy=False,
                         backref="samples",
                         primaryjoin=(corals_model.Sample.table.c.experiment_id == corals_model.Experiment.table.c.id)),
+    fragment=relation(corals_model.Fragment,
+                        lazy=False,
+                        backref="samples",
+                        primaryjoin=(corals_model.Sample.table.c.fragment_id == corals_model.Fragment.table.c.id)),
     colony=relation(corals_model.Colony,
                     lazy=False,
                     backref="matching_samples",
                     primaryjoin=(corals_model.Sample.table.c.colony_id == corals_model.Colony.table.c.id)),
+    colony_location=relation(corals_model.Colony_location,
+                    lazy=False,
+                    primaryjoin=(corals_model.Sample.table.c.colony_location_id == corals_model.Colony_location.table.c.id)),
     taxonomy=relation(corals_model.Taxonomy,
                       lazy=False,
                       backref="samples",

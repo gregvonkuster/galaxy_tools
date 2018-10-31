@@ -68,6 +68,33 @@ class Colony(Dictifiable):
         return rval
 
 
+class Colony_location(Dictifiable):
+    dict_collection_visible_keys = ['id', 'location']
+
+    def __init__(self, location=None):
+        self.location = location
+
+    def as_dict(self, value_mapper=None):
+        return self.to_dict(view='element', value_mapper=value_mapper)
+
+    def to_dict(self, view='collection', value_mapper=None):
+        if value_mapper is None:
+            value_mapper = {}
+        rval = {}
+        try:
+            visible_keys = self.__getattribute__('dict_' + view + '_visible_keys')
+        except AttributeError:
+            raise Exception('Unknown API view: %s' % view)
+        for key in visible_keys:
+            try:
+                rval[key] = self.__getattribute__(key)
+                if key in value_mapper:
+                    rval[key] = value_mapper.get(key, rval[key])
+            except AttributeError:
+                rval[key] = None
+        return rval
+
+
 class Experiment(Dictifiable):
     dict_collection_visible_keys = ['id', 'seq_facility', 'array_version', 'data_sharing', 'data_hold']
 
@@ -77,6 +104,33 @@ class Experiment(Dictifiable):
         self.array_version = array_version
         self.data_sharing = data_sharing
         self.data_hold = data_hold
+
+    def as_dict(self, value_mapper=None):
+        return self.to_dict(view='element', value_mapper=value_mapper)
+
+    def to_dict(self, view='collection', value_mapper=None):
+        if value_mapper is None:
+            value_mapper = {}
+        rval = {}
+        try:
+            visible_keys = self.__getattribute__('dict_' + view + '_visible_keys')
+        except AttributeError:
+            raise Exception('Unknown API view: %s' % view)
+        for key in visible_keys:
+            try:
+                rval[key] = self.__getattribute__(key)
+                if key in value_mapper:
+                    rval[key] = value_mapper.get(key, rval[key])
+            except AttributeError:
+                rval[key] = None
+        return rval
+
+
+class Fragment(Dictifiable):
+    dict_collection_visible_keys = ['id', 'colony_id']
+
+    def __init__(self, colony_id=None):
+        self.colony_id = colony_id
 
     def as_dict(self, value_mapper=None):
         return self.to_dict(view='element', value_mapper=value_mapper)
@@ -171,13 +225,13 @@ class Probe_annotation(Dictifiable):
                                     'strand', 'flank', 'allele_a', 'allele_b', 'allele_frequencies',
                                     'annotation_notes', 'allele_count', 'ordered_alleles', 'chrtype', 'custchr',
                                     'custid', 'custpos', 'organism', 'pconvert', 'recommendation',
-                                    'ref_str', 'snp_priority']
+                                    'refstr', 'snppriority']
 
     def __init__(self, probe_set_id=None, affy_snp_id=None, chr_id=None, start=None,
                  strand=None, flank=None, allele_a=None, allele_b=None, allele_frequencies=None,
                  annotation_notes=None, allele_count=None, ordered_alleles=None, chrtype=None, custchr=None,
                  custid=None, custpos=None, organism=None, pconvert=None, recommendation=None,
-                 ref_str=None, snp_priority=None):
+                 refstr=None, snppriority=None):
         self.probe_set_id = probe_set_id
         self.affy_snp_id = affy_snp_id
         self.chr_id = chr_id
@@ -197,8 +251,8 @@ class Probe_annotation(Dictifiable):
         self.organism = organism
         self.pconvert = pconvert
         self.recommendation = recommendation
-        self.ref_str = ref_str
-        self.snp_priority = snp_priority
+        self.refstr = refstr
+        self.snppriority = snppriority
 
     def as_dict(self, value_mapper=None):
         return self.to_dict(view='element', value_mapper=value_mapper)
@@ -255,17 +309,20 @@ class Reef(Dictifiable):
 
 class Sample(Dictifiable):
     dict_collection_visible_keys = ['id', 'sample_id', 'genotype_id', 'experiment_id',
-        'colony_id', 'taxonomy_id', 'collector_id', 'collection_date', 'user_specimen_id',
-         'depth', 'dna_extraction_method', 'dna_concentration', 'duplicate_sample', 'public']
+        'colony_id', 'colony_location_id', 'fragment_id', 'taxonomy_id', 'collector_id',
+        'collection_date', 'user_specimen_id', 'depth', 'dna_extraction_method',
+        'dna_concentration', 'public']
 
     def __init__(self, sample_id=None, genotype_id=None, experiment_id=None, colony_id=None,
-                 taxonomy_id=None, collector_id=None, collection_date=None, user_specimen_id=None,
-                 depth=None, dna_extraction_method=None, dna_concentration=None, duplicate_sample=None,
-                 public=None):
+                 colony_location_id=None, fragment_id=None, taxonomy_id=None, collector_id=None,
+                 collection_date=None, user_specimen_id=None, depth=None, dna_extraction_method=None,
+                 dna_concentration=None, duplicate_sample=None, public=None):
         self.sample_id = sample_id
         self.genotype_id = genotype_id
         self.experiment_id = experiment_id
         self.colony_id = colony_id
+        self.colony_location_id = colony_location_id
+        self.fragment_id = fragment_id
         self.taxonomy_id = taxonomy_id
         self.collector_id = collector_id
         self.collection_date = collection_date
@@ -277,8 +334,6 @@ class Sample(Dictifiable):
         self.dna_extraction_method = dna_extraction_method
         # DNA concentration in ug.
         self.dna_concentration = dna_concentration
-        # Indicate whether DNA from this colony or sample has been run before
-        self.duplicate_sample = duplicate_sample
         self.public = public
 
     def as_dict(self, value_mapper=None):

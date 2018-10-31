@@ -40,6 +40,13 @@ Colony_table = Table("colony", metadata,
     Column("reef_id", Integer, ForeignKey("reef.id"), index=True))
 
 
+Colony_location_table = Table("colony_location", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("create_time", DateTime, default=now),
+    Column("update_time", DateTime, default=now, onupdate=now),
+    Column("location", TrimmedString(255)))
+
+
 Experiment_table = Table("experiment", metadata,
     Column("id", Integer, primary_key=True),
     Column("create_time", DateTime, default=now),
@@ -48,6 +55,13 @@ Experiment_table = Table("experiment", metadata,
     Column("array_version", TrimmedString(255)),
     Column("data_sharing", TrimmedString(255)),
     Column("data_hold", TrimmedString(255)))
+
+
+Fragment_table = Table("fragment", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("create_time", DateTime, default=now),
+    Column("update_time", DateTime, default=now, onupdate=now),
+    Column("colony_id", Integer, ForeignKey("colony.id"), index=True))
 
 
 Genotype_table = Table("genotype", metadata,
@@ -118,6 +132,8 @@ Sample_table = Table("sample", metadata,
     Column("genotype_id", Integer, ForeignKey("genotype.id"), index=True),
     Column("experiment_id", Integer, ForeignKey("experiment.id"), index=True),
     Column("colony_id", Integer, ForeignKey("colony.id"), index=True),
+    Column("colony_location_id", Integer, ForeignKey("colony_location.id"), index=True),
+    Column("fragment_id", Integer, ForeignKey("fragment.id"), index=True),
     Column("taxonomy_id", Integer, ForeignKey("taxonomy.id"), index=True),
     Column("collector_id", Integer, ForeignKey("collector.id"), index=True),
     Column("collection_date", DateTime),
@@ -125,7 +141,6 @@ Sample_table = Table("sample", metadata,
     Column("depth", Integer),
     Column("dna_extraction_method", TrimmedString(255)),
     Column("dna_concentration", Numeric(10, 5)),
-    Column("duplicate_sample", Boolean),
     Column("public", Boolean))
 
 
