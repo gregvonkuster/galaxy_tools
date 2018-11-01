@@ -1,0 +1,25 @@
+<macros>
+    <token name="@WRAPPER_VERSION@">1.9</token>
+    <xml name="citation1">
+        <citation type="doi">10.1093/bioinformatics/btp352</citation>
+    </xml>
+    <token name="@PREPARE_ENV@">
+<![CDATA[
+export BCFTOOLS_PLUGINS=\$(dirname `which bcftools`)/../libexec/bcftools;
+]]>
+    </token>
+    <token name="@THREADS@">
+        --threads \${GALAXY_SLOTS:-4}
+    </token>
+    <xml name="vcf_output">
+        <data name="output" format="vcf">
+            <change_format>
+                <when input="output_type" value="b" format="bcf" />
+                <when input="output_type" value="u" format="bcf" />
+                <when input="output_type" value="z" format="vcf_bgzip" />
+                <when input="output_type" value="v" format="vcf" />
+            </change_format>
+        </data>
+    </xml>
+</macros>
+

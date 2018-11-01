@@ -1,11 +1,14 @@
-<tool id="affr2vcf" name="Convert Affymetrix" version="1.9">
+<tool id="affr2vcf" name="Convert Affymetrix" version="@WRAPPER_VERSION@">
     <description>genotype calls and intensities to VCF</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
     <requirements>
         <requirement type="package" version="1.9">bcftools-gtc2vcf-plugin</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
+@PREPARE_ENV@
 #set text_outputs_dir = 'text_outputs'
-export BCFTOOLS_PLUGINS=\$(dirname `which bcftools`)/../libexec/bcftools &&
 mkdir $text_outputs_dir &&
 bcftools +\$BCFTOOLS_PLUGINS/affy2vcf.so
 #if str($reference_genome_source_cond.reference_genome_source) == "history":
@@ -27,7 +30,7 @@ bcftools +\$BCFTOOLS_PLUGINS/affy2vcf.so
 #end if
 --output '$output'
 --output-type $output_type
---threads \${GALAXY_SLOTS:-4}
+@THREADS@
     ]]></command>
     <inputs>
         <param name="annot" type="data" format="csv" label="Probeset annotation file" />
@@ -76,7 +79,7 @@ bcftools +\$BCFTOOLS_PLUGINS/affy2vcf.so
         </param>
     </inputs>
     <outputs>
-        <data name="output" format="vcf" />
+        <expand macro="vcf_output"/>
         <data name="output_gender_estimate" format="txt" label="${tool.name} (gender estimate) on ${on_string}">
             <filter>output_gender_estimate_cond['output_gender_estimate'] == "yes"</filter>
         </data>
@@ -116,6 +119,7 @@ This tool converts Affymetrix genotype calls and intensity files to VCF format.
  * **Select format for output** - select one of uncompressed/compressed VCF/BCF.
     </help>
     <citations>
+        <expand macro="citation1"/>
         <citation type="bibtex">
             @misc{None,
             journal = {None},
