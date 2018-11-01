@@ -1,0 +1,11 @@
+name: bcftools_sort
+owner: greg
+description: |
+  Contains a tool that sorts VCF/BCF files
+homepage_url: https://samtools.github.io/bcftools/bcftools.html
+long_description: |
+  Contains a tool that sorts VCF/BCF files
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/corals/bcftools_sort
+type: unrestricted
+categories:
+  - Sequence Analysis

@@ -1,0 +1,92 @@
+<macros>
+  <token name="@VERSION@">1.4.0</token>
+  <xml name="requirements">
+    <requirements>
+      <requirement type="package" version="1.9">bcftools</requirement>
+      <requirement type="package" version="1.9">htslib</requirement>
+      <yield />
+    </requirements>
+  </xml>
+  <xml name="citations">
+    <citations>
+      <citation type="doi">10.1093/bioinformatics/btp352</citation>
+      <yield />
+    </citations>
+  </xml>
+  <token name="@THREADS@">
+  --threads \${GALAXY_SLOTS:-4}
+  </token>
+  <token name="@PREPARE_ENV@">
+<![CDATA[
+export BCFTOOLS_PLUGINS=`which bcftools | sed 's,bin/bcftools,libexec/bcftools,'`;
+]]>
+  </token>
+  <xml name="macro_input">
+    <param name="input_file" type="data" format="vcf,vcf_bgzip,bcf,bcf_bgzip" label="VCF/BCF Data" />
+  </xml>
+  <token name="@PREPARE_INPUT_FILE@">
+<![CDATA[
+## May need to symlink input if there is an associated
+#set $input_vcf = 'input.vcf.gz'
+#if $input_file.is_of_type('vcf')
+  bgzip -c '$input_file' > $input_vcf &&
+  bcftools index $input_vcf &&
+#elif $input_file.is_of_type('vcf_bgzip')
+  ln -s '$input_file' $input_vcf &&
+#elif $input_file.is_of_type('bcf')
+  #set $input_vcf = 'input.bcf'
+  ln -s '$input_file' $input_vcf &&
+  #if $input_file.metadata.bcf_index:
+    ln -s '${input_file.metadata.bcf_index}' ${input_vcf}.csi &&
+  #else
+    bcftools index $input_vcf &&
+  #end if
+#elif $input_file.is_of_type('bcf_bgzip')
+  ln -s '$input_file' $input_vcf &&
+#end if
+]]>
+  </token>
+  <token name="@INPUT_FILE@">
+$input_vcf
+  </token>
+  <xml name="macro_select_output_type">
+    <param name="output_type" type="select">
+      <option value="b">compressed BCF</option>
+      <option value="u">uncompressed BCF</option>
+      <option value="z">compressed VCF</option>
+      <option value="v">uncompressed VCF</option>
+    </param>
+  </xml>
+  <token name="@OUTPUT_TYPE@">
+#if str($output_type) != "__none__":
+  --output-type '${output_type}'
+#end if
+  </token>
+
+  <xml name="macro_vcf_output">
+      <data name="output_file" format="vcf">
+        <change_format>
+          <when input="output_type" value="b" format="bcf" />
+          <when input="output_type" value="u" format="bcf" />
+          <when input="output_type" value="z" format="vcf_bgzip" />
+          <when input="output_type" value="v" format="vcf" />
+        </change_format>
+      </data>
+  </xml>
+
+  <token name="@OUTPUT_HELP@">
+      <![CDATA[
+Output Type
+-----------
+
+Output compressed BCF (b), or uncompressed VCF (v).
+Use the BCF option when piping between bcftools subcommands to speed up
+performance by removing unecessary compression/decompression
+and VCF<->BCF conversion.
+
+This Galaxy tool recommends using the compressed BCF format
+as piping is not implemented, and uncompressed data would
+use unnecessary amounts of space.
+  ]]></token>
+</macros>
+

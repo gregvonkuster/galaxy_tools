@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='utf-8'?>
+<tool name="bcftools @EXECUTABLE@" id="bcftools_@EXECUTABLE@" version="@VERSION@">
+    <description>sort VCF/BCF files</description>
+    <macros>
+        <token name="@EXECUTABLE@">sort</token>
+        <import>macros.xml</import>
+    </macros>
+    <expand macro="requirements"/>
+    <command detect_errors="exit_code"><![CDATA[
+@PREPARE_ENV@
+@PREPARE_INPUT_FILE@
+#set temp_dir = 'tmp'
+mkdir $temp_dir &&
+bcftools @EXECUTABLE@
+@INPUT_FILE@
+--output-file '$output_file'
+@OUTPUT_TYPE@
+--temp-dir '$temp_dir'
+]]>
+    </command>
+    <inputs>
+        <expand macro="macro_input"/>
+        <expand macro="macro_select_output_type"/>
+    </inputs>
+    <outputs>
+        <expand macro="macro_vcf_output"/>
+    </outputs>
+    <tests>
+        <test>
+            <param name="input_file" value="unsorted.vcf" ftype="vcf"/>
+            <param name="output_type" value="v"/>
+            <output name="output_file" file="sorted.vcf" ftype="vcf"/>
+        </test>
+    </tests>
+    <help><![CDATA[
+=====================================
+ bcftools @EXECUTABLE@
+=====================================
+
+Sort VCF/BCF files.
+
+@BCFTOOLS_MANPAGE@#@EXECUTABLE@
+
+@BCFTOOLS_WIKI@
+]]>
+    </help>
+    <expand macro="citations"/>
+</tool>
