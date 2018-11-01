@@ -188,7 +188,7 @@ mapper(corals_model.Fragment, corals_model.Fragment.table, properties=dict(
     colony=relation(corals_model.Colony,
                     lazy=False,
                     backref="fragments",
-                    primaryjoin=(corals_model.Fragment.table.c.colony_id == corals_model.Colony.table.c.id)))
+                    primaryjoin=(corals_model.Fragment.table.c.colony_id == corals_model.Colony.table.c.id))))
 
 mapper(corals_model.Genotype, corals_model.Genotype.table, properties=None)
 
