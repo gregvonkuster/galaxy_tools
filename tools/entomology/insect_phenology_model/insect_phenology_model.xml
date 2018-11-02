@@ -84,7 +84,7 @@ fi]]></command>
         <param name="replications" type="integer" value="10" min="2" label="Number of replications"/>
         <param name="insects_per_replication" type="integer" value="1000" min="1" label="Number of insects with which to start each replication"/>
         <param name="photoperiod" type="float" value="13.5" min="0" label="Critical photoperiod for diapause induction/termination"/>
-        <param name="egg_mortality" type="float" value="1" min="0" max="1" label="Adjustment rate for egg mortality"/>
+        <param name="egg_mortality" type="float" value="1" min="0" max="1" label="Adjustment rate for egg mortality" help="Floating point value between 0 and 1"/>
         <param name="nymph_mortality" type="float" value="1" min="0" label="Adjustment rate for nymph mortality"/>
         <param name="adult_mortality" type="float" value="1" min="0" label="Adjustment rate for adult mortality"/>
         <param name="oviposition" type="float" value="1" min="0" label="Adjustment oviposition rate"/>
