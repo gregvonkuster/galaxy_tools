@@ -5,7 +5,7 @@
     <inputs action="http://www.pestwatch.psu.edu/ghcn/" check_values="false" method="get">
         <display>go to PestWatch $GALAXY_URL</display>
         <param name="GALAXY_URL" type="baseurl" value="/tool_runner" />
-        <param name="tool_id" type="hidden" value="ipm_temperature_data" />
+        <param name="tool_id" type="hidden" value="averages_temperature_data" />
         <param name="hgta_compressionType" type="hidden" value="none" />
         <param name="hgta_outputType" type="hidden" value="csv" />
     </inputs>

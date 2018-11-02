@@ -1,4 +1,4 @@
-<tool id="insect_phenology_model" name="Insect phenology model" version="1.1.0">
+<tool id="insect_phenology_model" name="Insect phenology model" version="1.2.0">
     <description>expressing stage-specific phenology and population dynamics</description>
     <requirements>
         <requirement type="package" version="1.4.4">r-optparse</requirement>
@@ -84,15 +84,15 @@ fi]]></command>
         <param name="replications" type="integer" value="10" min="2" label="Number of replications"/>
         <param name="insects_per_replication" type="integer" value="1000" min="1" label="Number of insects with which to start each replication"/>
         <param name="photoperiod" type="float" value="13.5" min="0" label="Critical photoperiod for diapause induction/termination"/>
-        <param name="egg_mortality" type="integer" value="1" min="0" label="Adjustment rate for egg mortality"/>
-        <param name="nymph_mortality" type="integer" value="1" min="0" label="Adjustment rate for nymph mortality"/>
-        <param name="adult_mortality" type="integer" value="1" min="0" label="Adjustment rate for adult mortality"/>
-        <param name="oviposition" type="integer" value="1" min="0" label="Adjustment oviposition rate"/>
-        <param name="min_clutch_size" type="integer" value="0" min="0" label="Adjustment of minimum clutch size"/>
-        <param name="max_clutch_size" type="integer" value="0" min="0" label="Adjustment of maximum clutch size"/>
-        <param name="young_nymph_accumulation" type="integer" value="0" min="0" label="Adjustment of degree-days accumulation (egg->young nymph)"/>
-        <param name="old_nymph_accumulation" type="integer" value="0" min="0" label="Adjustment of degree-days accumulation (young nymph->old nymph)"/>
-        <param name="adult_accumulation" type="integer" value="0" min="0" label="Adjustment of degree-days accumulation (old nymph->adult)"/>
+        <param name="egg_mortality" type="float" value="1" min="0" max="1" label="Adjustment rate for egg mortality"/>
+        <param name="nymph_mortality" type="float" value="1" min="0" label="Adjustment rate for nymph mortality"/>
+        <param name="adult_mortality" type="float" value="1" min="0" label="Adjustment rate for adult mortality"/>
+        <param name="oviposition" type="float" value="1" min="0" label="Adjustment oviposition rate"/>
+        <param name="min_clutch_size" type="float" value="0" min="0" label="Adjustment of minimum clutch size"/>
+        <param name="max_clutch_size" type="float" value="0" min="0" label="Adjustment of maximum clutch size"/>
+        <param name="young_nymph_accumulation" type="float" value="0" min="0" label="Adjustment of degree-days accumulation (egg->young nymph)"/>
+        <param name="old_nymph_accumulation" type="float" value="0" min="0" label="Adjustment of degree-days accumulation (young nymph->old nymph)"/>
+        <param name="adult_accumulation" type="float" value="0" min="0" label="Adjustment of degree-days accumulation (old nymph->adult)"/>
         <param name="plot_generations_separately" type="select" label="Plot generations separately?">
             <option value="yes" selected="True">Yes</option>
             <option value="no">No</option>
