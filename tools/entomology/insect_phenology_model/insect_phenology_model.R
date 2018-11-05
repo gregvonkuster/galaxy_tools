@@ -36,19 +36,13 @@ add_daylight_length = function(temperature_data_frame) {
     # Return temperature_data_frame with an added column
     # of daylight length (photoperiod profile).
     num_rows = dim(temperature_data_frame)[1];
-    # From Forsythe 1995.
-    p = 0.8333;
     latitude = temperature_data_frame$LATITUDE[1];
     daylight_length_vector = NULL;
     for (i in 1:num_rows) {
         # Get the day of the year from the current row
         # of the temperature data for computation.
         doy = temperature_data_frame$DOY[i];
-        theta = 0.2163108 + 2 * atan(0.9671396 * tan(0.00860 * (doy - 186)));
-        phi = asin(0.39795 * cos(theta));
-        # Compute the length of daylight for the day of the year.
-        darkness_length = 24 / pi * acos((sin(p * pi / 180) + sin(latitude * pi / 180) * sin(phi)) / (cos(latitude * pi / 180) * cos(phi)));
-        daylight_length_vector[i] = 24 - darkness_length;
+        daylight_length_vector[i] = get_daylen(doy, latitude);
     }
     # Append daylight_length_vector as a new column to temperature_data_frame.
     temperature_data_frame = append_vector(temperature_data_frame, daylight_length_vector, "DAYLEN");
@@ -78,6 +72,16 @@ from_30_year_normals = function(norm_data_frame, start_date_doy, end_date_doy, y
         tmp_data_frame[j,] = get_next_normals_row(norm_data_frame, year, i);
     }
     return (tmp_data_frame);
+}
+
+get_daylen = function(doy, latitude, p=0.8333) {
+    # The default value for p is from Forsythe 1995.
+    theta = 0.2163108 + 2 * atan(0.9671396 * tan(0.00860 * (doy - 186)));
+    phi = asin(0.39795 * cos(theta));
+    # Compute the length of daylight for the day of the year.
+    darkness_length = 24 / pi * acos((sin(p * pi / 180) + sin(latitude * pi / 180) * sin(phi)) / (cos(latitude * pi / 180) * cos(phi)));
+    daylight_length = 24 - darkness_length;
+    return (daylight_length);
 }
 
 get_new_norm_data_frame = function(is_leap_year, input_norm=NULL, nrow=0) {
@@ -133,17 +137,29 @@ get_next_normals_row = function(norm_data_frame, year, index) {
     doy = norm_data_frame[index,"DOY"][1];
     tmin = norm_data_frame[index,"TMIN"][1];
     tmax = norm_data_frame[index,"TMAX"][1];
-    return(list(latitude, longitude, date_str, doy, tmin, tmax));
+    daylen = get_daylen(doy, latitude);
+    # Calculate the average temperature based on the
+    # tmin and tmax values from the 30 year normals data.
+    temp.profile = get_temperature_at_hour(latitude, row, tmin=tmin, tmax=tmax, daylen=daylen);
+    mean_temp = temp.profile[1];
+    avg_temp = temp.profile[2];
+    return(list(latitude, longitude, date_str, doy, tmin, tmax, daylen, avg_temp));
 }
 
-get_temperature_at_hour = function(latitude, temperature_data_frame, row) {
+get_temperature_at_hour = function(latitude, row, temperature_data_frame=NULL, tmin=NULL, tmax=NULL, daylen=NULL) {
     # Base development threshold for Brown Marmorated Stink Bug
     # insect phenology model.
     threshold = 14.17;
-    # Minimum temperature for current row.
-    curr_min_temp = temperature_data_frame$TMIN[row];
-    # Maximum temperature for current row.
-    curr_max_temp = temperature_data_frame$TMAX[row];
+    if (is.null(temperature_data_frame)) {
+        # The values of tmin and tmax cannot be NULL.
+        curr_min_temp = tmin;
+        curr_max_temp = tmax;
+    } else {
+        # Minimum temperature for current row.
+        curr_min_temp = temperature_data_frame$TMIN[row];
+        # Maximum temperature for current row.
+        curr_max_temp = temperature_data_frame$TMAX[row];
+    }
     # Mean temperature for current row.
     curr_mean_temp = 0.5 * (curr_min_temp + curr_max_temp);
     # Initialize degree day accumulation
@@ -156,8 +172,13 @@ get_temperature_at_hour = function(latitude, temperature_data_frame, row) {
         T = NULL;
         # Initialize degree hour vector.
         dh = NULL;
-        # Daylight length for current row.
-        y = temperature_data_frame$DAYLEN[row];
+        if (is.null(temperature_data_frame)) {
+            # The value of daylen cannot be NULL.
+            y = daylen;
+        } else {
+            # Daylight length for current row.
+            y = temperature_data_frame$DAYLEN[row];
+        }
         # Darkness length.
         z = 24 - y;
         # Lag coefficient.
@@ -581,13 +602,6 @@ if (processing_year_to_date_data) {
     cat("Number of days in year: ", num_days, "\n");
 }
 
-# Create copies of the temperature data for generations P, F1 and F2 if we're plotting generations separately.
-if (plot_generations_separately) {
-    temperature_data_frame_P = data.frame(temperature_data_frame);
-    temperature_data_frame_F1 = data.frame(temperature_data_frame);
-    temperature_data_frame_F2 = data.frame(temperature_data_frame);
-}
-
 # Get the ticks date labels for plots.
 ticks_and_labels = get_x_axis_ticks_and_labels(temperature_data_frame, prepend_end_doy_norm, append_start_doy_norm);
 ticks = c(unlist(ticks_and_labels[1]));
@@ -821,7 +835,7 @@ for (current_replication in 1:opt$replications) {
         doy = temperature_data_frame$DOY[row];
         # Photoperiod in the day.
         photoperiod = temperature_data_frame$DAYLEN[row];
-        temp.profile = get_temperature_at_hour(latitude, temperature_data_frame, row);
+        temp.profile = get_temperature_at_hour(latitude, row, temperature_data_frame=temperature_data_frame);
         mean.temp = temp.profile[1];
         averages.temp = temp.profile[2];
         averages.day[row] = averages.temp;
@@ -1211,6 +1225,7 @@ for (current_replication in 1:opt$replications) {
         }
     }   # End of days specified in the input_ytd temperature data.
 
+    # Set the cumulative average temperature (this is never used).
     averages.cum = cumsum(averages.day);
 
     # Define the output values.
@@ -1287,6 +1302,10 @@ for (current_replication in 1:opt$replications) {
     # End processing replications.
 }
 
+# Append the averages.day vector (i.e., degree-days)
+# to the various temperature_data_frames.
+temperature_data_frame = append_vector(temperature_data_frame, averages.day, "DEGREE.DAYS");
+
 if (process_eggs) {
     # Mean value for eggs.
     eggs = apply(Eggs.replications, 1, mean);
@@ -1358,6 +1377,11 @@ if (process_adults) {
 }
 
 if (plot_generations_separately) {
+    # Create copies of the temperature data for generations P, F1 and F2 if we're plotting generations separately.
+    temperature_data_frame_P = data.frame(temperature_data_frame);
+    temperature_data_frame_F1 = data.frame(temperature_data_frame);
+    temperature_data_frame_F2 = data.frame(temperature_data_frame);
+
     m_se = get_mean_and_std_error(P.replications, F1.replications, F2.replications);
     P = m_se[[1]];
     P.std_error = m_se[[2]];
