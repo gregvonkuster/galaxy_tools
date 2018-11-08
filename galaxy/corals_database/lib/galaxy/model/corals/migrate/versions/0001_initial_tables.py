@@ -1,17 +1,21 @@
 """
-Migration script to create the initial stag database and populate the
-probe_annotation table from an external CSV file named probe_annotation.csv.
+Migration script to create the initial stag database and populate the database
+with production seed data from a file named general_seed_data_file.csv.  The
+probe_annotation table is also populated from an external CSV file named
+probe_annotation.csv.
 """
 from __future__ import print_function
 
 import datetime
+import dateutil.parser
 import logging
-import os
+import time
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, MetaData, Numeric, String, Table, TEXT
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, MetaData, Numeric, String, Table, TIMESTAMP
+from sqlalchemy import sql
 
 # Need our custom types, but don't import anything else from model
-from galaxy.model.custom_types import JSONType, MetadataType, TrimmedString
+from galaxy.model.custom_types import TrimmedString
 
 now = datetime.datetime.utcnow
 log = logging.getLogger(__name__)
@@ -63,7 +67,7 @@ Genotype_table = Table("genotype", metadata,
     Column("create_time", DateTime, default=now),
     Column("update_time", DateTime, default=now, onupdate=now),
     Column("coral_mlg_clonal_id", TrimmedString(255)),
-    Column("symbiot_mlg_clonal_id", TrimmedString(255)),
+    Column("symbio_mlg_clonal_id", TrimmedString(255)),
     Column("genetic_coral_species_call", TrimmedString(255)),
     Column("percent_missing_data", Numeric(10, 6)),
     Column("percent_apalm", Numeric(10, 6)),
@@ -75,8 +79,8 @@ Person_table = Table("person", metadata,
     Column("id", Integer, primary_key=True),
     Column("create_time", DateTime, default=now),
     Column("update_time", DateTime, default=now, onupdate=now),
-    Column("lastname", TrimmedString(255)),
-    Column("firstname", TrimmedString(255)),
+    Column("last_name", TrimmedString(255)),
+    Column("first_name", TrimmedString(255)),
     Column("organization", TrimmedString(255)),
     Column("email", TrimmedString(255)))
 
@@ -118,12 +122,24 @@ Reef_table = Table("reef", metadata,
     Column("longitude", Numeric(15, 6)))
 
 
+Phenotype_table = Table("phenotype", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("create_time", DateTime, default=now),
+    Column("update_time", DateTime, default=now, onupdate=now),
+    Column("disease_resist", TrimmedString(255)),
+    Column("bleach_resist", TrimmedString(255)),
+    Column("mortality", TrimmedString(255)),
+    Column("tle", TrimmedString(255)),
+    Column("spawning", TrimmedString(255)))
+
+
 Sample_table = Table("sample", metadata,
     Column("id", Integer, primary_key=True),
     Column("create_time", DateTime, default=now),
     Column("update_time", DateTime, default=now, onupdate=now),
     Column("sample_id", TrimmedString(255), index=True, nullable=False),
     Column("genotype_id", Integer, ForeignKey("genotype.id"), index=True),
+    Column("phenotype_id", Integer, ForeignKey("phenotype.id"), index=True),
     Column("experiment_id", Integer, ForeignKey("experiment.id"), index=True),
     Column("colony_id", Integer, ForeignKey("colony.id"), index=True),
     Column("colony_location", TrimmedString(255)),
@@ -146,13 +162,76 @@ Taxonomy_table = Table("taxonomy", metadata,
     Column("genus_name", TrimmedString(255)))
 
 
-def nextval(migrate_engine, table, col='id'):
-    if migrate_engine.name in ['postgres', 'postgresql']:
-        return "nextval('%s_%s_seq')" % (table, col)
-    elif migrate_engine.name in ['mysql', 'sqlite']:
-        return "null"
+def boolean(migrate_engine, value):
+    if migrate_engine.name in ['mysql', 'postgres', 'postgresql']:
+        return value
+    elif migrate_engine.name == 'sqlite':
+        if value in ['True', 'true']:
+            return 1
+        return 0
     else:
         raise Exception('Unable to convert data for unknown database type: %s' % migrate_engine.name)
+
+
+def convert_date_string_to_datetime(date_string):
+    # The value of date_string is %y/%m/%d with
+    # the year being 2 digits (yikes!).
+    fixed_century = "20%s" % date_string
+    print("############################")
+    print("fixed_century: ", fixed_century)
+    print("############################")
+    items = fixed_century.split("/")
+    year = int(items[0])
+    month = int(items[1])
+    day = int(items[2])
+    # Convert the string to datetime format.
+    dt = datetime.datetime.strptime(fixed_century, "%Y/%m/%d")
+    print("############################")
+    print("dt: ", dt)
+    print("############################")
+    d = datetime.date(year, month, day)
+    print("############################")
+    print("d: ", d)
+    print("############################")
+    d2 = dateutil.parser.parse(fixed_century)
+    print("############################")
+    print("d2: ", d2)
+    print("str(d2): ", str(d2))
+    print("############################")
+    #tt = dt.timetuple()
+    #print("############################")
+    #print("tt: ", tt)
+    #print("############################")
+    #ts = time.mktime(tt)
+    #print("############################")
+    #print("ts: ", ts)
+    #print("############################")
+    #dt = datetime.datetime.utcfromtimestamp(ts)
+    #print("############################")
+    #print("dt: ", dt)
+    #print("############################")
+    #print("############################")
+    #print("now: ", now)
+    #print("############################")
+    return str(d2)
+
+
+def get_latest_id(migrate_engine, table):
+    result = migrate_engine.execute("select id from %s order by id desc" % table)
+    row = result.fetchone()
+    if row:
+        return row[0]
+    else:
+        raise Exception('Unable to get the latest id in the %s table.' % table)
+
+
+def get_primary_id(migrate_engine, table, cmd):
+    result = migrate_engine.execute(cmd)
+    row = result.fetchone()
+    if row:
+        return row[0]
+    else:
+        return None
 
 
 def localtimestamp(migrate_engine):
@@ -164,13 +243,14 @@ def localtimestamp(migrate_engine):
         raise Exception('Unable to convert data for unknown database type: %s' % migrate_engine.name)
 
 
-def get_latest_id(migrate_engine, table):
-    result = migrate_engine.execute("select id from %s order by id desc" % table)
-    row = result.fetchone()
-    if row:
-        return row[0]
+def nextval(migrate_engine, table, col='id'):
+    if migrate_engine.name in ['postgres', 'postgresql']:
+        return "nextval('%s_%s_seq')" % (table, col)
+    elif migrate_engine.name in ['mysql', 'sqlite']:
+        return "null"
     else:
-        raise Exception('Unable to get the latest id in the %s table.' % table)
+        raise Exception('Unable to convert data for unknown database type: %s' % migrate_engine.name)
+
 
 def load_probe_annotation_table(migrate_engine):
     # Columns:
@@ -248,9 +328,13 @@ def load_seed_data(migrate_engine):
     # percent_apalm, percent_acerv, percent_mixed
 
     collector_table_inserts = 0
+    colony_table_inserts = 0
     experiment_table_inserts = 0
+    genotype_table_inserts = 0
     person_table_inserts = 0
+    phenotype_table_inserts = 0
     reef_table_inserts = 0
+    sample_table_inserts = 0
 
     with open(GENERAL_SEED_DATA_FILE, "r") as fh:
         for i, line in enumerate(fh):
@@ -260,23 +344,41 @@ def load_seed_data(migrate_engine):
             line = line.rstrip('\r\n')
             items = line.split(",")
             sample_id = items[0]
-            data_entered_db = items[1]
+            try:
+                date_entered_db = convert_date_string_to_datetime(items[1])
+            except Exception:
+                date_entered_db = localtimestamp(migrate_engine)
             user_specimen_id = items[2]
-            duplicate_sample = items[3]
-            matching_samples = items[4]
-            field_call = items[5]
-            bcoral_genet_id = items[6]
-            bsym_genet_id = items[7]
+            # duplicate_sample = items[3]
+            # matching_samples = items[4]
+            # field_call = items[5]
+            # bcoral_genet_id = items[6]
+            # bsym_genet_id = items[7]
             reef = items[8]
             region = items[9]
-            latitude = "%6f" % items[10]
-            longitude = "%6f" % items[11]
-            geographic_origin = items[12]
+            try:
+                latitude = "%6f" % float(items[10])
+            except Exception:
+                latitude = 0
+            try:
+                longitude = "%6f" % float(items[11])
+            except Exception:
+                longitude = 0
+            # geographic_origin = items[12]
             sample_location = items[13]
-            latitude_outplant = "%6f" % items[14]
-            longitude_outplant = "%6f" % items[15]
-            depth = items[16]
-            dist_shore = items[17]
+            try:
+                latitude_outplant = "%6f" % float(items[14])
+            except Exception:
+                latitude_outplant = 0
+            try:
+                longitude_outplant = "%6f" % float(items[15])
+            except Exception:
+                longitude_outplant = 0
+            try:
+                depth = int(items[16])
+            except Exception:
+                depth = 0
+            # dist_shore = items[17]
             disease_resist = items[18]
             bleach_resist = items[19]
             mortality = items[20]
@@ -284,8 +386,11 @@ def load_seed_data(migrate_engine):
             spawning = items[22]
             collector = items[23]
             org = items[24]
-            collection_date = items[25]
-            contact_email = items[26].lower()
+            try:
+                collection_date = convert_date_string_to_datetime(items[25])
+            except Exception:
+                collection_date = localtimestamp(migrate_engine)
+            contact_email = items[26].lower().replace('[at]', '@')
             seq_facility = items[27]
             array_version = items[28]
             data_sharing = items[29]
@@ -293,65 +398,33 @@ def load_seed_data(migrate_engine):
             coral_mlg_clonal_id = items[31]
             symbio_mlg_clonal_id = items[32]
             genetic_coral_species_call = items[33]
-            percent_missing_data = "%6f" % items[34]
-            percent_apalm = "%6f" % items[35]
-            percent_acerv = "%6f" % items[36]
-            percent_mixed = "%6f" % items[37]
-            # See if we need to add a row to the person table.
-            if collector.find(" ") > 0:
-                # We have a first and last name spearated by a space.
-                first_last = collector.split(" ")
-                first_name = first_last[0]
-                last_name = first_last[1]
-                cmd = "SELECT id FROM person WHERE last_name = '%s' AND first_name = '%s' AND email = '%s'" % (last_name, first_name, email)
-            else:
-                # We have a last name with no first name.
-                cmd = "SELECT id FROM person WHERE last_name = '%s' and email = '%s'" % (last_name, email)
-                result = migrate_engine.execute(cmd)
-                row = result.fetchone()
-                if row:
-                    person_id = row[0]
-                else:
-                    # Add a row to the person table.
-                    cmd = "INSERT INTO person VALUES (%s, %s, %s, '%s', '%s', '%s', '%s')"
-                    cmd = cmd % (nextval(migrate_engine, 'person'),
-                                 localtimestamp(migrate_engine),
-                                 localtimestamp(migrate_engine),
-                                 last_name,
-                                 first_name,
-                                 org,
-                                 contact_email)
-                    migrate_engine.execute(cmd)
-                    person_table_inserts += 1
-                    person_id = get_latest_id(migrate_engine, "person")
-            # Add a row to the collector table.
-            cmd = "INSERT INTO collector VALUES (%s, %s, %s, %s, %s)"
-            cmd = cmd % (nextval(migrate_engine, 'person'),
-                         localtimestamp(migrate_engine),
-                         localtimestamp(migrate_engine),
-                         person_id,
-                         pserson_id)
-            migrate_engine.execute(cmd)
-            collector_table_inserts += 1
+            try:
+                percent_missing_data = "%6f" % float(items[34])
+            except Exception:
+                percent_missing_data = 0
+            try:
+                percent_apalm = "%6f" % float(items[35])
+            except Exception:
+                percent_apalm = 0
+            try:
+                percent_acerv = "%6f" % float(items[36])
+            except Exception:
+                percent_acerv = 0
+            try:
+                percent_mixed = "%6f" % float(items[37])
+            except Exception:
+                percent_mixed = 0
+
+            # Process the experiment items.  Dependent tables: sample.
+            table = "experiment"
             # See if we need to add a row to the experiment table.
-Experiment_table = Table("experiment", metadata,
-    Column("id", Integer, primary_key=True),
-    Column("create_time", DateTime, default=now),
-    Column("update_time", DateTime, default=now, onupdate=now),
-    Column("seq_facility", String),
-    Column("array_version", TrimmedString(255)),
-    Column("data_sharing", TrimmedString(255)),
-    Column("data_hold", TrimmedString(255)))
             cmd = "SELECT id FROM experiment WHERE seq_facility = '%s' AND array_version = '%s' AND data_sharing = '%s' AND data_hold = '%s'"
             cmd = cmd % (seq_facility, array_version, data_sharing, data_hold)
-            result = migrate_engine.execute(cmd)
-            row = result.fetchone()
-            if row:
-                experiment_id = row[0]
-            else:
+            experiment_id = get_primary_id(migrate_engine, table, cmd)
+            if experiment_id is None:
                 # Add a row to the experiment table.
                 cmd = "INSERT INTO experiment VALUES (%s, %s, %s, '%s', '%s', '%s', '%s')"
-                cmd = cmd % (nextval(migrate_engine, 'experiment'),
+                cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),
                              seq_facility,
@@ -360,17 +433,117 @@ Experiment_table = Table("experiment", metadata,
                              data_hold)
                 migrate_engine.execute(cmd)
                 experiment_table_inserts += 1
-                experiment_id = get_latest_id(migrate_engine, "experiment")
-            # See if we need to add a row to the reef table.
-            cmd = "SELECT id FROM reef WHERE name = '%s'" % reef
-            result = migrate_engine.execute(cmd)
-            row = result.fetchone()
-            if row:
-                reef_id = row[0]
+                experiment_id = get_latest_id(migrate_engine, table)
+
+            # Process the genotype items.  Dependent tables: sample.
+            table = "genotype"
+            # See if we need to add a row to the table.
+            cmd = "SELECT id FROM genotype WHERE coral_mlg_clonal_id = '%s' AND symbio_mlg_clonal_id = '%s' AND genetic_coral_species_call = '%s'"
+            cmd += " AND percent_missing_data = %s AND percent_apalm = %s AND percent_acerv = %s AND percent_mixed = %s"
+            cmd = cmd % (coral_mlg_clonal_id,
+                         symbio_mlg_clonal_id,
+                         genetic_coral_species_call,
+                         percent_missing_data,
+                         percent_apalm,
+                         percent_acerv,
+                         percent_mixed)
+            genotype_id = get_primary_id(migrate_engine, table, cmd)
+            if genotype_id is None:
+                # Add a row to the table.
+                cmd = "INSERT INTO genotype VALUES (%s, %s, %s, '%s', '%s', '%s', %s, %s, %s, %s)"
+                cmd = cmd % (nextval(migrate_engine, table),
+                             localtimestamp(migrate_engine),
+                             localtimestamp(migrate_engine),
+                             coral_mlg_clonal_id,
+                             symbio_mlg_clonal_id,
+                             genetic_coral_species_call,
+                             percent_missing_data,
+                             percent_apalm,
+                             percent_acerv,
+                             percent_mixed)
+                migrate_engine.execute(cmd)
+                genotype_table_inserts += 1
+                genotype_id = get_latest_id(migrate_engine, table)
+
+            # Process the phenotype items.  Dependent tables: sample.
+            table = "phenotype"
+            # See if we need to add a row to the table.
+            cmd = "SELECT id FROM phenotype WHERE disease_resist = '%s' AND bleach_resist = '%s' AND mortality = '%s'"
+            cmd += " AND tle = '%s' AND spawning = '%s'"
+            cmd = cmd % (disease_resist,
+                         bleach_resist,
+                         mortality,
+                         tle,
+                         spawning,)
+            phenotype_id = get_primary_id(migrate_engine, table, cmd)
+            if phenotype_id is None:
+                # Add a row to the table.
+                cmd = "INSERT INTO phenotype VALUES (%s, %s, %s, '%s', '%s', '%s', '%s', '%s')"
+                cmd = cmd % (nextval(migrate_engine, table),
+                             localtimestamp(migrate_engine),
+                             localtimestamp(migrate_engine),
+                             disease_resist,
+                             bleach_resist,
+                             mortality,
+                             tle,
+                             spawning)
+                migrate_engine.execute(cmd)
+                phenotype_table_inserts += 1
+                phenotype_id = get_latest_id(migrate_engine, table)
+
+            # Process the person items.  Dependent tables: collector.
+            table = "person"
+            # See if we need to add a row to the table.
+            if collector.find(" ") > 0:
+                # We have a first and last name spearated by a space.
+                first_last = collector.split(" ")
+                first_name = first_last[0]
+                last_name = first_last[1]
+                cmd = "SELECT id FROM person WHERE last_name = '%s' AND first_name = '%s' AND email = '%s'" % (last_name, first_name, contact_email)
             else:
-                # Add a row to the person table.
+                # We have a last name with no first name.
+                cmd = "SELECT id FROM person WHERE last_name = '%s' and email = '%s'" % (last_name, contact_email)
+            person_id = get_primary_id(migrate_engine, table, cmd)
+            if person_id is None:
+                # Add a row to the table.
+                cmd = "INSERT INTO person VALUES (%s, %s, %s, '%s', '%s', '%s', '%s')"
+                cmd = cmd % (nextval(migrate_engine, table),
+                             localtimestamp(migrate_engine),
+                             localtimestamp(migrate_engine),
+                             last_name,
+                             first_name,
+                             org,
+                             contact_email)
+                migrate_engine.execute(cmd)
+                person_table_inserts += 1
+                person_id = get_latest_id(migrate_engine, table)
+
+            # Process the collector items.  Dependent tables: sample.
+            table = "collector"
+            # See if we need to add a row to the table.
+            cmd = "SELECT id FROM collector WHERE person_id = %s" % person_id
+            collector_id = get_primary_id(migrate_engine, table, cmd)
+            if collector_id is None:
+                # Add a row to the table.
+                cmd = "INSERT INTO collector VALUES (%s, %s, %s, %s, %s)"
+                cmd = cmd % (nextval(migrate_engine, table),
+                             localtimestamp(migrate_engine),
+                             localtimestamp(migrate_engine),
+                             person_id,
+                             person_id)
+                migrate_engine.execute(cmd)
+                collector_table_inserts += 1
+                collector_id = get_latest_id(migrate_engine, table)
+
+            # Process the reef items.  Dependent tables: colony.
+            table = "reef"
+            # See if we need to add a row to the table.
+            cmd = "SELECT id FROM reef WHERE name = '%s'" % reef
+            reef_id = get_primary_id(migrate_engine, table, cmd)
+            if reef_id is None:
+                # Add a row to the table.
                 cmd = "INSERT INTO reef VALUES (%s, %s, %s, '%s', '%s', %s, %s)"
-                cmd = cmd % (nextval(migrate_engine, 'reef'),
+                cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),
                              reef,
@@ -379,15 +552,83 @@ Experiment_table = Table("experiment", metadata,
                              longitude)
                 migrate_engine.execute(cmd)
                 reef_table_inserts += 1
-                reef_id = get_latest_id(migrate_engine, "reef")
+                reef_id = get_latest_id(migrate_engine, table)
+
+            # Process the colony items.  Dependent tables: fragment, sample.
+            table = "colony"
+            # See if we need to add a row to the table.
+            cmd = "SELECT id FROM colony WHERE latitude = %s AND longitude = %s and reef_id = %s"
+            cmd = cmd % (latitude_outplant,
+                         longitude_outplant,
+                         reef_id)
+            colony_id = get_primary_id(migrate_engine, table, cmd)
+            if colony_id is None:
+                # Add a row to the table.
+                cmd = "INSERT INTO colony VALUES (%s, %s, %s, %s, %s, %s, %s)"
+                cmd = cmd % (nextval(migrate_engine, table),
+                             localtimestamp(migrate_engine),
+                             localtimestamp(migrate_engine),
+                             latitude_outplant,
+                             longitude_outplant,
+                             depth,
+                             reef_id)
+                migrate_engine.execute(cmd)
+                colony_table_inserts += 1
+                colony_id = get_latest_id(migrate_engine, table)
+
+            # Process the sample items.  Dependent tables: None.
+            table = "sample"
+            # See if we need to add a row to the table.
+            cmd = "SELECT id FROM sample WHERE sample_id = '%s'" % sample_id
+            sample_id_db = get_primary_id(migrate_engine, table, cmd)
+            if sample_id_db is None:
+                # Add a row to the table.
+                             # date_entered_db,
+                             # date_entered_db,
+                             # collection_date,
+                if date_entered_db != 'LOCALTIMESTAMP' and collection_date != 'LOCALTIMESTAMP':
+                    cmd = "INSERT INTO sample VALUES (%s, '%s', %s, '%s', %s, %s, %s, %s, '%s', %s, %s, %s, '%s', '%s', %s, %s, %s, %s)"
+                elif date_entered_db != 'LOCALTIMESTAMP':
+                    cmd = "INSERT INTO sample VALUES (%s, '%s', %s, '%s', %s, %s, %s, %s, '%s', %s, %s, %s, %s, '%s', %s, %s, %s, %s)"
+                elif collection_db != 'LOCALTIMESTAMP':
+                    cmd = "INSERT INTO sample VALUES (%s, %s, %s, '%s', %s, %s, %s, %s, '%s', %s, %s, %s, '%s', '%s', %s, %s, %s, %s)"
+                else:
+                    cmd = "INSERT INTO sample VALUES (%s, %s, %s, '%s', %s, %s, %s, %s, '%s', %s, %s, %s, %s, '%s', %s, %s, %s, %s)"
+                cmd = cmd % (nextval(migrate_engine, table),
+                             date_entered_db,
+                             localtimestamp(migrate_engine),
+                             sample_id,
+                             genotype_id,
+                             phenotype_id,
+                             experiment_id,
+                             colony_id,
+                             sample_location,
+                             sql.null(),
+                             sql.null(),
+                             collector_id,
+                             collection_date,
+                             user_specimen_id,
+                             depth,
+                             sql.null(),
+                             sql.null(),
+                             boolean(migrate_engine, True))
+                migrate_engine.execute(cmd)
+                sample_table_inserts += 1
+                sample_id = get_latest_id(migrate_engine, table)
 
     print("Inserted %d rows into the collector table." % collector_table_inserts)
+    print("Inserted %d rows into the colony table." % colony_table_inserts)
     print("Inserted %d rows into the experiment table." % experiment_table_inserts)
+    print("Inserted %d rows into the genotype table." % genotype_table_inserts)
     print("Inserted %d rows into the person table." % person_table_inserts)
+    print("Inserted %d rows into the phenotype table." % phenotype_table_inserts)
     print("Inserted %d rows into the reef table." % reef_table_inserts)
-            
+    print("Inserted %d rows into the sample table." % sample_table_inserts)
+
+
 def downgrade(migrate_engine):
     pass
+
 
 def upgrade(migrate_engine):
     print(__doc__)
