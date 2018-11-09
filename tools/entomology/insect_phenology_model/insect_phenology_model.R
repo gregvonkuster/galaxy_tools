@@ -870,7 +870,8 @@ for (current_replication in 1:opt$replications) {
             }
             if (vector.individual[2] == 0) {
                 # Egg.
-                death.probability = opt$egg_mortality * mortality.egg(mean.temp, adj=opt$egg_mortality);
+                #death.probability = opt$egg_mortality * mortality.egg(mean.temp, adj=opt$egg_mortality);
+                death.probability = opt$egg_mortality * mortality.egg(mean.temp);
             }
             else if (vector.individual[2] == 1 | vector.individual[2] == 2) {
                 # Nymph.
