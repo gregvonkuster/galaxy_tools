@@ -173,47 +173,14 @@ def boolean(migrate_engine, value):
         raise Exception('Unable to convert data for unknown database type: %s' % migrate_engine.name)
 
 
-def convert_date_string_to_datetime(date_string):
+def convert_date_string_for_database(date_string):
     # The value of date_string is %y/%m/%d with
     # the year being 2 digits (yikes!).
     fixed_century = "20%s" % date_string
-    print("############################")
-    print("fixed_century: ", fixed_century)
-    print("############################")
-    items = fixed_century.split("/")
-    year = int(items[0])
-    month = int(items[1])
-    day = int(items[2])
-    # Convert the string to datetime format.
-    dt = datetime.datetime.strptime(fixed_century, "%Y/%m/%d")
-    print("############################")
-    print("dt: ", dt)
-    print("############################")
-    d = datetime.date(year, month, day)
-    print("############################")
-    print("d: ", d)
-    print("############################")
-    d2 = dateutil.parser.parse(fixed_century)
-    print("############################")
-    print("d2: ", d2)
-    print("str(d2): ", str(d2))
-    print("############################")
-    #tt = dt.timetuple()
-    #print("############################")
-    #print("tt: ", tt)
-    #print("############################")
-    #ts = time.mktime(tt)
-    #print("############################")
-    #print("ts: ", ts)
-    #print("############################")
-    #dt = datetime.datetime.utcfromtimestamp(ts)
-    #print("############################")
-    #print("dt: ", dt)
-    #print("############################")
-    #print("############################")
-    #print("now: ", now)
-    #print("############################")
-    return str(d2)
+    # Convert the string to a format required for
+    # inserting into the database.
+    database_format = dateutil.parser.parse(fixed_century)
+    return str(database_format)
 
 
 def get_latest_id(migrate_engine, table):
@@ -345,7 +312,7 @@ def load_seed_data(migrate_engine):
             items = line.split(",")
             sample_id = items[0]
             try:
-                date_entered_db = convert_date_string_to_datetime(items[1])
+                date_entered_db = convert_date_string_for_database(items[1])
             except Exception:
                 date_entered_db = localtimestamp(migrate_engine)
             user_specimen_id = items[2]
@@ -387,7 +354,7 @@ def load_seed_data(migrate_engine):
             collector = items[23]
             org = items[24]
             try:
-                collection_date = convert_date_string_to_datetime(items[25])
+                collection_date = convert_date_string_for_database(items[25])
             except Exception:
                 collection_date = localtimestamp(migrate_engine)
             contact_email = items[26].lower().replace('[at]', '@')
@@ -583,17 +550,17 @@ def load_seed_data(migrate_engine):
             sample_id_db = get_primary_id(migrate_engine, table, cmd)
             if sample_id_db is None:
                 # Add a row to the table.
-                             # date_entered_db,
-                             # date_entered_db,
-                             # collection_date,
-                if date_entered_db != 'LOCALTIMESTAMP' and collection_date != 'LOCALTIMESTAMP':
-                    cmd = "INSERT INTO sample VALUES (%s, '%s', %s, '%s', %s, %s, %s, %s, '%s', %s, %s, %s, '%s', '%s', %s, %s, %s, %s)"
-                elif date_entered_db != 'LOCALTIMESTAMP':
-                    cmd = "INSERT INTO sample VALUES (%s, '%s', %s, '%s', %s, %s, %s, %s, '%s', %s, %s, %s, %s, '%s', %s, %s, %s, %s)"
-                elif collection_db != 'LOCALTIMESTAMP':
-                    cmd = "INSERT INTO sample VALUES (%s, %s, %s, '%s', %s, %s, %s, %s, '%s', %s, %s, %s, '%s', '%s', %s, %s, %s, %s)"
+                cmd = "INSERT INTO sample VALUES (%s, "
+                if date_entered_db == "LOCALTIMESTAMP":
+                    cmd += "%s, "
                 else:
-                    cmd = "INSERT INTO sample VALUES (%s, %s, %s, '%s', %s, %s, %s, %s, '%s', %s, %s, %s, %s, '%s', %s, %s, %s, %s)"
+                    cmd += "'%s', "
+                cmd += "%s, '%s', %s, %s, %s, %s, '%s', %s, %s, %s, "
+                if collection_date == "LOCALTIMESTAMP":
+                    cmd += "%s, "
+                else:
+                    cmd += "'%s', "
+                cmd += "'%s', %s, %s, %s, %s)"
                 cmd = cmd % (nextval(migrate_engine, table),
                              date_entered_db,
                              localtimestamp(migrate_engine),
