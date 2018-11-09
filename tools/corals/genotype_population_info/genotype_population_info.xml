@@ -1,11 +1,14 @@
 <tool id="genotype_population_info" name="Generate genotype population info" version="1.0.0">
-    <description>from VCF</description>
+    <description>from Affymetrix data</description>
     <command detect_errors="exit_code"><![CDATA[
 python '$__tool_directory__/genotype_population_info.py'
---database_connection_string '$__app__.config.corals_database_connection'
+--input_csv '$input_csv'
 --input_vcf '$input_vcf'
 --output '$output']]></command>
     <inputs>
+        <param name="input_csv" type="data" format="csv" label="Affymetrix 96 well plate CSV file">
+            <validator type="expression" message="96 well plate data must have 31 columns and 96 rows">value is not None and value.metadata.columns==31 and value.metadata.data_lines==96</validator>
+        </param>
         <param name="input_vcf" type="data" format="vcf" label="VCF file"/>
     </inputs>
     <outputs>
@@ -13,6 +16,7 @@ python '$__tool_directory__/genotype_population_info.py'
     </outputs>
     <tests>
         <test>
+            <param name="input_csv" value="96_well_plate.csv" ftype="csv"/>
             <param name="input_vcf" value="baitssnv.recode.vcf" ftype="vcf"/>
             <output name="output" file="output.tabular" ftype="tabular"/>
         </test>
