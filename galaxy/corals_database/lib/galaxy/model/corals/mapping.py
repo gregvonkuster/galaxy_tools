@@ -6,41 +6,23 @@ are encapsulated here.
 import logging
 
 from sqlalchemy import (
-    and_,
-    asc,
     Boolean,
     Column,
     DateTime,
-    desc,
-    false,
     ForeignKey,
-    func,
     Integer,
     MetaData,
-    not_,
     Numeric,
-    select,
-    String, Table,
-    TEXT,
-    Text,
-    true,
-    Unicode,
-    UniqueConstraint,
-    VARCHAR
+    String,
+    Table
 )
-from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.ext.orderinglist import ordering_list
-from sqlalchemy.orm import backref, class_mapper, column_property, deferred, mapper, object_session, relation
-from sqlalchemy.orm.collections import attribute_mapped_collection
-from sqlalchemy.sql import exists
-from sqlalchemy.types import BigInteger
+from sqlalchemy.orm import mapper, relation
 
 import galaxy.model.corals as corals_model
 from galaxy.model.base import ModelMapping
-from galaxy.model.custom_types import JSONType, MetadataType, TrimmedString, UUIDType
+from galaxy.model.custom_types import TrimmedString
 from galaxy.model.orm.engine_factory import build_engine
 from galaxy.model.orm.now import now
-from galaxy.security import GalaxyRBACAgent
 
 log = logging.getLogger(__name__)
 
@@ -58,16 +40,10 @@ corals_model.Colony.table = Table("colony", metadata,
     Column("id", Integer, primary_key=True),
     Column("create_time", DateTime, default=now),
     Column("update_time", DateTime, default=now, onupdate=now),
-    Column("latitude", Numeric(15, 10)),
-    Column("longitude", Numeric(15, 10)),
+    Column("latitude", Numeric(15, 6)),
+    Column("longitude", Numeric(15, 6)),
     Column("depth", Integer),
     Column("reef_id", Integer, ForeignKey("reef.id"), index=True))
-
-corals_model.Colony_location.table = Table("colony_location", metadata,
-    Column("id", Integer, primary_key=True),
-    Column("create_time", DateTime, default=now),
-    Column("update_time", DateTime, default=now, onupdate=now),
-    Column("location", TrimmedString(255)))
 
 corals_model.Experiment.table = Table("experiment", metadata,
     Column("id", Integer, primary_key=True),
@@ -89,19 +65,19 @@ corals_model.Genotype.table = Table("genotype", metadata,
     Column("create_time", DateTime, default=now),
     Column("update_time", DateTime, default=now, onupdate=now),
     Column("coral_mlg_clonal_id", TrimmedString(255)),
-    Column("symbiot_mlg_clonal_id", TrimmedString(255)),
+    Column("symbio_mlg_clonal_id", TrimmedString(255)),
     Column("genetic_coral_species_call", TrimmedString(255)),
-    Column("percent_missing_data", Numeric(10, 5)),
-    Column("percent_apalm", Numeric(10, 5)),
-    Column("percent_acerv", Numeric(10, 5)),
-    Column("percent_mixed", Numeric(10, 5)))
+    Column("percent_missing_data", Numeric(10, 6)),
+    Column("percent_apalm", Numeric(10, 6)),
+    Column("percent_acerv", Numeric(10, 6)),
+    Column("percent_mixed", Numeric(10, 6)))
 
 corals_model.Person.table = Table("person", metadata,
     Column("id", Integer, primary_key=True),
     Column("create_time", DateTime, default=now),
     Column("update_time", DateTime, default=now, onupdate=now),
-    Column("lastname", TrimmedString(255)),
-    Column("firstname", TrimmedString(255)),
+    Column("last_name", TrimmedString(255)),
+    Column("first_name", TrimmedString(255)),
     Column("organization", TrimmedString(255)),
     Column("email", TrimmedString(255)))
 
@@ -137,18 +113,29 @@ corals_model.Reef.table = Table("reef", metadata,
     Column("update_time", DateTime, default=now, onupdate=now),
     Column("name", TrimmedString(255)),
     Column("region", TrimmedString(255)),
-    Column("latitude", Numeric(15, 10)),
-    Column("longitude", Numeric(15, 10)))
+    Column("latitude", Numeric(15, 6)),
+    Column("longitude", Numeric(15, 6)))
+
+corals_model.Phenotype.table = Table("phenotype", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("create_time", DateTime, default=now),
+    Column("update_time", DateTime, default=now, onupdate=now),
+    Column("disease_resist", TrimmedString(255)),
+    Column("bleach_resist", TrimmedString(255)),
+    Column("mortality", TrimmedString(255)),
+    Column("tle", TrimmedString(255)),
+    Column("spawning", TrimmedString(255)))
 
 corals_model.Sample.table = Table("sample", metadata,
-    Column("id", Integer, primary_key=True),
+   Column("id", Integer, primary_key=True),
     Column("create_time", DateTime, default=now),
     Column("update_time", DateTime, default=now, onupdate=now),
     Column("sample_id", TrimmedString(255), index=True, nullable=False),
     Column("genotype_id", Integer, ForeignKey("genotype.id"), index=True),
+    Column("phenotype_id", Integer, ForeignKey("phenotype.id"), index=True),
     Column("experiment_id", Integer, ForeignKey("experiment.id"), index=True),
     Column("colony_id", Integer, ForeignKey("colony.id"), index=True),
-    Column("colony_location_id", Integer, ForeignKey("colony_location.id"), index=True),
+    Column("colony_location", TrimmedString(255)),
     Column("fragment_id", Integer, ForeignKey("fragment.id"), index=True),
     Column("taxonomy_id", Integer, ForeignKey("taxonomy.id"), index=True),
     Column("collector_id", Integer, ForeignKey("collector.id"), index=True),
@@ -156,7 +143,7 @@ corals_model.Sample.table = Table("sample", metadata,
     Column("user_specimen_id", TrimmedString(255)),
     Column("depth", Integer),
     Column("dna_extraction_method", TrimmedString(255)),
-    Column("dna_concentration", Numeric(10, 5)),
+    Column("dna_concentration", Numeric(10, 6)),
     Column("public", Boolean))
 
 corals_model.Taxonomy.table = Table("taxonomy", metadata,
@@ -194,6 +181,8 @@ mapper(corals_model.Genotype, corals_model.Genotype.table, properties=None)
 
 mapper(corals_model.Person, corals_model.Person.table, properties=None)
 
+mapper(corals_model.Phenotype, corals_model.Phenotype.table, properties=None)
+
 mapper(corals_model.Probe_annotation, corals_model.Probe_annotation.table, properties=None)
 
 mapper(corals_model.Reef, corals_model.Reef.table, properties=None)
@@ -203,14 +192,18 @@ mapper(corals_model.Sample, corals_model.Sample.table, properties=dict(
                       lazy=False,
                       backref="samples",
                       primaryjoin=(corals_model.Sample.table.c.genotype_id == corals_model.Genotype.table.c.id)),
+    phenotype=relation(corals_model.Phenotype,
+                       lazy=False,
+                       backref="samples",
+                       primaryjoin=(corals_model.Sample.table.c.phenotype_id == corals_model.Phenotype.table.c.id)),
     experiment=relation(corals_model.Experiment,
                         lazy=False,
                         backref="samples",
                         primaryjoin=(corals_model.Sample.table.c.experiment_id == corals_model.Experiment.table.c.id)),
     fragment=relation(corals_model.Fragment,
-                        lazy=False,
-                        backref="samples",
-                        primaryjoin=(corals_model.Sample.table.c.fragment_id == corals_model.Fragment.table.c.id)),
+                      lazy=False,
+                      backref="samples",
+                      primaryjoin=(corals_model.Sample.table.c.fragment_id == corals_model.Fragment.table.c.id)),
     colony=relation(corals_model.Colony,
                     lazy=False,
                     backref="matching_samples",
@@ -228,6 +221,7 @@ mapper(corals_model.Sample, corals_model.Sample.table, properties=dict(
                        primaryjoin=(corals_model.Sample.table.c.collector_id == corals_model.Collector.table.c.id))))
 
 mapper(corals_model.Taxonomy, corals_model.Taxonomy.table, properties=None)
+
 
 def init(url, engine_options={}, create_tables=False):
     """Connect mappings to the database"""

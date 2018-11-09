@@ -68,33 +68,6 @@ class Colony(Dictifiable):
         return rval
 
 
-class Colony_location(Dictifiable):
-    dict_collection_visible_keys = ['id', 'location']
-
-    def __init__(self, location=None):
-        self.location = location
-
-    def as_dict(self, value_mapper=None):
-        return self.to_dict(view='element', value_mapper=value_mapper)
-
-    def to_dict(self, view='collection', value_mapper=None):
-        if value_mapper is None:
-            value_mapper = {}
-        rval = {}
-        try:
-            visible_keys = self.__getattribute__('dict_' + view + '_visible_keys')
-        except AttributeError:
-            raise Exception('Unknown API view: %s' % view)
-        for key in visible_keys:
-            try:
-                rval[key] = self.__getattribute__(key)
-                if key in value_mapper:
-                    rval[key] = value_mapper.get(key, rval[key])
-            except AttributeError:
-                rval[key] = None
-        return rval
-
-
 class Experiment(Dictifiable):
     dict_collection_visible_keys = ['id', 'seq_facility', 'array_version', 'data_sharing', 'data_hold']
 
@@ -154,15 +127,15 @@ class Fragment(Dictifiable):
 
 
 class Genotype(Dictifiable):
-    dict_collection_visible_keys = ['id', 'coral_mlg_clonal_id', 'symbiot_mlg_clonal_id',
+    dict_collection_visible_keys = ['id', 'coral_mlg_clonal_id', 'symbio_mlg_clonal_id',
         'genetic_coral_species_call', 'percent_missing_data', 'percent_apalm', 'percent_acerv',
         'percent_mixed']
 
-    def __init__(self, coral_mlg_clonal_id=None, symbiot_mlg_clonal_id=None, genetic_coral_species_call=None,
+    def __init__(self, coral_mlg_clonal_id=None, symbio_mlg_clonal_id=None, genetic_coral_species_call=None,
                  percent_missing_data=None, percent_apalm=None, percent_acerv=None, percent_mixed=None):
         # Description of experiment metadata.
         self.coral_mlg_clonal_id = coral_mlg_clonal_id
-        self.symbiot_mlg_clonal_id = symbiot_mlg_clonal_id
+        self.symbio_mlg_clonal_id = symbio_mlg_clonal_id
         self.genetic_coral_species_call = genetic_coral_species_call
         self.percent_missing_data = percent_missing_data
         self.percent_apalm = percent_apalm
@@ -191,11 +164,11 @@ class Genotype(Dictifiable):
 
 
 class Person(Dictifiable):
-    dict_collection_visible_keys = ['id', 'lastname', 'firstname', 'organization', 'email']
+    dict_collection_visible_keys = ['id', 'last_name', 'first_name', 'organization', 'email']
 
-    def __init__(self, lastname=None, firstname=None, organization=None, email=None):
-        self.lastname = lastname
-        self.firstname = firstname
+    def __init__(self, last_name=None, first_name=None, organization=None, email=None):
+        self.last_name = last_name
+        self.first_name = first_name
         self.organization = organization
         self.email = email
 
@@ -307,21 +280,56 @@ class Reef(Dictifiable):
         return rval
 
 
+class Phenotype(Dictifiable):
+    dict_collection_visible_keys = ['id', 'disease_resist', 'bleach_resist', 'mortality', 'tle', 'spawning']
+
+    def __init__(self, disease_resist=None, bleach_resist=None, mortality=None, tle=None, spawning=None):
+        # Description of experiment metadata.
+        self.disease_resist = disease_resist
+        self.bleach_resist = bleach_resist
+        self.mortality = mortality
+        self.tle = tle
+        self.spawning = spawning
+
+    def as_dict(self, value_mapper=None):
+        return self.to_dict(view='element', value_mapper=value_mapper)
+
+    def to_dict(self, view='collection', value_mapper=None):
+        if value_mapper is None:
+            value_mapper = {}
+        rval = {}
+        try:
+            visible_keys = self.__getattribute__('dict_' + view + '_visible_keys')
+        except AttributeError:
+            raise Exception('Unknown API view: %s' % view)
+        for key in visible_keys:
+            try:
+                rval[key] = self.__getattribute__(key)
+                if key in value_mapper:
+                    rval[key] = value_mapper.get(key, rval[key])
+            except AttributeError:
+                rval[key] = None
+        return rval
+
+
 class Sample(Dictifiable):
-    dict_collection_visible_keys = ['id', 'sample_id', 'genotype_id', 'experiment_id',
-        'colony_id', 'colony_location_id', 'fragment_id', 'taxonomy_id', 'collector_id',
-        'collection_date', 'user_specimen_id', 'depth', 'dna_extraction_method',
+    dict_collection_visible_keys = ['id', 'create_time', 'sample_id', 'genotype_id', 'phenotype_id',
+        'experiment_id', 'colony_id', 'colony_location', 'fragment_id', 'taxonomy_id',
+        'collector_id', 'collection_date', 'user_specimen_id', 'depth', 'dna_extraction_method',
         'dna_concentration', 'public']
 
-    def __init__(self, sample_id=None, genotype_id=None, experiment_id=None, colony_id=None,
-                 colony_location_id=None, fragment_id=None, taxonomy_id=None, collector_id=None,
-                 collection_date=None, user_specimen_id=None, depth=None, dna_extraction_method=None,
-                 dna_concentration=None, duplicate_sample=None, public=None):
+    def __init__(self, create_time=None, sample_id=None, genotype_id=None, phenotype_id=None,
+                 experiment_id=None, colony_id=None, colony_location=None, fragment_id=None,
+                 taxonomy_id=None, collector_id=None, collection_date=None, user_specimen_id=None,
+                 depth=None, dna_extraction_method=None, dna_concentration=None, duplicate_sample=None,
+                 public=None):
+        self.create_time = create_time
         self.sample_id = sample_id
         self.genotype_id = genotype_id
+        self.phenotype_id = phenotype_id
         self.experiment_id = experiment_id
         self.colony_id = colony_id
-        self.colony_location_id = colony_location_id
+        self.colony_location = colony_location
         self.fragment_id = fragment_id
         self.taxonomy_id = taxonomy_id
         self.collector_id = collector_id
