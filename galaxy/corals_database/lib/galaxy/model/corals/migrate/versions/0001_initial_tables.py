@@ -469,6 +469,11 @@ def load_seed_data(migrate_engine):
                 cmd = "SELECT id FROM person WHERE last_name = '%s' AND first_name = '%s' AND email = '%s'" % (last_name, first_name, contact_email)
             else:
                 # We have a last name with no first name.
+                if len(collector) > 0:
+                    last_name = collector
+                else:
+                    last_name = 'Unknown'
+                first_name = sql.null()
                 cmd = "SELECT id FROM person WHERE last_name = '%s' and email = '%s'" % (last_name, contact_email)
             person_id = get_primary_id(migrate_engine, table, cmd)
             if person_id is None:
