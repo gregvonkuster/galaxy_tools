@@ -167,8 +167,6 @@ mapper(corals_model.Colony, corals_model.Colony.table, properties=dict(
                   backref="colonies",
                   primaryjoin=(corals_model.Colony.table.c.reef_id == corals_model.Reef.table.c.id))))
 
-mapper(corals_model.Colony_location, corals_model.Colony_location.table, properties=None)
-
 mapper(corals_model.Experiment, corals_model.Experiment.table, properties=None)
 
 mapper(corals_model.Fragment, corals_model.Fragment.table, properties=dict(
@@ -208,9 +206,6 @@ mapper(corals_model.Sample, corals_model.Sample.table, properties=dict(
                     lazy=False,
                     backref="matching_samples",
                     primaryjoin=(corals_model.Sample.table.c.colony_id == corals_model.Colony.table.c.id)),
-    colony_location=relation(corals_model.Colony_location,
-                    lazy=False,
-                    primaryjoin=(corals_model.Sample.table.c.colony_location_id == corals_model.Colony_location.table.c.id)),
     taxonomy=relation(corals_model.Taxonomy,
                       lazy=False,
                       backref="samples",
