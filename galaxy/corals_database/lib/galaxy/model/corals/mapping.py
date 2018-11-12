@@ -2,7 +2,7 @@
 Details of how the corals data model objects are mapped onto the relational database
 are encapsulated here.
 """
-
+import datetime
 import logging
 
 from sqlalchemy import (
@@ -28,6 +28,15 @@ log = logging.getLogger(__name__)
 
 metadata = MetaData()
 
+# Get current date plus one year for insertion into
+# the data_hold column of the experiement table.
+today = datetime.date.today()
+try:
+    # Return the same day of the year.
+    year_from_now = today.replace(year=today.year+1)
+except Exception:
+    # Handle leap years.
+    year_from_now = today + (datetime.date(today.year + 1, 1, 1) - datetime.date(today.year, 1, 1))
 
 corals_model.Collector.table = Table("collector", metadata,
     Column("id", Integer, primary_key=True),
@@ -52,7 +61,7 @@ corals_model.Experiment.table = Table("experiment", metadata,
     Column("seq_facility", String),
     Column("array_version", TrimmedString(255)),
     Column("data_sharing", Boolean),
-    Column("data_hold", Boolean))
+    Column("data_hold", DateTime, default=year_from_now))
 
 corals_model.Fragment.table = Table("fragment", metadata,
     Column("id", Integer, primary_key=True),
