@@ -51,8 +51,8 @@ Experiment_table = Table("experiment", metadata,
     Column("update_time", DateTime, default=now, onupdate=now),
     Column("seq_facility", String),
     Column("array_version", TrimmedString(255)),
-    Column("data_sharing", TrimmedString(255)),
-    Column("data_hold", TrimmedString(255)))
+    Column("data_sharing", Boolean),
+    Column("data_hold", Boolean))
 
 
 Fragment_table = Table("fragment", metadata,
@@ -130,7 +130,7 @@ Phenotype_table = Table("phenotype", metadata,
     Column("bleach_resist", TrimmedString(255)),
     Column("mortality", TrimmedString(255)),
     Column("tle", TrimmedString(255)),
-    Column("spawning", TrimmedString(255)))
+    Column("spawning", Boolean))
 
 
 Sample_table = Table("sample", metadata,
@@ -350,7 +350,11 @@ def load_seed_data(migrate_engine):
             bleach_resist = items[19]
             mortality = items[20]
             tle = items[21]
-            spawning = items[22]
+            # Convert original spawning values (Yes, No) to Boolean.
+            if items[22].lower() == "yes":
+                spawning = True
+            else:
+                spawning = False;
             collector = items[23]
             org = items[24]
             try:
@@ -360,8 +364,16 @@ def load_seed_data(migrate_engine):
             contact_email = items[26].lower().replace('[at]', '@')
             seq_facility = items[27]
             array_version = items[28]
-            data_sharing = items[29]
-            data_hold = items[30]
+            # Convert original data_sharing values (Yes, No) to Boolean.
+            if items[29].lower() == "yes":
+                data_sharing = True
+            else:
+                data_sharing = False
+            # Convert original data_hold values (Yes, No) to Boolean.
+            if items[30].lower() == "yes":
+                data_hold = True
+            else:
+                data_hold = False
             coral_mlg_clonal_id = items[31]
             symbio_mlg_clonal_id = items[32]
             genetic_coral_species_call = items[33]
@@ -385,12 +397,12 @@ def load_seed_data(migrate_engine):
             # Process the experiment items.  Dependent tables: sample.
             table = "experiment"
             # See if we need to add a row to the experiment table.
-            cmd = "SELECT id FROM experiment WHERE seq_facility = '%s' AND array_version = '%s' AND data_sharing = '%s' AND data_hold = '%s'"
+            cmd = "SELECT id FROM experiment WHERE seq_facility = '%s' AND array_version = '%s' AND data_sharing = %s AND data_hold = %s"
             cmd = cmd % (seq_facility, array_version, data_sharing, data_hold)
             experiment_id = get_primary_id(migrate_engine, table, cmd)
             if experiment_id is None:
                 # Add a row to the experiment table.
-                cmd = "INSERT INTO experiment VALUES (%s, %s, %s, '%s', '%s', '%s', '%s')"
+                cmd = "INSERT INTO experiment VALUES (%s, %s, %s, '%s', '%s', %s, %s)"
                 cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),

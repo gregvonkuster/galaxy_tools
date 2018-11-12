@@ -51,8 +51,8 @@ corals_model.Experiment.table = Table("experiment", metadata,
     Column("update_time", DateTime, default=now, onupdate=now),
     Column("seq_facility", String),
     Column("array_version", TrimmedString(255)),
-    Column("data_sharing", TrimmedString(255)),
-    Column("data_hold", TrimmedString(255)))
+    Column("data_sharing", Boolean),
+    Column("data_hold", Boolean))
 
 corals_model.Fragment.table = Table("fragment", metadata,
     Column("id", Integer, primary_key=True),
@@ -124,7 +124,7 @@ corals_model.Phenotype.table = Table("phenotype", metadata,
     Column("bleach_resist", TrimmedString(255)),
     Column("mortality", TrimmedString(255)),
     Column("tle", TrimmedString(255)),
-    Column("spawning", TrimmedString(255)))
+    Column("spawning", Boolean))
 
 corals_model.Sample.table = Table("sample", metadata,
    Column("id", Integer, primary_key=True),
