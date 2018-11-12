@@ -21,6 +21,16 @@ now = datetime.datetime.utcnow
 log = logging.getLogger(__name__)
 metadata = MetaData()
 
+# Get current date plus one year for insertion into
+# the data_hold column of the experiement table.
+today = datetime.date.today()
+try:
+    # Return the same day of the year.
+    year_from_now = today.replace(year=today.year+1)
+except Exception:
+    # Handle leap years.
+    year_from_now = today + (datetime.date(today.year + 1, 1, 1) - datetime.date(today.year, 1, 1))
+
 # The current working direectory is the Galaxy
 # installation root, so the following file must
 # exist from that location.
@@ -52,7 +62,7 @@ Experiment_table = Table("experiment", metadata,
     Column("seq_facility", String),
     Column("array_version", TrimmedString(255)),
     Column("data_sharing", Boolean),
-    Column("data_hold", Boolean))
+    Column("data_hold", DateTime, default=year_from_now))
 
 
 Fragment_table = Table("fragment", metadata,
@@ -302,6 +312,7 @@ def load_seed_data(migrate_engine):
     phenotype_table_inserts = 0
     reef_table_inserts = 0
     sample_table_inserts = 0
+    SAMPLE_ID = 10000
 
     with open(GENERAL_SEED_DATA_FILE, "r") as fh:
         for i, line in enumerate(fh):
@@ -310,7 +321,9 @@ def load_seed_data(migrate_engine):
                 continue
             line = line.rstrip('\r\n')
             items = line.split(",")
-            sample_id = items[0]
+            # Automatically generate the sample_id.
+            sample_id = "A%d" % SAMPLE_ID
+            SAMPLE_ID += 1
             try:
                 date_entered_db = convert_date_string_for_database(items[1])
             except Exception:
@@ -369,11 +382,8 @@ def load_seed_data(migrate_engine):
                 data_sharing = True
             else:
                 data_sharing = False
-            # Convert original data_hold values (Yes, No) to Boolean.
-            if items[30].lower() == "yes":
-                data_hold = True
-            else:
-                data_hold = False
+            # The data_hold value is automatically set to year_from_now.
+            # data_hold = items[30]
             coral_mlg_clonal_id = items[31]
             symbio_mlg_clonal_id = items[32]
             genetic_coral_species_call = items[33]
@@ -397,19 +407,19 @@ def load_seed_data(migrate_engine):
             # Process the experiment items.  Dependent tables: sample.
             table = "experiment"
             # See if we need to add a row to the experiment table.
-            cmd = "SELECT id FROM experiment WHERE seq_facility = '%s' AND array_version = '%s' AND data_sharing = %s AND data_hold = %s"
-            cmd = cmd % (seq_facility, array_version, data_sharing, data_hold)
+            cmd = "SELECT id FROM experiment WHERE seq_facility = '%s' AND array_version = '%s'"
+            cmd = cmd % (seq_facility, array_version)
             experiment_id = get_primary_id(migrate_engine, table, cmd)
             if experiment_id is None:
                 # Add a row to the experiment table.
-                cmd = "INSERT INTO experiment VALUES (%s, %s, %s, '%s', '%s', %s, %s)"
+                cmd = "INSERT INTO experiment VALUES (%s, %s, %s, '%s', '%s', %s, '%s')"
                 cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),
                              seq_facility,
                              array_version,
                              data_sharing,
-                             data_hold)
+                             year_from_now)
                 migrate_engine.execute(cmd)
                 experiment_table_inserts += 1
                 experiment_id = get_latest_id(migrate_engine, table)
