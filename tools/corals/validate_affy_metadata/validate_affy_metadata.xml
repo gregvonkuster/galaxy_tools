@@ -1,0 +1,32 @@
+<tool id="validate_affy_metadata" name="Validate Affymetrix metadata" version="1.0.0">
+    <description>for 96 well plate</description>
+    <command detect_errors="exit_code"><![CDATA[
+python '$__tool_directory__/validate_affy_metadata.py'
+--input '$input'
+--output '$output']]></command>
+    <inputs>
+        <param name="input" type="data" format="csv" label="Affymetrix 96 well plate metadata file">
+            <validator type="expression" message="96 well plate data must have 31 columns and no more than 96 lines of data"><![CDATA[value is not None and value.metadata.columns==31 and value.metadata.data_lines<=96]]></validator>
+        </param>
+    </inputs>
+    <outputs>
+        <data name="output" format="csv"/>
+    </outputs>
+    <tests>
+        <test>
+            <param name="input" value="affy_metadata.csv" ftype="csv"/>
+            <output name="output" file="affy_metadata.csv" ftype="csv"/>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+Validates an Affymetrix metadata file for 96 well plate data.  These files consist of 31 columns and no more than 96 data lines.
+The tool will output the input file if it is valid.
+-----
+
+**Required options**
+    </help>
+    <citations>
+    </citations>
+</tool>
