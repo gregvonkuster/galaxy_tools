@@ -32,10 +32,10 @@ def stop_error(msg):
 
 def validate_date_string(line_no, date_string, accumulated_msgs):
     try:
-        datetime.datetime.strptime(date_string, '%Y/%m/%d')
+        datetime.datetime.strptime(date_string, '%y/%m/%d')
         return accumulated_msgs
     except ValueError:
-        return add_error_msg(accumulated_msgs, "Line %d contains an incorrect date format (must be YY/MM/DD)." % line_no)
+        return add_error_msg(accumulated_msgs, "Line %d contains an incorrect date format (%s must be YY/MM/DD)." % (line_no, date_string))
 
 
 def validate_decimal(line_no, decimal_string, accumulated_msgs):
@@ -58,7 +58,7 @@ accumulated_msgs = ""
 # Parse the input file, skipping the header, and validating
 # that each data line consists of 31 comma-separated items.
 with open(args.input, "r") as ih:
-    for i, line in ih:
+    for i, line in enumerate(ih):
         if i == 0:
             # Skip the header.
             continue
@@ -66,17 +66,17 @@ with open(args.input, "r") as ih:
         if i > 97:
             accumulated_msgs = add_error_msg(accumulated_msgs, "The input file contains more than 96 data lines.")
             stop_error(accumulated_msgs)
-        items = line.split("\t")
+        items = line.split(",")
         if len(items) != 31:
             accumulated_msgs = add_error_msg(accumulated_msgs, "Line %d contains %s columns, (must be 31)." % (i, len(items)))
-            stop_error()
+            stop_error(accumulated_msgs)
         # Required.
         sample_id = items[0]
         if len(sample_id) == 0:
             accumulated_msgs = empty_value(i, "sample_id", accumulated_msgs)
         # Required and validated.
         date_entered_db = items[1]
-        accumulated_msgs = validate_date_string(date_entered_db, accumulated_msgs)
+        accumulated_msgs = validate_date_string(i, date_entered_db, accumulated_msgs)
         # Required.
         user_specimen_id = items[2]
         if len(user_specimen_id) == 0:
@@ -137,10 +137,10 @@ with open(args.input, "r") as ih:
             accumulated_msgs = empty_value(i, "org", accumulated_msgs)
         # Required and validated.
         collection_date = items[25]
-        accumulated_msgs = validate_date_string(date_entered_db, accumulated_msgs)
+        accumulated_msgs = validate_date_string(i, date_entered_db, accumulated_msgs)
         # Required and validated.
         contact_email = items[26]
-        accumulated_msgs = validate_email(contact_email, accumulated_msgs)
+        accumulated_msgs = validate_email(i, contact_email, accumulated_msgs)
         # Required.
         seq_facility = items[27]
         if len(seq_facility) == 0:
@@ -152,7 +152,7 @@ with open(args.input, "r") as ih:
         # Optional.
         data_hold = items[30]
 
-if len(accumulated_msgs > 0):
+if len(accumulated_msgs) > 0:
     stop_error(accumulated_msgs)
 
-shutil.copy_file(args.input, args.output)
+shutil.copyfile(args.input, args.output)
