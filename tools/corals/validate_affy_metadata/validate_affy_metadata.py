@@ -30,12 +30,21 @@ def stop_error(msg):
     sys.exit(msg)
 
 
+def string_as_boolean_string(string):
+    if str(string).lower() in ['true', 'yes', 'on', '1']:
+        return 'True'
+    else:
+        return 'False'
+
+
 def validate_date_string(line_no, date_string, accumulated_msgs):
+    if len(date_string) == 0:
+        return accumulated_msgs
     try:
-        datetime.datetime.strptime(date_string, '%y/%m/%d')
+        datetime.datetime.strptime(date_string, '%Y-%m-%d')
         return accumulated_msgs
     except ValueError:
-        return add_error_msg(accumulated_msgs, "Line %d contains an incorrect date format (%s must be YY/MM/DD)." % (line_no, date_string))
+        return add_error_msg(accumulated_msgs, "Line %d contains an incorrect date format (%s must be YYYY-MM-DD)." % (line_no, date_string))
 
 
 def validate_decimal(line_no, decimal_string, accumulated_msgs):
@@ -64,93 +73,90 @@ with open(args.input, "r") as ih:
             continue
         line = line.rstrip("\r\n")
         if i > 97:
-            accumulated_msgs = add_error_msg(accumulated_msgs, "The input file contains more than 96 data lines.")
+            accumulated_msgs = add_error_msg(accumulated_msgs, "The input file contains more than 97 lines (must be 1 header line and no more than 96 data lines).")
             stop_error(accumulated_msgs)
         items = line.split(",")
-        if len(items) != 31:
-            accumulated_msgs = add_error_msg(accumulated_msgs, "Line %d contains %s columns, (must be 31)." % (i, len(items)))
+        if len(items) != 29:
+            accumulated_msgs = add_error_msg(accumulated_msgs, "Line %d contains %s columns, (must be 29)." % (i, len(items)))
             stop_error(accumulated_msgs)
-        # Required.
-        sample_id = items[0]
-        if len(sample_id) == 0:
-            accumulated_msgs = empty_value(i, "sample_id", accumulated_msgs)
         # Required and validated.
-        date_entered_db = items[1]
+        date_entered_db = items[0]
         accumulated_msgs = validate_date_string(i, date_entered_db, accumulated_msgs)
         # Required.
-        user_specimen_id = items[2]
+        user_specimen_id = items[1]
         if len(user_specimen_id) == 0:
             accumulated_msgs = empty_value(i, "user_specimen_id", accumulated_msgs)
         # Optional.
-        duplicate_sample = items[3]
+        field_call = items[2]
         # Optional.
-        matching_samples = items[4]
+        bcoral_genet_id = items[3]
         # Optional.
-        field_call = items[5]
-        # Optional.
-        bcoral_genet_id = items[6]
-        # Optional.
-        bsym_genet_id = items[7]
+        bsym_genet_id = items[4]
         # Required.
-        reef = items[8]
+        reef = items[5]
         if len(reef) == 0:
             accumulated_msgs = empty_value(i, "reef", accumulated_msgs)
         # Required.
-        region = items[9]
+        region = items[6]
         if len(region) == 0:
             accumulated_msgs = empty_value(i, "region", accumulated_msgs)
         # Required and validated.
-        latitude = items[10]
+        latitude = items[7]
         accumulated_msgs = validate_decimal(i, latitude, accumulated_msgs)
         # Required and validated.
-        longitude = items[11]
+        longitude = items[8]
         accumulated_msgs = validate_decimal(i, longitude, accumulated_msgs)
         # Optional.
-        geographic_origin = items[12]
+        geographic_origin = items[9]
         # Optional.
-        sample_location = items[13]
+        sample_location = items[10]
         # Optional.
-        latitude_outplant = items[14]
+        latitude_outplant = items[11]
         # Optional.
-        longitude_outplant = items[15]
+        longitude_outplant = items[12]
         # Optional.
-        depth = items[16]
+        depth = items[13]
         # Optional.
-        dist_shore = items[17]
+        dist_shore = items[14]
         # Optional.
-        disease_resist = items[18]
+        disease_resist = items[15]
         # Optional.
-        bleach_resist = items[19]
+        bleach_resist = items[16]
         # Optional.
-        mortality = items[20]
+        mortality = items[17]
         # Optional.
-        tle = items[21]
+        tle = items[18]
         # Optional.
-        spawning = items[22]
+        spawning = string_as_boolean_string(items[19])
         # Required.
-        collector = items[23]
-        if len(collector) == 0:
-            accumulated_msgs = empty_value(i, "collector", accumulated_msgs)
+        collector_last_name = items[20]
+        if len(collector_last_name) == 0:
+            accumulated_msgs = empty_value(i, "collector_last_name", accumulated_msgs)
         # Required.
-        org = items[24]
+        collector_first_name = items[21]
+        if len(collector_first_name) == 0:
+            accumulated_msgs = empty_value(i, "collector_first_name", accumulated_msgs)
+        # Required.
+        org = items[22]
         if len(org) == 0:
             accumulated_msgs = empty_value(i, "org", accumulated_msgs)
         # Required and validated.
-        collection_date = items[25]
+        collection_date = items[23]
         accumulated_msgs = validate_date_string(i, date_entered_db, accumulated_msgs)
         # Required and validated.
-        contact_email = items[26]
+        contact_email = items[24]
         accumulated_msgs = validate_email(i, contact_email, accumulated_msgs)
         # Required.
-        seq_facility = items[27]
+        seq_facility = items[25]
         if len(seq_facility) == 0:
             accumulated_msgs = empty_value(i, "seq_facility", accumulated_msgs)
         # Optional.
-        array_version = items[28]
+        array_version = items[26]
         # Optional.
-        data_sharing = items[29]
+        public = string_as_boolean_string(items[27])
         # Optional.
-        data_hold = items[30]
+        public_after_date = items[28]
+        accumulated_msga = validate_date_string(i, public_after_date, accumulated_msgs)
 
 if len(accumulated_msgs) > 0:
     stop_error(accumulated_msgs)
