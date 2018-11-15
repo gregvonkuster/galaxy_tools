@@ -29,7 +29,7 @@ log = logging.getLogger(__name__)
 metadata = MetaData()
 
 # Get current date plus one year for insertion into
-# the data_hold column of the experiement table.
+# the public_after_date column of the sample table.
 today = datetime.date.today()
 try:
     # Return the same day of the year.
@@ -59,9 +59,7 @@ corals_model.Experiment.table = Table("experiment", metadata,
     Column("create_time", DateTime, default=now),
     Column("update_time", DateTime, default=now, onupdate=now),
     Column("seq_facility", String),
-    Column("array_version", TrimmedString(255)),
-    Column("data_sharing", Boolean),
-    Column("data_hold", DateTime, default=year_from_now))
+    Column("array_version", TrimmedString(255)))
 
 corals_model.Fragment.table = Table("fragment", metadata,
     Column("id", Integer, primary_key=True),
@@ -153,7 +151,8 @@ corals_model.Sample.table = Table("sample", metadata,
     Column("depth", Integer),
     Column("dna_extraction_method", TrimmedString(255)),
     Column("dna_concentration", Numeric(10, 6)),
-    Column("public", Boolean))
+    Column("public", Boolean),
+    Column("public_after_date", DateTime, default=year_from_now))
 
 corals_model.Taxonomy.table = Table("taxonomy", metadata,
     Column("id", Integer, primary_key=True),

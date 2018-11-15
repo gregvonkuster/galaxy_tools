@@ -21,8 +21,17 @@ now = datetime.datetime.utcnow
 log = logging.getLogger(__name__)
 metadata = MetaData()
 
-# Get current date plus one year for insertion into
-# the data_hold column of the experiement table.
+# Get current date plus one year for possible insertion
+# into the public_after_date column of the sample table.
+# The default behavior is for the value of the public
+# column to be True and the public_after_date to be NULL,
+# making the sample "public".  HOwever, the user can
+# set the value of the public column to False and optionally
+# set a date after which the sample becomes public in the
+# Affymetrix 96 well plate metadata file associated with
+# the sample.  If the value of the public column is set
+# to False, but no date is set, the default date will be 1
+# year from the time the row is inserted into the table. 
 today = datetime.date.today()
 try:
     # Return the same day of the year.
@@ -60,9 +69,7 @@ Experiment_table = Table("experiment", metadata,
     Column("create_time", DateTime, default=now),
     Column("update_time", DateTime, default=now, onupdate=now),
     Column("seq_facility", String),
-    Column("array_version", TrimmedString(255)),
-    Column("data_sharing", Boolean),
-    Column("data_hold", DateTime, default=year_from_now))
+    Column("array_version", TrimmedString(255)))
 
 
 Fragment_table = Table("fragment", metadata,
@@ -161,7 +168,8 @@ Sample_table = Table("sample", metadata,
     Column("depth", Integer),
     Column("dna_extraction_method", TrimmedString(255)),
     Column("dna_concentration", Numeric(10, 6)),
-    Column("public", Boolean))
+    Column("public", Boolean),
+    Column("public_after_date", DateTime, default=year_from_now))
 
 
 Taxonomy_table = Table("taxonomy", metadata,
@@ -187,9 +195,10 @@ def convert_date_string_for_database(date_string):
     # The value of date_string is %y/%m/%d with
     # the year being 2 digits (yikes!).
     fixed_century = "20%s" % date_string
+    fixed_date = fixed_century.replace("/", "-")
     # Convert the string to a format required for
     # inserting into the database.
-    database_format = dateutil.parser.parse(fixed_century)
+    database_format = dateutil.parser.parse(fixed_date)
     return str(database_format)
 
 
@@ -300,8 +309,8 @@ def load_seed_data(migrate_engine):
     # latitude, longitude, geographic_origin, sample_location, latitude_outplant,
     # longitude_outplant, depth, dist_shore, disease_resist, bleach_resist,
     # mortality, tle, spawning, collector, org,
-    # collection_date, contact_email, seq_facility, array_version, data_sharing,
-    # data_hold, coral_mlg_clonal_id, symbio_mlg_clonal_id, genetic_coral_species_call, percent_missing_data,
+    # collection_date, contact_email, seq_facility, array_version, public,
+    # public_after_date, coral_mlg_clonal_id, symbio_mlg_clonal_id, genetic_coral_species_call, percent_missing_data,
     # percent_apalm, percent_acerv, percent_mixed
 
     collector_table_inserts = 0
@@ -331,34 +340,52 @@ def load_seed_data(migrate_engine):
             user_specimen_id = items[2]
             # duplicate_sample = items[3]
             # matching_samples = items[4]
-            # field_call = items[5]
-            # bcoral_genet_id = items[6]
-            # bsym_genet_id = items[7]
+            if len(items[5]) == 0:
+                field_call = sql.null()
+            else:
+                field_call = items[5]
+            if len(items[6]) == 0:
+                bcoral_genet_id = sql.null()
+            else:
+                bcoral_genet_id = items[6]
+            if len(items[7]) == 0:
+                bsym_genet_id = sql.null()
+            else:
+                bsym_genet_id = items[7]
             reef = items[8]
             region = items[9]
             try:
                 latitude = "%6f" % float(items[10])
             except Exception:
-                latitude = 0
+                latitude = sql.null()
             try:
                 longitude = "%6f" % float(items[11])
             except Exception:
-                longitude = 0
-            # geographic_origin = items[12]
-            sample_location = items[13]
+                longitude = sql.null()
+            if len(items[12]) == 0:
+                geographic_origin = sql.null()
+            else:
+                geographic_origin = items[12]
+            if len(items[13]) == 0:
+                colony_location = sql.null()
+            else:
+                colony_location = items[13]
             try:
                 latitude_outplant = "%6f" % float(items[14])
             except Exception:
-                latitude_outplant = 0
+                latitude_outplant = sql.null()
             try:
                 longitude_outplant = "%6f" % float(items[15])
             except Exception:
-                longitude_outplant = 0
+                longitude_outplant = sql.null()
             try:
                 depth = int(items[16])
             except Exception:
                 depth = 0
-            # dist_shore = items[17]
+            if len(items[17]) == 0:
+                dist_shore = sql.null()
+            else:
+                dist_shore = items[17]
             disease_resist = items[18]
             bleach_resist = items[19]
             mortality = items[20]
@@ -377,32 +404,36 @@ def load_seed_data(migrate_engine):
             contact_email = items[26].lower().replace('[at]', '@')
             seq_facility = items[27]
             array_version = items[28]
-            # Convert original data_sharing values (Yes, No) to Boolean.
+            # Convert original public values (Yes, No) to Boolean.
             if items[29].lower() == "yes":
-                data_sharing = True
+                public = True
+                public_after_date = sql.null()
             else:
-                data_sharing = False
-            # The data_hold value is automatically set to year_from_now.
-            # data_hold = items[30]
+                public = False
+                if len(items[30]) == 0:
+                    # Set the value of public_after_date to the default.
+                    public_after_date = year_from_now
+                else:
+                    public_after_date = convert_date_string_for_database(items[30])
             coral_mlg_clonal_id = items[31]
             symbio_mlg_clonal_id = items[32]
             genetic_coral_species_call = items[33]
             try:
                 percent_missing_data = "%6f" % float(items[34])
             except Exception:
-                percent_missing_data = 0
+                percent_missing_data = sql.null()
             try:
                 percent_apalm = "%6f" % float(items[35])
             except Exception:
-                percent_apalm = 0
+                percent_apalm = sql.null()
             try:
                 percent_acerv = "%6f" % float(items[36])
             except Exception:
-                percent_acerv = 0
+                percent_acerv = sql.null()
             try:
                 percent_mixed = "%6f" % float(items[37])
             except Exception:
-                percent_mixed = 0
+                percent_mixed = sql.null()
 
             # Process the experiment items.  Dependent tables: sample.
             table = "experiment"
@@ -412,14 +443,12 @@ def load_seed_data(migrate_engine):
             experiment_id = get_primary_id(migrate_engine, table, cmd)
             if experiment_id is None:
                 # Add a row to the experiment table.
-                cmd = "INSERT INTO experiment VALUES (%s, %s, %s, '%s', '%s', %s, '%s')"
+                cmd = "INSERT INTO experiment VALUES (%s, %s, %s, '%s', '%s')"
                 cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),
                              seq_facility,
-                             array_version,
-                             data_sharing,
-                             year_from_now)
+                             array_version)
                 migrate_engine.execute(cmd)
                 experiment_table_inserts += 1
                 experiment_id = get_latest_id(migrate_engine, table)
@@ -463,7 +492,7 @@ def load_seed_data(migrate_engine):
                          bleach_resist,
                          mortality,
                          tle,
-                         spawning,)
+                         spawning)
             phenotype_id = get_primary_id(migrate_engine, table, cmd)
             if phenotype_id is None:
                 # Add a row to the table.
@@ -577,17 +606,21 @@ def load_seed_data(migrate_engine):
             sample_id_db = get_primary_id(migrate_engine, table, cmd)
             if sample_id_db is None:
                 # Add a row to the table.
+                fragment_id = sql.null()
+                taxonomy_id = sql.null()
+                dna_extraction_method = sql.null()
+                dna_concentration = sql.null()
                 cmd = "INSERT INTO sample VALUES (%s, "
                 if date_entered_db == "LOCALTIMESTAMP":
                     cmd += "%s, "
                 else:
                     cmd += "'%s', "
-                cmd += "%s, '%s', %s, %s, %s, %s, '%s', %s, %s, %s, "
+                cmd += "%s, '%s', %s, %s, %s, %s, %s, %s, %s, %s, "
                 if collection_date == "LOCALTIMESTAMP":
                     cmd += "%s, "
                 else:
                     cmd += "'%s', "
-                cmd += "'%s', %s, %s, %s, %s)"
+                cmd += "'%s', %s, %s, %s, %s, %s)"
                 cmd = cmd % (nextval(migrate_engine, table),
                              date_entered_db,
                              localtimestamp(migrate_engine),
@@ -596,16 +629,17 @@ def load_seed_data(migrate_engine):
                              phenotype_id,
                              experiment_id,
                              colony_id,
-                             sample_location,
-                             sql.null(),
-                             sql.null(),
+                             colony_location,
+                             fragment_id,
+                             taxonomy_id,
                              collector_id,
                              collection_date,
                              user_specimen_id,
                              depth,
-                             sql.null(),
-                             sql.null(),
-                             boolean(migrate_engine, True))
+                             dna_extraction_method,
+                             dna_concentration,
+                             public,
+                             public_after_date)
                 migrate_engine.execute(cmd)
                 sample_table_inserts += 1
                 sample_id = get_latest_id(migrate_engine, table)

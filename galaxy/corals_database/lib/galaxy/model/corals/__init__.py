@@ -69,14 +69,12 @@ class Colony(Dictifiable):
 
 
 class Experiment(Dictifiable):
-    dict_collection_visible_keys = ['id', 'seq_facility', 'array_version', 'data_sharing', 'data_hold']
+    dict_collection_visible_keys = ['id', 'seq_facility', 'array_version']
 
-    def __init__(self, seq_facility=None, array_version=None, data_sharing=None, data_hold=None):
+    def __init__(self, seq_facility=None, array_version=None):
         # Description of experiment metadata.
         self.seq_facility = seq_facility
         self.array_version = array_version
-        self.data_sharing = data_sharing
-        self.data_hold = data_hold
 
     def as_dict(self, value_mapper=None):
         return self.to_dict(view='element', value_mapper=value_mapper)
@@ -316,13 +314,13 @@ class Sample(Dictifiable):
     dict_collection_visible_keys = ['id', 'create_time', 'sample_id', 'genotype_id', 'phenotype_id',
         'experiment_id', 'colony_id', 'colony_location', 'fragment_id', 'taxonomy_id',
         'collector_id', 'collection_date', 'user_specimen_id', 'depth', 'dna_extraction_method',
-        'dna_concentration', 'public']
+        'dna_concentration', 'public', 'public_after_date']
 
     def __init__(self, create_time=None, sample_id=None, genotype_id=None, phenotype_id=None,
                  experiment_id=None, colony_id=None, colony_location=None, fragment_id=None,
                  taxonomy_id=None, collector_id=None, collection_date=None, user_specimen_id=None,
                  depth=None, dna_extraction_method=None, dna_concentration=None, duplicate_sample=None,
-                 public=None):
+                 public=None, public_after_date=None):
         self.create_time = create_time
         self.sample_id = sample_id
         self.genotype_id = genotype_id
@@ -343,6 +341,7 @@ class Sample(Dictifiable):
         # DNA concentration in ug.
         self.dna_concentration = dna_concentration
         self.public = public
+        self.public_after_date = public_after_date
 
     def as_dict(self, value_mapper=None):
         return self.to_dict(view='element', value_mapper=value_mapper)
