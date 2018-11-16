@@ -125,20 +125,13 @@ class Fragment(Dictifiable):
 
 
 class Genotype(Dictifiable):
-    dict_collection_visible_keys = ['id', 'coral_mlg_clonal_id', 'symbio_mlg_clonal_id',
-        'genetic_coral_species_call', 'percent_missing_data', 'percent_apalm', 'percent_acerv',
-        'percent_mixed']
+    dict_collection_visible_keys = ['id', 'coral_mlg_clonal_id', 'symbio_mlg_clonal_id', 'genetic_coral_species_call']
 
-    def __init__(self, coral_mlg_clonal_id=None, symbio_mlg_clonal_id=None, genetic_coral_species_call=None,
-                 percent_missing_data=None, percent_apalm=None, percent_acerv=None, percent_mixed=None):
+    def __init__(self, coral_mlg_clonal_id=None, symbio_mlg_clonal_id=None, genetic_coral_species_call=None):
         # Description of experiment metadata.
         self.coral_mlg_clonal_id = coral_mlg_clonal_id
         self.symbio_mlg_clonal_id = symbio_mlg_clonal_id
         self.genetic_coral_species_call = genetic_coral_species_call
-        self.percent_missing_data = percent_missing_data
-        self.percent_apalm = percent_apalm
-        self.percent_acerv = percent_acerv
-        self.percent_mixed = percent_mixed
 
     def as_dict(self, value_mapper=None):
         return self.to_dict(view='element', value_mapper=value_mapper)
@@ -314,13 +307,17 @@ class Sample(Dictifiable):
     dict_collection_visible_keys = ['id', 'create_time', 'sample_id', 'genotype_id', 'phenotype_id',
         'experiment_id', 'colony_id', 'colony_location', 'fragment_id', 'taxonomy_id',
         'collector_id', 'collection_date', 'user_specimen_id', 'depth', 'dna_extraction_method',
-        'dna_concentration', 'public', 'public_after_date']
+        'dna_concentration', 'public', 'public_after_date,' 'percent_missing_data_coral', 'percent_missing_data_sym',
+        'percent_reference_coral', 'percent_reference_sym', 'percent_alternative_coral', 'percent_alternative_sym', 'percent_hererozygous_coral',
+        'percent_hererozygous_sym']
 
     def __init__(self, create_time=None, sample_id=None, genotype_id=None, phenotype_id=None,
                  experiment_id=None, colony_id=None, colony_location=None, fragment_id=None,
                  taxonomy_id=None, collector_id=None, collection_date=None, user_specimen_id=None,
                  depth=None, dna_extraction_method=None, dna_concentration=None, duplicate_sample=None,
-                 public=None, public_after_date=None):
+                 public=None, public_after_date=None, percent_missing_data_coral=None, percent_missing_data_sym=None,
+                 percent_reference_coral=None, percent_reference_sym=None, percent_alternative_coral=None,
+                 percent_alternative_sym=None, percent_hererozygous_coral=None, percent_hererozygous_sym=None):
         self.create_time = create_time
         self.sample_id = sample_id
         self.genotype_id = genotype_id
@@ -342,6 +339,14 @@ class Sample(Dictifiable):
         self.dna_concentration = dna_concentration
         self.public = public
         self.public_after_date = public_after_date
+        self.percent_missing_data_coral = percent_missing_data_coral
+        self.percent_missing_data_sym = percent_missing_data_sym
+        self.percent_reference_coral = percent_reference_coral
+        self.percent_reference_sym = percent_reference_sym
+        self.percent_alternative_coral = percent_alternative_coral
+        self.percent_alternative_sym = percent_alternative_sym
+        self.percent_hererozygous_coral = percent_hererozygous_coral
+        self.percent_hererozygous_sym = percent_hererozygous_sym
 
     def as_dict(self, value_mapper=None):
         return self.to_dict(view='element', value_mapper=value_mapper)

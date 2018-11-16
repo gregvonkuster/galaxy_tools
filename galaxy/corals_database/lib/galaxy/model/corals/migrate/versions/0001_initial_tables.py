@@ -85,11 +85,7 @@ Genotype_table = Table("genotype", metadata,
     Column("update_time", DateTime, default=now, onupdate=now),
     Column("coral_mlg_clonal_id", TrimmedString(255)),
     Column("symbio_mlg_clonal_id", TrimmedString(255)),
-    Column("genetic_coral_species_call", TrimmedString(255)),
-    Column("percent_missing_data", Numeric(10, 6)),
-    Column("percent_apalm", Numeric(10, 6)),
-    Column("percent_acerv", Numeric(10, 6)),
-    Column("percent_mixed", Numeric(10, 6)))
+    Column("genetic_coral_species_call", TrimmedString(255)))
 
 
 Person_table = Table("person", metadata,
@@ -169,7 +165,15 @@ Sample_table = Table("sample", metadata,
     Column("dna_extraction_method", TrimmedString(255)),
     Column("dna_concentration", Numeric(10, 6)),
     Column("public", Boolean),
-    Column("public_after_date", DateTime, default=year_from_now))
+    Column("public_after_date", DateTime, default=year_from_now),
+    Column("percent_missing_data_coral", Numeric(15, 6)),
+    Column("percent_missing_data_sym", Numeric(15, 6)),
+    Column("percent_reference_coral", Numeric(15, 6)),
+    Column("percent_reference_sym", Numeric(15, 6)),
+    Column("percent_alternative_coral", Numeric(15, 6)),
+    Column("percent_alternative_sym", Numeric(15, 6)),
+    Column("percent_hererozygous_coral", Numeric(15, 6)),
+    Column("percent_hererozygous_sym", Numeric(15, 6)))
 
 
 Taxonomy_table = Table("taxonomy", metadata,
@@ -457,28 +461,19 @@ def load_seed_data(migrate_engine):
             table = "genotype"
             # See if we need to add a row to the table.
             cmd = "SELECT id FROM genotype WHERE coral_mlg_clonal_id = '%s' AND symbio_mlg_clonal_id = '%s' AND genetic_coral_species_call = '%s'"
-            cmd += " AND percent_missing_data = %s AND percent_apalm = %s AND percent_acerv = %s AND percent_mixed = %s"
             cmd = cmd % (coral_mlg_clonal_id,
                          symbio_mlg_clonal_id,
-                         genetic_coral_species_call,
-                         percent_missing_data,
-                         percent_apalm,
-                         percent_acerv,
-                         percent_mixed)
+                         genetic_coral_species_call)
             genotype_id = get_primary_id(migrate_engine, table, cmd)
             if genotype_id is None:
                 # Add a row to the table.
-                cmd = "INSERT INTO genotype VALUES (%s, %s, %s, '%s', '%s', '%s', %s, %s, %s, %s)"
+                cmd = "INSERT INTO genotype VALUES (%s, %s, %s, '%s', '%s', '%s')"
                 cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),
                              coral_mlg_clonal_id,
                              symbio_mlg_clonal_id,
-                             genetic_coral_species_call,
-                             percent_missing_data,
-                             percent_apalm,
-                             percent_acerv,
-                             percent_mixed)
+                             genetic_coral_species_call)
                 migrate_engine.execute(cmd)
                 genotype_table_inserts += 1
                 genotype_id = get_latest_id(migrate_engine, table)
@@ -605,11 +600,20 @@ def load_seed_data(migrate_engine):
             cmd = "SELECT id FROM sample WHERE sample_id = '%s'" % sample_id
             sample_id_db = get_primary_id(migrate_engine, table, cmd)
             if sample_id_db is None:
-                # Add a row to the table.
+                # Add a row to the table.  Values for
+                # the following are not in the seed data.
                 fragment_id = sql.null()
                 taxonomy_id = sql.null()
                 dna_extraction_method = sql.null()
                 dna_concentration = sql.null()
+                percent_missing_data_coral = sql.null()
+                percent_missing_data_sym = sql.null()
+                percent_reference_coral = sql.null()
+                percent_reference_sym = sql.null()
+                percent_alternative_coral = sql.null()
+                percent_alternative_sym = sql.null()
+                percent_hererozygous_coral = sql.null()
+                percent_hererozygous_sym = sql.null()
                 cmd = "INSERT INTO sample VALUES (%s, "
                 if date_entered_db == "LOCALTIMESTAMP":
                     cmd += "%s, "
@@ -620,7 +624,7 @@ def load_seed_data(migrate_engine):
                     cmd += "%s, "
                 else:
                     cmd += "'%s', "
-                cmd += "'%s', %s, %s, %s, %s, %s)"
+                cmd += "'%s', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
                 cmd = cmd % (nextval(migrate_engine, table),
                              date_entered_db,
                              localtimestamp(migrate_engine),
@@ -639,7 +643,15 @@ def load_seed_data(migrate_engine):
                              dna_extraction_method,
                              dna_concentration,
                              public,
-                             public_after_date)
+                             public_after_date,
+                             percent_missing_data_coral,
+                             percent_missing_data_sym,
+                             percent_reference_coral,
+                             percent_reference_sym,
+                             percent_alternative_coral,
+                             percent_alternative_sym,
+                             percent_hererozygous_coral,
+                             percent_hererozygous_sym)
                 migrate_engine.execute(cmd)
                 sample_table_inserts += 1
                 sample_id = get_latest_id(migrate_engine, table)
