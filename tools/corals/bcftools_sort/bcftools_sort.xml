@@ -8,11 +8,10 @@
     <expand macro="requirements"/>
     <command detect_errors="exit_code"><![CDATA[
 @PREPARE_ENV@
-@PREPARE_INPUT_FILE@
 #set temp_dir = 'tmp'
 mkdir $temp_dir &&
 bcftools @EXECUTABLE@
-@INPUT_FILE@
+$input_file
 --output-file '$output_file'
 @OUTPUT_TYPE@
 --temp-dir '$temp_dir'
