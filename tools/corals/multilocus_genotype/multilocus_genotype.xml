@@ -1,26 +1,31 @@
 <tool id="multilocus_genotype" name="Multilocus genotype" version="1.0.0">
     <description>unique combination of alleles for loci</description>
     <requirements>
-        <requirement type="package" version="1.6.0">r-optparse</requirement>
-        <requirement type="package" version="1.8.0">r-vcfr</requirement>
-        <requirement type="package" version="2.8.1">r-poppr</requirement>
         <requirement type="package" version="2.1.1">r-adegenet</requirement>
-        <requirement type="package" version="5.1">r-ape</requirement>
         <requirement type="package" version="5.1">r-ape</requirement>
         <requirement type="package" version="3.0.0">r-ggplot2</requirement>
         <requirement type="package" version="1.20">r-knitr</requirement>
+        <requirement type="package" version="1.6.0">r-optparse</requirement>
+        <requirement type="package" version="2.8.1">r-poppr</requirement>
+        <requirement type="package" version="1.1.2">r-rcolorbrewer</requirement>
+        <requirement type="package" version="2.5_3">r-vegan</requirement>
+        <requirement type="package" version="1.8.0">r-vcfr</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
 #set output_plots_dir = 'output_plots_dir'
 mkdir $output_plots_dir &&
 Rscript '$__tool_directory__/multilocus_genotype.R'
 --input_vcf '$input_vcf'
---input_pop_info '$input_pop_info']]></command>
+--input_pop_info '$input_pop_info'
+--output_missing_data '$output_missing_data'
+--output_mlg_id '$output_mlg_id']]></command>
     <inputs>
         <param name="input_vcf" type="data" format="vcf" label="VCF file" />
         <param name="input_pop_info" type="data" format="txt" label="Population information file" />
     </inputs>
     <outputs>
+        <data name="output_mlg_id" format="txt" label="${tool.name} (MLGs) on ${on_string}"/>
+        <data name="output_missing_data" format="txt" label="${tool.name} (missing GT) on ${on_string}"/>
         <collection name="output_plot_collection" type="list" label="${tool.name} (plots), on ${on_string}">
             <discover_datasets pattern="__name__" directory="output_plots_dir" format="pdf"/>
         </collection>
