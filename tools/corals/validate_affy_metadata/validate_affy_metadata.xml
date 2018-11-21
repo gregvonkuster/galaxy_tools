@@ -21,11 +21,42 @@ python '$__tool_directory__/validate_affy_metadata.py'
     <help>
 **What it does**
 
-Validates an Affymetrix metadata file for 96 well plate data.  These files consist of 31 columns and no more than 96 data lines.
+Validates an Affymetrix metadata file for 96 well plate data.  These files consist of 29 columns and no more than 96 data lines.
 The tool will output the input file if it is valid.
+
 -----
 
-**Required options**
+**Columns**
+
+ * date_entered_db
+ * user_specimen_id
+ * field_call
+ * bcoral_genet_id
+ * bsym_genet_id
+ * reef
+ * region
+ * latitude
+ * longitude
+ * geographic_origin
+ * sample_location
+ * latitude_outplant
+ * longitude_outplant
+ * depth
+ * dist_shore
+ * disease_resist
+ * bleach_resist
+ * mortality
+ * tle
+ * spawning
+ * collector_last_name
+ * collector_first_name
+ * org
+ * collection_date
+ * contact_email
+ * seq_facility
+ * array_version
+ * public
+ * public_after_date
     </help>
     <citations>
     </citations>
