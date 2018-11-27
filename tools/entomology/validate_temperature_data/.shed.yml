@@ -1,0 +1,11 @@
+name: validate_temperature_data
+owner: greg
+description: |
+  Contains a tool that validates both 30 year normals and daily temperature data for the insect_phenology_model tool.
+homepage_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/entomology/validate_temperature_data
+long_description: |
+  Contains a tool that validates both 30 year normals and daily temperature data for the insect_phenology_model tool
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/entomology/validate_temperature_data
+type: unrestricted
+categories:
+  - Entomology

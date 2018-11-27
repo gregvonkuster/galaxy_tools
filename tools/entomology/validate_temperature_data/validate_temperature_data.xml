@@ -1,0 +1,77 @@
+<tool id="validate_temperature_data" name="Validate temperature data" version="1.0.0">
+    <description>for insect phenology model</description>
+    <command detect_errors="exit_code"><![CDATA[
+#set temperature_data_type = $temperature_data_type_cond.temperature_data_type
+python '$__tool_directory__/validate_temperature_data.py'
+--data_type $temperature_data_type
+#if str($temperature_data_type) == "normals":
+    --input_normals '$temperature_data_type_cond.input_normals'
+#else:
+    --input_actuals '$temperature_data_type_cond.input_actuals'
+#end if
+--output '$output']]></command>
+    <inputs>
+        <conditional name="temperature_data_type_cond">
+            <param name="temperature_data_type" type="select" label="Validate 30 year normals or daily actuals temperature data?">
+                <option value="normals" selected="true">30 year normals</option>
+                <option value="actuals">daily actuals</option>
+            </param>
+            <when value="normals">
+                <param name="input_normals" type="data" format="csv" label="30 year normals CSV file">
+                    <validator type="expression" message="30 year normals temperature data must have 10 columns and 366 rows">value is not None and value.metadata.columns==10 and value.metadata.data_lines==366</validator>
+                </param>
+            </when>
+            <when value="actuals">
+                <param name="input_actuals" type="data" format="csv" label="Daily actuals CSV file">
+                     <validator type="expression" message="Daily actuals temperature data must have 6 columns">value is not None and value.metadata.columns==6</validator>
+                </param>
+            </when>
+        </conditional>
+    </inputs>
+    <outputs>
+        <data name="output" format="csv"/>
+    </outputs>
+    <tests>
+        <test>
+            <param name="input_normals" value="30_year_normals.csv" ftype="csv"/>
+            <output name="output" file="30_year_normals.csv" ftype="csv"/>
+        </test>
+        <test>
+            <param name="temperature_data_type" value="actuals"/>
+            <param name="input_actuals" value="daily_actuals.csv" ftype="csv"/>
+            <output name="output" file="daily_actuals.csv" ftype="csv"/>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+Validates either a 30 year normals temeprature dataset or a daily actuals temperature dataset which are used
+as input to the insect phenology model tool.  The tool will output the input file if it is valid.
+
+-----
+
+**30 year normals columns**
+
+ * stationid
+ * latitude
+ * longitude
+ * elev_m
+ * name
+ * st
+ * mmdd
+ * doy
+ * tmin
+ * tmax
+
+**Daily actuals columns**
+
+ * LATITUDE
+ * LONGITUDE
+ * DATE
+ * DOY
+ * TMIN
+ * TMAX
+    </help>
+    <citations>
+    </citations>
+</tool>
