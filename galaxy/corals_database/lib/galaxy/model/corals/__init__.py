@@ -304,14 +304,14 @@ class Phenotype(Dictifiable):
 
 
 class Sample(Dictifiable):
-    dict_collection_visible_keys = ['id', 'create_time', 'sample_id', 'genotype_id', 'phenotype_id',
+    dict_collection_visible_keys = ['id', 'create_time', 'affy_sample_id', 'sample_id', 'genotype_id', 'phenotype_id',
         'experiment_id', 'colony_id', 'colony_location', 'fragment_id', 'taxonomy_id',
         'collector_id', 'collection_date', 'user_specimen_id', 'depth', 'dna_extraction_method',
         'dna_concentration', 'public', 'public_after_date,' 'percent_missing_data_coral', 'percent_missing_data_sym',
         'percent_reference_coral', 'percent_reference_sym', 'percent_alternative_coral', 'percent_alternative_sym', 'percent_hererozygous_coral',
         'percent_hererozygous_sym']
 
-    def __init__(self, create_time=None, sample_id=None, genotype_id=None, phenotype_id=None,
+    def __init__(self, create_time=None, affy_sample_id=None, sample_id=None, genotype_id=None, phenotype_id=None,
                  experiment_id=None, colony_id=None, colony_location=None, fragment_id=None,
                  taxonomy_id=None, collector_id=None, collection_date=None, user_specimen_id=None,
                  depth=None, dna_extraction_method=None, dna_concentration=None, duplicate_sample=None,
@@ -319,6 +319,7 @@ class Sample(Dictifiable):
                  percent_reference_coral=None, percent_reference_sym=None, percent_alternative_coral=None,
                  percent_alternative_sym=None, percent_hererozygous_coral=None, percent_hererozygous_sym=None):
         self.create_time = create_time
+        self.affy_sample_id = affy_sample_id
         self.sample_id = sample_id
         self.genotype_id = genotype_id
         self.phenotype_id = phenotype_id

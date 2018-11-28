@@ -150,6 +150,7 @@ Sample_table = Table("sample", metadata,
     Column("id", Integer, primary_key=True),
     Column("create_time", DateTime, default=now),
     Column("update_time", DateTime, default=now, onupdate=now),
+    Column("affy_sample_id", TrimmedString(255)),
     Column("sample_id", TrimmedString(255), index=True, nullable=False),
     Column("genotype_id", Integer, ForeignKey("genotype.id"), index=True),
     Column("phenotype_id", Integer, ForeignKey("phenotype.id"), index=True),
@@ -602,6 +603,7 @@ def load_seed_data(migrate_engine):
             if sample_id_db is None:
                 # Add a row to the table.  Values for
                 # the following are not in the seed data.
+                affy_sample_id = sql.null()
                 fragment_id = sql.null()
                 taxonomy_id = sql.null()
                 dna_extraction_method = sql.null()
@@ -619,7 +621,7 @@ def load_seed_data(migrate_engine):
                     cmd += "%s, "
                 else:
                     cmd += "'%s', "
-                cmd += "%s, '%s', %s, %s, %s, %s, %s, %s, %s, %s, "
+                cmd += "%s, %s, '%s', %s, %s, %s, %s, %s, %s, %s, %s, "
                 if collection_date == "LOCALTIMESTAMP":
                     cmd += "%s, "
                 else:
@@ -628,6 +630,7 @@ def load_seed_data(migrate_engine):
                 cmd = cmd % (nextval(migrate_engine, table),
                              date_entered_db,
                              localtimestamp(migrate_engine),
+                             affy_sample_id,
                              sample_id,
                              genotype_id,
                              phenotype_id,
