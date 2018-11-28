@@ -3,11 +3,14 @@
     <requirements>
         <requirement type="package" version="2.1.1">r-adegenet</requirement>
         <requirement type="package" version="5.1">r-ape</requirement>
+        <requirement type="package" version="1.11.6">r-data.table</requirement>
+        <requirement type="package" version="0.7.6">r-dplyr</requirement>
         <requirement type="package" version="3.0.0">r-ggplot2</requirement>
         <requirement type="package" version="1.20">r-knitr</requirement>
         <requirement type="package" version="1.6.0">r-optparse</requirement>
         <requirement type="package" version="2.8.1">r-poppr</requirement>
         <requirement type="package" version="1.1.2">r-rcolorbrewer</requirement>
+        <requirement type="package" version="1.1.1">r-rpostgres</requirement>
         <requirement type="package" version="2.5_3">r-vegan</requirement>
         <requirement type="package" version="1.8.0">r-vcfr</requirement>
     </requirements>
@@ -15,17 +18,20 @@
 #set output_plots_dir = 'output_plots_dir'
 mkdir $output_plots_dir &&
 Rscript '$__tool_directory__/multilocus_genotype.R'
---input_vcf '$input_vcf'
+--database_connection_string '$__app__.config.corals_database_connection'
+--input_affy_metadata '$input_affy_metadata'
 --input_pop_info '$input_pop_info'
---output_missing_data '$output_missing_data'
+--input_vcf '$input_vcf'
+--output_stag_db_report '$output_stag_db_report'
 --output_mlg_id '$output_mlg_id']]></command>
     <inputs>
         <param name="input_vcf" type="data" format="vcf" label="VCF file" />
+        <param name="input_affy_metadata" type="data" format="csv" label="Affymetrix 96 well plate file" />
         <param name="input_pop_info" type="data" format="txt" label="Population information file" />
     </inputs>
     <outputs>
+        <data name="output_stag_db_report" format="csv" label="${tool.name} (stag db report) on ${on_string}"/>
         <data name="output_mlg_id" format="txt" label="${tool.name} (MLGs) on ${on_string}"/>
-        <data name="output_missing_data" format="txt" label="${tool.name} (missing GT) on ${on_string}"/>
         <collection name="output_plot_collection" type="list" label="${tool.name} (plots), on ${on_string}">
             <discover_datasets pattern="__name__" directory="output_plots_dir" format="pdf"/>
         </collection>
@@ -56,3 +62,4 @@ reproduce clonally (plants, sponges, cnidarians, flatworms, annelids, sea stars,
     <citations>
     </citations>
 </tool>
+
