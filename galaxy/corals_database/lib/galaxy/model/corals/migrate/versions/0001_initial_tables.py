@@ -150,7 +150,7 @@ Sample_table = Table("sample", metadata,
     Column("id", Integer, primary_key=True),
     Column("create_time", DateTime, default=now),
     Column("update_time", DateTime, default=now, onupdate=now),
-    Column("affy_sample_id", TrimmedString(255)),
+    Column("affy_id", TrimmedString(255), index=True, nullable=False),
     Column("sample_id", TrimmedString(255), index=True, nullable=False),
     Column("genotype_id", Integer, ForeignKey("genotype.id"), index=True),
     Column("phenotype_id", Integer, ForeignKey("phenotype.id"), index=True),
@@ -439,6 +439,7 @@ def load_seed_data(migrate_engine):
                 percent_mixed = "%6f" % float(items[37])
             except Exception:
                 percent_mixed = sql.null()
+            affy_id = items[38]
 
             # Process the experiment items.  Dependent tables: sample.
             table = "experiment"
@@ -603,7 +604,6 @@ def load_seed_data(migrate_engine):
             if sample_id_db is None:
                 # Add a row to the table.  Values for
                 # the following are not in the seed data.
-                affy_sample_id = sql.null()
                 fragment_id = sql.null()
                 taxonomy_id = sql.null()
                 dna_extraction_method = sql.null()
@@ -616,21 +616,33 @@ def load_seed_data(migrate_engine):
                 percent_alternative_sym = sql.null()
                 percent_hererozygous_coral = sql.null()
                 percent_hererozygous_sym = sql.null()
+                # id
                 cmd = "INSERT INTO sample VALUES (%s, "
                 if date_entered_db == "LOCALTIMESTAMP":
+                    # create_time
                     cmd += "%s, "
                 else:
+                    # create_time
                     cmd += "'%s', "
-                cmd += "%s, %s, '%s', %s, %s, %s, %s, %s, %s, %s, %s, "
+                # update_time, affy_id, sample_id, genotype_id, phenotype_id,
+                # experiment_id, colony_id, colony_location, fragment_id, taxonomy_id,
+                # collector_id
+                cmd += "%s, '%s', '%s', %s, %s, %s, %s, %s, %s, %s, %s, "
                 if collection_date == "LOCALTIMESTAMP":
+                    # collection_date
                     cmd += "%s, "
                 else:
+                    # collection_date
                     cmd += "'%s', "
+                # user_specimen_id, depth, dna_extraction_method, dna_concentration, public,
+                # public_after_date, percent_missing_data_coral, percent_missing_data_sym,
+                # percent_reference_coral, percent_reference_sym, percent_alternative_coral,
+                # percent_alternative_sym, percent_hererozygous_coral, percent_hererozygous_sym
                 cmd += "'%s', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
                 cmd = cmd % (nextval(migrate_engine, table),
                              date_entered_db,
                              localtimestamp(migrate_engine),
-                             affy_sample_id,
+                             affy_id,
                              sample_id,
                              genotype_id,
                              phenotype_id,
