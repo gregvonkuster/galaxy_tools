@@ -33,14 +33,34 @@ get_file_path = function(file_name) {
     return(file_path);
 }
 
+get_database_connection <- function(db_conn_string) {
+    # Instantiate database connection.
+    # The connection string has this format:
+    # postgresql://user:password@host/dbname
+    conn_items <- strsplit(db_conn_string, "://")[[1]];
+    string_needed <- conn_items[2];
+    items_needed <- strsplit(string_needed, "@")[[1]];
+    user_pass_string <- items_needed[1];
+    host_dbname_string <- items_needed[2];
+    user_pass_items <- strsplit(user_pass_string, ":")[[1]];
+    host_dbname_items <- strsplit(host_dbname_string, "/")[[1]];
+    user <- user_pass_items[1];
+    pass <- user_pass_items[2];
+    host <- host_dbname_items[1];
+    dbname <- host_dbname_items[2];
+    # FIXME: is there a way to not hard-code the port?
+    conn <- DBI::dbConnect(RPostgres::Postgres(), host=host, port='5432', dbname=dbname, user=user, password=pass);
+    return (conn);
+}
+
 # Read in VCF input file.
 vcf <- read.vcfR(opt$input_vcf);
 
 #Missing GT in samples submitted
 gt <- extract.gt(vcf, element="GT", as.numeric=FALSE);
-missing_gt <- apply(gt, MARGIN=2, function(x){ sum(is.na(x))});
-missing_gt <- (missing_gt / nrow(vcf)) * 100;
-missing_gt_data_frame <- data.frame(missing_gt);
+myMiss <- apply(gt, MARGIN=2, function(x){ sum(is.na(x))});
+myMiss <- (myMiss / nrow(vcf)) * 100;
+miss <- data.frame(myMiss);
 
 hets <- apply(gt, MARGIN=2, function(x) {sum(lengths(regmatches(x, gregexpr("0/1", x))))} );
 hets <- (hets / nrow(vcf)) * 100;
@@ -57,24 +77,24 @@ aB <- data.frame(altB);
 # Convert VCF file into a genind for the Poppr package.
 # TODO: probably should not hard-code 2 cores.
 gl <- vcfR2genlight(vcf, n.cores=2);
-genind <- new("genind", (as.matrix(gl)));
+gind <- new("genind", (as.matrix(gl)));
 
 # Add population information to the genind object.
 poptab <- read.table(opt$input_pop_info, check.names=FALSE, header=T, na.strings=c("", "NA"));
-genind@pop <- as.factor(poptab$region);
+gind@pop <- as.factor(poptab$region);
 
 # Convert genind object to a genclone object.
-gclo <- as.genclone(genind);
+obj2 <- as.genclone(gind);
 
 # Calculate the bitwise distance between individuals.
-xdis <- bitwise.dist(gclo);
+xdis <- bitwise.dist(obj2);
 
 # Multilocus genotypes (threshold of 1%).
-mlg.filter(gclo, distance=xdis) <- 0.01;
-m <- mlg.table(gclo, background=TRUE, color=TRUE);
+mlg.filter(obj2, distance=xdis) <- 0.01;
+m <- mlg.table(obj2, background=TRUE, color=TRUE);
 
 # Create table of MLGs.
-id <- mlg.id(gclo);
+id <- mlg.id(obj2);
 dt <- data.table(id, keep.rownames=TRUE);
 setnames(dt, c("id"), c("user_specimen_id"));
 
@@ -84,36 +104,21 @@ pinfo <- pinfo$user_specimen_id;
 pi <- data.table(pinfo);
 setnames(pi, c("pinfo"), c("user_specimen_id"));
 
-# Instantiate database connection.
-# The connection string has this format:
-# postgresql://user:password@host/dbname
-conn_string <- opt$database_connection_string;
-conn_items <- strsplit(conn_string, "://")[[1]];
-string_needed <- conn_items[1];
-items_needed <- strsplit(string_needed, "@")[[1]];
-user_pass_string <- items_needed[1];
-host_dbname_string <- items_needed[2];
-user_pass_items <- strsplit(user_pass_string, ":")[[1]];
-host_dbname_items <- strsplit(host_dbname_string, "/")[[1]];
-user <- user_pass_items[1];
-pass <- user_pass_items[2];
-host <- host_dbname_items[1];
-dbname <- host_dbname_items[2];
-# FIXME: is there a way to not hard-code the port?
-conn <- DBI::dbConnect(RPostgres::Postgres(), host=host, port='5432', dbname=dbname, user=user, password=pass);
+# Connect to database.
+conn <- get_database_connection(opt$database_connection_string);
 
 # Import the sample table.
-sample_table <- tbl(conn, "sample");
+mD <- tbl(conn, "sample");
 
 # Select user_specimen_id and mlg columns.
-smlg <- sample_table %>% select(user_specimen_id, coral_mlg_clonal_id, symbio_mlg_clonal_id);
+smlg <- mD %>% select(user_specimen_id, coral_mlg_clonal_id, symbio_mlg_clonal_id);
 
 # Convert to dataframe.
 sm <- data.frame(smlg);
 sm[sm==""] <- NA;
 
 # Convert missing data into data table.
-mi <-setDT(missing_gt_data_frame, keep.rownames=TRUE)[];
+mi <-setDT(miss, keep.rownames=TRUE)[];
 # Change names to match db.
 setnames(mi, c("rn"), c("user_specimen_id"));
 setnames(mi, c("myMiss"), c("percent_missing_data_coral"));
@@ -242,7 +247,7 @@ dev.new(width=10, height=7);
 file_path = get_file_path("nj_phylogeny.pdf");
 pdf(file=file_path, width=10, height=7);
 # Organize branches by clade.
-tree <- gclo %>%
+tree <- obj2 %>%
     aboot(dist=provesti.dist, sample=10, tree="nj", cutoff=50, quiet=TRUE) %>%
     ladderize();
 plot.phylo(tree, tip.color=cols[obj2$pop],label.offset=0.0125, cex=0.7, font=2, lwd=4);
