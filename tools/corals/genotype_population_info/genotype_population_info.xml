@@ -1,15 +1,14 @@
 <tool id="genotype_population_info" name="Generate genotype population info" version="1.0.0">
     <description>from VCF data</description>
     <command detect_errors="exit_code"><![CDATA[
-#set header = 'header.txt'
-#set samples = 'samples.txt'
-grep "#CHROM" $input_vcf > $header &&
-tr '\t' '\n' < $header > $samples &&
-sed -i 1,9d $samples &&
-awk -F'\t' -v OFS='\t' 'NR==0 {print ; next}{print (NR),$0}' $samples > $output
+python $__tool_directory__/genotype_population_info.py
+--input_sample_names '$input_sample_names'
+--input_vcf '$input_vcf'
+--output '$output'
 ]]></command>
     <inputs>
         <param name="input_vcf" type="data" format="vcf" label="VCF file"/>
+        <param name="input_sample_names" type="data" format="txt" label="Sample attributes file"/>
     </inputs>
     <outputs>
         <data name="output" format="tabular"/>
@@ -17,6 +16,7 @@ awk -F'\t' -v OFS='\t' 'NR==0 {print ; next}{print (NR),$0}' $samples > $output
     <tests>
         <test>
             <param name="input_vcf" value="input.vcf" ftype="vcf"/>
+            <param name="input_sample_names" value="input_sample_names.txt" ftype="txt"/>
             <output name="output" file="output.tabular" ftype="tabular"/>
         </test>
     </tests>
