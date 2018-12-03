@@ -5,17 +5,17 @@ python '$__tool_directory__/validate_affy_metadata.py'
 --input '$input'
 --output '$output']]></command>
     <inputs>
-        <param name="input" type="data" format="csv" label="Affymetrix 96 well plate metadata file">
+        <param name="input" type="data" format="tabular" label="Affymetrix 96 well plate metadata file">
             <validator type="expression" message="96 well plate data must have 29 columns and no more than 96 lines of data"><![CDATA[value is not None and value.metadata.columns==29 and value.metadata.data_lines<=96]]></validator>
         </param>
     </inputs>
     <outputs>
-        <data name="output" format="csv"/>
+        <data name="output" format="tabular"/>
     </outputs>
     <tests>
         <test>
-            <param name="input" value="affy_metadata.csv" ftype="csv"/>
-            <output name="output" file="affy_metadata.csv" ftype="csv"/>
+            <param name="input" value="affy_metadata.tabular" ftype="tabular"/>
+            <output name="output" file="affy_metadata.tabular" ftype="tabular"/>
         </test>
     </tests>
     <help>

@@ -75,7 +75,7 @@ with open(args.input, "r") as ih:
         if i > 97:
             accumulated_msgs = add_error_msg(accumulated_msgs, "The input file contains more than 97 lines (must be 1 header line and no more than 96 data lines).")
             stop_error(accumulated_msgs)
-        items = line.split(",")
+        items = line.split("\t")
         if len(items) != 29:
             accumulated_msgs = add_error_msg(accumulated_msgs, "Line %d contains %s columns, (must be 29)." % (i, len(items)))
             stop_error(accumulated_msgs)
