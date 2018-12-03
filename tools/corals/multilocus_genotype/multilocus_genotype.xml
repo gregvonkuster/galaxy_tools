@@ -22,8 +22,7 @@ Rscript '$__tool_directory__/multilocus_genotype.R'
 --input_affy_metadata '$input_affy_metadata'
 --input_pop_info '$input_pop_info'
 --input_vcf '$input_vcf'
---output_stag_db_report '$output_stag_db_report'
---output_mlg_id '$output_mlg_id']]></command>
+--output_stag_db_report '$output_stag_db_report']]></command>
     <inputs>
         <param name="input_vcf" type="data" format="vcf" label="VCF file" />
         <param name="input_affy_metadata" type="data" format="csv" label="Affymetrix 96 well plate file" />
@@ -31,7 +30,6 @@ Rscript '$__tool_directory__/multilocus_genotype.R'
     </inputs>
     <outputs>
         <data name="output_stag_db_report" format="csv" label="${tool.name} (stag db report) on ${on_string}"/>
-        <data name="output_mlg_id" format="txt" label="${tool.name} (MLGs) on ${on_string}"/>
         <collection name="output_plot_collection" type="list" label="${tool.name} (plots), on ${on_string}">
             <discover_datasets pattern="__name__" directory="output_plots_dir" format="pdf"/>
         </collection>
@@ -39,13 +37,13 @@ Rscript '$__tool_directory__/multilocus_genotype.R'
     <tests>
         <test>
             <param name="input_vcf" value="baitssnv.recode.vcf" ftype="vcf"/>
+            <param name="input_affy_metadata" value="affy_metadata.csv" ftype="csv"/>
             <param name="input_pop_info" value="pop_info.txt" ftype="txt"/>
+            <output name="output_stag_db_report" file="output_stag_db_report.csv" ftype="csv"/>
             <output_collection name="output_plot_collection" type="list">
-                <element name="phylogeny_tree.pdf" file="phylogeny_tree.pdf" ftype="pdf" compare="contains"/>
-                <element name="dissimiliarity_distance_matrix.pdf" file="dissimiliarity_distance_matrix.pdf" ftype="pdf" compare="contains"/>
-                <element name="filter_stats.pdf" file="filter_stats.pdf" ftype="pdf" compare="contains"/>
-                <element name="genotype_accumulation_curve.pdf" file="genotype_accumulation_curve.pdf" ftype="pdf" compare="contains"/>
-                <element name="genotype_accumulation_curve_for_gind.pdf" file="genotype_accumulation_curve_for_gind.pdf" ftype="pdf" compare="contains"/>
+                <element name="geno_accumulation_curve.pdf" file="geno_accumulation_curve.pdf" ftype="pdf" compare="contains"/>
+                <element name="geno_rarifaction_curve.pdf" file="geno_rarifaction_curve.pdf" ftype="pdf" compare="contains"/>
+                <element name="nj_phylogeny.pdf" file="nj_phylogeny.pdf" ftype="pdf" compare="contains"/>
             </output_collection>
         </test>
     </tests>

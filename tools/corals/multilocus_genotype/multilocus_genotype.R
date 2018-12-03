@@ -3,7 +3,6 @@
 suppressPackageStartupMessages(library("adegenet"))
 suppressPackageStartupMessages(library("ape"))
 suppressPackageStartupMessages(library("data.table"))
-#suppressPackageStartupMessages(library("dbplyr"))
 suppressPackageStartupMessages(library("dplyr"))
 suppressPackageStartupMessages(library("ggplot2"))
 suppressPackageStartupMessages(library("knitr"))
@@ -11,7 +10,6 @@ suppressPackageStartupMessages(library("optparse"))
 suppressPackageStartupMessages(library("poppr"))
 suppressPackageStartupMessages(library("RColorBrewer"))
 suppressPackageStartupMessages(library("RPostgres"))
-#suppressPackageStartupMessages(library("tidyr"))
 suppressPackageStartupMessages(library("vcfR"))
 suppressPackageStartupMessages(library("vegan"))
 
@@ -20,7 +18,6 @@ option_list <- list(
     make_option(c("--input_affy_metadata"), action="store", dest="input_affy_metadata", help="Affymetrix 96 well plate input file"),
     make_option(c("--input_pop_info"), action="store", dest="input_pop_info", help="Population information input file"),
     make_option(c("--input_vcf"), action="store", dest="input_vcf", help="VCF input file"),
-    make_option(c("--output_mlg_id"), action="store", dest="output_mlg_id", help="Mlg Id data output file"),
     make_option(c("--output_stag_db_report"), action="store", dest="output_stag_db_report", help="stag db report output file")
 )
 
@@ -81,6 +78,7 @@ gind <- new("genind", (as.matrix(gl)));
 
 # Add population information to the genind object.
 poptab <- read.table(opt$input_pop_info, check.names=FALSE, header=T, na.strings=c("", "NA"));
+colnames(poptab) <- c("row_id", "affy_id", "affy_id2", "user_specimen_id", "user_specimen_id2", "region");
 gind@pop <- as.factor(poptab$region);
 
 # Convert genind object to a genclone object.
@@ -89,14 +87,14 @@ obj2 <- as.genclone(gind);
 # Calculate the bitwise distance between individuals.
 xdis <- bitwise.dist(obj2);
 
-# Multilocus genotypes (threshold of 1%).
-mlg.filter(obj2, distance=xdis) <- 0.01;
+# Multilocus genotypes (threshold of 16%).
+mlg.filter(obj2, distance=xdis) <- 0.016;
 m <- mlg.table(obj2, background=TRUE, color=TRUE);
 
 # Create table of MLGs.
 id <- mlg.id(obj2);
 dt <- data.table(id, keep.rownames=TRUE);
-setnames(dt, c("id"), c("user_specimen_id"));
+setnames(dt, c("id"), c("affy_id"));
 
 # Read user's Affymetrix 96 well plate csv file.
 pinfo <- read.csv(opt$input_affy_metadata, stringsAsFactors=FALSE);
@@ -119,40 +117,35 @@ sm[sm==""] <- NA;
 
 # Convert missing data into data table.
 mi <-setDT(miss, keep.rownames=TRUE)[];
-# Change names to match db.
-setnames(mi, c("rn"), c("user_specimen_id"));
+setnames(mi, c("rn"), c("affy_id"));
 setnames(mi, c("myMiss"), c("percent_missing_data_coral"));
 # Round missing data to two digits.
-mi$percent_missing <- round(mi$percent_missing, digits=2);
+mi$percent_missing_data_coral <- round(mi$percent_missing_data_coral, digits=2);
 
 # Convert heterozygosity data into data table.
 ht <-setDT(ht, keep.rownames=TRUE)[];
-# Change names to match db.
-setnames(ht, c("rn"), c("user_specimen_id"));
+setnames(ht, c("rn"), c("affy_id"));
 setnames(ht, c("hets"), c("percent_mixed_coral"));
 # Round missing data to two digits.
 ht$percent_mixed<-round(ht$percent_mixed, digits=2);
 
 # Convert refA data into data.table.
 rA <-setDT(rA, keep.rownames=TRUE)[];
-# Change names to match db.
-setnames(rA, c("rn"), c("user_specimen_id"));
+setnames(rA, c("rn"), c("affy_id"));
 setnames(rA, c("refA"), c("percent_reference_coral"));
 # round missing data to two digits.
 rA$percent_reference<-round(rA$percent_reference, digits=2);
 
 # Convert altB data into data table.
 aB <-setDT(aB, keep.rownames=TRUE)[];
-# Change names to match db.
-setnames(aB, c("rn"), c("user_specimen_id"));
+setnames(aB, c("rn"), c("affy_id"));
 setnames(aB, c("altB"), c("percent_alternative_coral"));
 # Round missing data to two digits.
 aB$percent_alternative<-round(aB$percent_alternative, digits=2);
 
 #convert mlg id to data.table format
 dt <- data.table(id, keep.rownames=TRUE);
-# Change name to match db.
-setnames(dt, c("id"), c("user_specimen_id"));
+setnames(dt, c("id"), c("affy_id"));
 
 # Transform.
 df3 <- dt %>%
@@ -161,7 +154,8 @@ df3 <- dt %>%
     unnest (user_specimen_id) %>%
     # Join with mlg table.
     left_join(sm %>%
-              select("user_specimen_id","coral_mlg_clonal_id"), by='user_specimen_id');
+              select("affy_id","coral_mlg_clonal_id"),
+              by='affy_id');
 
 # If found in database, group members on previous mlg id.
 uniques <- unique(df3[c("group", "coral_mlg_clonal_id")]);
@@ -194,34 +188,43 @@ for (i in 1:length(na.mlg2)) {
     df4$coral_mlg_clonal_id[na.mlg2[i]] <- n.g_ids[match(df4$group[na.mlg2[i]], unique(n.g))];
 }
 
+# subset poptab for all samples.
+subpop <- poptab[c(2, 4)];
+
 # Merge data frames for final table.
 report_user <- pi %>%
-    # Join with the second file (only the first and third column).
+    left_join(subpop %>%
+        select("affy_id", "user_specimen_id"),
+        by='user_specimen_id') %>%
     left_join(df4 %>%
-        select("user_specimen_id","coral_mlg_clonal_id","DB_match"),
-        by='user_specimen_id') %>%
-    # Join with the second file (only the first and third column).
+        select("affy_id", "coral_mlg_clonal_id", "DB_match"),
+        by='affy_id') %>%
     left_join(mi %>%
-        select("user_specimen_id","percent_missing_coral"),
-        by='user_specimen_id') %>%
-    # Join with the second file (only the first and third column).
+        select("affy_id", "percent_missing_data_coral"),
+        by='affy_id') %>%
     left_join(ht %>%
-        select("user_specimen_id","percent_mixed_coral"),
-        by='user_specimen_id') %>%
-    # Join with the second file (only the first and third column);
+        select("affy_id", "percent_mixed_coral"),
+        by='affy_id') %>%
     left_join(rA %>%
-        select("user_specimen_id","percent_reference_coral"),
-        by='user_specimen_id') %>%
-    # Join with the second file (only the first and third column).
+        select("affy_id", "percent_reference_coral"),
+        by='affy_id') %>%
     left_join(aB %>%
-        select("user_specimen_id","percent_alternative_coral"),
-        by='user_specimen_id') %>%
+        select("affy_id", "percent_alternative_coral"),
+        by='affy_id') %>%
     mutate(DB_match = ifelse(is.na(DB_match), "failed", DB_match))%>%
     mutate(coral_mlg_clonal_id=ifelse(is.na(coral_mlg_clonal_id), "failed", coral_mlg_clonal_id))%>%
     ungroup() %>%
     select(-group);
 
 write.csv(report_user, file=paste(opt$output_stag_db_report), quote=FALSE);
+
+# Combine sample information for database.
+report_db <- pinfo %>%
+    left_join(report_user %>%
+        select("user_specimen_id", "affy_id", "coral_mlg_clonal_id", "DB_match",
+               "percent_missing_data_coral", "percent_mixed_coral", "percent_reference_coral",
+               "percent_alternative_coral"),
+        by='user_specimen_id')
 
 # Rarifaction curve.
 # Start PDF device driver.
@@ -240,19 +243,19 @@ genotype_curve(gind, sample=5, quiet=TRUE);
 dev.off();
 
 # Create a phylogeny of samples based on distance matrices.
-cols <- palette(brewer.pal(n=12, name='Set3'));
+palette(brewer.pal(n=12, name='Set3'));
 set.seed(999);
 # Start PDF device driver.
 dev.new(width=10, height=7);
 file_path = get_file_path("nj_phylogeny.pdf");
 pdf(file=file_path, width=10, height=7);
 # Organize branches by clade.
-tree <- obj2 %>%
-    aboot(dist=provesti.dist, sample=10, tree="nj", cutoff=50, quiet=TRUE) %>%
+theTree <- obj2 %>%
+    aboot(dist=provesti.dist, sample=100, tree="nj", cutoff=50, quiet=TRUE) %>%
     ladderize();
-plot.phylo(tree, tip.color=cols[obj2$pop],label.offset=0.0125, cex=0.7, font=2, lwd=4);
+plot.phylo(theTree, tip.color=cols[obj2$pop], label.offset=0.0125, cex=0.7, font=2, lwd=4);
 # Add a scale bar showing 5% difference..
 add.scale.bar(length=0.05, cex=0.65);
-nodelabels(tree$node.label, cex=.5, adj=c(1.5, -0.1), frame="n", font=3, xpd=TRUE);
+nodelabels(theTree$node.label, cex=.5, adj=c(1.5, -0.1), frame="n", font=3, xpd=TRUE);
 dev.off();
 
