@@ -77,8 +77,8 @@ gl <- vcfR2genlight(vcf, n.cores=2);
 gind <- new("genind", (as.matrix(gl)));
 
 # Add population information to the genind object.
-poptab <- read.table(opt$input_pop_info, check.names=FALSE, header=T, na.strings=c("", "NA"));
-colnames(poptab) <- c("row_id", "affy_id", "affy_id2", "user_specimen_id", "user_specimen_id2", "region");
+poptab <- read.table(opt$input_pop_info, check.names=FALSE, header=F, na.strings=c("", "NA"), stringsAsFactors = FALSE);
+colnames(poptab) <- c("row_id", "affy_id", "user_specimen_id", "region");
 gind@pop <- as.factor(poptab$region);
 
 # Convert genind object to a genclone object.
@@ -97,10 +97,11 @@ dt <- data.table(id, keep.rownames=TRUE);
 setnames(dt, c("id"), c("affy_id"));
 
 # Read user's Affymetrix 96 well plate csv file.
-pinfo <- read.csv(opt$input_affy_metadata, stringsAsFactors=FALSE);
-pinfo <- pinfo$user_specimen_id;
-pi <- data.table(pinfo);
-setnames(pi, c("pinfo"), c("user_specimen_id"));
+pinfo <- read.table(opt$input_affy_metadata, header=TRUE, stringsAsFactors=FALSE, sep="\t");
+pinfo$user_specimen_id <- as.character(pinfo$user_specimen_id);
+pinfo2 <- as.character(pinfo$user_specimen_id);
+pi <- data.table(pinfo2);
+setnames(pi, c("pinfo2"), c("user_specimen_id"));
 
 # Connect to database.
 conn <- get_database_connection(opt$database_connection_string);
@@ -109,7 +110,7 @@ conn <- get_database_connection(opt$database_connection_string);
 mD <- tbl(conn, "sample");
 
 # Select user_specimen_id and mlg columns.
-smlg <- mD %>% select(user_specimen_id, coral_mlg_clonal_id, symbio_mlg_clonal_id);
+smlg <- mD %>% select(user_specimen_id, coral_mlg_clonal_id, symbio_mlg_clonal_id, affy_id);
 
 # Convert to dataframe.
 sm <- data.frame(smlg);
@@ -189,7 +190,7 @@ for (i in 1:length(na.mlg2)) {
 }
 
 # subset poptab for all samples.
-subpop <- poptab[c(2, 4)];
+subpop <- poptab[c(2, 3)];
 
 # Merge data frames for final table.
 report_user <- pi %>%
@@ -226,36 +227,56 @@ report_db <- pinfo %>%
                "percent_alternative_coral"),
         by='user_specimen_id')
 
-# Rarifaction curve.
-# Start PDF device driver.
-dev.new(width=10, height=7);
-file_path = get_file_path("geno_rarifaction_curve.pdf");
-pdf(file=file_path, width=10, height=7);
-rarecurve(m, ylab="Number of expected MLGs", sample=min(rowSums(m)), border=NA, fill=NA, font=2, cex=1, col="blue");
-dev.off();
-
-# Genotype accumulation curve, sample is number of
-# loci randomly selected for to make the curve.
-dev.new(width=10, height=7);
-file_path = get_file_path("geno_accumulation_curve.pdf");
-pdf(file=file_path, width=10, height=7);
-genotype_curve(gind, sample=5, quiet=TRUE);
-dev.off();
+# Create vector indicating number of individuals desired
+# made from affy_id collumn of report_user data table.
+i <- report_user[[2]];
+sub96 <- obj2[i, mlg.reset=FALSE, drop=FALSE];
 
 # Create a phylogeny of samples based on distance matrices.
-palette(brewer.pal(n=12, name='Set3'));
+cols <- palette(brewer.pal(n=12, name='Set3'));
 set.seed(999);
 # Start PDF device driver.
 dev.new(width=10, height=7);
 file_path = get_file_path("nj_phylogeny.pdf");
 pdf(file=file_path, width=10, height=7);
 # Organize branches by clade.
-theTree <- obj2 %>%
-    aboot(dist=provesti.dist, sample=100, tree="nj", cutoff=50, quiet=TRUE) %>%
+theTree <- sub96 %>%
+    aboot(dist=provesti.dist, sample=1, tree="nj", cutoff=50, quiet=TRUE) %>%
     ladderize();
-plot.phylo(theTree, tip.color=cols[obj2$pop], label.offset=0.0125, cex=0.7, font=2, lwd=4);
+theTree$tip.label <- report_user$user_specimen_id[match(theTree$tip.label, report_user$affy_id)];
+plot.phylo(theTree, tip.color=cols[sub96$pop], label.offset=0.0125, cex=0.3, font=2, lwd=4, align.tip.label=F, no.margin=T);
 # Add a scale bar showing 5% difference..
-add.scale.bar(length=0.05, cex=0.65);
+add.scale.bar(0, 0.95, length=0.05, cex=0.65, lwd=3);
 nodelabels(theTree$node.label, cex=.5, adj=c(1.5, -0.1), frame="n", font=3, xpd=TRUE);
+legend("topright", legend=c("Antigua", "Bahamas", "Belize", "Cuba", "Curacao", "Florida", "PuertoRico", "USVI"), text.col=cols, xpd=T, cex=0.8);
 dev.off();
+
+# Missing data barplot.
+poptab$miss <- report_user$percent_missing_data_coral[match(miss$affy_id, report_user$affy_id)];
+test2 <- which(!is.na(poptab$miss));
+miss96 <- poptab$miss[test2];
+name96 <- poptab$user_specimen_id[test2];
+dev.new(width=10, height=7);
+file_path = get_file_path("missing_data.pdf");
+pdf (file=file_path, width=10, height=7);
+par(mar = c(8, 4, 4, 2));
+x <- barplot(miss96, las=2, col=cols, ylim=c(0, 3), cex.axis=0.8, space=0.8, ylab="Missingness (%)", xaxt="n");
+text(cex=0.6, x=x-0.25, y=-.05, name96, xpd=TRUE, srt=60, adj=1);
+dev.off()
+
+# Rarifaction curve.
+# Start PDF device driver.
+#dev.new(width=10, height=7);
+#file_path = get_file_path("geno_rarifaction_curve.pdf");
+#pdf(file=file_path, width=10, height=7);
+#rarecurve(m, ylab="Number of expected MLGs", sample=min(rowSums(m)), border=NA, fill=NA, font=2, cex=1, col="blue");
+#dev.off();
+
+# Genotype accumulation curve, sample is number of
+# loci randomly selected for to make the curve.
+#dev.new(width=10, height=7);
+#file_path = get_file_path("geno_accumulation_curve.pdf");
+#pdf(file=file_path, width=10, height=7);
+#genotype_curve(gind, sample=5, quiet=TRUE);
+#dev.off();
 

@@ -25,7 +25,7 @@ Rscript '$__tool_directory__/multilocus_genotype.R'
 --output_stag_db_report '$output_stag_db_report']]></command>
     <inputs>
         <param name="input_vcf" type="data" format="vcf" label="VCF file" />
-        <param name="input_affy_metadata" type="data" format="csv" label="Affymetrix 96 well plate file" />
+        <param name="input_affy_metadata" type="data" format="tabular" label="Affymetrix 96 well plate file" />
         <param name="input_pop_info" type="data" format="txt" label="Population information file" />
     </inputs>
     <outputs>
@@ -37,7 +37,7 @@ Rscript '$__tool_directory__/multilocus_genotype.R'
     <tests>
         <test>
             <param name="input_vcf" value="baitssnv.recode.vcf" ftype="vcf"/>
-            <param name="input_affy_metadata" value="affy_metadata.csv" ftype="csv"/>
+            <param name="input_affy_metadata" value="affy_metadata.tabular" ftype="tabular"/>
             <param name="input_pop_info" value="pop_info.txt" ftype="txt"/>
             <output name="output_stag_db_report" file="output_stag_db_report.csv" ftype="csv"/>
             <output_collection name="output_plot_collection" type="list">
