@@ -73,7 +73,7 @@ class GenotypeInfoGenerator(object):
                     # user_specimen_id
                     out_items.append(items[3])
                     # region
-                    out_items.append(items[9])
+                    out_items.append(items[10])
                 self.outfh.write("%s\n" % "\t".join(out_items))
         self.outfh.close()
 

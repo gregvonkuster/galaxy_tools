@@ -77,7 +77,7 @@ gl <- vcfR2genlight(vcf, n.cores=2);
 gind <- new("genind", (as.matrix(gl)));
 
 # Add population information to the genind object.
-poptab <- read.table(opt$input_pop_info, check.names=FALSE, header=F, na.strings=c("", "NA"), stringsAsFactors = FALSE);
+poptab <- read.table(opt$input_pop_info, check.names=FALSE, header=F, na.strings=c("", "NA"), stringsAsFactors=FALSE, sep="\t");
 colnames(poptab) <- c("row_id", "affy_id", "user_specimen_id", "region");
 gind@pop <- as.factor(poptab$region);
 
