@@ -1,0 +1,11 @@
+name: affy_ids_for_genotyping
+owner: greg
+description: |
+  Contains a tool that extracts the Affymetrix ids from a VCF file for genotyping.
+homepage_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/corals/affy_ids_for_genotyping
+long_description: |
+  Contains a tool that extracts the Affymetrix ids from a VCF file for genotyping.
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/corals/affy_ids_for_genotyping
+type: unrestricted
+categories:
+  - Micro-array Analysis

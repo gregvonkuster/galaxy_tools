@@ -1,0 +1,30 @@
+<tool id="affy_ids_for_genotyping" name="Extract Affymetrix ids for genotyping" version="1.0.0">
+    <description>from VCF data</description>
+    <command detect_errors="exit_code"><![CDATA[
+grep "#CHROM" '$input_vcf' > test.head &&
+tr '\t' '\n' < test.head > samples.txt &&
+sed -i 1,9d samples.txt &&
+awk -F'\t' -v OFS='\t' 'NR==0 {print ; next}{print (NR),$0}' samples.txt > '$output'
+]]></command>
+    <inputs>
+        <param name="input_vcf" type="data" format="vcf" label="VCF file"/>
+    </inputs>
+    <outputs>
+        <data name="output" format="tabular"/>
+    </outputs>
+    <tests>
+        <test>
+            <param name="input_vcf" value="input.vcf" ftype="vcf"/>
+            <output name="output" file="output.tabular" ftype="tabular"/>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+Generates a file that contains the Affymetrix identifiers that will be combined with additional data to
+generate the genotype populatiuon information for use as input to the multilocus_genotype tool.  This tool
+can be used only within a Galaxy instance that includes the complementary corals (stag) database.
+    </help>
+    <citations>
+    </citations>
+</tool>
