@@ -1,66 +1,93 @@
 #!/usr/bin/env python
-"""
-Generate a genotype population information file to be used as input to the multilocus_genotype tool.
-"""
 import argparse
-import os
-import subprocess
+import sys
 
-FHEADER = 'header.txt'
-FSAMPLE = 'sample.txt'
-FSTDERR = 'stderr.txt'
-FSTDOUT = 'stdout.txt'
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--input_vcf', dest='input_vcf', help='VCF file containing extracted probes from the upstream merged VCF file')
-parser.add_argument('--output', dest='output', help='Output dataset'),
-args = parser.parse_args()
+import psycopg2
+from sqlalchemy import create_engine, MetaData
+from sqlalchemy.engine.url import make_url
 
 
-def check_execution_errors(rc, fstderr, fstdout):
-    if rc != 0:
-        fh = open(fstdout, 'rb')
-        out_msg = fh.read()
-        fh.close()
-        fh = open(fstderr, 'rb')
-        err_msg = fh.read()
-        fh.close()
-        msg = '%s\n%s\n' % (str(out_msg), str(err_msg))
-        stop_err(msg)
+class GenotypeInfoGenerator(object):
+    def __init__(self):
+        self.args = None
+        self.conn = None
+        self.parse_args()
+        self.outfh = open(self.args.output, "w")
+        self.connect_db()
+        self.engine = create_engine(self.args.database_connection_string)
+        self.metadata = MetaData(self.engine)
+
+    def parse_args(self):
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--database_connection_string', dest='database_connection_string', help='Postgres database connection string'),
+        parser.add_argument('--input_partial_info', dest='input_partial_info', help='Tabular file containing part of the genotype info')
+        parser.add_argument('--output', dest='output', help='Output dataset'),
+        self.args = parser.parse_args()
+
+    def connect_db(self):
+        url = make_url(self.args.database_connection_string)
+        args = url.translate_connect_args(username='user')
+        args.update(url.query)
+        assert url.get_dialect().name == 'postgresql', 'This script can only be used with PostgreSQL.'
+        self.conn = psycopg2.connect(**args)
+
+    def run(self):
+        sql = """
+              SELECT sample.user_specimen_id,
+                     reef.region
+              FROM sample
+              LEFT OUTER JOIN colony
+                              ON sample.colony_id = colony.id
+              LEFT OUTER JOIN reef
+                              ON reef.id = colony.reef_id
+              WHERE sample.affy_id = '%s';
+        """
+        with open(self.args.input_partial_info, "r") as fh:
+            for line in fh:
+                line = line.strip()
+                out_items = []
+                items = line.split('\t')
+                # Item number.
+                out_items.append(items[0])
+                affy_id = items[1]
+                out_items.append(affy_id)
+                if len(items) == 2:
+                    # Example line:
+                    # 1 a100000-4368120-060520-256_I07.CEL
+                    # The line is missing the user_specimen_id and
+                    # region, so retrieve it from the database.
+                    query = sql % affy_id
+                    cur = self.conn.cursor()
+                    cur.execute(query)
+                    try:
+                        missing_items = cur.fetchone()
+                        # user_specimen_id
+                        out_items.append(missing_items[0])
+                        # region
+                        out_items.append(missing_items[1])
+                    except Exception as e:
+                        msg = "Error retrieving user_specimen_id and region from the database for affy_id %s: %s" % (affy_id, e)
+                        self.stop_err(msg)
+                else:
+                    # The line contains all of the information we need.
+                    # user_specimen_id
+                    out_items.append(items[3])
+                    # region
+                    out_items.append(items[9])
+                self.outfh.write("%s\n" % "\t".join(out_items))
+        self.outfh.close()
+
+    def shutdown(self):
+        self.conn.close()
+
+    def stop_err(self, msg):
+        sys.stderr.write(msg)
+        self.outfh.flush()
+        self.outfh.close()
+        sys.exit(1)
 
 
-def get_response_buffers():
-    fstderr = os.path.join(os.getcwd(), FSTDERR)
-    fherr = open(fstderr, 'wb')
-    fstdout = os.path.join(os.getcwd(), FSTDOUT)
-    fhout = open(fstdout, 'wb')
-    return fstderr, fherr, fstdout, fhout
-
-
-def run_command(cmd):
-    fstderr, fherr, fstdout, fhout = get_response_buffers()
-    proc = subprocess.Popen(args=cmd, stderr=fherr, stdout=fhout, shell=True)
-    rc = proc.wait()
-    # Check results.
-    fherr.close()
-    fhout.close()
-    check_execution_errors(rc, fstderr, fstdout)
-
-
-def stop_err(msg):
-    sys.exit(msg)
-
-
-# Extract the header from input_vcf.
-cmd = 'grep "#CHROM" %s > %s' % (args.input_vcf, FHEADER)
-run_command(cmd)
-# Extract the samples based on the header.
-cmd = "tr '\t' '\n' < %s > %s" % (FHEADER, FSAMPLE)
-run_command(cmd)
-# Munge the samples inline.
-cmd = "sed -i 1,9d %s" % FSAMPLE
-run_command(cmd)
-# Generate the output.
-cmd = "awk -F'\t' -v OFS='\t' 'NR==0 {print ; next}{print (NR),$0}' %s > %s" % (FSAMPLE, args.output)
-run_command(cmd)
-
+if __name__ == '__main__':
+    gig = GenotypeInfoGenerator()
+    gig.run()
+    gig.shutdown()

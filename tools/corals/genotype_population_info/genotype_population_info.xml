@@ -1,32 +1,32 @@
-<tool id="genotype_population_info" name="Generate genotype population info" version="1.0.0">
-    <description>from VCF data</description>
+<tool id="genotype_population_info" name="Generate genotype population" version="1.0.0">
+    <description>information from a partial dataset</description>
     <command detect_errors="exit_code"><![CDATA[
 python $__tool_directory__/genotype_population_info.py
---input_sample_names '$input_sample_names'
---input_vcf '$input_vcf'
+--database_connection_string '$__app__.config.corals_database_connection'
+--input_partial_info '$input_partial_info'
 --output '$output'
 ]]></command>
     <inputs>
-        <param name="input_vcf" type="data" format="vcf" label="VCF file"/>
-        <param name="input_sample_names" type="data" format="txt" label="Sample attributes file"/>
+        <param name="input_partial_info" type="data" format="tabular" label="Partial genotype population file"/>
     </inputs>
     <outputs>
         <data name="output" format="tabular"/>
     </outputs>
     <tests>
         <test>
-            <param name="input_vcf" value="input.vcf" ftype="vcf"/>
-            <param name="input_sample_names" value="input_sample_names.txt" ftype="txt"/>
+            <param name="input_partial_info" value="input.tabular" ftype="tabular"/>
             <output name="output" file="output.tabular" ftype="tabular"/>
         </test>
     </tests>
     <help>
 **What it does**
 
-Generates a file that contains the genotype population information that can be used as input
-to the multilocus_genotype tool.  This tool can be used only within a Galaxy instance which
-includes the complementary stag database.
+Accepts a file that contains the Affymetrix ids and a subset of the user specimen ids and regions for genotyping.
+The tool queries the stag database to retrieve the user specimen ids and regions that are missing for each Affymetrix
+id anf produces a complete set of genotype population information for use as input to the multilocus_genotype tool.
+This tool can be used only within a Galaxy instance which includes the complementary corals (stag) database.
     </help>
     <citations>
     </citations>
 </tool>
+
