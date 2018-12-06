@@ -176,7 +176,7 @@ Sample_table = Table("sample", metadata,
     Column("percent_hererozygous_coral", Numeric(15, 6)),
     Column("percent_hererozygous_sym", Numeric(15, 6)),
     Column("coral_mlg_clonal_id", TrimmedString(255)),
-    Column("symbio_mlg_clonal_id", TrimmedString(255)))
+    Column("sym_mlg_clonal_id", TrimmedString(255)))
 
 
 Taxonomy_table = Table("taxonomy", metadata,
