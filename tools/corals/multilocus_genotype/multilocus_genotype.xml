@@ -4,6 +4,7 @@
         <requirement type="package" version="2.1.1">r-adegenet</requirement>
         <requirement type="package" version="5.1">r-ape</requirement>
         <requirement type="package" version="1.11.6">r-data.table</requirement>
+        <requirement type="package" version="1.2.2">r-dbplyr</requirement>
         <requirement type="package" version="0.7.6">r-dplyr</requirement>
         <requirement type="package" version="3.0.0">r-ggplot2</requirement>
         <requirement type="package" version="1.20">r-knitr</requirement>
@@ -11,6 +12,7 @@
         <requirement type="package" version="2.8.1">r-poppr</requirement>
         <requirement type="package" version="1.1.2">r-rcolorbrewer</requirement>
         <requirement type="package" version="1.1.1">r-rpostgres</requirement>
+        <requirement type="package" version="0.8.1">r-tidyr</requirement>
         <requirement type="package" version="2.5_3">r-vegan</requirement>
         <requirement type="package" version="1.8.0">r-vcfr</requirement>
     </requirements>
@@ -22,11 +24,16 @@ Rscript '$__tool_directory__/multilocus_genotype.R'
 --input_affy_metadata '$input_affy_metadata'
 --input_pop_info '$input_pop_info'
 --input_vcf '$input_vcf'
---output_stag_db_report '$output_stag_db_report']]></command>
+--output_stag_db_report '$output_stag_db_report'
+&> multilocus_genotype.log;
+if [[ $? -ne 0 ]]; then
+    cp multilocus_genotype.log '$output_stag_db_report';
+    esit 1;
+fi]]></command>
     <inputs>
         <param name="input_vcf" type="data" format="vcf" label="VCF file" />
         <param name="input_affy_metadata" type="data" format="tabular" label="Affymetrix 96 well plate file" />
-        <param name="input_pop_info" type="data" format="txt" label="Population information file" />
+        <param name="input_pop_info" type="data" format="txt" label="Genotype population information file" />
     </inputs>
     <outputs>
         <data name="output_stag_db_report" format="csv" label="${tool.name} (stag db report) on ${on_string}"/>
@@ -41,9 +48,9 @@ Rscript '$__tool_directory__/multilocus_genotype.R'
             <param name="input_pop_info" value="pop_info.txt" ftype="txt"/>
             <output name="output_stag_db_report" file="output_stag_db_report.csv" ftype="csv"/>
             <output_collection name="output_plot_collection" type="list">
-                <element name="geno_accumulation_curve.pdf" file="geno_accumulation_curve.pdf" ftype="pdf" compare="contains"/>
-                <element name="geno_rarifaction_curve.pdf" file="geno_rarifaction_curve.pdf" ftype="pdf" compare="contains"/>
                 <element name="nj_phylogeny.pdf" file="nj_phylogeny.pdf" ftype="pdf" compare="contains"/>
+                <element name="missing_data.pdf" file="missing_data.pdf" ftype="pdf" compare="contains"/>
+                <element name="percent_breakdown.pdf" file="percent_breakdown.pdf" ftype="pdf" compare="contains"/>
             </output_collection>
         </test>
     </tests>
