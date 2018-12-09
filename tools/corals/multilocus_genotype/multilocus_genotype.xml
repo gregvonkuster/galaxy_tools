@@ -28,7 +28,7 @@ Rscript '$__tool_directory__/multilocus_genotype.R'
 &> multilocus_genotype.log;
 if [[ $? -ne 0 ]]; then
     cp multilocus_genotype.log '$output_stag_db_report';
-    esit 1;
+    exit 1;
 fi]]></command>
     <inputs>
         <param name="input_vcf" type="data" format="vcf" label="VCF file" />

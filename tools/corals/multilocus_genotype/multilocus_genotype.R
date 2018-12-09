@@ -301,11 +301,11 @@ col <- c("GREY", "#006DDB", "#24FF24", "#920000");
 main <- "Average breakdown of SNP assignments across all samples";
 pie(spy, labels=labels, radius=0.60, col=col, main=main, cex.main=.75);
 par(mfrow=c(3, 2));
+col <- c("GREY", "#006DDB", "#24FF24", "#920000");
 for (i in 1:96) {
-    labels <- paste(labels, " (", round(tdt1_matrix[,i], 1), "%)", sep="");
-    col <- c("GREY", "#006DDB", "#24FF24", "#920000");
+    tmp_labels <- paste(labels, " (", round(tdt1_matrix[,i], 1), "%)", sep="");
     main <- paste("Breakdown of SNP assignments for", tdt1[1, i]);
-    pie(tdt1_matrix[,i], labels=labels, radius=0.90, col=col, main=main, cex.main=.85, cex=0.75);
+    pie(tdt1_matrix[,i], labels=tmp_labels, radius=0.90, col=col, main=main, cex.main=.85, cex=0.75);
 }
 dev.off()
 
