@@ -66,13 +66,13 @@ fi]]></command>
             <validator type="expression" message="30 year normals temperature data must have 10 columns and 366 rows">value is not None and value.metadata.columns==10 and value.metadata.data_lines==366</validator>
         </param>
         <conditional name="merge_ytd_temperature_data_cond">
-            <param name="merge_ytd_temperature_data" type="select" label="Merge year-to-date temperature data with 30 year normals temperature data?">
+            <param name="merge_ytd_temperature_data" type="select" label="Merge daily actuals temperature data with 30 year normals temperature data?">
                 <option value="yes" selected="true">Yes</option>
                 <option value="no">No</option>
             </param>
             <when value="yes">
-                <param name="input_ytd" type="data" format="csv" label="Year-to-date temperature data">
-                    <validator type="expression" message="Year-to-date temperature data must have 6 columns">value is not None and value.metadata.columns==6</validator>
+                <param name="input_ytd" type="data" format="csv" label="Daily actuals temperature data">
+                    <validator type="expression" message="Daily actuals temperature data must have 6 columns">value is not None and value.metadata.columns==6</validator>
                 </param>
                 <param name="location" type="text" value="" optional="true" label="Location" help="Enter the location or leave blank to use the station name from 30 year normals data."/>
             </when>
@@ -81,8 +81,8 @@ fi]]></command>
         <param name="insect" type="select" label="Select insect">
             <option value="BMSB" selected="True">Brown Marmorated Stink Bug</option>
         </param>
-        <param name="replications" type="integer" value="10" min="2" label="Number of replications"/>
-        <param name="insects_per_replication" type="integer" value="1000" min="1" label="Number of insects with which to start each replication"/>
+        <param name="replications" type="integer" value="5" min="2" label="Number of replications"/>
+        <param name="insects_per_replication" type="integer" value="1000" min="100" label="Number of insects with which to start each replication"/>
         <param name="photoperiod" type="float" value="13.5" min="0" label="Critical photoperiod for diapause induction/termination"/>
         <param name="egg_mortality" type="float" value="1" min="0" max="1" label="Adjustment rate for egg mortality" help="Floating point value between 0 and 1"/>
         <param name="nymph_mortality" type="float" value="1" min="0" label="Adjustment rate for nymph mortality"/>
@@ -242,7 +242,7 @@ Provides an agent-based stochastic model expressing stage-specific phenology and
  * **30 year normals temperature data** - the dataset from your history containing the 30-year normals temperature data (available at http://pestwatch.psu.edu/ghcn).
  * **Merge year-to-date temperature data with 30 year normals temperature data** - select Yes to merge a year-to-date temperature dataset from your history into the selected 30 year normals temperature data.
 
-  * **Year-to-date temperature data** - the dataset from your history containing the year-to-date temperature data (available at http://pestwatch.psu.edu/minmax).
+  * **Daily actuals temperature data** - the dataset from your history containing the daily actuals temperature data (available at http://pestwatch.psu.edu/minmax).
 
  * **Location** - the location associated with the selected temperature data.
  * **Select insect** - currently only the Brown Marmorated Stink Bug can be analyzed.

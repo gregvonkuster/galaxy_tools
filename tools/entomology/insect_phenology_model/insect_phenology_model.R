@@ -299,14 +299,14 @@ mortality.adult = function(temperature) {
 mortality.egg = function(temperature) {
     if (temperature < 12.7) {
         mortality.probability = 0.8;
-    }
-    else {
+    } else {
         mortality.probability = 0.8 - temperature / 40.0;
         if (mortality.probability < 0) {
             mortality.probability = 0.01;
         }
     }
-    return(mortality.probability)
+    return (mortality.probability);
+}
 
 mortality.nymph = function(temperature) {
     if (temperature < 12.7) {
@@ -323,6 +323,8 @@ parse_input_data = function(input_ytd, input_norm, location, start_date, end_dat
     prepend_end_doy_norm = 0;
     # The start DOY for norm data appended to ytd data.
     append_start_doy_norm = 0;
+    cat("start_date: ", start_date, "\n");
+    cat("end_date: ", end_date, "\n");
     if (is.null(start_date) && is.null(end_date)) {
         # We're not dealing with a date interval.
         date_interval = FALSE;
@@ -338,6 +340,7 @@ parse_input_data = function(input_ytd, input_norm, location, start_date, end_dat
         start_date_doy = as.integer(strftime(start_date, format="%j"));
         end_date_doy = as.integer(strftime(end_date, format="%j"));
     }
+    cat("date_interval: ", date_interval, "\n");
     if (is.null(input_ytd)) {
         # We're processing only the 30 year normals data.
         processing_year_to_date_data = FALSE;
@@ -375,16 +378,13 @@ parse_input_data = function(input_ytd, input_norm, location, start_date, end_dat
             }
             end_date_ytd_row = which(temperature_data_frame$DATE==end_date);
             if (length(end_date_ytd_row) > 0) {
+                cat("I'm here...\n");
                 end_date_ytd_row = end_date_ytd_row[1];
                 # The end date is contained within the input_ytd data.
                 end_doy_ytd = as.integer(temperature_data_frame$DOY[end_date_ytd_row]);
-                if (end_doy_ytd > end_date_ytd_row + 1) {
-                    # The input year-to-date dataset is missing 1 or more
-                    # days of data.
-                    days_missing = end_doy_ytd - end_date_ytd_row;
-                    msg = cat("The year-to-date dataset is missing ", days_missing, " days of data.\n");
-                    stop_err(msg);
-                }
+                cat("end_doy_ytd: ", end_doy_ytd, "\n");
+                cat("end_date_ytd_row: ", end_date_ytd_row, "\n");
+                cat("start_date_ytd_row: ", start_date_ytd_row, "\n");
             } else {
                 end_date_ytd_row = 0;
             }
@@ -408,13 +408,10 @@ parse_input_data = function(input_ytd, input_norm, location, start_date, end_dat
             # Save the first DOY to later check if start_date is Jan 1.
             start_doy_ytd = as.integer(temperature_data_frame$DOY[1]);
             end_doy_ytd = as.integer(temperature_data_frame$DOY[num_ytd_rows]);
-            if (end_doy_ytd > end_date_ytd_row + 1) {
-                # The input year-to-date dataset is missing 1 or more
-                # days of data.
-                days_missing = end_doy_ytd - end_date_ytd_row;
-                msg = cat("The year-to-date dataset is missing ", days_missing, " days of data.\n");
-                stop_err(msg);
-            }
+            cat("I'm here 2...\n");
+            cat("end_doy_ytd: ", end_doy_ytd, "\n");
+            cat("end_date_ytd_row: ", end_date_ytd_row, "\n");
+            cat("start_date_ytd_row: ", start_date_ytd_row, "\n");
         }
     } else {
         # We're processing only the 30 year normals data, so create an empty
@@ -569,6 +566,8 @@ parse_input_data = function(input_ytd, input_norm, location, start_date, end_dat
             }
         }
     }
+    # Ensure all DOY values are consectuive integers.
+    validate_doys(temperature_data_frame);
     # Add a column containing the daylight length for each day.
     temperature_data_frame = add_daylight_length(temperature_data_frame);
     return(list(temperature_data_frame, start_date, end_date, prepend_end_doy_norm, append_start_doy_norm, is_leap_year, location));
@@ -614,10 +613,6 @@ if (processing_year_to_date_data) {
     cat("Number of days in year: ", num_days, "\n");
 }
 
-# Get the ticks date labels for plots.
-ticks_and_labels = get_x_axis_ticks_and_labels(temperature_data_frame, prepend_end_doy_norm, append_start_doy_norm);
-ticks = c(unlist(ticks_and_labels[1]));
-date_labels = c(unlist(ticks_and_labels[2]));
 # All latitude values are the same, so get the value for plots from the first row.
 latitude = temperature_data_frame$LATITUDE[1];
 
@@ -756,6 +751,7 @@ if (plot_generations_separately) {
 # Total population.
 population.replications = matrix(rep(0, total_days*opt$replications), ncol=opt$replications);
 
+doy_zero_insects = NULL;
 # Process replications.
 for (current_replication in 1:opt$replications) {
     # Start with the user-defined number of insects per replication.
@@ -856,218 +852,226 @@ for (current_replication in 1:opt$replications) {
         # Newborn.
         birth.vector = NULL;
         # All individuals.
-        for (i in 1:num_insects) {
-            # Individual record.
-            vector.individual = vector.matrix[i,];
-            # Adjustment for late season mortality rate (still alive?).
-            if (latitude < 40.0) {
-                post.mortality = 1;
-                day.kill = 300;
-            }
-            else {
-                post.mortality = 2;
-                day.kill = 250;
-            }
-            if (vector.individual[2] == 0) {
-                # Egg.
-                #death.probability = opt$egg_mortality * mortality.egg(mean.temp, adj=opt$egg_mortality);
-                death.probability = opt$egg_mortality * mortality.egg(mean.temp);
-            }
-            else if (vector.individual[2] == 1 | vector.individual[2] == 2) {
-                # Nymph.
-                death.probability = opt$nymph_mortality * mortality.nymph(mean.temp);
-            }
-            else if (vector.individual[2] == 3 | vector.individual[2] == 4 | vector.individual[2] == 5) {
-                # Adult.
-                if (doy < day.kill) {
-                    death.probability = opt$adult_mortality * mortality.adult(mean.temp);
+        if (num_insects > 0) {
+            for (i in 1:num_insects) {
+                # Individual record.
+                vector.individual = vector.matrix[i,];
+                # Adjustment for late season mortality rate (still alive?).
+                if (latitude < 40.0) {
+                    post.mortality = 1;
+                    day.kill = 300;
                 }
                 else {
-                    # Increase adult mortality after fall equinox.
-                    death.probability = opt$adult_mortality * post.mortality * mortality.adult(mean.temp);
+                    post.mortality = 2;
+                    day.kill = 250;
                 }
-            }
-            # Dependent on temperature and life stage?
-            u.d = runif(1);
-            if (u.d < death.probability) {
-                death.vector = c(death.vector, i);
-            }
-            else {
-                # End of diapause.
-                if (vector.individual[1] == 0 && vector.individual[2] == 3) {
-                    # Overwintering adult (pre-vittelogenic).
-                    if (photoperiod > opt$photoperiod && vector.individual[3] > 68 && doy < 180) {
-                        # Add 68C to become fully reproductively matured.
-                        # Transfer to vittelogenic.
-                        vector.individual = c(0, 4, 0, 0, 0);
-                        vector.matrix[i,] = vector.individual;
-                    }
-                    else {
-                        # Add average temperature for current day.
-                        vector.individual[3] = vector.individual[3] + averages.temp;
-                        # Add 1 day in current stage.
-                        vector.individual[4] = vector.individual[4] + 1;
-                        vector.matrix[i,] = vector.individual;
-                    }
-                }
-                if (vector.individual[1] != 0 && vector.individual[2] == 3) {
-                    # Not overwintering adult (pre-vittelogenic).
-                    current.gen = vector.individual[1];
-                    if (vector.individual[3] > 68) {
-                        # Add 68C to become fully reproductively matured.
-                        # Transfer to vittelogenic.
-                        vector.individual = c(current.gen, 4, 0, 0, 0);
-                        vector.matrix[i,] = vector.individual;
-                    }
-                    else {
-                        # Add average temperature for current day.
-                        vector.individual[3] = vector.individual[3] + averages.temp;
-                        # Add 1 day in current stage.
-                        vector.individual[4] = vector.individual[4] + 1;
-                        vector.matrix[i,] = vector.individual;
-                    }
-                }
-                # Oviposition -- where population dynamics comes from.
-                if (vector.individual[2] == 4 && vector.individual[1] == 0 && mean.temp > 10) {
-                    # Vittelogenic stage, overwintering generation.
-                    if (vector.individual[4] == 0) {
-                        # Just turned in vittelogenic stage.
-                        num_insects.birth = round(runif(1, 2 + opt$min_clutch_size, 8 + opt$max_clutch_size));
-                    }
-                    else {
-                        # Daily probability of birth.
-                        p.birth = opt$oviposition * 0.01;
-                        u1 = runif(1);
-                        if (u1 < p.birth) {
-                            num_insects.birth = round(runif(1, 2, 8));
-                        }
-                    }
-                    # Add average temperature for current day.
-                    vector.individual[3] = vector.individual[3] + averages.temp;
-                    # Add 1 day in current stage.
-                    vector.individual[4] = vector.individual[4] + 1;
-                    vector.matrix[i,] = vector.individual;
-                    if (num_insects.birth > 0) {
-                        # Add new birth -- might be in different generations.
-                        new.gen = vector.individual[1] + 1;
-                        # Egg profile.
-                        new.individual = c(new.gen, 0, 0, 0, 0);
-                        new.vector = rep(new.individual, num_insects.birth);
-                        # Update batch of egg profile.
-                        new.vector = t(matrix(new.vector, nrow=5));
-                        # Group with total eggs laid in that day.
-                        birth.vector = rbind(birth.vector, new.vector);
-                    }
-                }
-                # Oviposition -- for generation 1.
-                if (vector.individual[2] == 4 && vector.individual[1] == 1 && mean.temp > 12.5 && doy < 222) {
-                    # Vittelogenic stage, 1st generation
-                    if (vector.individual[4] == 0) {
-                        # Just turned in vittelogenic stage.
-                        num_insects.birth = round(runif(1, 2+opt$min_clutch_size, 8+opt$max_clutch_size));
-                    }
-                    else {
-                        # Daily probability of birth.
-                        p.birth = opt$oviposition * 0.01;
-                        u1 = runif(1);
-                        if (u1 < p.birth) {
-                            num_insects.birth = round(runif(1, 2, 8));
-                        }
-                    }
-                    # Add average temperature for current day.
-                    vector.individual[3] = vector.individual[3] + averages.temp;
-                    # Add 1 day in current stage.
-                    vector.individual[4] = vector.individual[4] + 1;
-                    vector.matrix[i,] = vector.individual;
-                    if (num_insects.birth > 0) {
-                        # Add new birth -- might be in different generations.
-                        new.gen = vector.individual[1] + 1;
-                        # Egg profile.
-                        new.individual = c(new.gen, 0, 0, 0, 0);
-                        new.vector = rep(new.individual, num_insects.birth);
-                        # Update batch of egg profile.
-                        new.vector = t(matrix(new.vector, nrow=5));
-                        # Group with total eggs laid in that day.
-                        birth.vector = rbind(birth.vector, new.vector);
-                    }
-                }
-                # Egg to young nymph.
                 if (vector.individual[2] == 0) {
-                    # Add average temperature for current day.
-                    vector.individual[3] = vector.individual[3] + averages.temp;
-                    if (vector.individual[3] >= (68+opt$young_nymph_accumulation)) {
-                        # From egg to young nymph, degree-days requirement met.
-                        current.gen = vector.individual[1];
-                        # Transfer to young nymph stage.
-                        vector.individual = c(current.gen, 1, 0, 0, 0);
+                    # Egg.
+                    # death.probability = opt$egg_mortality * mortality.egg(mean.temp, adj=opt$egg_mortality);
+                    death.probability = opt$egg_mortality * mortality.egg(mean.temp);
+                }
+                else if (vector.individual[2] == 1 | vector.individual[2] == 2) {
+                    # Nymph.
+                    death.probability = opt$nymph_mortality * mortality.nymph(mean.temp);
+                }
+                else if (vector.individual[2] == 3 | vector.individual[2] == 4 | vector.individual[2] == 5) {
+                    # Adult.
+                    if (doy < day.kill) {
+                        death.probability = opt$adult_mortality * mortality.adult(mean.temp);
                     }
                     else {
-                        # Add 1 day in current stage.
-                        vector.individual[4] = vector.individual[4] + 1;
+                        # Increase adult mortality after fall equinox.
+                        death.probability = opt$adult_mortality * post.mortality * mortality.adult(mean.temp);
                     }
-                    vector.matrix[i,] = vector.individual;
                 }
-                # Young nymph to old nymph.
-                if (vector.individual[2] == 1) {
-                    # Add average temperature for current day.
-                    vector.individual[3] = vector.individual[3] + averages.temp;
-                    if (vector.individual[3] >= (250+opt$old_nymph_accumulation)) {
-                        # From young to old nymph, degree_days requirement met.
-                        current.gen = vector.individual[1];
-                        # Transfer to old nym stage.
-                        vector.individual = c(current.gen, 2, 0, 0, 0);
-                        if (photoperiod < opt$photoperiod && doy > 180) {
-                            vector.individual[5] = 1;
-                        } # Prepare for diapausing.
-                    }
-                    else {
-                        # Add 1 day in current stage.
-                        vector.individual[4] = vector.individual[4] + 1;
-                    }
-                    vector.matrix[i,] = vector.individual;
+                # Dependent on temperature and life stage?
+                u.d = runif(1);
+                if (u.d < death.probability) {
+                    death.vector = c(death.vector, i);
                 }
-                # Old nymph to adult: pre-vittelogenic or diapausing?
-                if (vector.individual[2] == 2) {
-                    # Add average temperature for current day.
-                    vector.individual[3] = vector.individual[3] + averages.temp;
-                    if (vector.individual[3] >= (200+opt$adult_accumulation)) {
-                        # From old to adult, degree_days requirement met.
-                        current.gen = vector.individual[1];
-                        if (vector.individual[5] == 0) {
-                            # Previttelogenic.
-                            vector.individual = c(current.gen, 3, 0, 0, 0);
+                else {
+                    # End of diapause.
+                    if (vector.individual[1] == 0 && vector.individual[2] == 3) {
+                        # Overwintering adult (pre-vittelogenic).
+                        if (photoperiod > opt$photoperiod && vector.individual[3] > 68 && doy < 180) {
+                            # Add 68C to become fully reproductively matured.
+                            # Transfer to vittelogenic.
+                            vector.individual = c(0, 4, 0, 0, 0);
+                            vector.matrix[i,] = vector.individual;
                         }
                         else {
-                            # Diapausing.
-                            vector.individual = c(current.gen, 5, 0, 0, 1);
+                            # Add average temperature for current day.
+                            vector.individual[3] = vector.individual[3] + averages.temp;
+                            # Add 1 day in current stage.
+                            vector.individual[4] = vector.individual[4] + 1;
+                            vector.matrix[i,] = vector.individual;
                         }
                     }
-                    else {
+                    if (vector.individual[1] != 0 && vector.individual[2] == 3) {
+                        # Not overwintering adult (pre-vittelogenic).
+                        current.gen = vector.individual[1];
+                        if (vector.individual[3] > 68) {
+                            # Add 68C to become fully reproductively matured.
+                            # Transfer to vittelogenic.
+                            vector.individual = c(current.gen, 4, 0, 0, 0);
+                            vector.matrix[i,] = vector.individual;
+                        }
+                        else {
+                            # Add average temperature for current day.
+                            vector.individual[3] = vector.individual[3] + averages.temp;
+                            # Add 1 day in current stage.
+                            vector.individual[4] = vector.individual[4] + 1;
+                            vector.matrix[i,] = vector.individual;
+                        }
+                    }
+                    # Oviposition -- where population dynamics comes from.
+                    if (vector.individual[2] == 4 && vector.individual[1] == 0 && mean.temp > 10) {
+                        # Vittelogenic stage, overwintering generation.
+                        if (vector.individual[4] == 0) {
+                            # Just turned in vittelogenic stage.
+                            num_insects.birth = round(runif(1, 2 + opt$min_clutch_size, 8 + opt$max_clutch_size));
+                        }
+                        else {
+                            # Daily probability of birth.
+                            p.birth = opt$oviposition * 0.01;
+                            u1 = runif(1);
+                            if (u1 < p.birth) {
+                                num_insects.birth = round(runif(1, 2, 8));
+                            }
+                        }
+                        # Add average temperature for current day.
+                        vector.individual[3] = vector.individual[3] + averages.temp;
                         # Add 1 day in current stage.
                         vector.individual[4] = vector.individual[4] + 1;
+                        vector.matrix[i,] = vector.individual;
+                        if (num_insects.birth > 0) {
+                            # Add new birth -- might be in different generations.
+                            new.gen = vector.individual[1] + 1;
+                            # Egg profile.
+                            new.individual = c(new.gen, 0, 0, 0, 0);
+                            new.vector = rep(new.individual, num_insects.birth);
+                            # Update batch of egg profile.
+                            new.vector = t(matrix(new.vector, nrow=5));
+                            # Group with total eggs laid in that day.
+                            birth.vector = rbind(birth.vector, new.vector);
+                        }
                     }
-                    vector.matrix[i,] = vector.individual;
-                }
-                # Growing of diapausing adult (unimportant, but still necessary).
-                if (vector.individual[2] == 5) {
-                    vector.individual[3] = vector.individual[3] + averages.temp;
-                    vector.individual[4] = vector.individual[4] + 1;
-                    vector.matrix[i,] = vector.individual;
-                }
-            } # Else if it is still alive.
-        } # End of the individual bug loop.
+                    # Oviposition -- for generation 1.
+                    if (vector.individual[2] == 4 && vector.individual[1] == 1 && mean.temp > 12.5 && doy < 222) {
+                        # Vittelogenic stage, 1st generation
+                        if (vector.individual[4] == 0) {
+                            # Just turned in vittelogenic stage.
+                            num_insects.birth = round(runif(1, 2+opt$min_clutch_size, 8+opt$max_clutch_size));
+                        }
+                        else {
+                            # Daily probability of birth.
+                            p.birth = opt$oviposition * 0.01;
+                            u1 = runif(1);
+                            if (u1 < p.birth) {
+                                num_insects.birth = round(runif(1, 2, 8));
+                            }
+                        }
+                        # Add average temperature for current day.
+                        vector.individual[3] = vector.individual[3] + averages.temp;
+                        # Add 1 day in current stage.
+                        vector.individual[4] = vector.individual[4] + 1;
+                        vector.matrix[i,] = vector.individual;
+                        if (num_insects.birth > 0) {
+                            # Add new birth -- might be in different generations.
+                            new.gen = vector.individual[1] + 1;
+                            # Egg profile.
+                            new.individual = c(new.gen, 0, 0, 0, 0);
+                            new.vector = rep(new.individual, num_insects.birth);
+                            # Update batch of egg profile.
+                            new.vector = t(matrix(new.vector, nrow=5));
+                            # Group with total eggs laid in that day.
+                            birth.vector = rbind(birth.vector, new.vector);
+                        }
+                    }
+                    # Egg to young nymph.
+                    if (vector.individual[2] == 0) {
+                        # Add average temperature for current day.
+                        vector.individual[3] = vector.individual[3] + averages.temp;
+                        if (vector.individual[3] >= (68+opt$young_nymph_accumulation)) {
+                            # From egg to young nymph, degree-days requirement met.
+                            current.gen = vector.individual[1];
+                            # Transfer to young nymph stage.
+                            vector.individual = c(current.gen, 1, 0, 0, 0);
+                        }
+                        else {
+                            # Add 1 day in current stage.
+                            vector.individual[4] = vector.individual[4] + 1;
+                        }
+                        vector.matrix[i,] = vector.individual;
+                    }
+                    # Young nymph to old nymph.
+                    if (vector.individual[2] == 1) {
+                        # Add average temperature for current day.
+                        vector.individual[3] = vector.individual[3] + averages.temp;
+                        if (vector.individual[3] >= (250+opt$old_nymph_accumulation)) {
+                            # From young to old nymph, degree_days requirement met.
+                            current.gen = vector.individual[1];
+                            # Transfer to old nym stage.
+                            vector.individual = c(current.gen, 2, 0, 0, 0);
+                            if (photoperiod < opt$photoperiod && doy > 180) {
+                                vector.individual[5] = 1;
+                            } # Prepare for diapausing.
+                        }
+                        else {
+                            # Add 1 day in current stage.
+                            vector.individual[4] = vector.individual[4] + 1;
+                        }
+                        vector.matrix[i,] = vector.individual;
+                    }
+                    # Old nymph to adult: pre-vittelogenic or diapausing?
+                    if (vector.individual[2] == 2) {
+                        # Add average temperature for current day.
+                        vector.individual[3] = vector.individual[3] + averages.temp;
+                        if (vector.individual[3] >= (200+opt$adult_accumulation)) {
+                            # From old to adult, degree_days requirement met.
+                            current.gen = vector.individual[1];
+                            if (vector.individual[5] == 0) {
+                                # Previttelogenic.
+                                vector.individual = c(current.gen, 3, 0, 0, 0);
+                            }
+                            else {
+                                # Diapausing.
+                                vector.individual = c(current.gen, 5, 0, 0, 1);
+                            }
+                        }
+                        else {
+                            # Add 1 day in current stage.
+                            vector.individual[4] = vector.individual[4] + 1;
+                        }
+                        vector.matrix[i,] = vector.individual;
+                    }
+                    # Growing of diapausing adult (unimportant, but still necessary).
+                    if (vector.individual[2] == 5) {
+                        vector.individual[3] = vector.individual[3] + averages.temp;
+                        vector.individual[4] = vector.individual[4] + 1;
+                        vector.matrix[i,] = vector.individual;
+                    }
+                } # Else if it is still alive.
+            } # End of the individual bug loop.
 
-        # Number of deaths.
-        num_insects.death = length(death.vector);
-        if (num_insects.death > 0) {
-            # Remove record of dead.
-            vector.matrix = vector.matrix[-death.vector,];
+            # Number of deaths.
+            num_insects.death = length(death.vector);
+            if (num_insects.death > 0) {
+                # Remove record of dead.
+                vector.matrix = vector.matrix[-death.vector,];
+            }
+            # Number of births.
+            num_insects.newborn = length(birth.vector[,1]);
+            vector.matrix = rbind(vector.matrix, birth.vector);
+            # Update population size for the next day.
+            num_insects = num_insects - num_insects.death + num_insects.newborn;
+        } else {
+            if (is.null(doy_zero_insects)) {
+                # Only set the doy for zero insects if
+                # it has not yet been set.
+                doy_zero_insects = doy;
+            }
         }
-        # Number of births.
-        num_insects.newborn = length(birth.vector[,1]);
-        vector.matrix = rbind(vector.matrix, birth.vector);
-        # Update population size for the next day.
-        num_insects = num_insects - num_insects.death + num_insects.newborn;
 
         # Aggregate results by day.  Due to multiple transpose calls
         # on vector.matrix above, the columns of vector.matrix
@@ -1547,7 +1551,12 @@ if (plot_generations_separately) {
     write.csv(temperature_data_frame_F2, file=file_path, row.names=F);
 }
 
+# Get the ticks date labels for plots.
+ticks_and_labels = get_x_axis_ticks_and_labels(temperature_data_frame, prepend_end_doy_norm=prepend_end_doy_norm, append_start_doy_norm=append_start_doy_norm, date_interval=FALSE, doy_zero_insects=doy_zero_insects);
+ticks = c(unlist(ticks_and_labels[1]));
+date_labels = c(unlist(ticks_and_labels[2]));
 total_days_vector = c(1:dim(temperature_data_frame)[1]);
+
 if (plot_generations_separately) {
     for (life_stage in life_stages) {
         if (life_stage == "Egg") {

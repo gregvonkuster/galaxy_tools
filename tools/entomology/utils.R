@@ -96,7 +96,7 @@ get_total_days = function(is_leap_year) {
     }
 }
 
-get_x_axis_ticks_and_labels = function(temperature_data_frame, prepend_end_doy_norm=0, append_start_doy_norm=0, date_interval=FALSE) {
+get_x_axis_ticks_and_labels = function(temperature_data_frame, prepend_end_doy_norm=0, append_start_doy_norm=0, date_interval=FALSE, doy_zero_insects=NULL) {
     # Generate a list of ticks and labels for plotting the x axis.
     if (prepend_end_doy_norm > 0) {
         prepend_end_norm_row = which(temperature_data_frame$DOY==prepend_end_doy_norm);
@@ -107,6 +107,11 @@ get_x_axis_ticks_and_labels = function(temperature_data_frame, prepend_end_doy_n
         append_start_norm_row = which(temperature_data_frame$DOY==append_start_doy_norm);
     } else {
         append_start_norm_row = 0;
+    }
+    if (is.null(doy_zero_insects)) {
+        zero_insects_row = 0;
+    } else {
+        zero_insects_row = which(temperature_data_frame$DOY==doy_zero_insects);
     }
     num_rows = dim(temperature_data_frame)[1];
     tick_labels = list();
@@ -130,11 +135,24 @@ get_x_axis_ticks_and_labels = function(temperature_data_frame, prepend_end_doy_n
         doy = as.integer(temperature_data_frame$DOY[i]);
         # We're plotting the entire year, so ticks will
         # occur on Sundays and the first of each month.
-        if (i == prepend_end_norm_row) {
+        if (i == zero_insects_row) {
+            # Add a tick for the day on which the number of insects
+            # per replication is 0.
+            label_str = "Number insects is 0";
+            tick_index = get_tick_index(i, last_tick, ticks, tick_labels, tick_sep);
+            ticks[tick_index] = i;
+            if (date_interval) {
+                # Append the day to label_str
+                tick_labels[tick_index] = paste(label_str, day, sep=" ");
+            } else {
+                tick_labels[tick_index] = label_str;
+            }
+            last_tick = i;
+        } else if (i == prepend_end_norm_row) {
             # Add a tick for the end of the 30 year normnals data
             # that was prepended to the year-to-date data.
             label_str = "End prepended 30 year normals";
-            tick_index = get_tick_index(i, last_tick, ticks, tick_labels, tick_sep)
+            tick_index = get_tick_index(i, last_tick, ticks, tick_labels, tick_sep);
             ticks[tick_index] = i;
             if (date_interval) {
                 # Append the day to label_str
@@ -147,7 +165,7 @@ get_x_axis_ticks_and_labels = function(temperature_data_frame, prepend_end_doy_n
             # Add a tick for the start of the 30 year normnals data
             # that was appended to the year-to-date data.
             label_str = "Start appended 30 year normals";
-            tick_index = get_tick_index(i, last_tick, ticks, tick_labels, tick_sep)
+            tick_index = get_tick_index(i, last_tick, ticks, tick_labels, tick_sep);
             ticks[tick_index] = i;
             if (!identical(current_month_label, month_label)) {
                 # Append the month to label_str.
@@ -163,7 +181,7 @@ get_x_axis_ticks_and_labels = function(temperature_data_frame, prepend_end_doy_n
         } else if (i==num_rows) {
             # Add a tick for the last day of the year.
             label_str = "";
-            tick_index = get_tick_index(i, last_tick, ticks, tick_labels, tick_sep)
+            tick_index = get_tick_index(i, last_tick, ticks, tick_labels, tick_sep);
             ticks[tick_index] = i;
             if (!identical(current_month_label, month_label)) {
                 # Append the month to label_str.
@@ -178,7 +196,7 @@ get_x_axis_ticks_and_labels = function(temperature_data_frame, prepend_end_doy_n
         } else {
             if (!identical(current_month_label, month_label)) {
                 # Add a tick for the month.
-                tick_index = get_tick_index(i, last_tick, ticks, tick_labels, tick_sep)
+                tick_index = get_tick_index(i, last_tick, ticks, tick_labels, tick_sep);
                 ticks[tick_index] = i;
                 if (date_interval) {
                     # Append the day to the month.
@@ -314,4 +332,22 @@ validate_date = function(date_str) {
         stop_err(msg);
     }
     return(valid_date);
+}
+
+validate_doys = function(temperature_data_frame) {
+    # Ensure all DOY values are consecutive integers.
+    last_doy = 0;
+    num_rows = dim(temperature_data_frame)[1];
+    for (i in 1:num_rows) {
+        doy = as.integer(temperature_data_frame$DOY[i]);
+        if (last_doy == 0) {
+            last_doy = doy;
+        } else {
+            if (doy != last_doy + 1) {
+                msg = paste("DOY ", doy, " is not consecutive (previous DOY is ", last_doy, ".", sep="");
+                stop_err(msg);
+            }
+            last_doy = doy;
+        }
+    }
 }
