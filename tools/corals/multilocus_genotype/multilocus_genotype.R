@@ -272,24 +272,25 @@ x <- barplot(miss96, las=2, col=cols, ylim=c(0, 3), cex.axis=0.8, space=0.8, yla
 text(cex=0.6, x=x-0.25, y=-.05, name96, xpd=TRUE, srt=60, adj=1);
 dev.off()
 
-# Generate 96 pie charts.  Make a table to subset the numerical
-# and user_specimen_id values out of report_user for the 96 pies
-# (user_specimen_id names will be used to label each pie).
+# Generate a pie chart for each sample with a genotype.
+# Store the numerical and user_specimen_id values from
+# report_user for the charts (user_specimen_id names
+# will be used to label each chart).
 dt1 <- data.table(report_user);
 dt1 <- report_user[c(-2, -3, -4)];
 dt1 <- na.omit(dt1);
-# Translate to 96 columns and 5 rows.
+# Translate to N (i.e., number of samples with a
+# genotype) columns and 5 rows.
 tdt1 <- t(dt1);
 # Make another data table and transpose it the same as dt1 to
-# just get numerics; these will feed into the creation of 96
-# vectors, "x" in the for loop below.
+# get numerics. These will feed into the creation of N vectors.
 dt2 <- data.table(report_user);
 dt2 <- report_user[c(-1, -2, -3, -4)];
-# Translate to 96 columns and 5 rows.
+# Translate to N columns and 5 rows.
 tdt2 <- t(dt2);
-# Create 96 vectors
-x <- tdt2[1:96];
 tdt1_matrix <- as.matrix(tdt1[-1,]);
+# The number of columns is the number of samples with genotypes.
+nc <- ncol(tdt1_matrix);
 mode(tdt1_matrix) <- "numeric";
 spy <- rowMeans(tdt1_matrix);
 dev.new(width=10, height=7);
@@ -302,7 +303,7 @@ main <- "Average breakdown of SNP assignments across all samples";
 pie(spy, labels=labels, radius=0.60, col=col, main=main, cex.main=.75);
 par(mfrow=c(3, 2));
 col <- c("GREY", "#006DDB", "#24FF24", "#920000");
-for (i in 1:96) {
+for (i in 1:nc) {
     tmp_labels <- paste(labels, " (", round(tdt1_matrix[,i], 1), "%)", sep="");
     main <- paste("Breakdown of SNP assignments for", tdt1[1, i]);
     pie(tdt1_matrix[,i], labels=tmp_labels, radius=0.90, col=col, main=main, cex.main=.85, cex=0.75);
