@@ -323,8 +323,6 @@ parse_input_data = function(input_ytd, input_norm, location, start_date, end_dat
     prepend_end_doy_norm = 0;
     # The start DOY for norm data appended to ytd data.
     append_start_doy_norm = 0;
-    cat("start_date: ", start_date, "\n");
-    cat("end_date: ", end_date, "\n");
     if (is.null(start_date) && is.null(end_date)) {
         # We're not dealing with a date interval.
         date_interval = FALSE;
@@ -340,7 +338,6 @@ parse_input_data = function(input_ytd, input_norm, location, start_date, end_dat
         start_date_doy = as.integer(strftime(start_date, format="%j"));
         end_date_doy = as.integer(strftime(end_date, format="%j"));
     }
-    cat("date_interval: ", date_interval, "\n");
     if (is.null(input_ytd)) {
         # We're processing only the 30 year normals data.
         processing_year_to_date_data = FALSE;
@@ -378,13 +375,9 @@ parse_input_data = function(input_ytd, input_norm, location, start_date, end_dat
             }
             end_date_ytd_row = which(temperature_data_frame$DATE==end_date);
             if (length(end_date_ytd_row) > 0) {
-                cat("I'm here...\n");
                 end_date_ytd_row = end_date_ytd_row[1];
                 # The end date is contained within the input_ytd data.
                 end_doy_ytd = as.integer(temperature_data_frame$DOY[end_date_ytd_row]);
-                cat("end_doy_ytd: ", end_doy_ytd, "\n");
-                cat("end_date_ytd_row: ", end_date_ytd_row, "\n");
-                cat("start_date_ytd_row: ", start_date_ytd_row, "\n");
             } else {
                 end_date_ytd_row = 0;
             }
@@ -408,10 +401,6 @@ parse_input_data = function(input_ytd, input_norm, location, start_date, end_dat
             # Save the first DOY to later check if start_date is Jan 1.
             start_doy_ytd = as.integer(temperature_data_frame$DOY[1]);
             end_doy_ytd = as.integer(temperature_data_frame$DOY[num_ytd_rows]);
-            cat("I'm here 2...\n");
-            cat("end_doy_ytd: ", end_doy_ytd, "\n");
-            cat("end_date_ytd_row: ", end_date_ytd_row, "\n");
-            cat("start_date_ytd_row: ", start_date_ytd_row, "\n");
         }
     } else {
         # We're processing only the 30 year normals data, so create an empty
