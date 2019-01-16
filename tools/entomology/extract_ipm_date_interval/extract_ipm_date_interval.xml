@@ -57,7 +57,7 @@ fi]]></command>
         <test>
             <!--
             FIXME: Here is a sort of layout for a test, but since the input collection will be uploaded, the test
-            will fail bacused the job parameters for the inputs will not be those produced by the insect_phenology_model
+            will fail because the job parameters for the inputs will not be those produced by the insect_phenology_model
             tool.  Testing this tool will require using the workflow testing approach.
             <param name="input_data">
                 <collection type="list">

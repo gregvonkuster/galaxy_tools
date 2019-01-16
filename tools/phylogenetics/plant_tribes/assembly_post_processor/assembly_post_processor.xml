@@ -1,10 +1,10 @@
-<tool id="plant_tribes_assembly_post_processor" name="AssemblyPostProcessor" version="@WRAPPER_VERSION@.3.0" profile="18.09">
+<tool id="plant_tribes_assembly_post_processor" name="AssemblyPostProcessor" version="@WRAPPER_VERSION@.4.0" profile="18.09">
     <description>post-processes de novo transcriptome assembly</description>
     <macros>
         <import>macros.xml</import>
     </macros>
     <requirements>
-        <requirement type="package" version="1.0.3">plant_tribes_assembly_post_processor</requirement>
+        <requirement type="package" version="1.0.4">plant_tribes_assembly_post_processor</requirement>
     </requirements>
     <code file="get_clustering_methods.py"/>
     <command detect_errors="exit_code"><![CDATA[
