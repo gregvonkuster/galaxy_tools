@@ -312,7 +312,7 @@ def load_probe_annotation_table(migrate_engine):
 def load_seed_data(migrate_engine):
     # Columns in general_seed_data_file.:
     # sample_id, date_entered_db, user_specimen_id, duplicate_sample, matching_samples,
-    # field_call, bcoral_genet_id, bsym_genet_id, reef, region,
+    # field_call, bcoral_genet_id, bsymbio_genet_id, reef, region,
     # latitude, longitude, geographic_origin, sample_location, latitude_outplant,
     # longitude_outplant, depth, dist_shore, disease_resist, bleach_resist,
     # mortality, tle, spawning, collector, org,
