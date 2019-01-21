@@ -1,6 +1,6 @@
 """
 Migration script to create the initial stag database and populate the database
-with production seed data from a file named general_seed_data_file.csv.  The
+with production seed data from a file named general_seed_data_file.tabular.  The
 probe_annotation table is also populated from an external CSV file named
 probe_annotation.csv.
 """
@@ -43,7 +43,7 @@ except Exception:
 # The current working direectory is the Galaxy
 # installation root, so the following file must
 # exist from that location.
-GENERAL_SEED_DATA_FILE = "stag_database_seed_data/general_seed_data_file.csv"
+GENERAL_SEED_DATA_FILE = "stag_database_seed_data/general_seed_data_file.tabular"
 PROBE_ANNOTATION_DATA_FILE = "stag_database_seed_data/probe_annotation.csv"
 
 Collector_table = Table("collector", metadata,
@@ -198,6 +198,13 @@ def boolean(migrate_engine, value):
         raise Exception('Unable to convert data for unknown database type: %s' % migrate_engine.name)
 
 
+def string_as_bool(string):
+    if str(string).lower() in ('true', 'yes', 'on', '1'):
+        return True
+    else:
+        return False
+
+
 def convert_date_string_for_database(date_string):
     # The value of date_string is %y/%m/%d with
     # the year being 2 digits (yikes!).
@@ -311,14 +318,13 @@ def load_probe_annotation_table(migrate_engine):
 
 def load_seed_data(migrate_engine):
     # Columns in general_seed_data_file.:
-    # sample_id, date_entered_db, user_specimen_id, duplicate_sample, matching_samples,
-    # field_call, bcoral_genet_id, bsymbio_genet_id, reef, region,
-    # latitude, longitude, geographic_origin, sample_location, latitude_outplant,
-    # longitude_outplant, depth, dist_shore, disease_resist, bleach_resist,
-    # mortality, tle, spawning, collector, org,
+    # user_specimen_id, field_call, bcoral_genet_id, bsym_genet_id, reef,
+    # region, latitude, longitude, geographic_origin, colony_location,
+    # latitude_outplant, longitude_outplant, depth, dist_shore, disease_resist,
+    # bleach_resist, mortality, tle, spawning, collector, org,
     # collection_date, contact_email, seq_facility, array_version, public,
     # public_after_date, coral_mlg_clonal_id, symbio_mlg_clonal_id, genetic_coral_species_call, percent_missing_data,
-    # percent_apalm, percent_acerv, percent_mixed
+    # percent_apalm, percent_acerv, percent_mixed, affy_id
 
     collector_table_inserts = 0
     colony_table_inserts = 0
@@ -336,112 +342,102 @@ def load_seed_data(migrate_engine):
                 # Skip the header.
                 continue
             line = line.rstrip('\r\n')
-            items = line.split(",")
+            items = line.split("\t")
             # Automatically generate the sample_id.
             sample_id = "A%d" % SAMPLE_ID
             SAMPLE_ID += 1
-            try:
-                date_entered_db = convert_date_string_for_database(items[1])
-            except Exception:
-                date_entered_db = localtimestamp(migrate_engine)
-            user_specimen_id = items[2]
-            # duplicate_sample = items[3]
-            # matching_samples = items[4]
-            if len(items[5]) == 0:
+            user_specimen_id = items[0]
+            if len(items[1]) == 0:
                 field_call = sql.null()
             else:
-                field_call = items[5]
-            if len(items[6]) == 0:
+                field_call = items[1]
+            if len(items[2]) == 0:
                 bcoral_genet_id = sql.null()
             else:
-                bcoral_genet_id = items[6]
-            if len(items[7]) == 0:
+                bcoral_genet_id = items[2]
+            if len(items[3]) == 0:
                 bsym_genet_id = sql.null()
             else:
-                bsym_genet_id = items[7]
-            reef = items[8]
-            region = items[9]
+                bsym_genet_id = items[3]
+            reef = items[4]
+            region = items[5]
             try:
-                latitude = "%6f" % float(items[10])
+                latitude = "%6f" % float(items[6])
             except Exception:
                 latitude = sql.null()
             try:
-                longitude = "%6f" % float(items[11])
+                longitude = "%6f" % float(items[7])
             except Exception:
                 longitude = sql.null()
-            if len(items[12]) == 0:
+            if len(items[8]) == 0:
                 geographic_origin = sql.null()
             else:
-                geographic_origin = items[12]
-            if len(items[13]) == 0:
+                geographic_origin = items[8]
+            if len(items[9]) == 0:
                 colony_location = sql.null()
             else:
-                colony_location = items[13]
+                colony_location = items[9]
             try:
-                latitude_outplant = "%6f" % float(items[14])
+                latitude_outplant = "%6f" % float(items[10])
             except Exception:
                 latitude_outplant = sql.null()
             try:
-                longitude_outplant = "%6f" % float(items[15])
+                longitude_outplant = "%6f" % float(items[11])
             except Exception:
                 longitude_outplant = sql.null()
             try:
-                depth = int(items[16])
+                depth = int(items[12])
             except Exception:
                 depth = 0
-            if len(items[17]) == 0:
+            if len(items[13]) == 0:
                 dist_shore = sql.null()
             else:
-                dist_shore = items[17]
-            disease_resist = items[18]
-            bleach_resist = items[19]
-            mortality = items[20]
-            tle = items[21]
-            # Convert original spawning values (Yes, No) to Boolean.
-            if items[22].lower() == "yes":
-                spawning = True
-            else:
-                spawning = False;
-            collector = items[23]
-            org = items[24]
+                dist_shore = items[13]
+            disease_resist = items[14]
+            bleach_resist = items[15]
+            mortality = items[16]
+            tle = items[17]
+            # Convert original spawning value to Boolean.
+            spawning = string_as_bool(items[18])
+            collector = items[19]
+            org = items[20]
             try:
-                collection_date = convert_date_string_for_database(items[25])
+                collection_date = convert_date_string_for_database(items[21])
             except Exception:
                 collection_date = localtimestamp(migrate_engine)
-            contact_email = items[26].lower().replace('[at]', '@')
-            seq_facility = items[27]
-            array_version = items[28]
-            # Convert original public values (Yes, No) to Boolean.
-            if items[29].lower() == "yes":
-                public = True
+            contact_email = items[22]
+            seq_facility = items[23]
+            array_version = items[24]
+            # Convert original public value to Boolean.
+            public = string_as_bool(items[25])
+            if public:
                 public_after_date = sql.null()
             else:
-                public = False
-                if len(items[30]) == 0:
+                if len(items[26]) == 0:
                     # Set the value of public_after_date to the default.
                     public_after_date = year_from_now
                 else:
-                    public_after_date = convert_date_string_for_database(items[30])
-            coral_mlg_clonal_id = items[31]
-            symbio_mlg_clonal_id = items[32]
-            genetic_coral_species_call = items[33]
+                    public_after_date = convert_date_string_for_database(items[26])
+            coral_mlg_clonal_id = items[27]
+            symbio_mlg_clonal_id = items[28]
+            genetic_coral_species_call = items[29]
             try:
-                percent_missing_data = "%6f" % float(items[34])
+                percent_missing_data = "%6f" % float(items[30])
             except Exception:
                 percent_missing_data = sql.null()
             try:
-                percent_apalm = "%6f" % float(items[35])
+                percent_apalm = "%6f" % float(items[31])
             except Exception:
                 percent_apalm = sql.null()
             try:
-                percent_acerv = "%6f" % float(items[36])
+                percent_acerv = "%6f" % float(items[32])
             except Exception:
                 percent_acerv = sql.null()
             try:
-                percent_mixed = "%6f" % float(items[37])
+                percent_mixed = "%6f" % float(items[33])
             except Exception:
                 percent_mixed = sql.null()
-            affy_id = items[38]
+            affy_id = items[34]
 
             # Process the experiment items.  Dependent tables: sample.
             table = "experiment"
@@ -618,18 +614,10 @@ def load_seed_data(migrate_engine):
                 percent_alternative_sym = sql.null()
                 percent_hererozygous_coral = sql.null()
                 percent_hererozygous_sym = sql.null()
-                # id
-                cmd = "INSERT INTO sample VALUES (%s, "
-                if date_entered_db == "LOCALTIMESTAMP":
-                    # create_time
-                    cmd += "%s, "
-                else:
-                    # create_time
-                    cmd += "'%s', "
-                # update_time, affy_id, sample_id, genotype_id, phenotype_id,
-                # experiment_id, colony_id, colony_location, fragment_id, taxonomy_id,
-                # collector_id
-                cmd += "%s, '%s', '%s', %s, %s, %s, %s, %s, %s, %s, %s, "
+                # id, create_time, update_time, affy_id, sample_id,
+                # genotype_id, phenotype_id, experiment_id, colony_id, colony_location,
+                # fragment_id, taxonomy_id, collector_id
+                cmd = "INSERT INTO sample VALUES (%s, %s, %s, '%s', '%s', %s, %s, %s, %s, %s, %s, %s, %s, "
                 if collection_date == "LOCALTIMESTAMP":
                     # collection_date
                     cmd += "%s, "
@@ -643,7 +631,7 @@ def load_seed_data(migrate_engine):
                 # coral_mlg_clonal_id, symbio_mlg_clonal_id
                 cmd += "'%s', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s', '%s')"
                 cmd = cmd % (nextval(migrate_engine, table),
-                             date_entered_db,
+                             localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),
                              affy_id,
                              sample_id,
