@@ -28,7 +28,6 @@ The tool will output the input file if it is valid.
 
 **Columns**
 
- * date_entered_db
  * user_specimen_id
  * field_call
  * bcoral_genet_id
