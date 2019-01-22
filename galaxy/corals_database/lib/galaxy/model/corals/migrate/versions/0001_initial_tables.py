@@ -174,9 +174,7 @@ Sample_table = Table("sample", metadata,
     Column("percent_alternative_coral", Numeric(15, 6)),
     Column("percent_alternative_sym", Numeric(15, 6)),
     Column("percent_hererozygous_coral", Numeric(15, 6)),
-    Column("percent_hererozygous_sym", Numeric(15, 6)),
-    Column("coral_mlg_clonal_id", TrimmedString(255)),
-    Column("symbio_mlg_clonal_id", TrimmedString(255)))
+    Column("percent_hererozygous_sym", Numeric(15, 6)))
 
 
 Taxonomy_table = Table("taxonomy", metadata,
@@ -627,9 +625,8 @@ def load_seed_data(migrate_engine):
                 # user_specimen_id, depth, dna_extraction_method, dna_concentration, public,
                 # public_after_date, percent_missing_data_coral, percent_missing_data_sym,
                 # percent_reference_coral, percent_reference_sym, percent_alternative_coral,
-                # percent_alternative_sym, percent_hererozygous_coral, percent_hererozygous_sym,
-                # coral_mlg_clonal_id, symbio_mlg_clonal_id
-                cmd += "'%s', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s', '%s')"
+                # percent_alternative_sym, percent_hererozygous_coral, percent_hererozygous_sym
+                cmd += "'%s', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
                 cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),
@@ -657,9 +654,7 @@ def load_seed_data(migrate_engine):
                              percent_alternative_coral,
                              percent_alternative_sym,
                              percent_hererozygous_coral,
-                             percent_hererozygous_sym,
-                             coral_mlg_clonal_id,
-                             symbio_mlg_clonal_id)
+                             percent_hererozygous_sym)
                 migrate_engine.execute(cmd)
                 sample_table_inserts += 1
                 sample_id = get_latest_id(migrate_engine, table)
