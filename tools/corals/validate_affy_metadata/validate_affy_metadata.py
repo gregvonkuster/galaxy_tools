@@ -76,86 +76,84 @@ with open(args.input, "r") as ih:
             accumulated_msgs = add_error_msg(accumulated_msgs, "The input file contains more than 97 lines (must be 1 header line and no more than 96 data lines).")
             stop_error(accumulated_msgs)
         items = line.split("\t")
-        if len(items) != 29:
-            accumulated_msgs = add_error_msg(accumulated_msgs, "Line %d contains %s columns, (must be 29)." % (i, len(items)))
+        if len(items) != 28:
+            accumulated_msgs = add_error_msg(accumulated_msgs, "Line %d contains %s columns, (must be 28)." % (i, len(items)))
             stop_error(accumulated_msgs)
         # Required and validated.
-        date_entered_db = items[0]
-        accumulated_msgs = validate_date_string(i, date_entered_db, accumulated_msgs)
         # Required.
-        user_specimen_id = items[1]
+        user_specimen_id = items[0]
         if len(user_specimen_id) == 0:
             accumulated_msgs = empty_value(i, "user_specimen_id", accumulated_msgs)
         # Optional.
-        field_call = items[2]
+        field_call = items[1]
         # Optional.
-        bcoral_genet_id = items[3]
+        bcoral_genet_id = items[2]
         # Optional.
-        bsym_genet_id = items[4]
+        bsym_genet_id = items[3]
         # Required.
-        reef = items[5]
+        reef = items[4]
         if len(reef) == 0:
             accumulated_msgs = empty_value(i, "reef", accumulated_msgs)
         # Required.
-        region = items[6]
+        region = items[5]
         if len(region) == 0:
             accumulated_msgs = empty_value(i, "region", accumulated_msgs)
         # Required and validated.
-        latitude = items[7]
+        latitude = items[6]
         accumulated_msgs = validate_decimal(i, latitude, accumulated_msgs)
         # Required and validated.
-        longitude = items[8]
+        longitude = items[7]
         accumulated_msgs = validate_decimal(i, longitude, accumulated_msgs)
         # Optional.
-        geographic_origin = items[9]
+        geographic_origin = items[8]
         # Optional.
-        sample_location = items[10]
+        sample_location = items[9]
         # Optional.
-        latitude_outplant = items[11]
+        latitude_outplant = items[10]
         # Optional.
-        longitude_outplant = items[12]
+        longitude_outplant = items[11]
         # Optional.
-        depth = items[13]
+        depth = items[12]
         # Optional.
-        dist_shore = items[14]
+        dist_shore = items[13]
         # Optional.
-        disease_resist = items[15]
+        disease_resist = items[14]
         # Optional.
-        bleach_resist = items[16]
+        bleach_resist = items[15]
         # Optional.
-        mortality = items[17]
+        mortality = items[16]
         # Optional.
-        tle = items[18]
+        tle = items[17]
         # Optional.
-        spawning = string_as_boolean_string(items[19])
+        spawning = string_as_boolean_string(items[18])
         # Required.
-        collector_last_name = items[20]
+        collector_last_name = items[19]
         if len(collector_last_name) == 0:
             accumulated_msgs = empty_value(i, "collector_last_name", accumulated_msgs)
         # Required.
-        collector_first_name = items[21]
+        collector_first_name = items[20]
         if len(collector_first_name) == 0:
             accumulated_msgs = empty_value(i, "collector_first_name", accumulated_msgs)
         # Required.
-        org = items[22]
+        org = items[21]
         if len(org) == 0:
             accumulated_msgs = empty_value(i, "org", accumulated_msgs)
         # Required and validated.
-        collection_date = items[23]
-        accumulated_msgs = validate_date_string(i, date_entered_db, accumulated_msgs)
+        collection_date = items[22]
+        accumulated_msgs = validate_date_string(i, collection_date, accumulated_msgs)
         # Required and validated.
-        contact_email = items[24]
+        contact_email = items[23]
         accumulated_msgs = validate_email(i, contact_email, accumulated_msgs)
         # Required.
-        seq_facility = items[25]
+        seq_facility = items[24]
         if len(seq_facility) == 0:
             accumulated_msgs = empty_value(i, "seq_facility", accumulated_msgs)
         # Optional.
-        array_version = items[26]
+        array_version = items[25]
         # Optional.
-        public = string_as_boolean_string(items[27])
+        public = string_as_boolean_string(items[26])
         # Optional.
-        public_after_date = items[28]
+        public_after_date = items[27]
         accumulated_msga = validate_date_string(i, public_after_date, accumulated_msgs)
 
 if len(accumulated_msgs) > 0:

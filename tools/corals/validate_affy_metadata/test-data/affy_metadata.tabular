@@ -1,97 +1,97 @@
-#date_entered_db	user_specimen_id	field_call	bcoral_genet_id	bsym_genet_id	reef	region	latitude	longitude	geographic_origin	sample_location	latitude_outplant	longitude_outplant	depth	dist_shore	disease_resist	bleach_resist	mortality	tle	spawning	collector_last_name	collector_first_name	org	collection_date	contact_email	seq_facility	array_version	public	public_after_date
-2018-11-08	test_002	prolifera			JohnsonsReef	Bahamas	18.361733	-64.7743	Reef				5						yes	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_003	prolifera			JohnsonsReef	Bahamas	18.361733	-64.7743	Reef				6						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_005	prolifera			JohnsonsReef	Bahamas	18.361733	-64.7743	Reef				7						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_006	prolifera			JohnsonsReef	Bahamas	18.361733	-64.7743	Reef				3						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_007	prolifera			JohnsonsReef	Bahamas	18.361733	-64.7743	Reef				2						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_008	prolifera			JohnsonsReef	Bahamas	18.361733	-64.7743	Reef				1						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_010	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				10						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_011	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				12						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_012	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				24						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_013	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				6						yes	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_014	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				15						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_015	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				4						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_016	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				13						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_017	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				10						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_018	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				6						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_019	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				15						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_020	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				4						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_021	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				13						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_022	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				13						yes	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_023	prolifera			Curlew	Belize	16.7909389	-88.0830056	Reef				5						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_024	prolifera			Curlew	Belize	16.7909389	-88.0830056	Reef				6						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_025	prolifera			Curlew	Belize	16.7909389	-88.0830056	Reef				7						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_026	prolifera			Curlew	Belize	16.7909389	-88.0830056	Reef				3						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_027	prolifera			Curlew	Belize	16.7909389	-88.0830056	Reef				2						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_028	prolifera			Curlew	Belize	16.7909389	-88.0830056	Reef				1						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_029	prolifera			Curlew	Belize	16.7909389	-88.0830056	Reef				2						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_030	prolifera			Curlew	Belize	16.7909389	-88.0830056	Reef				6						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_031	prolifera			Curlew	Belize	16.7909389	-88.0830056	Reef				6						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_032	prolifera			Curlew	Belize	16.7909389	-88.0830056	Reef				6						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_033	prolifera			Curlew	Belize	16.7909389	-88.0830056	Reef				6						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_034	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				17						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_035	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				17						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_036	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				23						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_037	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				7						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_038	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				9						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_039	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				6						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_040	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				3						yes	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_041	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				11						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_042	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				10						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_043	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				4						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_044	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				17						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_045	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				4						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_046	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				7						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_047	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				3						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_048	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				3						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_049	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				3						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_050	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				4						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_051	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				6						yes	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_052	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				5						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_053	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				4						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_054	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				4						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_055	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				4						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_056	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				1						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_057	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				4						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	Yes
-2018-11-08	test_058	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				1						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_059	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				3						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_060	cervicornis			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				3						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_061	cervicornis			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				4						yes	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_062	cervicornis			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				2						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_063	cervicornis			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				5						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_064	cervicornis			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				4						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_065	cervicornis			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				27						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_066	cervicornis			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				25						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_067	cervicornis			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				13						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_068	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				3						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_069	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				9						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_070	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				6						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_072	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				16						yes	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_073	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				3						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_074	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				11						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_075	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				3						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_076	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				5						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_077	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				6						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_078	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				16						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_079	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				3						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_080	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				11						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_081	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				3						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_083	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				5						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_084	prolifera			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				2						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_085	prolifera			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				1						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_086	prolifera			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				4						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_087	prolifera			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				5						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_088	palmata			Margara	Puerto Rico	17.949552	-66.727433	Reef				6						yes	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_089	palmata			Margara	Puerto Rico	17.949552	-66.727433	Reef				7						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_090	palmata			Margara	Puerto Rico	17.949552	-66.727433	Reef				3						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_091	palmata			Margara	Puerto Rico	17.949552	-66.727433	Reef				4						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_092	palmata			Margara	Puerto Rico	17.949552	-66.727433	Reef				2						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_093	palmata			Margara	Puerto Rico	17.949552	-66.727433	Reef				1						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_094	palmata			Margara	Puerto Rico	17.949552	-66.727433	Reef				2						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_095	cervicornis			Margara	Puerto Rico	17.949552	-66.727433	Reef				10						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_096	cervicornis			Margara	Puerto Rico	17.949552	-66.727433	Reef				8						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_001	cervicornis			Margara	Puerto Rico	17.949552	-66.727433	Reef				7						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_004	cervicornis			Margara	Puerto Rico	17.949552	-66.727433	Reef				6						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_009	cervicornis			Margara	Puerto Rico	17.949552	-66.727433	Reef				10						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_071	cervicornis			Margara	Puerto Rico	17.949552	-66.727433	Reef				3						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
-2018-11-08	test_082	cervicornis			Margara	Puerto Rico	17.949552	-66.727433	Reef				5						No	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	Yes	No
+#user_specimen_id,field_call,bcoral_genet_id,bsym_genet_id,reef,region,latitude,longitude,geographic_origin,sample_location,latitude_outplant,longitude_outplant,depth,dist_shore,disease_resist,bleach_resist,mortality,tle,spawning,collector_last_name,collector_first_name,org,collection_date,contact_email,seq_facility,array_version,public,public_after_date
+test_002	prolifera			JohnsonsReef	Bahamas	18.361733	-64.7743	Reef				5						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_003	prolifera			JohnsonsReef	Bahamas	18.361733	-64.7743	Reef				6						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_005	prolifera			JohnsonsReef	Bahamas	18.361733	-64.7743	Reef				7						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_006	prolifera			JohnsonsReef	Bahamas	18.361733	-64.7743	Reef				3						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_007	prolifera			JohnsonsReef	Bahamas	18.361733	-64.7743	Reef				2						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_008	prolifera			JohnsonsReef	Bahamas	18.361733	-64.7743	Reef				1						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_010	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				10						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_011	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				12						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_012	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				24						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_013	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				6						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_014	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				15						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_015	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				4						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_016	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				13						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_017	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				10						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_018	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				6						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_019	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				15						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_020	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				4						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_021	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				13						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_022	cervicornis			LittleGrecian	Florida	25.11844009	-80.3171895	Reef				13						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_023	prolifera			Curlew	Belize	16.7909389	-88.0830056	Reef				5						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_024	prolifera			Curlew	Belize	16.7909389	-88.0830056	Reef				6						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_025	prolifera			Curlew	Belize	16.7909389	-88.0830056	Reef				7						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_026	prolifera			Curlew	Belize	16.7909389	-88.0830056	Reef				3						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_027	prolifera			Curlew	Belize	16.7909389	-88.0830056	Reef				2						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_028	prolifera			Curlew	Belize	16.7909389	-88.0830056	Reef				1						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_029	prolifera			Curlew	Belize	16.7909389	-88.0830056	Reef				2						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_030	prolifera			Curlew	Belize	16.7909389	-88.0830056	Reef				6						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_031	prolifera			Curlew	Belize	16.7909389	-88.0830056	Reef				6						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_032	prolifera			Curlew	Belize	16.7909389	-88.0830056	Reef				6						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_033	prolifera			Curlew	Belize	16.7909389	-88.0830056	Reef				6						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_034	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				17						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_035	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				17						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_036	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				23						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_037	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				7						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_038	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				9						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_039	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				6						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_040	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				3						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_041	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				11						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_042	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				10						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_043	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				4						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_044	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				17						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_045	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				4						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_046	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				7						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_047	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				3						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_048	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				3						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_049	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				3						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_050	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				4						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_051	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				6						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_052	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				5						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_053	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				4						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_054	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				4						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_055	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				4						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_056	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				1						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_057	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				4						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_058	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				1						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_059	palmata			Curlew	Belize	16.7909389	-88.0830056	Reef				3						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_060	cervicornis			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				3						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_061	cervicornis			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				4						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_062	cervicornis			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				2						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_063	cervicornis			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				5						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_064	cervicornis			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				4						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_065	cervicornis			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				27						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_066	cervicornis			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				25						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_067	cervicornis			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				13						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_068	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				3						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_069	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				9						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_070	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				6						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_072	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				16						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_073	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				3						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_074	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				11						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_075	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				3						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_076	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				5						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_077	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				6						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_078	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				16						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_079	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				3						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_080	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				11						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_081	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				3						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_083	palmata			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				5						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_084	prolifera			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				2						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_085	prolifera			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				1						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_086	prolifera			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				4						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_087	prolifera			SeaAquarium2	Curacao	12.0842	-68.8966	Reef				5						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_088	palmata			Margara	Puerto Rico	17.949552	-66.727433	Reef				6						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_089	palmata			Margara	Puerto Rico	17.949552	-66.727433	Reef				7						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_090	palmata			Margara	Puerto Rico	17.949552	-66.727433	Reef				3						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_091	palmata			Margara	Puerto Rico	17.949552	-66.727433	Reef				4						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_092	palmata			Margara	Puerto Rico	17.949552	-66.727433	Reef				2						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_093	palmata			Margara	Puerto Rico	17.949552	-66.727433	Reef				1						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_094	palmata			Margara	Puerto Rico	17.949552	-66.727433	Reef				2						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_095	cervicornis			Margara	Puerto Rico	17.949552	-66.727433	Reef				10						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_096	cervicornis			Margara	Puerto Rico	17.949552	-66.727433	Reef				8						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_001	cervicornis			Margara	Puerto Rico	17.949552	-66.727433	Reef				7						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_004	cervicornis			Margara	Puerto Rico	17.949552	-66.727433	Reef				6						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_009	cervicornis			Margara	Puerto Rico	17.949552	-66.727433	Reef				10						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_071	cervicornis			Margara	Puerto Rico	17.949552	-66.727433	Reef				3						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
+test_082	cervicornis			Margara	Puerto Rico	17.949552	-66.727433	Reef				5						False	Kitchen	Sheila	Penn State	2018-11-08	sak89@psu.edu	Affymetrix	1	True	
