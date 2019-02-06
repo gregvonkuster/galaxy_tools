@@ -1,0 +1,9 @@
+# Configuration file for the queue_genotype_workflow tool.
+
+[defaults]
+
+# This section contains default settings for command line parameters that
+# can be overridden when they are passed to executed scripts.
+
+GALAXY_API_KEY = 93b8bc65f61fe40625fc54107437e61b
+GALAXY_BASE_URL = http://localhost:8763
