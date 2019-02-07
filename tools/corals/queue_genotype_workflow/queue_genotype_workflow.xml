@@ -2,6 +2,7 @@
     <description></description>
     <command detect_errors="exit_code"><![CDATA[
 #set history_id = $__app__.security.encode_id($affy_metadata.history.id)
+#set history_name = $affy_metadata.history.name
 python $__tool_directory__/queue_genotype_workflow.py
 --affy_metadata '$affy_metadata'
 --annot '$annot'
@@ -17,6 +18,7 @@ python $__tool_directory__/queue_genotype_workflow.py
     --dbkey '$reference_genome_source_cond.locally_cached_item.fields.value'
 #end if
 --history_id $history_id
+--history_name '$history_name'
 --report '$report'
 --snp-posteriors '$snp_posteriors'
 --summary '$summary'
