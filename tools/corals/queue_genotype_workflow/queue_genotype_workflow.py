@@ -2,6 +2,7 @@
 import argparse
 import json
 import string
+import time
 
 from bioblend import galaxy
 from six.moves import configparser
@@ -100,7 +101,7 @@ def get_history_datasets(gi, history_id, dh):
             dh.write("dataset_name:\n%s\n" % str(dataset_name))
             history_datasets[dataset_name] = contents_dict
     return history_datasets
-        
+
 
 def get_value_from_config(dh, config_file, value):
     dh.write("config_file: %s\n" % str(config_file))
@@ -111,7 +112,7 @@ def get_value_from_config(dh, config_file, value):
     return config_value
 
 
-def get_workflow(gi, name, dh, galaxy_base_url=None, api_key=None, for_inputs=False):
+def get_workflow(gi, name, dh, galaxy_base_url=None, api_key=None):
     dh.write('Searching for workflow named %s\n' % name)
     workflow_info_dicts = gi.workflows.get_workflows(name=name, published=True)
     dh.write('workflow_info_dicts: %s\n' % workflow_info_dicts)
@@ -120,14 +121,7 @@ def get_workflow(gi, name, dh, galaxy_base_url=None, api_key=None, for_inputs=Fa
     wf_info_dict = workflow_info_dicts[0]
     workflow_id = wf_info_dict['id']
     # Get the complete workflow.
-    if for_inputs:
-        # Bioblend does not provides this end
-        # point so we need to get it from Galaxy.
-        base_url = '%s/api/workflows/%s/download' % (galaxy_base_url, workflow_id)
-        url = api_util.make_url(api_key, base_url)
-        workflow_dict = api_util.get(url)
-    else:
-        workflow_dict = gi.workflows.show_workflow(workflow_id)
+    workflow_dict = gi.workflows.show_workflow(workflow_id)
     dh.write('Found workflow named %s.\n' % name)
     return workflow_id, workflow_dict
 
@@ -137,48 +131,68 @@ def get_workflow_input_datasets(gi, history_datasets, workflow_dict, dh):
     workflow_inputs = {}
     dh.write('\nMapping datasets from history to input datasets in workflow %s.\n' % workflow_name)
     steps_dict = workflow_dict.get('steps', None)
-    dh.write("steps_dict: %s\n" % json.dumps(steps_dict, sort_keys=True, indent=4))
+    dh.write("steps_dict: %s\n" % json.dumps(steps_dict, indent=4))
     if steps_dict is not None:
         for step_index, step_dict in steps_dict.items():
-            inputs = step_dict.get('inputs', None)
-            dh.write("inputs: %s\n" % json.dumps(inputs, sort_keys=True, indent=4))
-            if inputs is not None and len(inputs) == 0:
+            # Dicts that define dataset inputs for a workflow
+            # look like this.
+            # "0": {
+            #      "tool_id": null,
+            #      "tool_version": null,
+            #      "id": 0,
+            #      "input_steps": {},
+            #      "tool_inputs": {},
+            #      "type": "data_input",
+            #      "annotation": null
+            # },
+            tool_id = step_dict.get('tool_id', None)
+            dh.write("tool_id: %s\n" % str(tool_id))
+            tool_type = step_dict.get('type', None)
+            dh.write("tool_type: %s\n" % str(tool_type))
+            # This requires the workflow input dataset annotation to be a
+            # string # (e.g., report) that enables it to be appropriatey
+            # matched to a dataset (e.g., axiongt1_report.txt).
+            # 1. affy_metadata.tabular - must have the word "metadata" in
+            #                            the annotation.
+            # 2. sample_attributes.txt - must have the word "attributes" in
+            #                            the annotation.
+            # 3. probeset_annotation.csv - must have the word "annotation" in
+            #                              the annotation.
+            # 4. <summary file>.txt - must have the the word "summary" in the
+            #                         annotation.
+            # 5. <snp-posteriors file>.txt - must have the the word
+            #                                "snp-posteriors" in the annotation.
+            # 6. <report file>.txt - must have the the word "report" in the
+            #                        annotation.
+            # 7. <confidences file>.txt - must have the the word "confidences"
+            #                             in the annotation.
+            # 8. <calls file>.txt - must have the the word "calls" in the
+            #                       annotation.
+            # TODO: figure out how to name the "all samples" dataset so
+            # we can properly map it here.
+            annotation = step_dict.get('annotation', None)
+            dh.write("annotation: %s\n" % str(annotation))
+            if tool_id is None and tool_type == 'data_input' and annotation is not None:
+                annotation_check = annotation.lower()
                 # inputs is a list and workflow input datasets
                 # have no inputs.
-                label = step_dict.get('label', None)
-                dh.write("label: %s\n" % str(label))
-                if label is not None:
-                    for input_hda_name, input_hda_dict in history_datasets.items():
-                        # This requires the workflow input dataset label to be a string
-                        # (e.g., report) that is contained in the name of the input
-                        # dataset (e.g., axiongt1_report.txt).  So far, the inputs to
-                        # the workflow are the following, so we can differentiate by
-                        # data format in the cases of the csv and tabular inputs since
-                        # there is only one of each.
-                        # 1. affy_metadata.tabular - must have the word "metadata" in
-                        #                            the label.
-                        # 2. sample_attributes.txt - must have the word "attributes" in
-                        #                            the label.
-                        # 3. probeset_annotation.csv - must have the word "annotation" in
-                        #                              the label.
-                        # 4. <summary file>.txt - must have the the word "summary" in the
-                        #                         label.
-                        # 5. <snp-posteriors file>.txt - must have the the word
-                        #                                "snp-posteriors" in the label.
-                        # 6. <report file>.txt - must have the the word "report" in the
-                        #                        label.
-                        # 7. <confidences file>.txt - must have the the word "confidences"
-                        #                             in the label.
-                        # 8. <calls file>.txt - must have the the word "calls" in the file
-                        #                       name.
-                        # TODO: figure out how to name the "all samples" dataset so
-                        # we can properly map it here.
-                        if input_hda_name.find(label) >= 0:
-                            workflow_inputs[step_index] = {'src': 'hda', 'id': input_hda_dict['id']}
-                            dh.write('Mapped dataset %s from history to workflow input dataset with label %s.\n' % (input_hda_name, label))
-                            break
+                for input_hda_name, input_hda_dict in history_datasets.items():
+                    input_hda_name_check = input_hda_name.lower()
+                    dh.write("input_hda_name_check: %s\n" % str(input_hda_name_check))
+                    if input_hda_name_check.find(annotation_check) >= 0:
+                        workflow_inputs[step_index] = {'src': 'hda', 'id': input_hda_dict['id']}
+                        dh.write('Mapped dataset %s from history to workflow input dataset with annotation %s.\n' % (input_hda_name, annotation))
+                        break
     return workflow_inputs
 
+
+def start_workflow(gi, workflow_id, workflow_name, inputs, history_id, dh):
+    dh.write('\nExecuting workflow %s.\n' % workflow_name)
+    dh.write('inputs:\n%s\n\n' % str(inputs))
+    dh.write('history_id:\n%s\n\n' % str(history_id))
+    workflow_invocation_dict = gi.workflows.invoke_workflow(workflow_id, inputs=inputs, history_id=history_id)
+    dh.write('Response from executing workflow %s:\n' % workflow_name)
+    dh.write('%s\n' % str(workflow_invocation_dict))
 
 dh = open("/tmp/work/qgw.log", "w")
 dh.write("history_id: %s\n" % str(args.history_id))
@@ -194,7 +208,7 @@ galaxy_base_url = get_value_from_config(dh, args.config_file, 'GALAXY_BASE_URL')
 dh.write("galaxy_base_url: %s\n" % str(galaxy_base_url))
 gi = galaxy.GalaxyInstance(url=galaxy_base_url, key=user_api_key)
 dh.write("gi: %s\n" % str(gi))
-#gi_user_id = get_current_user(dh, gi)
+# gi_user_id = get_current_user(dh, gi)
 
 all_genotyped_samples_library_name = get_value_from_config(dh, args.config_file, 'ALL_GENOTYPED_SAMPLES_LIBRARY_NAME')
 workflow_name = get_value_from_config(dh, args.config_file, 'WORKFLOW_NAME')
@@ -205,7 +219,7 @@ outh = open(args.output, 'w')
 # Get the workflow.
 workflow_id, workflow_dict = get_workflow(gi, workflow_name, dh)
 dh.write("\nworkflow_id: %s\n" % str(workflow_id))
-#dh.write("\nworkflow_dict: %s\n" % json.dumps(workflow_dict, sort_keys=True, indent=4))
+# dh.write("\nworkflow_dict: %s\n" % json.dumps(workflow_dict, sort_keys=True, indent=4))
 
 # Get the All Genotyped Samples data library.
 all_genotyped_samples_library_id = get_data_library(gi, all_genotyped_samples_library_name, dh)
@@ -217,13 +231,21 @@ dh.write("\nall_genotyped_samples_dataset_id: %s\n" % str(all_genotyped_samples_
 # only the datasets to be used as input to the workflow.
 history_datasets = get_history_datasets(gi, args.history_id, dh)
 dh.write("\nhistory_datasets: %s\n" % str(history_datasets))
+dh.write("\nSleeping for 10 seconds...\n")
+time.sleep(10)
 # Import the public all_genotyped_samples dataset from the data library to the history.
-### TODO uncomment the following when we're ready.  it defintiely works!
-#history_datasets = add_library_dataset_to_history(gi, args.history_id, all_genotyped_samples_dataset_id, history_datasets, dh)
-#dh.write("\nhistory_datasets: %s\n" % str(history_datasets))
+# TODO uncomment the following when we're ready.  it defintiely works!
+# history_datasets = add_library_dataset_to_history(gi, args.history_id, all_genotyped_samples_dataset_id, history_datasets, dh)
+# dh.write("\nhistory_datasets: %s\n" % str(history_datasets))
 # Map the history datasets to the input datasets for the workflow.
 workflow_input_datasets = get_workflow_input_datasets(gi, history_datasets, workflow_dict, dh)
 dh.write("\nworkflow_input_datasets: %s\n" % str(workflow_input_datasets))
+dh.write("\nSleeping for 10 seconds...\n")
+time.sleep(10)
+# Start the workflow.
+start_workflow(gi, workflow_id, workflow_name, workflow_input_datasets, args.history_id, dh)
+dh.write("\nSleeping for 10 seconds...\n")
+time.sleep(10)
 
 # TODO: the following won't work because the history state is "running" as
 # long as this tool is not finished.  So we should probably add a tool to
@@ -232,7 +254,7 @@ dh.write("\nworkflow_input_datasets: %s\n" % str(workflow_input_datasets))
 # break.
 
 # Poll the history status and wait until it is in a finished state.
-#while True:
+# while True:
 #    status = get_history_status(dh, gi, args.history_id)
 #    dh.write("status: %s\n" % str(status))
 #    if status in FINISHED_STATES:
