@@ -90,7 +90,7 @@ def get_history_datasets(gi, history_id, dh):
     dh.write('Getting datasets for history id %s\n' % history_id)
     history_datasets = {}
     history_dict = gi.histories.show_history(history_id, contents=True, deleted='false', details=None)
-    dh.write("history_dict:\n%s\n" % str(history_dict))
+    #dh.write("history_dict:\n%s\n" % str(history_dict))
     for contents_dict in history_dict:
         dh.write("contents_dict:\n%s\n" % str(contents_dict))
         if contents_dict['history_content_type'] == 'dataset':
@@ -186,13 +186,45 @@ def get_workflow_input_datasets(gi, history_datasets, workflow_dict, dh):
     return workflow_inputs
 
 
-def start_workflow(gi, workflow_id, workflow_name, inputs, history_id, dh):
+def start_workflow(gi, workflow_id, workflow_name, inputs, params, history_id, dh):
     dh.write('\nExecuting workflow %s.\n' % workflow_name)
     dh.write('inputs:\n%s\n\n' % str(inputs))
     dh.write('history_id:\n%s\n\n' % str(history_id))
-    workflow_invocation_dict = gi.workflows.invoke_workflow(workflow_id, inputs=inputs, history_id=history_id)
+    workflow_invocation_dict = gi.workflows.invoke_workflow(workflow_id, inputs=inputs, params=params, history_id=history_id)
     dh.write('Response from executing workflow %s:\n' % workflow_name)
     dh.write('%s\n' % str(workflow_invocation_dict))
+
+
+def update_workflow_params(workflow_dict, dbkey, dh):
+    parameter_updates = None
+    name = workflow_dict['name']
+    dh.write('Checking for tool parameter updates for workflow %s using dbkey %s.\n' % (name, dbkey))
+    step_dicts = workflow_dict.get('steps', None)
+    for step_id, step_dict in step_dicts.items():
+        tool_id = step_dict['tool_id']
+        if tool_id is None:
+            continue
+        # Handle reference_source entries
+        if tool_id.find('affy2vcf') > 0:
+            dh.write('\nChecking tool id: %s\n' % tool_id)
+            tool_inputs_dict = step_dict['tool_inputs']
+            # The queue_genotype_workflow tool provides a selection of only
+            # a locally cached reference genome (not a history item), so dbkey
+            # will always refer to a locally cached genome.
+            # The affy2vcf tool allows the user to select either a locally
+            # cached reference genome or a history item, but the workflow is
+            # defined to use a locally cached reference genome by default.
+            reference_genome_source_cond_dict = tool_inputs_dict['reference_genome_source_cond']
+            # The value of reference_genome_source_cond_dict['reference_genome_source']
+            # will always be 'cached'.
+            workflow_db_key = reference_genome_source_cond_dict['locally_cached_item']
+            if dbkey !=  workflow_db_key:
+                reference_genome_source_cond_dict['locally_cached_item'] = dbkey
+                parameter_updates = {}
+                parameter_updates[step_id] = reference_genome_source_cond_dict
+                dh.write('Updated step id %s with the following entry:\n%s\n' % (step_id, str(reference_genome_source_cond_dict)))
+    return parameter_updates
+
 
 dh = open("/tmp/work/qgw.log", "w")
 dh.write("history_id: %s\n" % str(args.history_id))
@@ -212,38 +244,47 @@ dh.write("gi: %s\n" % str(gi))
 
 all_genotyped_samples_library_name = get_value_from_config(dh, args.config_file, 'ALL_GENOTYPED_SAMPLES_LIBRARY_NAME')
 workflow_name = get_value_from_config(dh, args.config_file, 'WORKFLOW_NAME')
-dh.write("\nworkflow_name: %s\n" % str(workflow_name))
+#dh.write("\nworkflow_name: %s\n" % str(workflow_name))
 
 outh = open(args.output, 'w')
 
 # Get the workflow.
 workflow_id, workflow_dict = get_workflow(gi, workflow_name, dh)
-dh.write("\nworkflow_id: %s\n" % str(workflow_id))
+#dh.write("\nworkflow_id: %s\n" % str(workflow_id))
 # dh.write("\nworkflow_dict: %s\n" % json.dumps(workflow_dict, sort_keys=True, indent=4))
 
 # Get the All Genotyped Samples data library.
 all_genotyped_samples_library_id = get_data_library(gi, all_genotyped_samples_library_name, dh)
-dh.write("\nall_genotyped_samples_library_id: %s\n" % str(all_genotyped_samples_library_id))
+#dh.write("\nall_genotyped_samples_library_id: %s\n" % str(all_genotyped_samples_library_id))
+
 # Get the public all_genotyped_samples" dataset id.
 all_genotyped_samples_dataset_id = get_all_genotyped_samples_dataset_id(gi, all_genotyped_samples_library_id, dh)
-dh.write("\nall_genotyped_samples_dataset_id: %s\n" % str(all_genotyped_samples_dataset_id))
+#dh.write("\nall_genotyped_samples_dataset_id: %s\n" % str(all_genotyped_samples_dataset_id))
+
 # Get the current history datasets.  At this point, the history must contain
 # only the datasets to be used as input to the workflow.
 history_datasets = get_history_datasets(gi, args.history_id, dh)
-dh.write("\nhistory_datasets: %s\n" % str(history_datasets))
-dh.write("\nSleeping for 10 seconds...\n")
-time.sleep(10)
+#dh.write("\nhistory_datasets: %s\n" % str(history_datasets))
+# dh.write("\nSleeping for 10 seconds...\n")
+# time.sleep(10)
+
 # Import the public all_genotyped_samples dataset from the data library to the history.
 # TODO uncomment the following when we're ready.  it defintiely works!
 # history_datasets = add_library_dataset_to_history(gi, args.history_id, all_genotyped_samples_dataset_id, history_datasets, dh)
 # dh.write("\nhistory_datasets: %s\n" % str(history_datasets))
+
 # Map the history datasets to the input datasets for the workflow.
 workflow_input_datasets = get_workflow_input_datasets(gi, history_datasets, workflow_dict, dh)
-dh.write("\nworkflow_input_datasets: %s\n" % str(workflow_input_datasets))
-dh.write("\nSleeping for 10 seconds...\n")
-time.sleep(10)
+#dh.write("\nworkflow_input_datasets: %s\n" % str(workflow_input_datasets))
+# dh.write("\nSleeping for 10 seconds...\n")
+# time.sleep(10)
+
+# Get teh workflow params that could be updated.
+params = update_workflow_params(workflow_dict, args.dbkey, dh) 
+dh.write("\nparams:\n%s\n" % str(params))
+
 # Start the workflow.
-start_workflow(gi, workflow_id, workflow_name, workflow_input_datasets, args.history_id, dh)
+start_workflow(gi, workflow_id, workflow_name, workflow_input_datasets, params, args.history_id, dh)
 dh.write("\nSleeping for 10 seconds...\n")
 time.sleep(10)
 

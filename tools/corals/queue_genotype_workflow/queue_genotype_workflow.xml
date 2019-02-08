@@ -10,15 +10,10 @@ python $__tool_directory__/queue_genotype_workflow.py
 --calls '$calls'
 --confidences '$confidences'
 --config_file $__tool_directory__/qgw_config.ini
-#if str($reference_genome_source_cond.reference_genome_source) == 'history':
-    --dbkey '$reference_genome_source_cond.history_item.metadata.dbkey'
-    --reference_genome '$reference_genome_source_cond.history_item'
-#else:
-    --reference_genome '$reference_genome_source_cond.locally_cached_item.fields.path'
-    --dbkey '$reference_genome_source_cond.locally_cached_item.fields.value'
-#end if
 --history_id $history_id
 --history_name '$history_name'
+--reference_genome '$locally_cached_item.fields.path'
+--dbkey '$locally_cached_item.fields.value'
 --report '$report'
 --snp-posteriors '$snp_posteriors'
 --summary '$summary'
@@ -39,26 +34,15 @@ python $__tool_directory__/queue_genotype_workflow.py
         <param name="report" type="data" format="txt" label="Apt-probeset genotype report file" />
         <param name="confidences" type="data" format="txt" label="Apt-probeset genotype confidences file" />
         <param name="calls" type="data" format="txt" label="Apt-probeset genotype calls file" />
-        <conditional name="reference_genome_source_cond">
-            <param name="reference_genome_source" type="select" label="Choose the source for the reference genome">
-                <option value="history" selected="true">Use a reference genome from my history</option>
-                <option value="cached">Use a locally cached genome index</option>
-            </param>
-            <when value="history">
-                <param name="history_item" type="data" format="fasta" label="Select reference genome" />
-            </when>
-            <when value="cached">
-                <param name="locally_cached_item" type="select" format="fasta" label="Fasta reference sequence">
-                    <options from_data_table="all_fasta">
-                        <column name="name" index="2"/>
-                        <column name="value" index="0"/>
-                        <column name="path" index="3"/>
-                        <filter type="sort_by" column="1"/>
-                        <validator type="no_options" message="No cached Fasta genome references are available for the build associated with the selected probeset annotation file." />
-                    </options>
-                </param>
-            </when>
-        </conditional>
+        <param name="locally_cached_item" type="select" format="fasta" label="Fasta reference sequence">
+            <options from_data_table="all_fasta">
+                <column name="name" index="2"/>
+                <column name="value" index="0"/>
+                <column name="path" index="3"/>
+                <filter type="sort_by" column="1"/>
+                <validator type="no_options" message="No cached Fasta genome references are available for the build associated with the selected probeset annotation file." />
+            </options>
+        </param>
     </inputs>
     <outputs>
         <data name="output" format="txt" />
