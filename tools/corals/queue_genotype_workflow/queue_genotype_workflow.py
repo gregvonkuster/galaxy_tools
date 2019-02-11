@@ -240,8 +240,10 @@ while True:
     # "queued" state and there is only 1 dataset in the "running"
     # state.  We cannot filter on datasets in the "paused" state
     # because any datasets downstream from one in an "error" state
-    # will automatically be given a "paused" state.
-    if state_details_dict['queued'] == 0 and state_details_dict['new'] == 0 and state_details_dict['running'] <= 1:
+    # will automatically be given a "paused" state. Of course, we'll
+    # always break if any datasets are in the "error"state.
+    if sd_dict['error'] != 0 or (sd_dict['queued'] == 0 and sd_dict['new'] == 0 and sd_dict['running'] <= 1):
+        break
         break
     time.sleep(5)
 
