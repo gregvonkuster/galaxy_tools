@@ -2,7 +2,6 @@
     <description></description>
     <command detect_errors="exit_code"><![CDATA[
 #set history_id = $__app__.security.encode_id($affy_metadata.history.id)
-#set history_name = $affy_metadata.history.name
 python $__tool_directory__/queue_genotype_workflow.py
 --affy_metadata '$affy_metadata'
 --annot '$annot'
@@ -11,16 +10,13 @@ python $__tool_directory__/queue_genotype_workflow.py
 --confidences '$confidences'
 --config_file $__tool_directory__/qgw_config.ini
 --history_id $history_id
---history_name '$history_name'
 --reference_genome '$locally_cached_item.fields.path'
 --dbkey '$locally_cached_item.fields.value'
 --report '$report'
 --snp-posteriors '$snp_posteriors'
 --summary '$summary'
---user_email '$__user_email__'
 --user_id "$__app__.security.encode_id('__user_id__')"
---output '$output'
-    ]]></command>
+--output '$output']]></command>
     <configfiles>
         <configfile name="get_user_api_key"><![CDATA[#from galaxy.managers import api_keys#${api_keys.ApiKeyManager( $__app__ ).get_or_create_api_key($__user__)} ]]></configfile>
     </configfiles>
@@ -45,7 +41,7 @@ python $__tool_directory__/queue_genotype_workflow.py
         </param>
     </inputs>
     <outputs>
-        <data name="output" format="txt" />
+        <data name="output" label="${tool.name} execution log" format="txt" />
     </outputs>
     <tests>
     </tests>
