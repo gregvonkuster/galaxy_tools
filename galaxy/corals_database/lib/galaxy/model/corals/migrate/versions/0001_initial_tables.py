@@ -143,7 +143,9 @@ Phenotype_table = Table("phenotype", metadata,
     Column("bleach_resist", TrimmedString(255)),
     Column("mortality", TrimmedString(255)),
     Column("tle", TrimmedString(255)),
-    Column("spawning", Boolean))
+    Column("spawning", Boolean),
+    Column("sperm_motility", Numeric(15, 6)),
+    Column("healing_time", Numeric(15, 6)))
 
 
 Sample_table = Table("sample", metadata,

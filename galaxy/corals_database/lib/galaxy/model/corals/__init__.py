@@ -272,15 +272,19 @@ class Reef(Dictifiable):
 
 
 class Phenotype(Dictifiable):
-    dict_collection_visible_keys = ['id', 'disease_resist', 'bleach_resist', 'mortality', 'tle', 'spawning']
+    dict_collection_visible_keys = ['id', 'disease_resist', 'bleach_resist', 'mortality', 'tle',
+                                    'spawning', 'sperm_motility', 'healing_time']
 
-    def __init__(self, disease_resist=None, bleach_resist=None, mortality=None, tle=None, spawning=None):
+    def __init__(self, disease_resist=None, bleach_resist=None, mortality=None, tle=None,
+                 spawning=None, sperm_motility=None, healing_time=None):
         # Description of experiment metadata.
         self.disease_resist = disease_resist
         self.bleach_resist = bleach_resist
         self.mortality = mortality
         self.tle = tle
         self.spawning = spawning
+        self.sperm_motility = sperm_motility
+        self.healing_time = healing_time
 
     def as_dict(self, value_mapper=None):
         return self.to_dict(view='element', value_mapper=value_mapper)
