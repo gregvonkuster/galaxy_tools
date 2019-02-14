@@ -128,8 +128,8 @@ corals_model.Phenotype.table = Table("phenotype", metadata,
     Column("mortality", TrimmedString(255)),
     Column("tle", TrimmedString(255)),
     Column("spawning", Boolean),
-    Column("sperm_motility", Numeric(15, 6)),
-    Column("healing_time", Numeric(15, 6)))
+    Column("sperm_motility", Numeric(15, 6), nullable=False),
+    Column("healing_time", Numeric(15, 6), nullable=False))
 
 corals_model.Sample.table = Table("sample", metadata,
    Column("id", Integer, primary_key=True),

@@ -144,8 +144,8 @@ Phenotype_table = Table("phenotype", metadata,
     Column("mortality", TrimmedString(255)),
     Column("tle", TrimmedString(255)),
     Column("spawning", Boolean),
-    Column("sperm_motility", Numeric(15, 6)),
-    Column("healing_time", Numeric(15, 6)))
+    Column("sperm_motility", Numeric(15, 6), nullable=False),
+    Column("healing_time", Numeric(15, 6), nullable=False))
 
 
 Sample_table = Table("sample", metadata,
@@ -335,6 +335,11 @@ def load_seed_data(migrate_engine):
     reef_table_inserts = 0
     sample_table_inserts = 0
     SAMPLE_ID = 10000
+    # The following are not included in the seed data,
+    # so negative values are used since they are invalid
+    # and so can act as so-called NULL values.
+    SPERM_MOTILITY = -9.0
+    HEALING_TIME = -9.0
 
     with open(GENERAL_SEED_DATA_FILE, "r") as fh:
         for i, line in enumerate(fh):
@@ -491,7 +496,7 @@ def load_seed_data(migrate_engine):
             phenotype_id = get_primary_id(migrate_engine, table, cmd)
             if phenotype_id is None:
                 # Add a row to the table.
-                cmd = "INSERT INTO phenotype VALUES (%s, %s, %s, '%s', '%s', '%s', '%s', '%s')"
+                cmd = "INSERT INTO phenotype VALUES (%s, %s, %s, '%s', '%s', '%s', '%s', '%s', %s, %s)"
                 cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),
@@ -499,7 +504,9 @@ def load_seed_data(migrate_engine):
                              bleach_resist,
                              mortality,
                              tle,
-                             spawning)
+                             spawning,
+                             SPERM_MOTILITY,
+                             HEALING_TIME)
                 migrate_engine.execute(cmd)
                 phenotype_table_inserts += 1
                 phenotype_id = get_latest_id(migrate_engine, table)
