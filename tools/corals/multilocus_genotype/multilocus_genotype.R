@@ -80,14 +80,14 @@ id <- mlg.id(obj2);
 dt <- data.table(id, keep.rownames=TRUE);
 setnames(dt, c("id"), c("affy_id"));
 
-# Read user's Affymetrix 96 well plate csv file.
+# Read user's Affymetrix 96 well plate tabular file.
 pinfo <- read.table(opt$input_affy_metadata, header=FALSE, stringsAsFactors=FALSE, sep="\t");
-colnames(pinfo) <- c("date_entered_db", "user_specimen_id", "field_call", "bcoral_genet_id", "bsym_genet_id",
-                     "reef", "region", "latitude", "longitude", "geographic_origin",
-                     "sample_location", "latitude_outplant", "longitude_outplant", "depth", "dist_shore",
-                     "disease_resist", "bleach_resist", "mortality","tle", "spawning",
-                     "collector_last_name", "collector_first_name", "org", "collection_date", "contact_email",
-                     "seq_facility", "array_version", "public", "public_after_date");
+colnames(pinfo) <- c("user_specimen_id", "field_call", "bcoral_genet_id", "bsym_genet_id", "reef",
+                     "region", "latitude", "longitude", "geographic_origin", "sample_location",
+                     "latitude_outplant", "longitude_outplant", "depth", "dist_shore", "disease_resist",
+                     "bleach_resist", "mortality","tle", "spawning", "collector_last_name",
+                     "collector_first_name", "org", "collection_date", "contact_email", "seq_facility",
+                     "array_version", "public", "public_after_date", "sperm_motility", "healing_time");
 pinfo$user_specimen_id <- as.character(pinfo$user_specimen_id);
 pinfo2 <- as.character(pinfo$user_specimen_id);
 pi <- data.table(pinfo2);
@@ -97,13 +97,25 @@ setnames(pi, c("pinfo2"), c("user_specimen_id"));
 conn <- get_database_connection(opt$database_connection_string);
 
 # Import the sample table.
-mD <- tbl(conn, "sample");
+sample_table <- tbl(conn, "sample");
 
-# Select user_specimen_id and mlg columns.
-smlg <- mD %>% select(user_specimen_id, coral_mlg_clonal_id, symbio_mlg_clonal_id, affy_id);
+# Import the genotype table.
+genotype_table <- tbl(conn, "genotype");
+
+# Select columns from the sample table and the
+# genotype table joined by genotype_id.
+sample_table_columns <- sample_table %>% select(user_specimen_id, affy_id, genotype_id);
+smlg <- sample_table_columns %>%
+    left_join(genotype_table %>%
+              select("coral_mlg_clonal_id", "symbio_mlg_clonal_id"),
+              by='genotype_id');
 
 # Convert to dataframe.
 sm <- data.frame(smlg);
+# Name the columns.
+colnames(sm) <- c("user_specimen_id", "affy_id", "genotype_id", "coral_mlg_clonal_id", "symbio_mlg_clonal_id");
+# Delete the genotype_id column.
+sm[,"genotype_id":=NULL];
 sm[sm==""] <- NA;
 
 # Missing GT in samples submitted.
@@ -190,14 +202,14 @@ ct <- length(unique(n.g));
 # the df4 file contains all ids.  If it doesn't then look below
 # to change the seq() function. 
 n.g_ids <- sprintf("HG%04d", seq((sum(!is.na(unique(df4["coral_mlg_clonal_id"]))) + 1), by=1, length=ct));
-# This is a key for pairing group with new ids.
+# Pair group with new ids.
 rat <- cbind(unique(n.g), n.g_ids);
-# This for loop assigns the new id iteratively for all that have NA.
+# Assign the new id iteratively for all that have NA.
 for (i in 1:length(na.mlg2)) {
     df4$coral_mlg_clonal_id[na.mlg2[i]] <- n.g_ids[match(df4$group[na.mlg2[i]], unique(n.g))];
 }
 
-# subset poptab for all samples.
+# Subset poptab for all samples.
 subpop <- poptab[c(2, 3)];
 
 # Merge data frames for final table.
