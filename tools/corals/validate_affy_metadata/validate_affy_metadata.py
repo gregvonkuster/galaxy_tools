@@ -76,8 +76,8 @@ with open(args.input, "r") as ih:
             accumulated_msgs = add_error_msg(accumulated_msgs, "The input file contains more than 97 lines (must be 1 header line and no more than 96 data lines).")
             stop_error(accumulated_msgs)
         items = line.split("\t")
-        if len(items) != 28:
-            accumulated_msgs = add_error_msg(accumulated_msgs, "Line %d contains %s columns, (must be 28)." % (i, len(items)))
+        if len(items) != 30:
+            accumulated_msgs = add_error_msg(accumulated_msgs, "Line %d contains %s columns, (must be 30)." % (i, len(items)))
             stop_error(accumulated_msgs)
         # Required and validated.
         # Required.
@@ -155,6 +155,12 @@ with open(args.input, "r") as ih:
         # Optional.
         public_after_date = items[27]
         accumulated_msga = validate_date_string(i, public_after_date, accumulated_msgs)
+        # Required and validated.
+        sperm_motility = items[28]
+        accumulated_msgs = validate_decimal(i, sperm_motility, accumulated_msgs)
+        # Required and validated.
+        healing_time = items[29]
+        accumulated_msgs = validate_decimal(i, healing_time, accumulated_msgs)
 
 if len(accumulated_msgs) > 0:
     stop_error(accumulated_msgs)
