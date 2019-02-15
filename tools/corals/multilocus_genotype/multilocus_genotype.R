@@ -48,7 +48,7 @@ get_database_connection <- function(db_conn_string) {
     host <- host_dbname_items[1];
     dbname <- host_dbname_items[2];
     # FIXME: is there a way to not hard-code the port?
-    conn <- DBI::dbConnect(RPostgres::Postgres(), host=host, port='5432', dbname=dbname, user=user, password=pass);
+    conn <- DBI::dbConnect(RPostgres::Postgres(), host=host, port="5432", dbname=dbname, user=user, password=pass);
     return (conn);
 }
 
@@ -108,16 +108,13 @@ genotype_table <- tbl(conn, "genotype");
 sample_table_columns <- sample_table %>% select(user_specimen_id, affy_id, genotype_id);
 smlg <- sample_table_columns %>%
     left_join(genotype_table %>%
-              select("coral_mlg_clonal_id", "symbio_mlg_clonal_id"),
-              by='genotype_id');
+              select("id", "coral_mlg_clonal_id", "symbio_mlg_clonal_id"),
+              by=c("genotype_id" = "id"));
 
 # Convert to dataframe.
 sm <- data.frame(smlg);
 # Name the columns.
 colnames(sm) <- c("user_specimen_id", "affy_id", "genotype_id", "coral_mlg_clonal_id", "symbio_mlg_clonal_id");
-# Delete the genotype_id column.
-sm[,"genotype_id":=NULL];
-sm[sm==""] <- NA;
 
 # Missing GT in samples submitted.
 gt <- extract.gt(vcf, element="GT", as.numeric=FALSE);
@@ -172,12 +169,12 @@ setnames(dt, c("id"), c("affy_id"));
 # Transform.
 df3 <- dt %>%
     group_by(row_number()) %>%
-    dplyr::rename(group='row_number()') %>%
+    dplyr::rename(group="row_number()") %>%
     unnest (affy_id) %>%
     # Join with mlg table.
     left_join(sm %>%
               select("affy_id","coral_mlg_clonal_id"),
-              by='affy_id');
+              by="affy_id");
 
 # If found in database, group members on previous mlg id.
 uniques <- unique(df3[c("group", "coral_mlg_clonal_id")]);
@@ -217,22 +214,22 @@ subpop <- poptab[c(2, 3)];
 report_user <- pi %>%
     left_join(subpop %>%
         select("affy_id", "user_specimen_id"),
-        by='user_specimen_id') %>%
+        by="user_specimen_id") %>%
     left_join(df4 %>%
         select("affy_id", "coral_mlg_clonal_id", "DB_match"),
-        by='affy_id') %>%
+        by="affy_id") %>%
     left_join(mi %>%
         select("affy_id", "percent_missing_data_coral"),
-        by='affy_id') %>%
+        by="affy_id") %>%
     left_join(ht %>%
         select("affy_id", "percent_mixed_coral"),
-        by='affy_id') %>%
+        by="affy_id") %>%
     left_join(rA %>%
         select("affy_id", "percent_reference_coral"),
-        by='affy_id') %>%
+        by="affy_id") %>%
     left_join(aB %>%
         select("affy_id", "percent_alternative_coral"),
-        by='affy_id') %>%
+        by="affy_id") %>%
     mutate(DB_match = ifelse(is.na(DB_match), "failed", DB_match))%>%
     mutate(coral_mlg_clonal_id = ifelse(is.na(coral_mlg_clonal_id), "failed", coral_mlg_clonal_id)) %>%
     ungroup() %>%
@@ -246,7 +243,7 @@ report_db <- pinfo %>%
         select("user_specimen_id", "affy_id", "coral_mlg_clonal_id", "DB_match",
                "percent_missing_data_coral", "percent_mixed_coral", "percent_reference_coral",
                "percent_alternative_coral"),
-        by='user_specimen_id');
+        by="user_specimen_id");
 
 # Create vector indicating number of individuals desired
 # made from affy_id collumn of report_user data table.
@@ -254,7 +251,7 @@ i <- report_user[[2]];
 sub96 <- obj2[i, mlg.reset=FALSE, drop=FALSE];
 
 # Create a phylogeny of samples based on distance matrices.
-cols <- palette(brewer.pal(n=12, name='Set3'));
+cols <- palette(brewer.pal(n=12, name="Set3"));
 set.seed(999);
 # Start PDF device driver.
 dev.new(width=10, height=7);
