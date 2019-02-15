@@ -87,7 +87,8 @@ colnames(pinfo) <- c("user_specimen_id", "field_call", "bcoral_genet_id", "bsym_
                      "latitude_outplant", "longitude_outplant", "depth", "dist_shore", "disease_resist",
                      "bleach_resist", "mortality","tle", "spawning", "collector_last_name",
                      "collector_first_name", "org", "collection_date", "contact_email", "seq_facility",
-                     "array_version", "public", "public_after_date", "sperm_motility", "healing_time");
+                     "array_version", "public", "public_after_date", "sperm_motility", "healing_time",
+                     "dna_extraction_method", "dna_concentration");
 pinfo$user_specimen_id <- as.character(pinfo$user_specimen_id);
 pinfo2 <- as.character(pinfo$user_specimen_id);
 pi <- data.table(pinfo2);

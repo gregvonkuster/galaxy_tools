@@ -6,7 +6,7 @@ python '$__tool_directory__/validate_affy_metadata.py'
 --output '$output']]></command>
     <inputs>
         <param name="input" type="data" format="tabular" label="Affymetrix 96 well plate metadata file">
-            <validator type="expression" message="96 well plate data must have 30 columns and no more than 96 lines of data"><![CDATA[value is not None and value.metadata.columns==30 and value.metadata.data_lines<=96]]></validator>
+            <validator type="expression" message="96 well plate data must have 32 columns and no more than 96 lines of data"><![CDATA[value is not None and value.metadata.columns==32 and value.metadata.data_lines<=96]]></validator>
         </param>
     </inputs>
     <outputs>
@@ -21,7 +21,7 @@ python '$__tool_directory__/validate_affy_metadata.py'
     <help>
 **What it does**
 
-Validates an Affymetrix metadata file for 96 well plate data.  These files consist of 30 columns and no more than 96 data lines.
+Validates an Affymetrix metadata file for 96 well plate data.  These files consist of 32 columns and no more than 96 data lines.
 The tool will output the input file if it is valid.
 
 -----
@@ -58,6 +58,8 @@ The tool will output the input file if it is valid.
  * public_after_date
  * sperm_motility
  * healing_time
+ * dna_extraction_method
+ * dna_concentration
     </help>
     <citations>
     </citations>
