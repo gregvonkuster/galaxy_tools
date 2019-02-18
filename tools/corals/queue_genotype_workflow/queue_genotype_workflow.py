@@ -20,6 +20,7 @@ parser.add_argument('--reference_genome', dest='reference_genome', help='Referen
 parser.add_argument('--history_id', dest='history_id', help='Encoded id of current history')
 parser.add_argument('--output', dest='output', help='Output dataset')
 parser.add_argument('--report', dest='report', help='Apt-probeset genotype report file')
+parser.add_argument('--sample_attributes', dest='sample_attributes', help='Sample attributes tabular file')
 parser.add_argument('--snp-posteriors', dest='snp-posteriors', help='Apt-probeset genotype snp-posteriors file')
 parser.add_argument('--summary', dest='summary', help='Apt-probeset genotype summary file')
 parser.add_argument('--user_id', dest='user_id', help='Encoded Galaxy user id')
@@ -135,23 +136,23 @@ def get_workflow_input_datasets(gi, history_datasets, workflow_dict, outputfh):
             # string # (e.g., report) that enables it to be appropriatey
             # matched to a dataset (e.g., axiongt1_report.txt).
             # 1. affy_metadata.tabular - must have the word "metadata" in
-            #                            the annotation.
-            # 2. sample_attributes.txt - must have the word "attributes" in
-            #                            the annotation.
+            #                            the file name.
+            # 2. sample_attributes.tabular - must have the word "attributes"
+            #                                in the file name.
             # 3. probeset_annotation.csv - must have the word "annotation" in
-            #                              the annotation.
+            #                              the file name.
             # 4. <summary file>.txt - must have the the word "summary" in the
-            #                         annotation.
+            #                         file name.
             # 5. <snp-posteriors file>.txt - must have the the word
-            #                                "snp-posteriors" in the annotation.
+            #                                "snp-posteriors" in the file name.
             # 6. <report file>.txt - must have the the word "report" in the
-            #                        annotation.
+            #                        file name.
             # 7. <confidences file>.txt - must have the the word "confidences"
-            #                             in the annotation.
+            #                             in the file name.
             # 8. <calls file>.txt - must have the the word "calls" in the
-            #                       annotation.
-            # TODO: figure out how to name the "all samples" dataset so
-            # we can properly map it here.
+            #                       file name.
+            # 9. all_genotyped_samples.vcf - must have "all_genotyped_samples"
+            #                                in the file name.
             annotation = step_dict.get('annotation', None)
             if tool_id is None and tool_type == 'data_input' and annotation is not None:
                 annotation_check = annotation.lower()
@@ -212,28 +213,38 @@ workflow_name = get_value_from_config(args.config_file, 'WORKFLOW_NAME')
 
 # Get the workflow.
 workflow_id, workflow_dict = get_workflow(gi, workflow_name, outputfh)
+outputfh.write("\nworkflow_id: %s\n" % str(workflow_id))
 # Get the All Genotyped Samples data library.
 all_genotyped_samples_library_id = get_data_library(gi, all_genotyped_samples_library_name, outputfh)
+outputfh.write("\nall_genotyped_samples_library_id: %s\n" % str(all_genotyped_samples_library_id))
 # Get the public all_genotyped_samples" dataset id.
 all_genotyped_samples_dataset_id = get_all_genotyped_samples_dataset_id(gi, all_genotyped_samples_library_id, outputfh)
+outputfh.write("\nall_genotyped_samples_dataset_id: %s\n" % str(all_genotyped_samples_dataset_id))
 # Get the current history datasets.  At this point, the history must contain
 # only the datasets to be used as input to the workflow.
 history_datasets = get_history_datasets(gi, args.history_id)
+#outputfh.write("\nhistory_datasets: %s\n" % str(history_datasets))
 # Import the public all_genotyped_samples dataset from the data library to the history.
 history_datasets = add_library_dataset_to_history(gi, args.history_id, all_genotyped_samples_dataset_id, history_datasets, outputfh)
+#outputfh.write("\nhistory_datasets: %s\n" % str(history_datasets))
 # Map the history datasets to the input datasets for the workflow.
 workflow_input_datasets = get_workflow_input_datasets(gi, history_datasets, workflow_dict, outputfh)
+outputfh.write("\nworkflow_input_datasets: %s\n" % str(workflow_input_datasets))
 # Get the workflow params that could be updated.
 params = update_workflow_params(workflow_dict, args.dbkey, outputfh)
+outputfh.write("\nparams: %s\n" % str(params))
 # Start the workflow.
 start_workflow(gi, workflow_id, workflow_name, workflow_input_datasets, params, args.history_id, outputfh)
-time.sleep(10)
+"""
+outputfh.write("\nSleeping for 60 seconds...\n")
+time.sleep(60)
 # Poll the history datasets, checking the statuses, and wait until
 # the workflow is finished.  The workflow itself simply schedules
 # all of the jobs, so it cannot be checked for a state.
 while True:
     history_status_dict = get_history_status(gi, args.history_id)
-    state_details_dict = history_status_dict['state_details']
+    sd_dict = history_status_dict['state_details']
+    outputfh.write("\nsd_dict: %s\n" % str(sd_dict))
     # The queue_genotype_workflow tool will continue to be in a
     # "running" state while inside this for loop, so  we know that
     # the workflow has completed if no datasets are in the "new" or
@@ -244,7 +255,9 @@ while True:
     # always break if any datasets are in the "error"state.
     if sd_dict['error'] != 0 or (sd_dict['queued'] == 0 and sd_dict['new'] == 0 and sd_dict['running'] <= 1):
         break
-        break
+    outputfh.write("\nSleeping for 5 seconds...\n")
     time.sleep(5)
+"""
 
+outputfh.write("\nFinished processing......\n")
 outputfh.close()

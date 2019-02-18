@@ -2,6 +2,7 @@
     <description></description>
     <command detect_errors="exit_code"><![CDATA[
 #set history_id = $__app__.security.encode_id($affy_metadata.history.id)
+#set user_id = $__app__.security.encode_id('__user_id__')
 python $__tool_directory__/queue_genotype_workflow.py
 --affy_metadata '$affy_metadata'
 --annot '$annot'
@@ -13,23 +14,25 @@ python $__tool_directory__/queue_genotype_workflow.py
 --reference_genome '$locally_cached_item.fields.path'
 --dbkey '$locally_cached_item.fields.value'
 --report '$report'
+--sample_attributes '$sample_attributes'
 --snp-posteriors '$snp_posteriors'
 --summary '$summary'
---user_id "$__app__.security.encode_id('__user_id__')"
+--user_id $user_id
 --output '$output']]></command>
     <configfiles>
         <configfile name="get_user_api_key"><![CDATA[#from galaxy.managers import api_keys#${api_keys.ApiKeyManager( $__app__ ).get_or_create_api_key($__user__)} ]]></configfile>
     </configfiles>
     <inputs>
-        <param name="affy_metadata" type="data" format="tabular" label="Affymetrix 96 well plate metadata file">
-            <validator type="expression" message="96 well plate data must have 28 columns and no more than 96 lines of data"><![CDATA[value is not None and value.metadata.columns==28 and value.metadata.data_lines<=96]]></validator>
+        <param name="affy_metadata" type="data" format="tabular" label="Affymetrix 96 well plate metadata file" help="The word 'metadata' must be in the file name.">
+            <validator type="expression" message="96 well plate data must have 32 columns and no more than 96 lines of data"><![CDATA[value is not None and value.metadata.columns==32 and value.metadata.data_lines<=96]]></validator>
         </param>
-        <param name="annot" type="data" format="csv" label="Probeset annotation file" />
-        <param name="summary" type="data" format="txt" label="Apt-probeset genotype summary file" />
-        <param name="snp_posteriors" type="data" format="txt" label="Apt-probeset genotype snp-posteriors file" />
-        <param name="report" type="data" format="txt" label="Apt-probeset genotype report file" />
-        <param name="confidences" type="data" format="txt" label="Apt-probeset genotype confidences file" />
-        <param name="calls" type="data" format="txt" label="Apt-probeset genotype calls file" />
+        <param name="sample_attributes" type="data" format="tabular" label="Sample attributes file" help="The word 'attributes' must be in the file name."/>
+        <param name="annot" type="data" format="csv" label="Probeset annotation file" help="The word 'annotation' must be in the file name."/>
+        <param name="summary" type="data" format="txt" label="Apt-probeset genotype summary file" help="The word 'summary' must be in the file name."/>
+        <param name="snp_posteriors" type="data" format="txt" label="Apt-probeset genotype snp-posteriors file" help="The word 'snp-posteriors' must be in the file name."/>
+        <param name="report" type="data" format="txt" label="Apt-probeset genotype report file" help="The word 'report' must be in the file name."/>
+        <param name="confidences" type="data" format="txt" label="Apt-probeset genotype confidences file" help="The word 'confidences' must be in the file name."/>
+        <param name="calls" type="data" format="txt" label="Apt-probeset genotype calls file" help="The word 'calls' must be in the file name."/>
         <param name="locally_cached_item" type="select" format="fasta" label="Fasta reference sequence">
             <options from_data_table="all_fasta">
                 <column name="name" index="2"/>
@@ -51,3 +54,4 @@ python $__tool_directory__/queue_genotype_workflow.py
     <citations>
     </citations>
 </tool>
+
