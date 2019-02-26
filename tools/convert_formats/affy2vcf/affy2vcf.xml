@@ -87,13 +87,13 @@ bcftools +\$BCFTOOLS_PLUGINS/affy2vcf.so
     <tests>
         <test>
             <param name="reference_genome_source" value="history"/>
-            <param name="history_item" value="sub50_adig_genome.fasta" ftype="fasta"/>
-            <param name="annot" value="axiom_acropsnp_coral_annotation.r1.csv" ftype="csv"/>
-            <param name="summary" value="sub50_axiomgt1.summary.txt" ftype="txt"/>
-            <param name="snp_posteriors" value="sub50_axiomgt1.snp_posteriors.txt" ftype="txt"/>
-            <param name="report" value="axiomgt1.report.txt" ftype="txt"/>
-            <param name="confidences" value="sub50_axiomgt1.confidences.txt" ftype="txt"/>
-            <param name="calls" value="sub50_axiomgt1.calls.txt" ftype="txt"/>
+            <param name="history_item" value="GCF_000222465.1_Adig_1.1_genomic.fna" ftype="fasta"/>
+            <param name="annot" value="Axion_Acropsnp_coral_Annotation_r1.csv" ftype="csv"/>
+            <param name="summary" value="AxiomGT1.summary.txt" ftype="txt"/>
+            <param name="snp_posteriors" value="AxiomGT1.snp-posteriors.txt" ftype="txt"/>
+            <param name="report" value="AxiomGT1.report.txt" ftype="txt"/>
+            <param name="confidences" value="AxiomGT1.confidences.txt" ftype="txt"/>
+            <param name="calls" value="AxiomGT1.calls.txt" ftype="txt"/>
             <output name="output" value="output.vcf" ftype="vcf"/>
         </test>
     </tests>
