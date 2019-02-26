@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import argparse
 import string
+import threading
 import time
 
 from bioblend import galaxy
@@ -112,7 +113,7 @@ def get_workflow(gi, name, outputfh, galaxy_base_url=None, api_key=None):
     return workflow_id, workflow_dict
 
 
-def get_workflow_input_datasets(gi, history_datasets, workflow_dict, outputfh):
+def get_workflow_input_datasets(gi, history_datasets, workflow_name, workflow_dict, outputfh):
     # Map the history datasets to the input datasets for the workflow.
     workflow_inputs = {}
     outputfh.write('\nMapping datasets from history to workflow %s.\n' % workflow_name)
@@ -209,55 +210,113 @@ user_api_key = open(args.api_key, 'r').read()
 galaxy_base_url = get_value_from_config(args.config_file, 'GALAXY_BASE_URL')
 gi = galaxy.GalaxyInstance(url=galaxy_base_url, key=user_api_key)
 all_genotyped_samples_library_name = get_value_from_config(args.config_file, 'ALL_GENOTYPED_SAMPLES_LIBRARY_NAME')
-workflow_name = get_value_from_config(args.config_file, 'WORKFLOW_NAME')
+coralsnp_workflow_name = get_value_from_config(args.config_file, 'CORALSNP_WORKFLOW_NAME')
+validate_affy_metadata_workflow_name = get_value_from_config(args.config_file, 'VALIDATE_AFFY_METADATA_WORKFLOW_NAME')
 
-# Get the workflow.
-workflow_id, workflow_dict = get_workflow(gi, workflow_name, outputfh)
-outputfh.write("\nworkflow_id: %s\n" % str(workflow_id))
-# Get the All Genotyped Samples data library.
-all_genotyped_samples_library_id = get_data_library(gi, all_genotyped_samples_library_name, outputfh)
-outputfh.write("\nall_genotyped_samples_library_id: %s\n" % str(all_genotyped_samples_library_id))
-# Get the public all_genotyped_samples" dataset id.
-all_genotyped_samples_dataset_id = get_all_genotyped_samples_dataset_id(gi, all_genotyped_samples_library_id, outputfh)
-outputfh.write("\nall_genotyped_samples_dataset_id: %s\n" % str(all_genotyped_samples_dataset_id))
-# Get the current history datasets.  At this point, the history must contain
-# only the datasets to be used as input to the workflow.
+# Get the current history datasets.  At this point, the
+# history must contain only the datasets to be used as
+# inputs to the 2 workflows.
 history_datasets = get_history_datasets(gi, args.history_id)
-#outputfh.write("\nhistory_datasets: %s\n" % str(history_datasets))
-# Import the public all_genotyped_samples dataset from the data library to the history.
-history_datasets = add_library_dataset_to_history(gi, args.history_id, all_genotyped_samples_dataset_id, history_datasets, outputfh)
-#outputfh.write("\nhistory_datasets: %s\n" % str(history_datasets))
-# Map the history datasets to the input datasets for the workflow.
-workflow_input_datasets = get_workflow_input_datasets(gi, history_datasets, workflow_dict, outputfh)
-outputfh.write("\nworkflow_input_datasets: %s\n" % str(workflow_input_datasets))
-# Get the workflow params that could be updated.
-params = update_workflow_params(workflow_dict, args.dbkey, outputfh)
-outputfh.write("\nparams: %s\n" % str(params))
-# Start the workflow.
-start_workflow(gi, workflow_id, workflow_name, workflow_input_datasets, params, args.history_id, outputfh)
-"""
-outputfh.write("\nSleeping for 60 seconds...\n")
-time.sleep(60)
-# Poll the history datasets, checking the statuses, and wait until
-# the workflow is finished.  The workflow itself simply schedules
-# all of the jobs, so it cannot be checked for a state.
-while True:
-    history_status_dict = get_history_status(gi, args.history_id)
-    sd_dict = history_status_dict['state_details']
-    outputfh.write("\nsd_dict: %s\n" % str(sd_dict))
-    # The queue_genotype_workflow tool will continue to be in a
-    # "running" state while inside this for loop, so  we know that
-    # the workflow has completed if no datasets are in the "new" or
-    # "queued" state and there is only 1 dataset in the "running"
-    # state.  We cannot filter on datasets in the "paused" state
-    # because any datasets downstream from one in an "error" state
-    # will automatically be given a "paused" state. Of course, we'll
-    # always break if any datasets are in the "error"state.
-    if sd_dict['error'] != 0 or (sd_dict['queued'] == 0 and sd_dict['new'] == 0 and sd_dict['running'] <= 1):
-        break
-    outputfh.write("\nSleeping for 5 seconds...\n")
-    time.sleep(5)
-"""
+
+# Get the ValidateAffyMetadata workflow.
+validate_affy_metadata_workflow_id, validate_affy_metadata_workflow_dict = get_workflow(gi, validate_affy_metadata_workflow_name, outputfh)
+outputfh.write("\nValidateAffyMetadata workflow id: %s\n" % str(validate_affy_metadata_workflow_id))
+# Map the history datasets to the input datasets for
+# the ValidateAffyMetadata workflow.
+validate_affy_metadata_workflow_input_datasets = get_workflow_input_datasets(gi,
+                                                                             history_datasets,
+                                                                             validate_affy_metadata_workflow_name,
+                                                                             validate_affy_metadata_workflow_dict,
+                                                                             outputfh)
+outputfh.write("\nValidateAffyMetadata workflow input datasets: %s\n" % str(validate_affy_metadata_workflow_input_datasets))
+# Start the ValidateAffyMetadata workflow.
+start_workflow(gi,
+               validate_affy_metadata_workflow_id,
+               validate_affy_metadata_workflow_name,
+               validate_affy_metadata_workflow_input_datasets,
+               None,
+               args.history_id,
+               outputfh)
+affy_metadata_is_valid = False
+lock = threading.Lock()
+lock.acquire(True)
+outputfh.write("\nAcquired lock for executing the ValidateAffyMetadata workflow...\n")
+try:
+    outputfh.write("\nSleeping for 15 seconds...\n")
+    time.sleep(15)
+    # Poll the history datasets, checking the statuses, and wait until
+    # the workflow is finished.  The workflow itself simply schedules
+    # all of the jobs, so it cannot be checked for a state.
+    while True:
+        history_status_dict = get_history_status(gi, args.history_id)
+        sd_dict = history_status_dict['state_details']
+        outputfh.write("\nsd_dict: %s\n" % str(sd_dict))
+        # The queue_genotype_workflow tool will continue to be in a
+        # "running" state while inside this for loop, so  we know that
+        # the workflow has completed if only 1 dataset has this state.
+        if sd_dict['running'] <= 1:
+            if sd_dict['error'] == 0:
+                # The metadata is valid.
+                affy_metadata_is_valid = True
+            break
+        outputfh.write("\nSleeping for 5 seconds...\n")
+        time.sleep(5)
+except Exception as e:
+    outputfh.write("Exception waiting for ValidateAffyMetadata workflow to finish:\n%s\n" % str(e))
+finally:
+    lock.release()
+
+if affy_metadata_is_valid:
+    # Get the CoralSNP workflow.
+    coralsnp_workflow_id, coralsnp_workflow_dict = get_workflow(gi, coralsnp_workflow_name, outputfh)
+    outputfh.write("\nCoralSNP workflow id: %s\n" % str(coralsnp_workflow_id))
+    # Get the All Genotyped Samples data library.
+    all_genotyped_samples_library_id = get_data_library(gi, all_genotyped_samples_library_name, outputfh)
+    outputfh.write("\nAll Genotyped Samples library id: %s\n" % str(all_genotyped_samples_library_id))
+    # Get the public all_genotyped_samples" dataset id.
+    all_genotyped_samples_dataset_id = get_all_genotyped_samples_dataset_id(gi, all_genotyped_samples_library_id, outputfh)
+    outputfh.write("\nAll Genotyped Samples dataset id: %s\n" % str(all_genotyped_samples_dataset_id))
+    # Import the public all_genotyped_samples dataset from
+    # the data library to the current history.
+    history_datasets = add_library_dataset_to_history(gi, args.history_id, all_genotyped_samples_dataset_id, history_datasets, outputfh)
+    # Map the history datasets to the input datasets for
+    # the CoralSNP workflow.
+    coralsnp_workflow_input_datasets = get_workflow_input_datasets(gi, history_datasets, coralsnp_workflow_name, coralsnp_workflow_dict, outputfh)
+    outputfh.write("\nCoralSNP workflow input datasets: %s\n" % str(coralsnp_workflow_input_datasets))
+    # Get the CoralSNP workflow params that could be updated.
+    coralsnp_params = update_workflow_params(coralsnp_workflow_dict, args.dbkey, outputfh)
+    outputfh.write("\nCoralSNP params: %s\n" % str(coralsnp_params))
+    # Start the CoralSNP workflow.
+    start_workflow(gi, coralsnp_workflow_id, coralsnp_workflow_name, coralsnp_workflow_input_datasets, coralsnp_params, args.history_id, outputfh)
+    lock = threading.Lock()
+    lock.acquire(True)
+    outputfh.write("\nAcquired lock for executing the CoralSNP workflow...\n")
+    try:
+        outputfh.write("\nSleeping for 15 seconds...\n")
+        time.sleep(15)
+        # Poll the history datasets, checking the statuses, and wait until
+        # the workflow is finished.  The workflow itself simply schedules
+        # all of the jobs, so it cannot be checked for a state.
+        while True:
+            history_status_dict = get_history_status(gi, args.history_id)
+            sd_dict = history_status_dict['state_details']
+            outputfh.write("\nsd_dict: %s\n" % str(sd_dict))
+            # The queue_genotype_workflow tool will continue to be in a
+            # "running" state while inside this for loop, so  we know that
+            # the workflow has completed if no datasets are in the "new" or
+            # "queued" state and there is only 1 dataset in the "running"
+            # state.  We cannot filter on datasets in the "paused" state
+            # because any datasets downstream from one in an "error" state
+            # will automatically be given a "paused" state. Of course, we'll
+            # always break if any datasets are in the "error"state.
+            if sd_dict['error'] != 0 or (sd_dict['queued'] == 0 and sd_dict['new'] == 0 and sd_dict['running'] <= 1):
+                break
+            outputfh.write("\nSleeping for 5 seconds...\n")
+            time.sleep(5)
+    except Exception as e:
+        outputfh.write("Exception waiting for CoralSNP workflow to finish:\n%s\n" % str(e))
+    finally:
+        lock.release()
 
 outputfh.write("\nFinished processing......\n")
 outputfh.close()
