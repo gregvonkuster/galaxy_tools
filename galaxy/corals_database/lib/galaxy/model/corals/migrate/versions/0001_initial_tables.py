@@ -166,6 +166,7 @@ Sample_table = Table("sample", metadata,
     Column("collector_id", Integer, ForeignKey("collector.id"), index=True),
     Column("collection_date", DateTime),
     Column("user_specimen_id", TrimmedString(255)),
+    Column("registry_id", TrimmedString(255)),
     Column("depth", Integer),
     Column("dna_extraction_method", TrimmedString(255)),
     Column("dna_concentration", Numeric(10, 6)),
@@ -445,6 +446,7 @@ def load_seed_data(migrate_engine):
             except Exception:
                 percent_mixed = sql.null()
             affy_id = items[34]
+            registry_id = sql.null()
 
             # Process the experiment items.  Dependent tables: sample.
             table = "experiment"
@@ -633,11 +635,10 @@ def load_seed_data(migrate_engine):
                 else:
                     # collection_date
                     cmd += "'%s', "
-                # user_specimen_id, depth, dna_extraction_method, dna_concentration, public,
-                # public_after_date, percent_missing_data_coral, percent_missing_data_sym,
-                # percent_reference_coral, percent_reference_sym, percent_alternative_coral,
-                # percent_alternative_sym, percent_heterozygous_coral, percent_heterozygous_sym
-                cmd += "'%s', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                # user_specimen_id, registry_id, depth, dna_extraction_method, dna_concentration,
+                # public, public_after_date, percent_missing_data_coral, percent_missing_data_sym, percent_reference_coral,
+                # percent_reference_sym, percent_alternative_coral, percent_alternative_sym, percent_heterozygous_coral, percent_heterozygous_sym
+                cmd += "'%s', '%s', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
                 cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),
@@ -653,6 +654,7 @@ def load_seed_data(migrate_engine):
                              collector_id,
                              collection_date,
                              user_specimen_id,
+                             registry_id,
                              depth,
                              dna_extraction_method,
                              dna_concentration,

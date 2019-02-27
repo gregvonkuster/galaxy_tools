@@ -76,8 +76,8 @@ with open(args.input, "r") as ih:
             accumulated_msgs = add_error_msg(accumulated_msgs, "The input file contains more than 97 lines (must be 1 header line and no more than 96 data lines).")
             stop_error(accumulated_msgs)
         items = line.split("\t")
-        if len(items) != 32:
-            accumulated_msgs = add_error_msg(accumulated_msgs, "Line %d contains %s columns, (must be 30)." % (i, len(items)))
+        if len(items) != 33:
+            accumulated_msgs = add_error_msg(accumulated_msgs, "Line %d contains %s columns, (must be 33)." % (i, len(items)))
             stop_error(accumulated_msgs)
         # Required and validated.
         # Required.
@@ -162,12 +162,14 @@ with open(args.input, "r") as ih:
         healing_time = items[29]
         accumulated_msgs = validate_decimal(i, healing_time, accumulated_msgs)
         # Optional.
-        dna_extraction_method = items[9]
+        dna_extraction_method = items[30]
         # Optional.
         dna_concentration = items[31]
         # If dna_concentration has a value, then it must be decimal.
         if len(dna_concentration) > 0:
             accumulated_msgs = validate_decimal(i, dna_concentration, accumulated_msgs)
+        # Optional.
+        registry_id = items[32]
        
 
 if len(accumulated_msgs) > 0:
