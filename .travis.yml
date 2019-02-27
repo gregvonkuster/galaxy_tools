@@ -1,19 +1,1 @@
-sudo: false
-language: python
-python: 2.7
-
-env:
-  global:
-    - PLANEMO_TEST_SCRIPT=https://raw.githubusercontent.com/galaxyproject/planemo/master/scripts/run_galaxy_workflow_tests.sh
-    - PLANEMO_TEST_STYLE=serve_and_test
-    - PLANEMO_TARGET="planemo==0.52.0"
-    - PLANEMO_GALAXY_BRANCH="release_18.05"
-  matrix:
-    - WORKFLOW_TEST=test/workflow/extract_ipm_date_interval/extract_ipm_date_interval.ga
-
-script:
-  - bash <(curl -s "$PLANEMO_TEST_SCRIPT") "$WORKFLOW_TEST"
-
-services:
-  - postgres
 
