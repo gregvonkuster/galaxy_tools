@@ -72,7 +72,9 @@ corals_model.Genotype.table = Table("genotype", metadata,
     Column("create_time", DateTime, default=now),
     Column("update_time", DateTime, default=now, onupdate=now),
     Column("coral_mlg_clonal_id", TrimmedString(255)),
+    Column("coral_mlg_rep_sample_id", TrimmedString(255)),                              
     Column("symbio_mlg_clonal_id", TrimmedString(255)),
+    Column("symbio_mlg_rep_sample_id", TrimmedString(255)),                            
     Column("genetic_coral_species_call", TrimmedString(255)))
 
 corals_model.Person.table = Table("person", metadata,
@@ -147,6 +149,7 @@ corals_model.Sample.table = Table("sample", metadata,
     Column("collector_id", Integer, ForeignKey("collector.id"), index=True),
     Column("collection_date", DateTime),
     Column("user_specimen_id", TrimmedString(255)),
+    Column("registry_id", TrimmedString(255)),                             
     Column("depth", Integer),
     Column("dna_extraction_method", TrimmedString(255)),
     Column("dna_concentration", Numeric(10, 6)),
@@ -158,8 +161,8 @@ corals_model.Sample.table = Table("sample", metadata,
     Column("percent_reference_sym", Numeric(15, 6)),
     Column("percent_alternative_coral", Numeric(15, 6)),
     Column("percent_alternative_sym", Numeric(15, 6)),
-    Column("percent_hererozygous_coral", Numeric(15, 6)),
-    Column("percent_hererozygous_sym", Numeric(15, 6)))
+    Column("percent_heterozygous_coral", Numeric(15, 6)),
+    Column("percent_heterozygous_sym", Numeric(15, 6)))
 
 corals_model.Taxonomy.table = Table("taxonomy", metadata,
     Column("id", Integer, primary_key=True),
