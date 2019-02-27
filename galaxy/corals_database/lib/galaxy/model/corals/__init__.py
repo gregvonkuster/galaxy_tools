@@ -125,12 +125,16 @@ class Fragment(Dictifiable):
 
 
 class Genotype(Dictifiable):
-    dict_collection_visible_keys = ['id', 'coral_mlg_clonal_id', 'symbio_mlg_clonal_id', 'genetic_coral_species_call']
+    dict_collection_visible_keys = ['id', 'coral_mlg_clonal_id', 'coral_mlg_rep_sample_id',
+                                    'symbio_mlg_clonal_id', 'symbio_mlg_rep_sample_id', 'genetic_coral_species_call']
 
-    def __init__(self, coral_mlg_clonal_id=None, symbio_mlg_clonal_id=None, genetic_coral_species_call=None):
+    def __init__(self, coral_mlg_clonal_id=None, coral_mlg_rep_sample_id=None,
+                 symbio_mlg_clonal_id=None, symbio_mlg_rep_sample_id=None, genetic_coral_species_call=None):
         # Description of experiment metadata.
         self.coral_mlg_clonal_id = coral_mlg_clonal_id
+        self.coral_mlg_rep_sample_id = coral_mlg_rep_sample_id
         self.symbio_mlg_clonal_id = symbio_mlg_clonal_id
+        self.symbio_mlg_rep_sample_id = symbio_mlg_rep_sample_id
         self.genetic_coral_species_call = genetic_coral_species_call
 
     def as_dict(self, value_mapper=None):

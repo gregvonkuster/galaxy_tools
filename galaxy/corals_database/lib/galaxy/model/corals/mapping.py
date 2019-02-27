@@ -72,7 +72,9 @@ corals_model.Genotype.table = Table("genotype", metadata,
     Column("create_time", DateTime, default=now),
     Column("update_time", DateTime, default=now, onupdate=now),
     Column("coral_mlg_clonal_id", TrimmedString(255)),
+    Column("coral_mlg_rep_sample_id", TrimmedString(255)),
     Column("symbio_mlg_clonal_id", TrimmedString(255)),
+    Column("symbio_mlg_rep_sample_id", TrimmedString(255)),
     Column("genetic_coral_species_call", TrimmedString(255)))
 
 corals_model.Person.table = Table("person", metadata,
