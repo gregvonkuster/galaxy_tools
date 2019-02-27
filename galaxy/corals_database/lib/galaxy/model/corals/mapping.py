@@ -158,8 +158,8 @@ corals_model.Sample.table = Table("sample", metadata,
     Column("percent_reference_sym", Numeric(15, 6)),
     Column("percent_alternative_coral", Numeric(15, 6)),
     Column("percent_alternative_sym", Numeric(15, 6)),
-    Column("percent_hererozygous_coral", Numeric(15, 6)),
-    Column("percent_hererozygous_sym", Numeric(15, 6)))
+    Column("percent_heterozygous_coral", Numeric(15, 6)),
+    Column("percent_heterozygous_sym", Numeric(15, 6)))
 
 corals_model.Taxonomy.table = Table("taxonomy", metadata,
     Column("id", Integer, primary_key=True),

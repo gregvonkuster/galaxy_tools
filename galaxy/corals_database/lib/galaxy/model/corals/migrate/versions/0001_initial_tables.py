@@ -175,8 +175,8 @@ Sample_table = Table("sample", metadata,
     Column("percent_reference_sym", Numeric(15, 6)),
     Column("percent_alternative_coral", Numeric(15, 6)),
     Column("percent_alternative_sym", Numeric(15, 6)),
-    Column("percent_hererozygous_coral", Numeric(15, 6)),
-    Column("percent_hererozygous_sym", Numeric(15, 6)))
+    Column("percent_heterozygous_coral", Numeric(15, 6)),
+    Column("percent_heterozygous_sym", Numeric(15, 6)))
 
 
 Taxonomy_table = Table("taxonomy", metadata,
@@ -619,8 +619,8 @@ def load_seed_data(migrate_engine):
                 percent_reference_sym = sql.null()
                 percent_alternative_coral = sql.null()
                 percent_alternative_sym = sql.null()
-                percent_hererozygous_coral = sql.null()
-                percent_hererozygous_sym = sql.null()
+                percent_heterozygous_coral = sql.null()
+                percent_heterozygous_sym = sql.null()
                 # id, create_time, update_time, affy_id, sample_id,
                 # genotype_id, phenotype_id, experiment_id, colony_id, colony_location,
                 # fragment_id, taxonomy_id, collector_id
@@ -634,7 +634,7 @@ def load_seed_data(migrate_engine):
                 # user_specimen_id, depth, dna_extraction_method, dna_concentration, public,
                 # public_after_date, percent_missing_data_coral, percent_missing_data_sym,
                 # percent_reference_coral, percent_reference_sym, percent_alternative_coral,
-                # percent_alternative_sym, percent_hererozygous_coral, percent_hererozygous_sym
+                # percent_alternative_sym, percent_heterozygous_coral, percent_heterozygous_sym
                 cmd += "'%s', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
                 cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
@@ -662,8 +662,8 @@ def load_seed_data(migrate_engine):
                              percent_reference_sym,
                              percent_alternative_coral,
                              percent_alternative_sym,
-                             percent_hererozygous_coral,
-                             percent_hererozygous_sym)
+                             percent_heterozygous_coral,
+                             percent_heterozygous_sym)
                 migrate_engine.execute(cmd)
                 sample_table_inserts += 1
                 sample_id = get_latest_id(migrate_engine, table)
