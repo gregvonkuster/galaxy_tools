@@ -256,14 +256,6 @@ report_user <- pi %>%
 
 write.csv(report_user, file=opt$output_stag_db_report, quote=FALSE);
 
-# Combine sample information for database.
-report_db <- pinfo %>%
-    left_join(report_user %>%
-        select("user_specimen_id", "affy_id", "coral_mlg_clonal_id", "DB_match",
-               "percent_missing_data_coral", "percent_mixed_coral", "percent_reference_coral",
-               "percent_alternative_coral"),
-        by="user_specimen_id");
-
 # Database tables
 ## Sample.table
 sample_db <- pinfo %>%
@@ -274,32 +266,29 @@ sample_db <- pinfo %>%
              "percent_alternative_coral"),
     by='user_specimen_id');
 
-##genotype.table
 ###representative clone for genotype.table
 cc<-clonecorrect(obj2, strata= ~pop.gind.);
 id_rep<-mlg.id(cc);
 dt_cc<-data.table(id_rep,keep.rownames = TRUE);
-setnames(dt_cc, c("id_rep"), c("user_specimen_id"));
+setnames(dt_cc, c("id_rep"), c("affy_id"));
 
 ###transform mlg data.table
 df_cc <- dt_cc %>%
   group_by(row_number()) %>%
   rename(group='row_number()') %>%
-  unnest(user_specimen_id) %>%
+  unnest(affy_id) %>%
   left_join(report_user %>%
               select("coral_mlg_clonal_id","user_specimen_id","affy_id"),
-            by='user_specimen_id')%>%
-  mutate(coral_mlg_rep_sample_id=ifelse(is.na(coral_mlg_clonal_id),"",user_specimen_id))%>%
+            by='affy_id') %>%
+  mutate(coral_mlg_rep_sample_id=ifelse(is.na(coral_mlg_clonal_id),"",affy_id)) %>%
   ungroup() %>%
   select(-group);
 
 ##geno.table
 geno_db <- df4 %>%
- left_join(
-    df_cc %>%
-      select("user_specimen_id",
-             "coral_mlg_rep_sample_id"),
-    by='user_specimen_id')%>%
+ left_join(df_cc %>%
+    select("affy_id","coral_mlg_rep_sample_id","user_specimen_id"),
+    by='affy_id') %>%
   ungroup() %>%
   select(-group);
 
