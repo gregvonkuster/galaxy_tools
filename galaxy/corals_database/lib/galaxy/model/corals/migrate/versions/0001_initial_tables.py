@@ -54,6 +54,7 @@ except Exception:
 # The current working direectory is the Galaxy
 # installation root, so the following file must
 # exist from that location.
+ALLELES_SEED_DATA_FILE = "stag_database_seed_data/alleles_seed_data_file.tabular"
 GENERAL_SEED_DATA_FILE = "stag_database_seed_data/general_seed_data_file.tabular"
 PROBE_ANNOTATION_DATA_FILE = "stag_database_seed_data/probe_annotation.csv"
 
@@ -342,7 +343,46 @@ def load_probe_annotation_table(migrate_engine):
     print("Inserted %d rows into the probe_annotation table." % i)
 
 
-def load_seed_data(migrate_engine):
+def load_alleles_seed_data(migrate_engine):
+    # Columns in alleles_seed_data_file.:
+    # [0]user_specimen_id [1]alleles
+
+    allele_table_inserts = 0
+    sample_table_updates = 0
+
+    with open(ALLELES_SEED_DATA_FILE, "r") as fh:
+        for i, line in enumerate(fh):
+            if i == 0:
+                # Skip the header.
+                continue
+            line = line.rstrip('\r\n')
+            items = line.split("\t")
+            user_specimen_id = items[0]
+            alleles = items[1]
+
+            # Process the allele items.  Dependent tables: sample.
+            table = "allele"
+            # Add a row to the allele table.
+            cmd = "INSERT INTO allele VALUES (%s, %s, %s, '%s')"
+            cmd = cmd % (nextval(migrate_engine, table),
+                         localtimestamp(migrate_engine),
+                         localtimestamp(migrate_engine),
+                         alleles)
+            migrate_engine.execute(cmd)
+            allele_table_inserts += 1
+            allele_id = get_latest_id(migrate_engine, table)
+
+            # Update the row in the sample table that contains
+            # the user_specimen_id with the allele_id.
+            cmd = "UPDATE sample SET allele_id = %s where user_specimen_id = '%s'" % (allele_id, user_specimen_id)
+            migrate_engine.execute(cmd)
+            sample_table_updates += 1
+
+    print("Inserted %d rows into the allele table." % allele_table_inserts)
+    print("Updated %d rows in the sample table." % sample_table_updates)
+
+
+def load_general_seed_data(migrate_engine):
     # Columns in general_seed_data_file.:
     # [0]user_specimen_id [1]field_call [2]bcoral_genet_id [3]bsym_genet_id [4]reef
     # [5]region [6]latitude [7]longitude [8]geographic_origin [9]colony_location
@@ -757,5 +797,6 @@ def upgrade(migrate_engine):
     print(__doc__)
     metadata.bind = migrate_engine
     metadata.create_all()
-    load_seed_data(migrate_engine)
+    load_general_seed_data(migrate_engine)
+    load_alleles_seed_data(migrate_engine)
     load_probe_annotation_table(migrate_engine)
