@@ -9,9 +9,19 @@ from __future__ import print_function
 import datetime
 import dateutil.parser
 import logging
-import time
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, MetaData, Numeric, String, Table, TIMESTAMP
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    MetaData,
+    Numeric,
+    String,
+    Table,
+    Text
+)
 from sqlalchemy import sql
 
 # Need our custom types, but don't import anything else from model
@@ -31,11 +41,12 @@ metadata = MetaData()
 # Affymetrix 96 well plate metadata file associated with
 # the sample.  If the value of the public column is set
 # to False, but no date is set, the default date will be 1
-# year from the time the row is inserted into the table. 
+# year from the time the row is inserted into the table.
 today = datetime.date.today()
 try:
     # Return the same day of the year.
-    year_from_now = today.replace(year=today.year+1)
+    year = today.year + 1
+    year_from_now = today.replace(year=year)
 except Exception:
     # Handle leap years.
     year_from_now = today + (datetime.date(today.year + 1, 1, 1) - datetime.date(today.year, 1, 1))
@@ -46,148 +57,160 @@ except Exception:
 GENERAL_SEED_DATA_FILE = "stag_database_seed_data/general_seed_data_file.tabular"
 PROBE_ANNOTATION_DATA_FILE = "stag_database_seed_data/probe_annotation.csv"
 
+Allele_table = Table("allele", metadata,
+                     Column("id", Integer, primary_key=True),
+                     Column("create_time", DateTime, default=now),
+                     Column("update_time", DateTime, default=now, onupdate=now),
+                     Column("allele", Text))
+
+
 Collector_table = Table("collector", metadata,
-    Column("id", Integer, primary_key=True),
-    Column("create_time", DateTime, default=now),
-    Column("update_time", DateTime, default=now, onupdate=now),
-    Column("person_id", Integer, ForeignKey("person.id"), index=True),
-    Column("contact_id", Integer, ForeignKey("person.id"), index=True))
+                        Column("id", Integer, primary_key=True),
+                        Column("create_time", DateTime, default=now),
+                        Column("update_time", DateTime, default=now, onupdate=now),
+                        Column("person_id", Integer, ForeignKey("person.id"), index=True),
+                        Column("contact_id", Integer, ForeignKey("person.id"), index=True))
 
 
 Colony_table = Table("colony", metadata,
-    Column("id", Integer, primary_key=True),
-    Column("create_time", DateTime, default=now),
-    Column("update_time", DateTime, default=now, onupdate=now),
-    Column("latitude", Numeric(15, 6)),
-    Column("longitude", Numeric(15, 6)),
-    Column("depth", Integer),
-    Column("reef_id", Integer, ForeignKey("reef.id"), index=True))
+                     Column("id", Integer, primary_key=True),
+                     Column("create_time", DateTime, default=now),
+                     Column("update_time", DateTime, default=now, onupdate=now),
+                     Column("latitude", Numeric(15, 6)),
+                     Column("longitude", Numeric(15, 6)),
+                     Column("depth", Integer),
+                     Column("reef_id", Integer, ForeignKey("reef.id"), index=True))
 
 
 Experiment_table = Table("experiment", metadata,
-    Column("id", Integer, primary_key=True),
-    Column("create_time", DateTime, default=now),
-    Column("update_time", DateTime, default=now, onupdate=now),
-    Column("seq_facility", String),
-    Column("array_version", TrimmedString(255)))
+                         Column("id", Integer, primary_key=True),
+                         Column("create_time", DateTime, default=now),
+                         Column("update_time", DateTime, default=now, onupdate=now),
+                         Column("seq_facility", String),
+                         Column("array_version", TrimmedString(255)))
 
 
 Fragment_table = Table("fragment", metadata,
-    Column("id", Integer, primary_key=True),
-    Column("create_time", DateTime, default=now),
-    Column("update_time", DateTime, default=now, onupdate=now),
-    Column("colony_id", Integer, ForeignKey("colony.id"), index=True))
+                       Column("id", Integer, primary_key=True),
+                       Column("create_time", DateTime, default=now),
+                       Column("update_time", DateTime, default=now, onupdate=now),
+                       Column("colony_id", Integer, ForeignKey("colony.id"), index=True))
 
 
 Genotype_table = Table("genotype", metadata,
-    Column("id", Integer, primary_key=True),
-    Column("create_time", DateTime, default=now),
-    Column("update_time", DateTime, default=now, onupdate=now),
-    Column("coral_mlg_clonal_id", TrimmedString(255)),
-    Column("coral_mlg_rep_sample_id", TrimmedString(255)),
-    Column("symbio_mlg_clonal_id", TrimmedString(255)),
-    Column("symbio_mlg_rep_sample_id", TrimmedString(255)),
-    Column("genetic_coral_species_call", TrimmedString(255)))
+                       Column("id", Integer, primary_key=True),
+                       Column("create_time", DateTime, default=now),
+                       Column("update_time", DateTime, default=now, onupdate=now),
+                       Column("coral_mlg_clonal_id", TrimmedString(255)),
+                       Column("coral_mlg_rep_sample_id", TrimmedString(255)),
+                       Column("symbio_mlg_clonal_id", TrimmedString(255)),
+                       Column("symbio_mlg_rep_sample_id", TrimmedString(255)),
+                       Column("genetic_coral_species_call", TrimmedString(255)),
+                       Column("bcoral_genet_id", TrimmedString(255)),
+                       Column("bsym_genet_id", TrimmedString(255)))
 
 
 Person_table = Table("person", metadata,
-    Column("id", Integer, primary_key=True),
-    Column("create_time", DateTime, default=now),
-    Column("update_time", DateTime, default=now, onupdate=now),
-    Column("last_name", TrimmedString(255)),
-    Column("first_name", TrimmedString(255)),
-    Column("organization", TrimmedString(255)),
-    Column("email", TrimmedString(255)))
-
-
-Probe_annotation_table = Table("probe_annotation", metadata,
-    Column("id", Integer, primary_key=True),
-    Column("create_time", DateTime, default=now),
-    Column("update_time", DateTime, default=now, onupdate=now),
-    Column("probe_set_id", TrimmedString(255)),
-    Column("affy_snp_id", TrimmedString(255)),
-    Column("chr_id", Integer),
-    Column("start", Integer),
-    Column("strand", TrimmedString(255)),
-    Column("flank", TrimmedString(255)),
-    Column("allele_a", TrimmedString(255)),
-    Column("allele_b", TrimmedString(255)),
-    Column("allele_frequencies", TrimmedString(255)),
-    Column("annotation_notes", TrimmedString(255)),
-    Column("allele_count", TrimmedString(255)),
-    Column("ordered_alleles", TrimmedString(255)),
-    Column("chrtype", TrimmedString(255)),
-    Column("custchr", TrimmedString(255)),
-    Column("custid", TrimmedString(255)),
-    Column("custpos", TrimmedString(255)),
-    Column("organism", TrimmedString(255)),
-    Column("pconvert", TrimmedString(255)),
-    Column("recommendation", TrimmedString(255)),
-    Column("refstr", TrimmedString(255)),
-    Column("snppriority", TrimmedString(255)))
-
-
-Reef_table = Table("reef", metadata,
-    Column("id", Integer, primary_key=True),
-    Column("create_time", DateTime, default=now),
-    Column("update_time", DateTime, default=now, onupdate=now),
-    Column("name", TrimmedString(255)),
-    Column("region", TrimmedString(255)),
-    Column("latitude", Numeric(15, 6)),
-    Column("longitude", Numeric(15, 6)))
+                     Column("id", Integer, primary_key=True),
+                     Column("create_time", DateTime, default=now),
+                     Column("update_time", DateTime, default=now, onupdate=now),
+                     Column("last_name", TrimmedString(255)),
+                     Column("first_name", TrimmedString(255)),
+                     Column("organization", TrimmedString(255)),
+                     Column("email", TrimmedString(255)))
 
 
 Phenotype_table = Table("phenotype", metadata,
-    Column("id", Integer, primary_key=True),
-    Column("create_time", DateTime, default=now),
-    Column("update_time", DateTime, default=now, onupdate=now),
-    Column("disease_resist", TrimmedString(255)),
-    Column("bleach_resist", TrimmedString(255)),
-    Column("mortality", TrimmedString(255)),
-    Column("tle", TrimmedString(255)),
-    Column("spawning", Boolean),
-    Column("sperm_motility", Numeric(15, 6), nullable=False),
-    Column("healing_time", Numeric(15, 6), nullable=False))
+                        Column("id", Integer, primary_key=True),
+                        Column("create_time", DateTime, default=now),
+                        Column("update_time", DateTime, default=now, onupdate=now),
+                        Column("disease_resist", TrimmedString(255)),
+                        Column("bleach_resist", TrimmedString(255)),
+                        Column("mortality", TrimmedString(255)),
+                        Column("tle", TrimmedString(255)),
+                        Column("spawning", Boolean),
+                        Column("sperm_motility", Numeric(15, 6), nullable=False),
+                        Column("healing_time", Numeric(15, 6), nullable=False))
+
+
+Probe_annotation_table = Table("probe_annotation", metadata,
+                               Column("id", Integer, primary_key=True),
+                               Column("create_time", DateTime, default=now),
+                               Column("update_time", DateTime, default=now, onupdate=now),
+                               Column("probe_set_id", TrimmedString(255)),
+                               Column("affy_snp_id", TrimmedString(255)),
+                               Column("chr_id", Integer),
+                               Column("start", Integer),
+                               Column("strand", TrimmedString(255)),
+                               Column("flank", TrimmedString(255)),
+                               Column("allele_a", TrimmedString(255)),
+                               Column("allele_b", TrimmedString(255)),
+                               Column("allele_frequencies", TrimmedString(255)),
+                               Column("annotation_notes", TrimmedString(255)),
+                               Column("allele_count", TrimmedString(255)),
+                               Column("ordered_alleles", TrimmedString(255)),
+                               Column("chrtype", TrimmedString(255)),
+                               Column("custchr", TrimmedString(255)),
+                               Column("custid", TrimmedString(255)),
+                               Column("custpos", TrimmedString(255)),
+                               Column("organism", TrimmedString(255)),
+                               Column("pconvert", TrimmedString(255)),
+                               Column("recommendation", TrimmedString(255)),
+                               Column("refstr", TrimmedString(255)),
+                               Column("snppriority", TrimmedString(255)))
+
+
+Reef_table = Table("reef", metadata,
+                   Column("id", Integer, primary_key=True),
+                   Column("create_time", DateTime, default=now),
+                   Column("update_time", DateTime, default=now, onupdate=now),
+                   Column("name", TrimmedString(255)),
+                   Column("region", TrimmedString(255)),
+                   Column("latitude", Numeric(15, 6)),
+                   Column("longitude", Numeric(15, 6)),
+                   Column("geographic_origin", TrimmedString(255)))
 
 
 Sample_table = Table("sample", metadata,
-    Column("id", Integer, primary_key=True),
-    Column("create_time", DateTime, default=now),
-    Column("update_time", DateTime, default=now, onupdate=now),
-    Column("affy_id", TrimmedString(255), index=True, nullable=False),
-    Column("sample_id", TrimmedString(255), index=True, nullable=False),
-    Column("genotype_id", Integer, ForeignKey("genotype.id"), index=True),
-    Column("phenotype_id", Integer, ForeignKey("phenotype.id"), index=True),
-    Column("experiment_id", Integer, ForeignKey("experiment.id"), index=True),
-    Column("colony_id", Integer, ForeignKey("colony.id"), index=True),
-    Column("colony_location", TrimmedString(255)),
-    Column("fragment_id", Integer, ForeignKey("fragment.id"), index=True),
-    Column("taxonomy_id", Integer, ForeignKey("taxonomy.id"), index=True),
-    Column("collector_id", Integer, ForeignKey("collector.id"), index=True),
-    Column("collection_date", DateTime),
-    Column("user_specimen_id", TrimmedString(255)),
-    Column("registry_id", TrimmedString(255)),
-    Column("depth", Integer),
-    Column("dna_extraction_method", TrimmedString(255)),
-    Column("dna_concentration", Numeric(10, 6)),
-    Column("public", Boolean),
-    Column("public_after_date", DateTime, default=year_from_now),
-    Column("percent_missing_data_coral", Numeric(15, 6)),
-    Column("percent_missing_data_sym", Numeric(15, 6)),
-    Column("percent_reference_coral", Numeric(15, 6)),
-    Column("percent_reference_sym", Numeric(15, 6)),
-    Column("percent_alternative_coral", Numeric(15, 6)),
-    Column("percent_alternative_sym", Numeric(15, 6)),
-    Column("percent_heterozygous_coral", Numeric(15, 6)),
-    Column("percent_heterozygous_sym", Numeric(15, 6)))
+                     Column("id", Integer, primary_key=True),
+                     Column("create_time", DateTime, default=now),
+                     Column("update_time", DateTime, default=now, onupdate=now),
+                     Column("affy_id", TrimmedString(255), index=True, nullable=False),
+                     Column("sample_id", TrimmedString(255), index=True, nullable=False),
+                     Column("allele_id", Integer, ForeignKey("allele.id"), index=True),
+                     Column("genotype_id", Integer, ForeignKey("genotype.id"), index=True),
+                     Column("phenotype_id", Integer, ForeignKey("phenotype.id"), index=True),
+                     Column("experiment_id", Integer, ForeignKey("experiment.id"), index=True),
+                     Column("colony_id", Integer, ForeignKey("colony.id"), index=True),
+                     Column("colony_location", TrimmedString(255)),
+                     Column("fragment_id", Integer, ForeignKey("fragment.id"), index=True),
+                     Column("taxonomy_id", Integer, ForeignKey("taxonomy.id"), index=True),
+                     Column("collector_id", Integer, ForeignKey("collector.id"), index=True),
+                     Column("collection_date", DateTime),
+                     Column("user_specimen_id", TrimmedString(255)),
+                     Column("registry_id", TrimmedString(255)),
+                     Column("depth", Integer),
+                     Column("dna_extraction_method", TrimmedString(255)),
+                     Column("dna_concentration", Numeric(10, 6)),
+                     Column("public", Boolean),
+                     Column("public_after_date", DateTime, default=year_from_now),
+                     Column("percent_missing_data_coral", Numeric(15, 6)),
+                     Column("percent_missing_data_sym", Numeric(15, 6)),
+                     Column("percent_reference_coral", Numeric(15, 6)),
+                     Column("percent_reference_sym", Numeric(15, 6)),
+                     Column("percent_alternative_coral", Numeric(15, 6)),
+                     Column("percent_alternative_sym", Numeric(15, 6)),
+                     Column("percent_heterozygous_coral", Numeric(15, 6)),
+                     Column("percent_heterozygous_sym", Numeric(15, 6)),
+                     Column("field_call", TrimmedString(255)))
 
 
 Taxonomy_table = Table("taxonomy", metadata,
-    Column("id", Integer, primary_key=True),
-    Column("create_time", DateTime, default=now),
-    Column("update_time", DateTime, default=now, onupdate=now),
-    Column("species_name", TrimmedString(255)),
-    Column("genus_name", TrimmedString(255)))
+                       Column("id", Integer, primary_key=True),
+                       Column("create_time", DateTime, default=now),
+                       Column("update_time", DateTime, default=now, onupdate=now),
+                       Column("species_name", TrimmedString(255)),
+                       Column("genus_name", TrimmedString(255)))
 
 
 def boolean(migrate_engine, value):
@@ -321,13 +344,15 @@ def load_probe_annotation_table(migrate_engine):
 
 def load_seed_data(migrate_engine):
     # Columns in general_seed_data_file.:
-    # user_specimen_id, field_call, bcoral_genet_id, bsym_genet_id, reef,
-    # region, latitude, longitude, geographic_origin, colony_location,
-    # latitude_outplant, longitude_outplant, depth, dist_shore, disease_resist,
-    # bleach_resist, mortality, tle, spawning, collector, org,
-    # collection_date, contact_email, seq_facility, array_version, public,
-    # public_after_date, coral_mlg_clonal_id, symbio_mlg_clonal_id, genetic_coral_species_call, percent_missing_data,
-    # percent_apalm, percent_acerv, percent_mixed, affy_id
+    # [0]user_specimen_id [1]field_call [2]bcoral_genet_id [3]bsym_genet_id [4]reef
+    # [5]region [6]latitude [7]longitude [8]geographic_origin [9]colony_location
+    # [10]latitude_outplant [11]longitude_outplant [12]depth [13]disease_resist [14]bleach_resist
+    # [15]mortality [16]tle [17]spawning [18]collector_last_name [19]collector_first_name
+    # [20]organization [21]collection_date [22]email [23]seq_facility [24]array_version
+    # [25]public [26]public_after_date [27]coral_mlg_clonal_id [28]symbio_mlg_clonal_id [29]genetic_coral_species_call
+    # [30]percent_missing_data_coral [31]percent_reference_coral [32]percent_alternative_sym [33]percent_heterozygous_coral [34]affy_id
+    # [35]coral_mlg_rep_sample_id [36]genus_name [37]species [38]sperm_motility [39]healing_time
+    # [40]dna_extraction_method [41]dna_concentration [42]registry_id
 
     collector_table_inserts = 0
     colony_table_inserts = 0
@@ -337,12 +362,8 @@ def load_seed_data(migrate_engine):
     phenotype_table_inserts = 0
     reef_table_inserts = 0
     sample_table_inserts = 0
+    taxonomy_table_inserts = 0
     SAMPLE_ID = 10000
-    # The following are not included in the seed data,
-    # so negative values are used since they are invalid
-    # and so can act as so-called NULL values.
-    SPERM_MOTILITY = -9.0
-    HEALING_TIME = -9.0
 
     with open(GENERAL_SEED_DATA_FILE, "r") as fh:
         for i, line in enumerate(fh):
@@ -397,23 +418,20 @@ def load_seed_data(migrate_engine):
                 depth = int(items[12])
             except Exception:
                 depth = 0
-            if len(items[13]) == 0:
-                dist_shore = sql.null()
-            else:
-                dist_shore = items[13]
-            disease_resist = items[14]
-            bleach_resist = items[15]
-            mortality = items[16]
-            tle = items[17]
+            disease_resist = items[13]
+            bleach_resist = items[14]
+            mortality = items[15]
+            tle = items[16]
             # Convert original spawning value to Boolean.
-            spawning = string_as_bool(items[18])
-            collector = items[19]
-            org = items[20]
+            spawning = string_as_bool(items[17])
+            collector_last_name = items[18]
+            collector_first_name = items[19]
+            organization = items[20]
             try:
                 collection_date = convert_date_string_for_database(items[21])
             except Exception:
                 collection_date = localtimestamp(migrate_engine)
-            contact_email = items[22]
+            email = items[22]
             seq_facility = items[23]
             array_version = items[24]
             # Convert original public value to Boolean.
@@ -430,23 +448,72 @@ def load_seed_data(migrate_engine):
             symbio_mlg_clonal_id = items[28]
             genetic_coral_species_call = items[29]
             try:
-                percent_missing_data = "%6f" % float(items[30])
+                percent_missing_data_coral = "%6f" % float(items[30])
             except Exception:
-                percent_missing_data = sql.null()
+                percent_missing_data_coral = sql.null()
             try:
-                percent_apalm = "%6f" % float(items[31])
+                percent_reference_coral = "%6f" % float(items[31])
             except Exception:
-                percent_apalm = sql.null()
+                percent_reference_coral = sql.null()
             try:
-                percent_acerv = "%6f" % float(items[32])
+                percent_alternative_sym = "%6f" % float(items[32])
             except Exception:
-                percent_acerv = sql.null()
+                percent_alternative_sym = sql.null()
             try:
-                percent_mixed = "%6f" % float(items[33])
+                percent_heterozygous_coral = "%6f" % float(items[33])
             except Exception:
-                percent_mixed = sql.null()
+                percent_heterozygous_coral = sql.null()
             affy_id = items[34]
-            registry_id = sql.null()
+            if len(items[35]) == 0:
+                coral_mlg_rep_sample_id = sql.null()
+            else:
+                coral_mlg_rep_sample_id = items[35]
+            if len(items[36]) == 0:
+                genus_name = sql.null()
+            else:
+                genus_name = items[36]
+            if len(items[37]) == 0:
+                species_name = sql.null()
+            else:
+                species_name = items[37]
+            try:
+                sperm_motility = "%6f" % float(items[38])
+            except Exception:
+                sperm_motility = sql.null()
+            try:
+                healing_time = "%6f" % float(items[39])
+            except Exception:
+                healing_time = sql.null()
+            if len(items[40]) == 0:
+                dna_extraction_method = sql.null()
+            else:
+                dna_extraction_method = items[40]
+            try:
+                dna_concentration = "%6f" % float(items[41])
+            except Exception:
+                dna_concentration = sql.null()
+            if len(items[42]) == 0:
+                registry_id = sql.null()
+            else:
+                registry_id = items[42]
+
+            # Process the taxonomy items.  Dependent tables: sample.
+            table = "taxonomy"
+            # See if we need to add a row to the taxonomy table.
+            cmd = "SELECT id FROM taxonomy WHERE species_name = '%s' AND genus_name = '%s'"
+            cmd = cmd % (species_name, genus_name)
+            taxonomy_id = get_primary_id(migrate_engine, table, cmd)
+            if taxonomy_id is None:
+                # Add a row to the taxonomy table.
+                cmd = "INSERT INTO taxonomy VALUES (%s, %s, %s, '%s', '%s')"
+                cmd = cmd % (nextval(migrate_engine, table),
+                             localtimestamp(migrate_engine),
+                             localtimestamp(migrate_engine),
+                             species_name,
+                             genus_name)
+                migrate_engine.execute(cmd)
+                taxonomy_table_inserts += 1
+                taxonomy_id = get_latest_id(migrate_engine, table)
 
             # Process the experiment items.  Dependent tables: sample.
             table = "experiment"
@@ -469,20 +536,32 @@ def load_seed_data(migrate_engine):
             # Process the genotype items.  Dependent tables: sample.
             table = "genotype"
             # See if we need to add a row to the table.
-            cmd = "SELECT id FROM genotype WHERE coral_mlg_clonal_id = '%s' AND symbio_mlg_clonal_id = '%s' AND genetic_coral_species_call = '%s'"
+            # Values for the following are not in the seed data.
+            symbio_mlg_rep_sample_id = sql.null()
+            cmd = "SELECT id FROM genotype WHERE coral_mlg_clonal_id = '%s' AND coral_mlg_rep_sample_id = '%s'"
+            cmd += " AND symbio_mlg_clonal_id = '%s' AND symbio_mlg_rep_sample_id = '%s' AND genetic_coral_species_call = '%s'"
+            cmd += " AND bcoral_genet_id = '%s' AND bsym_genet_id = '%s'"
             cmd = cmd % (coral_mlg_clonal_id,
+                         coral_mlg_rep_sample_id,
                          symbio_mlg_clonal_id,
-                         genetic_coral_species_call)
+                         symbio_mlg_rep_sample_id,
+                         genetic_coral_species_call,
+                         bcoral_genet_id,
+                         bsym_genet_id)
             genotype_id = get_primary_id(migrate_engine, table, cmd)
             if genotype_id is None:
                 # Add a row to the table.
-                cmd = "INSERT INTO genotype VALUES (%s, %s, %s, '%s', '%s', '%s')"
+                cmd = "INSERT INTO genotype VALUES (%s, %s, %s, '%s', '%s', '%s', '%s', '%s', '%s', '%s')"
                 cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),
                              coral_mlg_clonal_id,
+                             coral_mlg_rep_sample_id,
                              symbio_mlg_clonal_id,
-                             genetic_coral_species_call)
+                             symbio_mlg_rep_sample_id,
+                             genetic_coral_species_call,
+                             bcoral_genet_id,
+                             bsym_genet_id)
                 migrate_engine.execute(cmd)
                 genotype_table_inserts += 1
                 genotype_id = get_latest_id(migrate_engine, table)
@@ -491,12 +570,14 @@ def load_seed_data(migrate_engine):
             table = "phenotype"
             # See if we need to add a row to the table.
             cmd = "SELECT id FROM phenotype WHERE disease_resist = '%s' AND bleach_resist = '%s' AND mortality = '%s'"
-            cmd += " AND tle = '%s' AND spawning = '%s'"
+            cmd += " AND tle = '%s' AND spawning = '%s' AND sperm_motility = %s and healing_time = %s"
             cmd = cmd % (disease_resist,
                          bleach_resist,
                          mortality,
                          tle,
-                         spawning)
+                         spawning,
+                         sperm_motility,
+                         healing_time)
             phenotype_id = get_primary_id(migrate_engine, table, cmd)
             if phenotype_id is None:
                 # Add a row to the table.
@@ -509,8 +590,8 @@ def load_seed_data(migrate_engine):
                              mortality,
                              tle,
                              spawning,
-                             SPERM_MOTILITY,
-                             HEALING_TIME)
+                             sperm_motility,
+                             healing_time)
                 migrate_engine.execute(cmd)
                 phenotype_table_inserts += 1
                 phenotype_id = get_latest_id(migrate_engine, table)
@@ -518,20 +599,7 @@ def load_seed_data(migrate_engine):
             # Process the person items.  Dependent tables: collector.
             table = "person"
             # See if we need to add a row to the table.
-            if collector.find(" ") > 0:
-                # We have a first and last name spearated by a space.
-                first_last = collector.split(" ")
-                first_name = first_last[0]
-                last_name = first_last[1]
-                cmd = "SELECT id FROM person WHERE last_name = '%s' AND first_name = '%s' AND email = '%s'" % (last_name, first_name, contact_email)
-            else:
-                # We have a last name with no first name.
-                if len(collector) > 0:
-                    last_name = collector
-                else:
-                    last_name = 'Unknown'
-                first_name = sql.null()
-                cmd = "SELECT id FROM person WHERE last_name = '%s' and email = '%s'" % (last_name, contact_email)
+            cmd = "SELECT id FROM person WHERE last_name = '%s' AND first_name = '%s' AND email = '%s'" % (collector_last_name, collector_first_name, email)
             person_id = get_primary_id(migrate_engine, table, cmd)
             if person_id is None:
                 # Add a row to the table.
@@ -539,10 +607,10 @@ def load_seed_data(migrate_engine):
                 cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),
-                             last_name,
-                             first_name,
-                             org,
-                             contact_email)
+                             collector_last_name,
+                             collector_first_name,
+                             organization,
+                             email)
                 migrate_engine.execute(cmd)
                 person_table_inserts += 1
                 person_id = get_latest_id(migrate_engine, table)
@@ -571,14 +639,15 @@ def load_seed_data(migrate_engine):
             reef_id = get_primary_id(migrate_engine, table, cmd)
             if reef_id is None:
                 # Add a row to the table.
-                cmd = "INSERT INTO reef VALUES (%s, %s, %s, '%s', '%s', %s, %s)"
+                cmd = "INSERT INTO reef VALUES (%s, %s, %s, '%s', '%s', %s, %s, '%s')"
                 cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),
                              reef,
                              region,
                              latitude,
-                             longitude)
+                             longitude,
+                             geographic_origin)
                 migrate_engine.execute(cmd)
                 reef_table_inserts += 1
                 reef_id = get_latest_id(migrate_engine, table)
@@ -613,22 +682,16 @@ def load_seed_data(migrate_engine):
             if sample_id_db is None:
                 # Add a row to the table.  Values for
                 # the following are not in the seed data.
+                allele_id = sql.null()
                 fragment_id = sql.null()
-                taxonomy_id = sql.null()
-                dna_extraction_method = sql.null()
-                dna_concentration = sql.null()
-                percent_missing_data_coral = sql.null()
                 percent_missing_data_sym = sql.null()
-                percent_reference_coral = sql.null()
                 percent_reference_sym = sql.null()
                 percent_alternative_coral = sql.null()
-                percent_alternative_sym = sql.null()
-                percent_heterozygous_coral = sql.null()
                 percent_heterozygous_sym = sql.null()
                 # id, create_time, update_time, affy_id, sample_id,
-                # genotype_id, phenotype_id, experiment_id, colony_id, colony_location,
-                # fragment_id, taxonomy_id, collector_id
-                cmd = "INSERT INTO sample VALUES (%s, %s, %s, '%s', '%s', %s, %s, %s, %s, %s, %s, %s, %s, "
+                # allele_id, genotype_id, phenotype_id, experiment_id, colony_id,
+                # colony_location, fragment_id, taxonomy_id, collector_id
+                cmd = "INSERT INTO sample VALUES (%s, %s, %s, '%s', '%s', %s, %s, %s, %s, %s, '%s', %s, %s, %s, "
                 if collection_date == "LOCALTIMESTAMP":
                     # collection_date
                     cmd += "%s, "
@@ -637,13 +700,15 @@ def load_seed_data(migrate_engine):
                     cmd += "'%s', "
                 # user_specimen_id, registry_id, depth, dna_extraction_method, dna_concentration,
                 # public, public_after_date, percent_missing_data_coral, percent_missing_data_sym, percent_reference_coral,
-                # percent_reference_sym, percent_alternative_coral, percent_alternative_sym, percent_heterozygous_coral, percent_heterozygous_sym
-                cmd += "'%s', '%s', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                # percent_reference_sym, percent_alternative_coral, percent_alternative_sym, percent_heterozygous_coral, percent_heterozygous_sym,
+                # field_call
+                cmd += "'%s', '%s', %s, '%s', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s')"
                 cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),
                              affy_id,
                              sample_id,
+                             allele_id,
                              genotype_id,
                              phenotype_id,
                              experiment_id,
@@ -667,7 +732,8 @@ def load_seed_data(migrate_engine):
                              percent_alternative_coral,
                              percent_alternative_sym,
                              percent_heterozygous_coral,
-                             percent_heterozygous_sym)
+                             percent_heterozygous_sym,
+                             field_call)
                 migrate_engine.execute(cmd)
                 sample_table_inserts += 1
                 sample_id = get_latest_id(migrate_engine, table)
@@ -680,6 +746,7 @@ def load_seed_data(migrate_engine):
     print("Inserted %d rows into the phenotype table." % phenotype_table_inserts)
     print("Inserted %d rows into the reef table." % reef_table_inserts)
     print("Inserted %d rows into the sample table." % sample_table_inserts)
+    print("Inserted %d rows into the taxonomy table." % taxonomy_table_inserts)
 
 
 def downgrade(migrate_engine):

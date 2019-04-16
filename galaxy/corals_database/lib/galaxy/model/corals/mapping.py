@@ -14,7 +14,8 @@ from sqlalchemy import (
     MetaData,
     Numeric,
     String,
-    Table
+    Table,
+    Text
 )
 from sqlalchemy.orm import mapper, relation
 
@@ -33,10 +34,17 @@ metadata = MetaData()
 today = datetime.date.today()
 try:
     # Return the same day of the year.
-    year_from_now = today.replace(year=today.year+1)
+    year = today.year + 1
+    year_from_now = today.replace(year=year)
 except Exception:
     # Handle leap years.
     year_from_now = today + (datetime.date(today.year + 1, 1, 1) - datetime.date(today.year, 1, 1))
+
+corals_model.Allele.table = Table("allele", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("create_time", DateTime, default=now),
+    Column("update_time", DateTime, default=now, onupdate=now),
+    Column("allele", Text))
 
 corals_model.Collector.table = Table("collector", metadata,
     Column("id", Integer, primary_key=True),
@@ -75,7 +83,9 @@ corals_model.Genotype.table = Table("genotype", metadata,
     Column("coral_mlg_rep_sample_id", TrimmedString(255)),
     Column("symbio_mlg_clonal_id", TrimmedString(255)),
     Column("symbio_mlg_rep_sample_id", TrimmedString(255)),
-    Column("genetic_coral_species_call", TrimmedString(255)))
+    Column("genetic_coral_species_call", TrimmedString(255)),
+    Column("bcoral_genet_id", TrimmedString(255)),
+    Column("bsym_genet_id", TrimmedString(255)))
 
 corals_model.Person.table = Table("person", metadata,
     Column("id", Integer, primary_key=True),
@@ -85,6 +95,18 @@ corals_model.Person.table = Table("person", metadata,
     Column("first_name", TrimmedString(255)),
     Column("organization", TrimmedString(255)),
     Column("email", TrimmedString(255)))
+
+corals_model.Phenotype.table = Table("phenotype", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("create_time", DateTime, default=now),
+    Column("update_time", DateTime, default=now, onupdate=now),
+    Column("disease_resist", TrimmedString(255)),
+    Column("bleach_resist", TrimmedString(255)),
+    Column("mortality", TrimmedString(255)),
+    Column("tle", TrimmedString(255)),
+    Column("spawning", Boolean),
+    Column("sperm_motility", Numeric(15, 6), nullable=False),
+    Column("healing_time", Numeric(15, 6), nullable=False))
 
 corals_model.Probe_annotation.table = Table("probe_annotation", metadata,
     Column("id", Integer, primary_key=True),
@@ -119,19 +141,8 @@ corals_model.Reef.table = Table("reef", metadata,
     Column("name", TrimmedString(255)),
     Column("region", TrimmedString(255)),
     Column("latitude", Numeric(15, 6)),
-    Column("longitude", Numeric(15, 6)))
-
-corals_model.Phenotype.table = Table("phenotype", metadata,
-    Column("id", Integer, primary_key=True),
-    Column("create_time", DateTime, default=now),
-    Column("update_time", DateTime, default=now, onupdate=now),
-    Column("disease_resist", TrimmedString(255)),
-    Column("bleach_resist", TrimmedString(255)),
-    Column("mortality", TrimmedString(255)),
-    Column("tle", TrimmedString(255)),
-    Column("spawning", Boolean),
-    Column("sperm_motility", Numeric(15, 6), nullable=False),
-    Column("healing_time", Numeric(15, 6), nullable=False))
+    Column("longitude", Numeric(15, 6)),
+    Column("geographic_origin", TrimmedString(255)))
 
 corals_model.Sample.table = Table("sample", metadata,
    Column("id", Integer, primary_key=True),
@@ -139,6 +150,7 @@ corals_model.Sample.table = Table("sample", metadata,
     Column("update_time", DateTime, default=now, onupdate=now),
     Column("affy_id", TrimmedString(255), index=True, nullable=False),
     Column("sample_id", TrimmedString(255), index=True, nullable=False),
+    Column("allele_id", Integer, ForeignKey("allele.id"), index=True),
     Column("genotype_id", Integer, ForeignKey("genotype.id"), index=True),
     Column("phenotype_id", Integer, ForeignKey("phenotype.id"), index=True),
     Column("experiment_id", Integer, ForeignKey("experiment.id"), index=True),
@@ -162,7 +174,8 @@ corals_model.Sample.table = Table("sample", metadata,
     Column("percent_alternative_coral", Numeric(15, 6)),
     Column("percent_alternative_sym", Numeric(15, 6)),
     Column("percent_heterozygous_coral", Numeric(15, 6)),
-    Column("percent_heterozygous_sym", Numeric(15, 6)))
+    Column("percent_heterozygous_sym", Numeric(15, 6)),
+    Column("field_call", TrimmedString(255)))
 
 corals_model.Taxonomy.table = Table("taxonomy", metadata,
     Column("id", Integer, primary_key=True),
@@ -173,6 +186,7 @@ corals_model.Taxonomy.table = Table("taxonomy", metadata,
 
 # With the tables defined we can define the mappers and setup the
 # relationships between the model objects.
+mapper(corals_model.Allele, corals_model.Allele.table, properties=None)
 mapper(corals_model.Collector, corals_model.Collector.table, properties=dict(
     person=relation(corals_model.Person,
                     primaryjoin=(corals_model.Collector.table.c.person_id == corals_model.Person.table.c.id)),
@@ -204,6 +218,10 @@ mapper(corals_model.Probe_annotation, corals_model.Probe_annotation.table, prope
 mapper(corals_model.Reef, corals_model.Reef.table, properties=None)
 
 mapper(corals_model.Sample, corals_model.Sample.table, properties=dict(
+    alleles=relation(corals_model.Allele,
+                     lazy=False,
+                     backref="samples",
+                     primaryjoin=(corals_model.Sample.table.c.allele_id == corals_model.Allele.table.c.id)),
     genotype=relation(corals_model.Genotype,
                       lazy=False,
                       backref="samples",
