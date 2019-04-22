@@ -316,7 +316,7 @@ tax_db <- report_user %>%
 # Table of alleles for the new samples
 # First subset to only the new plate data.
 # Then, create vector indicating number of individuals desired made from affy_id collumn from report_user data table.
-i<-ifelse(is.na(report_user[1]),"",report_user[[1]]);
+i<-ifelse(is.na(report_user[2]),"",report_user[[2]]);
 i<-i[!apply(i == "", 1, all),];
 sub96<-obj2[i, mlg.reset = FALSE, drop = FALSE];
 
@@ -328,7 +328,7 @@ at_96<- at_96 %>%
 # Allele string for Allele.table in database.
 uat_96<-unite(at_96, alleles, 1:19696, sep = " ", remove = TRUE);
 uat_96<-setDT(uat_96, keep.rownames = TRUE)[];
-setnames(uat_96, c("rn"), c("user_specimen_id"));
+setnames(uat_96, c("rn"), c("affy_id"));
 # write.csv(uat_96,file=paste("Seed_genotype_alleles.csv",sep = ""),quote=FALSE,row.names=FALSE);
 
 # Create a phylogeny of samples based on distance matrices.
