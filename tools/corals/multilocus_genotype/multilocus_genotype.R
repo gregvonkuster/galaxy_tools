@@ -256,8 +256,8 @@ report_user <- pi %>%
 
 write.csv(report_user, file=opt$output_stag_db_report, quote=FALSE);
 
-# Database tables
-## Sample.table
+# Generate database tables from the genotyping results.
+# Parse the information for the Sample.table.
 sample_db <- pinfo %>%
   left_join(
     report_user %>%
@@ -266,25 +266,35 @@ sample_db <- pinfo %>%
              "percent_alternative_coral"),
     by='user_specimen_id');
 
-###representative clone for genotype.table
+# Select the representative clone for the genotype.table.
 cc<-clonecorrect(obj2, strata= ~pop.gind.);
 id_rep<-mlg.id(cc);
 dt_cc<-data.table(id_rep,keep.rownames = TRUE);
 setnames(dt_cc, c("id_rep"), c("affy_id"));
 
-###transform mlg data.table
-df_cc <- dt_cc %>%
+# Combine with previously genotyped samples in the database.
+df5 <- dt_cc %>%
   group_by(row_number()) %>%
-  rename(group='row_number()') %>%
+  dplyr::rename(group='row_number()') %>%
   unnest(affy_id) %>%
-  left_join(report_user %>%
-              select("coral_mlg_clonal_id","user_specimen_id","affy_id"),
-            by='affy_id') %>%
-  mutate(coral_mlg_rep_sample_id=ifelse(is.na(coral_mlg_clonal_id),"",affy_id)) %>%
+  left_join(sm %>%
+            select("affy_id","coral_mlg_rep_sample_id","coral_mlg_clonal_id", "user_specimen_id"),
+            by='affy_id');
+
+# Confirm that the representative mlg is the same between runs.
+uniques2 <- uniques2[!is.na(uniques2$coral_mlg_rep_sample_id),];
+uniques2 <- uniques2[!is.na(uniques2$coral_mlg_rep_sample_id),];
+na.mlg3 <- which(is.na(df5$coral_mlg_rep_sample_id));
+na.group2 <- df5$group[na.mlg3];
+df5$coral_mlg_rep_sample_id[na.mlg3] <- uniques2$coral_mlg_rep_sample_id[match(na.group2, uniques2$group)];
+
+# Transform the representative mlg column with new genotyped samples.
+df_cc <- df5 %>%
+  mutate(coral_mlg_rep_sample_id=ifelse(is.na(coral_mlg_rep_sample_id),affy_id,coral_mlg_rep_sample_id)) %>%
   ungroup() %>%
   select(-group);
 
-##geno.table
+# Parse the information needed to populate the genotype.table.
 geno_db <- df4 %>%
  left_join(df_cc %>%
     select("affy_id","coral_mlg_rep_sample_id","user_specimen_id"),
@@ -292,7 +302,7 @@ geno_db <- df4 %>%
   ungroup() %>%
   select(-group);
 
-##taxonomy.table
+# Parse the information to populate the taxonomy.table.
 
 tax_db <- report_user %>%
   select(genetic_coral_species_call, affy_id)  %>%
@@ -304,19 +314,18 @@ tax_db <- report_user %>%
 
 
 # Table of alleles for the new samples
-## subset to new plate data
-### create vector indicating number of individuals desired
-### made from affy_id collumn from report_user data table
+# First subset to only the new plate data.
+# Then, create vector indicating number of individuals desired made from affy_id collumn from report_user data table.
 i<-ifelse(is.na(report_user[1]),"",report_user[[1]]);
 i<-i[!apply(i == "", 1, all),];
 sub96<-obj2[i, mlg.reset = FALSE, drop = FALSE];
 
-# convert to data frame
+# Convert to a data frame.
 at_96<-genind2df(sub96, sep="");
 at_96<- at_96 %>%
   select(-pop);
 
-# allele string for Allele.table in database
+# Allele string for Allele.table in database.
 uat_96<-unite(at_96, alleles, 1:19696, sep = " ", remove = TRUE);
 uat_96<-setDT(uat_96, keep.rownames = TRUE)[];
 setnames(uat_96, c("rn"), c("user_specimen_id"));
@@ -343,12 +352,12 @@ dev.off()
 
 write.tree(theTree, file =opt$nj_tree, quote=FALSE);
 
-# identity-by-state analysis
+# Perform identity-by-state analysis.
 #if (!requireNamespace("BiocManager", quietly = TRUE))
 #  install.packages("BiocManager")
 #BiocManager::install("SNPRelate", version = "3.8")
 
-#subset VCF to the user samples
+# Subset VCF to the new user samples.
 l<-length(i);
 n<-ncol(vcf@gt);
 s<-n-l;
@@ -378,15 +387,15 @@ add.gdsn(genofile, "sample.annot", samp.annot);
 pop_code <- read.gdsn(index.gdsn(genofile, path="sample.annot/pop.group"));
 pop.group <- as.factor(read.gdsn(index.gdsn(genofile, "sample.annot/pop.group")));
 
-# Identity-By-State Analysis - distance matrix calculation
+# Identity-By-State Analysis using a distance matrix calculation.
 ibs <- snpgdsIBS(genofile, num.thread=2, autosome.only=FALSE);
 
-# cluster analysis on the genome-wide IBS pairwise distance matrix
+# Cluster analysis on the genome-wide IBS pairwise distance matrix.
 set.seed(100);
 par(cex=0.6, cex.lab=1, cex.axis=1.5,cex.main=2);
 ibs.hc <- snpgdsHCluster(snpgdsIBS(genofile, autosome.only=FALSE));
 
-# default clustering.
+# Use default clustering.
 dev.new(width=10, height=7);
 file_path = get_file_path("IBS_default.pdf");
 pdf (file=file_path, width=10, height=7);
@@ -395,7 +404,7 @@ snpgdsDrawTree(rv, main="Color by Cluster", leaflab="perpendicular",y.label=0.2)
 legend("topleft", legend=levels(rv$samp.group), xpd=T, col=cols[1:nlevels(rv$samp.group)], pch=15, ncol=4, cex=1.2);
 dev.off()
 
-# color cluster by region.
+# Color cluster by region.
 dev.new(width=10, height=7);
 file_path = get_file_path("IBS_Region.pdf");
 pdf (file=file_path, width=10, height=7);
@@ -405,7 +414,7 @@ snpgdsDrawTree(rv2, main="Color by Region", leaflab="perpendicular",y.label=0.2)
 legend("topleft", legend=levels(race), xpd=T, col=cols[1:nlevels(race)], pch=15, ncol=4, cex=1.2);
 dev.off()
 
-#close GDS file
+# Close the GDS file.
 snpgdsClose(genofile);
 
 # Sample MLG on a map.
