@@ -12,7 +12,6 @@ suppressPackageStartupMessages(library("poppr"))
 suppressPackageStartupMessages(library("RColorBrewer"))
 suppressPackageStartupMessages(library("rworldmap"))
 suppressPackageStartupMessages(library("RPostgres"))
-suppressPackageStartupMessages(library("sf"))
 suppressPackageStartupMessages(library("SNPRelate"))
 suppressPackageStartupMessages(library("tidyr"))
 suppressPackageStartupMessages(library("vcfR"))
@@ -143,9 +142,9 @@ ht <- data.frame(hets);
 # Convert heterozygosity data into data table.
 ht <- setDT(ht, keep.rownames=TRUE)[];
 setnames(ht, c("rn"), c("affy_id"));
-setnames(ht, c("hets"), c("percent_mixed_coral"));
+setnames(ht, c("hets"), c("percent_heterozygous_coral"));
 # Round missing data to two digits.
-ht$percent_mixed <- round(ht$percent_mixed, digits=2);
+ht$percent_heterozygous_coral <- round(ht$percent_heterozygous_coral, digits=2);
 
 # Reference alleles.
 refA <- apply(gt, MARGIN=2, function(x) {sum(lengths(regmatches(x, gregexpr("0/0", x))))});
@@ -231,7 +230,7 @@ report_user <- pi %>%
         select("affy_id", "percent_missing_data_coral"),
         by="affy_id") %>%
     left_join(ht %>%
-        select("affy_id", "percent_mixed_coral"),
+        select("affy_id", "percent_heterozygous_coral"),
         by="affy_id") %>%
     left_join(rA %>%
         select("affy_id", "percent_reference_coral"),
@@ -282,7 +281,6 @@ geno_db <- df4 %>%
     select(-group);
 
 # Database taxonomy table.
-
 tax_db <- report_user %>%
     select(genetic_coral_species_call, affy_id) %>%
     mutate(genus_name = ifelse(genetic_coral_species_call == genetic_coral_species_call[grep("^A.*", genetic_coral_species_call)],"Acropora", "other")) %>%
@@ -391,8 +389,8 @@ dev.off()
 snpgdsClose(genofile);
 
 # Sample MLG on a map.
-world <- getMap(resolution="low");
-world <- st_as_sf(world);
+world_map_spatial_data_frame <- getMap(resolution="low");
+world_map_data_frame <- as.data.frame(world_map_spatial_data_frame);
 pinfo$mlg <- report_user$coral_mlg_clonal_id;
 n <- nrow(pinfo);
 
@@ -401,7 +399,9 @@ mnlat <- min(pinfo$latitude, na.rm=TRUE);
 mxlong <- max(pinfo$longitude, na.rm=TRUE);
 mnlong <- min(pinfo$longitude, na.rm=TRUE);
 
-p5 <- ggplot(data=world) + geom_sf() + coord_sf(xlim=c(mnlong-3, mxlong+3), ylim=c(mnlat-3, mxlat+3), expand=FALSE);
+# TODO: figoure out a way to replace the sf calls below.
+#p5 <- ggplot(data=world_map_data_frame) + geom_sf() + coord_sf(xlim=c(mnlong-3, mxlong+3), ylim=c(mnlat-3, mxlat+3), expand=FALSE);
+p5 <- ggplot(data=world_map_data_frame, ylim=c(mnlat-3, mxlat+3), expand=FALSE);
 
 colourCount = length(unique(pinfo$mlg));
 getPalette = colorRampPalette(piratepal("basel"));
