@@ -76,8 +76,8 @@ with open(args.input, "r") as ih:
             accumulated_msgs = add_error_msg(accumulated_msgs, "The input file contains more than 97 lines (must be 1 header line and no more than 96 data lines).")
             stop_error(accumulated_msgs)
         items = line.split("\t")
-        if len(items) != 33:
-            accumulated_msgs = add_error_msg(accumulated_msgs, "Line %d contains %s columns, (must be 33)." % (i, len(items)))
+        if len(items) != 32:
+            accumulated_msgs = add_error_msg(accumulated_msgs, "Line %d contains %s columns, (must be 32)." % (i, len(items)))
             stop_error(accumulated_msgs)
         # Required and validated.
         # Required.
@@ -115,61 +115,59 @@ with open(args.input, "r") as ih:
         # Optional.
         depth = items[12]
         # Optional.
-        dist_shore = items[13]
+        disease_resist = items[13]
         # Optional.
-        disease_resist = items[14]
+        bleach_resist = items[14]
         # Optional.
-        bleach_resist = items[15]
+        mortality = items[15]
         # Optional.
-        mortality = items[16]
+        tle = items[16]
         # Optional.
-        tle = items[17]
-        # Optional.
-        spawning = string_as_boolean_string(items[18])
+        spawning = string_as_boolean_string(items[17])
         # Required.
-        collector_last_name = items[19]
+        collector_last_name = items[18]
         if len(collector_last_name) == 0:
             accumulated_msgs = empty_value(i, "collector_last_name", accumulated_msgs)
         # Required.
-        collector_first_name = items[20]
+        collector_first_name = items[19]
         if len(collector_first_name) == 0:
             accumulated_msgs = empty_value(i, "collector_first_name", accumulated_msgs)
         # Required.
-        org = items[21]
+        org = items[20]
         if len(org) == 0:
             accumulated_msgs = empty_value(i, "org", accumulated_msgs)
         # Required and validated.
-        collection_date = items[22]
+        collection_date = items[21]
         accumulated_msgs = validate_date_string(i, collection_date, accumulated_msgs)
         # Required and validated.
-        contact_email = items[23]
+        contact_email = items[22]
         accumulated_msgs = validate_email(i, contact_email, accumulated_msgs)
         # Required.
-        seq_facility = items[24]
+        seq_facility = items[23]
         if len(seq_facility) == 0:
             accumulated_msgs = empty_value(i, "seq_facility", accumulated_msgs)
         # Optional.
-        array_version = items[25]
+        array_version = items[24]
         # Optional.
-        public = string_as_boolean_string(items[26])
+        public = string_as_boolean_string(items[25])
         # Optional.
-        public_after_date = items[27]
+        public_after_date = items[26]
         accumulated_msga = validate_date_string(i, public_after_date, accumulated_msgs)
         # Required and validated.
-        sperm_motility = items[28]
+        sperm_motility = items[27]
         accumulated_msgs = validate_decimal(i, sperm_motility, accumulated_msgs)
         # Required and validated.
-        healing_time = items[29]
+        healing_time = items[28]
         accumulated_msgs = validate_decimal(i, healing_time, accumulated_msgs)
         # Optional.
-        dna_extraction_method = items[30]
+        dna_extraction_method = items[29]
         # Optional.
-        dna_concentration = items[31]
+        dna_concentration = items[30]
         # If dna_concentration has a value, then it must be decimal.
         if len(dna_concentration) > 0:
             accumulated_msgs = validate_decimal(i, dna_concentration, accumulated_msgs)
         # Optional.
-        registry_id = items[32]
+        registry_id = items[31]
        
 
 if len(accumulated_msgs) > 0:
