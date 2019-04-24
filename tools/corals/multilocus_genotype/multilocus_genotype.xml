@@ -14,7 +14,6 @@
         <requirement type="package" version="1.1.2">r-rcolorbrewer</requirement>
         <requirement type="package" version="1.1.1">r-rpostgres</requirement>
         <requirement type="package" version="1.3_6">r-rworldmap</requirement>
-        <requirement type="package" version="0.6_0">r-sf</requirement>
         <requirement type="package" version="0.8.1">r-tidyr</requirement>
         <requirement type="package" version="1.8.0">r-vcfr</requirement>
         <requirement type="package" version="2.5_3">r-vegan</requirement>
@@ -28,7 +27,6 @@ Rscript '$__tool_directory__/multilocus_genotype.R'
 --input_affy_metadata '$input_affy_metadata'
 --input_pop_info '$input_pop_info'
 --input_vcf '$input_vcf'
---output_nj_tree '$output_nj_tree'
 --output_stag_db_report '$output_stag_db_report'
 &> multilocus_genotype.log;
 if [[ $? -ne 0 ]]; then
@@ -42,7 +40,6 @@ fi]]></command>
     </inputs>
     <outputs>
         <data name="output_stag_db_report" format="csv" label="${tool.name} (stag db report) on ${on_string}"/>
-        <data name="output_nj_tree" format="newick" label="${tool.name} (nj tree) on ${on_string}"/>
         <collection name="output_plot_collection" type="list" label="${tool.name} (plots), on ${on_string}">
             <discover_datasets pattern="__name__" directory="output_plots_dir" format="pdf"/>
         </collection>
@@ -52,7 +49,6 @@ fi]]></command>
             <param name="input_vcf" value="baitssnv.recode.vcf" ftype="vcf"/>
             <param name="input_affy_metadata" value="affy_metadata.tabular" ftype="tabular"/>
             <param name="input_pop_info" value="pop_info.txt" ftype="txt"/>
-            <output name="output_nj_tree" file="output_nj_tree.tree" ftype="newick"/>
             <output name="output_stag_db_report" file="output_stag_db_report.csv" ftype="csv"/>
             <output_collection name="output_plot_collection" type="list">
                 <element name="nj_phylogeny.pdf" file="nj_phylogeny.pdf" ftype="pdf" compare="contains"/>
