@@ -57,11 +57,11 @@ get_database_connection <- function(db_conn_string) {
 }
 
 time_elapsed <- function(start_time) {
-    cat("Elapsed time: ", Sys.time() - start_time, "\n\n");
+    cat("Elapsed time: ", proc.time() - start_time, "\n\n");
 }
 
 time_start <- function(msg) {
-    start_time <- Sys.time();
+    start_time <- proc.time();
     cat("\n", msg, "...\n");
     return(start_time);
 }
@@ -341,23 +341,22 @@ cols <- piratepal("basel");
 set.seed(999);
 
 # Start PDF device driver.
-start_time <- time_start("Creating nj_phylogeny_tree.pdf");
-dev.new(width=10, height=7);
-file_path = get_file_path("nj_phylogeny_tree.pdf");
-pdf(file=file_path, width=10, height=7);
-# Organize branches by clade.
-theTree <- sub96 %>%
-    aboot(dist=provesti.dist, sample=100, tree="nj", cutoff=50, quiet=TRUE) %>%
-    ladderize();
-theTree$tip.label <- report_user$user_specimen_id[match(theTree$tip.label, report_user$affy_id)];
-plot.phylo(theTree, tip.color=cols[sub96$pop], label.offset=0.0125, cex=0.3, font=2, lwd=4, align.tip.label=F, no.margin=T);
-# Add a scale bar showing 5% difference.
-add.scale.bar(0, 0.95, length=0.05, cex=0.65, lwd=3);
-nodelabels(theTree$node.label, cex=.5, adj=c(1.5, -0.1), frame="n", font=3, xpd=TRUE);
-legend("topright", legend=c(levels(sub96$pop)), text.col=cols, xpd=T, cex=0.8);
-#write.tree(theTree, file=opt$output_nj_tree);
-dev.off()
-time_elapsed(start_time);
+#start_time <- time_start("Creating nj_phylogeny_tree.pdf");
+#dev.new(width=10, height=7);
+#file_path = get_file_path("nj_phylogeny_tree.pdf");
+#pdf(file=file_path, width=10, height=7);
+## Organize branches by clade.
+#theTree <- sub96 %>%
+#    aboot(dist=provesti.dist, sample=100, tree="nj", cutoff=50, quiet=TRUE) %>%
+#    ladderize();
+#theTree$tip.label <- report_user$user_specimen_id[match(theTree$tip.label, report_user$affy_id)];
+#plot.phylo(theTree, tip.color=cols[sub96$pop], label.offset=0.0125, cex=0.3, font=2, lwd=4, align.tip.label=F, no.margin=T);
+## Add a scale bar showing 5% difference.
+#add.scale.bar(0, 0.95, length=0.05, cex=0.65, lwd=3);
+#nodelabels(theTree$node.label, cex=.5, adj=c(1.5, -0.1), frame="n", font=3, xpd=TRUE);
+#legend("topright", legend=c(levels(sub96$pop)), text.col=cols, xpd=T, cex=0.8);
+#dev.off()
+#time_elapsed(start_time);
 
 # Identity-by-state analysis.
 # Subset VCF to the user samples.
@@ -370,37 +369,39 @@ write.vcf(svcf, "subset.vcf.gz");
 vcf.fn <- "subset.vcf.gz";
 snpgdsVCF2GDS(vcf.fn, "test3.gds", method="biallelic.only");
 
-genofile <- snpgdsOpen(filename="test3.gds", readonly=FALSE);
-hd <- read.gdsn(index.gdsn(genofile, "sample.id"));
-hd <- data.frame(hd);
-hd <- setDT(hd, keep.rownames = FALSE)[];
-setnames(hd, c("hd"), c("user_specimen_id"));
+#genofile <- snpgdsOpen(filename="test3.gds", readonly=FALSE);
+#hd <- read.gdsn(index.gdsn(genofile, "sample.id"));
+#hd <- data.frame(hd);
+#hd <- setDT(hd, keep.rownames = FALSE)[];
+#setnames(hd, c("hd"), c("user_specimen_id"));
 
-subpop2 <- poptab[c(2,4)];
-poptab_sub <- hd %>%
-    left_join(subpop2 %>%
-        select("affy_id","region"),
-        by='affy_id')%>%
-        drop_na();
+#subpop2 <- poptab[c(2,4)];
+# FIXME: The following code throws this exception:
+# Error: `by` can't contain join column `affy_id` which is missing from LHS
+#poptab_sub <- hd %>%
+#    left_join(subpop2 %>%
+#        select("affy_id", "region"),
+#        by='affy_id')%>%
+#        drop_na();
 
-samp.annot <- data.frame(pop.group=c(poptab_sub$region));
-add.gdsn(genofile, "sample.annot", samp.annot);
+#samp.annot <- data.frame(pop.group=c(poptab_sub$region));
+#add.gdsn(genofile, "sample.annot", samp.annot);
 
-pop_code <- read.gdsn(index.gdsn(genofile, path="sample.annot/pop.group"));
-pop.group <- as.factor(read.gdsn(index.gdsn(genofile, "sample.annot/pop.group")));
-time_elapsed(start_time);
+#pop_code <- read.gdsn(index.gdsn(genofile, path="sample.annot/pop.group"));
+#pop.group <- as.factor(read.gdsn(index.gdsn(genofile, "sample.annot/pop.group")));
+#time_elapsed(start_time);
 
 # Distance matrix calculation.
-start_time <- time_start("Calculating distance matrix");
-ibs <- snpgdsIBS(genofile, num.thread=2, autosome.only=FALSE);
-time_elapsed(start_time);
+#start_time <- time_start("Calculating distance matrix");
+#ibs <- snpgdsIBS(genofile, num.thread=2, autosome.only=FALSE);
+#time_elapsed(start_time);
 
 # Cluster analysis on the genome-wide IBS pairwise distance matrix.
-start_time <- time_start("Clustering the genome-wide IBS pairwise distance matrix");
-set.seed(100);
-par(cex=0.6, cex.lab=1, cex.axis=1.5,cex.main=2);
-ibs.hc <- snpgdsHCluster(snpgdsIBS(genofile, autosome.only=FALSE));
-time_elapsed(start_time);
+#start_time <- time_start("Clustering the genome-wide IBS pairwise distance matrix");
+#set.seed(100);
+#par(cex=0.6, cex.lab=1, cex.axis=1.5,cex.main=2);
+#ibs.hc <- snpgdsHCluster(snpgdsIBS(genofile, autosome.only=FALSE));
+#time_elapsed(start_time);
 
 # Default clustering.
 # Start PDF device driver.
@@ -428,7 +429,7 @@ dev.off()
 time_elapsed(start_time);
 
 # close GDS file.
-snpgdsClose(genofile);
+#snpgdsClose(genofile);
 
 # Sample MLG on a map.
 start_time <- time_start("Creating mlg_map.pdf");
@@ -442,7 +443,7 @@ mnlat <- min(pinfo$latitude, na.rm=TRUE);
 mxlong <- max(pinfo$longitude, na.rm=TRUE);
 mnlong <- min(pinfo$longitude, na.rm=TRUE);
 
-# TODO: figoure out a way to replace the sf calls below.
+# TODO: figure out a way to replace the sf calls below.
 #p5 <- ggplot(data=world_map_data_frame) + geom_sf() + coord_sf(xlim=c(mnlong-3, mxlong+3), ylim=c(mnlat-3, mxlat+3), expand=FALSE);
 p5 <- ggplot(data=world_map_data_frame, ylim=c(mnlat-3, mxlat+3), expand=FALSE);
 
