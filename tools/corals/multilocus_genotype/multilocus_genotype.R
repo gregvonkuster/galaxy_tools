@@ -405,28 +405,28 @@ snpgdsVCF2GDS(vcf.fn, "test3.gds", method="biallelic.only");
 
 # Default clustering.
 # Start PDF device driver.
-start_time <- time_start("Creating ibs_default.pdf");
-dev.new(width=10, height=7);
-file_path = get_file_path("ibs_default.pdf");
-pdf(file=file_path, width=10, height=7);
-rv <- snpgdsCutTree(ibs.hc, col.list=cols, pch.list=15);
-snpgdsDrawTree(rv, main="Color by Cluster", leaflab="perpendicular", y.label=0.2);
-legend("topleft", legend=levels(rv$samp.group), xpd=T, col=cols[1:nlevels(rv$samp.group)], pch=15, ncol=4, cex=1.2);
-dev.off()
-time_elapsed(start_time);
+#start_time <- time_start("Creating ibs_default.pdf");
+#dev.new(width=10, height=7);
+#file_path = get_file_path("ibs_default.pdf");
+#pdf(file=file_path, width=10, height=7);
+#rv <- snpgdsCutTree(ibs.hc, col.list=cols, pch.list=15);
+#snpgdsDrawTree(rv, main="Color by Cluster", leaflab="perpendicular", y.label=0.2);
+#legend("topleft", legend=levels(rv$samp.group), xpd=T, col=cols[1:nlevels(rv$samp.group)], pch=15, ncol=4, cex=1.2);
+#dev.off()
+#time_elapsed(start_time);
 
 # Color cluster by region.
 # Start PDF device driver.
-start_time <- time_start("Creating ibs_region.pdf");
-dev.new(width=10, height=7);
-file_path = get_file_path("ibs_region.pdf");
-pdf(file=file_path, width=10, height=7);
-race <- as.factor(pop_code);
-rv2 <- snpgdsCutTree(ibs.hc, samp.group=race,col.list=cols, pch.list=15);
-snpgdsDrawTree(rv2, main="Color by Region", leaflab="perpendicular", y.label=0.2);
-legend("topleft", legend=levels(race), xpd=T, col=cols[1:nlevels(race)], pch=15, ncol=4, cex=1.2);
-dev.off()
-time_elapsed(start_time);
+#start_time <- time_start("Creating ibs_region.pdf");
+#dev.new(width=10, height=7);
+#file_path = get_file_path("ibs_region.pdf");
+#pdf(file=file_path, width=10, height=7);
+#race <- as.factor(pop_code);
+#rv2 <- snpgdsCutTree(ibs.hc, samp.group=race,col.list=cols, pch.list=15);
+#snpgdsDrawTree(rv2, main="Color by Region", leaflab="perpendicular", y.label=0.2);
+#legend("topleft", legend=levels(race), xpd=T, col=cols[1:nlevels(race)], pch=15, ncol=4, cex=1.2);
+#dev.off()
+#time_elapsed(start_time);
 
 # close GDS file.
 #snpgdsClose(genofile);
