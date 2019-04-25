@@ -519,7 +519,7 @@ time_elapsed(start_time);
 
 # Missing data barplot.
 start_time <- time_start("Creating missing_data.pdf");
-population_info_data_table$miss <- stag_db_report$percent_missing_data_coral[match(miss$affy_id, stag_db_report$affy_id)];
+population_info_data_table$miss <- stag_db_report$percent_missing_data_coral[match(missing_gt_data_frame$affy_id, stag_db_report$affy_id)];
 test2 <- which(!is.na(population_info_data_table$miss));
 miss96 <- population_info_data_table$miss[test2];
 name96 <- population_info_data_table$user_specimen_id[test2];
