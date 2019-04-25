@@ -396,7 +396,7 @@ set.seed(999);
 #theTree <- sub96 %>%
 #    aboot(dist=provesti.dist, sample=100, tree="nj", cutoff=50, quiet=TRUE) %>%
 #    ladderize();
-#theTree$tip.label <- report_user$user_specimen_id[match(theTree$tip.label, report_user$affy_id)];
+#theTree$tip.label <- stag_db_report$user_specimen_id[match(theTree$tip.label, stag_db_report$affy_id)];
 #plot.phylo(theTree, tip.color=cols[sub96$pop], label.offset=0.0125, cex=0.3, font=2, lwd=4, align.tip.label=F, no.margin=T);
 ## Add a scale bar showing 5% difference.
 #add.scale.bar(0, 0.95, length=0.05, cex=0.65, lwd=3);
