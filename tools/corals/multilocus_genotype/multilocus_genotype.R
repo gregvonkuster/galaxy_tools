@@ -494,23 +494,23 @@ snpgdsClose(genofile);
 start_time <- time_start("Creating mlg_map.pdf");
 world_map_spatial_data_frame <- getMap(resolution="low");
 world_map_data_frame <- as.data.frame(world_map_spatial_data_frame);
-pinfo$mlg <- stag_db_report$coral_mlg_clonal_id;
-n <- nrow(pinfo);
-mxlat <- max(pinfo$latitude, na.rm=TRUE);
-mnlat <- min(pinfo$latitude, na.rm=TRUE);
-mxlong <- max(pinfo$longitude, na.rm=TRUE);
-mnlong <- min(pinfo$longitude, na.rm=TRUE);
+affy_metadata_data_frame$mlg <- stag_db_report$coral_mlg_clonal_id;
+n <- nrow(affy_metadata_data_frame);
+mxlat <- max(affy_metadata_data_frame$latitude, na.rm=TRUE);
+mnlat <- min(affy_metadata_data_frame$latitude, na.rm=TRUE);
+mxlong <- max(affy_metadata_data_frame$longitude, na.rm=TRUE);
+mnlong <- min(affy_metadata_data_frame$longitude, na.rm=TRUE);
 # TODO: figure out a way to replace the sf calls below.
 #p5 <- ggplot(data=world_map_data_frame) + geom_sf() + coord_sf(xlim=c(mnlong-3, mxlong+3), ylim=c(mnlat-3, mxlat+3), expand=FALSE);
 p5 <- ggplot(data=world_map_data_frame, ylim=c(mnlat-3, mxlat+3), expand=FALSE);
-colourCount = length(unique(pinfo$mlg));
+colourCount = length(unique(affy_metadata_data_frame$mlg));
 getPalette = colorRampPalette(piratepal("basel"));
 # Start PDF device driver.
 dev.new(width=10, height=7);
 file_path = get_file_path("mlg_map.pdf");
 pdf(file=file_path, width=10, height=7);
 p6 <- p5 +
-      geom_point(data=pinfo, aes(x=longitude, y=latitude, group=mlg, color=mlg), alpha=.7, size=3) +
+      geom_point(data=affy_metadata_data_frame, aes(x=longitude, y=latitude, group=mlg, color=mlg), alpha=.7, size=3) +
       scale_color_manual(values=getPalette(colourCount)) +
       theme(legend.position="bottom") +
       guides(color=guide_legend(nrow=8,byrow=F));
