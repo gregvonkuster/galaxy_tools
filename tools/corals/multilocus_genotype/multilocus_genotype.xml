@@ -28,15 +28,14 @@ Rscript '$__tool_directory__/multilocus_genotype.R'
 --input_pop_info '$input_pop_info'
 --input_vcf '$input_vcf'
 --output_stag_db_report '$output_stag_db_report'
+&> multilocus_genotype.log;
 #if str($output_process_log) == "yes":
-    &> $output_log;
-#else:
-    &> multilocus_genotype.log;
-    if [[ $? -ne 0 ]]; then
-        cp multilocus_genotype.log '$output_stag_db_report';
-        exit 1;
-    fi
-#end if]]></command>
+    cp multilocus_genotype.log '$output_log';
+#end if:
+if [[ $? -ne 0 ]]; then
+    cp multilocus_genotype.log '$output_stag_db_report';
+    exit 1;
+fi]]></command>
     <inputs>
         <param name="input_vcf" type="data" format="vcf" label="VCF file" />
         <param name="input_affy_metadata" type="data" format="tabular" label="Affymetrix 96 well plate file" />
@@ -81,4 +80,3 @@ reproduce clonally (plants, sponges, cnidarians, flatworms, annelids, sea stars,
     <citations>
     </citations>
 </tool>
-
