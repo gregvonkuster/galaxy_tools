@@ -504,27 +504,14 @@ snpgdsClose(genofile);
 
 # Sample MLG on a map.
 start_time <- time_start("Creating mlg_map.pdf");
-world_map_list <- map("world", col="black", xlim=c(32, 44), ylim=c(17, 29.9), lty=1, fill=TRUE, lwd=1);
+world_map_list <- map("world", col="black", lty=1, fill=TRUE, lwd=1);
 world_map_data_frame <- map_data(world_map_list);
-affy_metadata_data_frame$mlg <- stag_db_report$coral_mlg_clonal_id;
-# FIXME: n is not used, so likely should be removed.
-#n <- nrow(affy_metadata_data_frame);
-mxlat <- max(affy_metadata_data_frame$latitude, na.rm=TRUE);
-mnlat <- min(affy_metadata_data_frame$latitude, na.rm=TRUE);
-mxlong <- max(affy_metadata_data_frame$longitude, na.rm=TRUE);
-mnlong <- min(affy_metadata_data_frame$longitude, na.rm=TRUE);
-world_map_prep <- ggplot() + geom_polygon(data=world_map_data_frame, aes(long, lat, group=group), xlim=c(mnlong-3, mxlong+3), ylim=c(mnlat-3, mxlat+3), ratio=1.3) + geom_point();
-color_count = length(unique(affy_metadata_data_frame$mlg));
-getPalette = colorRampPalette(piratepal("basel"));
 # Start PDF device driver.
 dev.new(width=10, height=7);
 file_path = get_file_path("mlg_map.pdf");
 pdf(file=file_path, width=10, height=7);
-world_map_plot <- world_map_prep +
-      geom_point(data=affy_metadata_data_frame, aes(x=longitude, y=latitude, group=mlg, color=mlg), alpha=.7, size=3) +
-      scale_color_manual(values=getPalette(color_count)) +
-      theme(legend.position="bottom") +
-      guides(color=guide_legend(nrow=8,byrow=F));
+# FIXME: get aes settings, color, etc to work.
+world_map_plot <- ggplot() + geom_polygon(data=world_map_data_frame);
 dev.off()
 time_elapsed(start_time);
 
