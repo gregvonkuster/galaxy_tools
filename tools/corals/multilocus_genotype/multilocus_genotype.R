@@ -7,10 +7,10 @@ suppressPackageStartupMessages(library("dbplyr"))
 suppressPackageStartupMessages(library("dplyr"))
 suppressPackageStartupMessages(library("ggplot2"))
 suppressPackageStartupMessages(library("knitr"))
+suppressPackageStartupMessages(library("maps"))
 suppressPackageStartupMessages(library("optparse"))
 suppressPackageStartupMessages(library("poppr"))
 suppressPackageStartupMessages(library("RColorBrewer"))
-suppressPackageStartupMessages(library("rworldmap"))
 suppressPackageStartupMessages(library("RPostgres"))
 suppressPackageStartupMessages(library("SNPRelate"))
 suppressPackageStartupMessages(library("tidyr"))
@@ -24,7 +24,8 @@ option_list <- list(
     make_option(c("--input_affy_metadata"), action="store", dest="input_affy_metadata", help="Affymetrix 96 well plate input file"),
     make_option(c("--input_pop_info"), action="store", dest="input_pop_info", help="Population information input file"),
     make_option(c("--input_vcf"), action="store", dest="input_vcf", help="VCF input file"),
-    make_option(c("--output_stag_db_report"), action="store", dest="output_stag_db_report", help="stag db report output file")
+    make_option(c("--output_nj_phylogeny_tree"), action="store", dest="output_nj_phylogeny_tree", default=NULL, help="Flag to plot neighbor-joining phylogeny tree"),
+    make_option(c("--output_stag_db_report"), action="store", dest="output_stag_db_report", help="Flag to output stag db report file")
 )
 
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list);
@@ -72,7 +73,7 @@ vcf <- read.vcfR(opt$input_vcf);
 time_elapsed(start_time);
 
 # Convert VCF file into a genind for the Poppr package.
-start_time <- time_start("Converting VCF to a genind object");
+start_time <- time_start("Converting VCF data to a genind object");
 genind_obj <- vcfR2genind(vcf);
 time_elapsed(start_time);
 
@@ -83,7 +84,7 @@ genind_obj@pop <- as.factor(population_info_data_table$region);
 strata(genind_obj) <- data.frame(pop(genind_obj));
 
 # Convert genind object to a genclone object.
-start_time <- time_start("Converting genind to genclone object");
+start_time <- time_start("Converting the genind object to a genclone object");
 genind_clone <- as.genclone(genind_obj);
 time_elapsed(start_time);
 
@@ -211,7 +212,7 @@ setnames(alternative_alleles_data_table, c("alternative_alleles"), c("percent_al
 alternative_alleles_data_table$percent_alternative <- round(alternative_alleles_data_table$percent_alternative, digits=2);
 time_elapsed(start_time);
 
-# The alternative_alleles_data_table looks like this:
+# The mlg_ids_data_table looks like this:
 # mlg_ids
 # a550962-4368120-060520-500_M23.CEL
 # a550962-4368120-060520-256_A19.CEL
@@ -242,7 +243,7 @@ na.mlg <- which(is.na(sample_mlg_tibble$coral_mlg_clonal_id));
 na.group <- sample_mlg_tibble$group[na.mlg];
 sample_mlg_tibble$coral_mlg_clonal_id[na.mlg] <- uniques$coral_mlg_clonal_id[match(na.group, uniques$group)];
 
-# Determine if the sample mlg matched previous genotyped sample.
+# Find out if the sample mlg matched a previous genotyped sample.
 # sample_mlg_match_tibble looks like this:
 # A tibble: 262 x 4
 # Groups:   group [230]
@@ -388,7 +389,6 @@ sample_alleles_vector <- genind_clone[i, mlg.reset=FALSE, drop=FALSE];
 #setnames(uat_96, c("rn"), c("user_specimen_id"));
 #####################################
 
-# Create a phylogeny tree of samples based on distance matrices.
 # cols looks like this:
 #       blue1         red       green        pink      orange       blue2 
 # "#0C5BB0FF" "#EE0011FF" "#15983DFF" "#EC579AFF" "#FA6B09FF" "#149BEDFF" 
@@ -397,23 +397,26 @@ sample_alleles_vector <- genind_clone[i, mlg.reset=FALSE, drop=FALSE];
 cols <- piratepal("basel");
 set.seed(999);
 
-# Start PDF device driver.
-start_time <- time_start("Creating nj_phylogeny_tree.pdf");
-dev.new(width=10, height=7);
-file_path = get_file_path("nj_phylogeny_tree.pdf");
-pdf(file=file_path, width=10, height=7);
-# Organize branches by clade.
-nj_phylogeny_tree <- sample_alleles_vector %>%
-    aboot(dist=provesti.dist, sample=100, tree="nj", cutoff=50, quiet=TRUE) %>%
-    ladderize();
-nj_phylogeny_tree$tip.label <- stag_db_report$user_specimen_id[match(nj_phylogeny_tree$tip.label, stag_db_report$affy_id)];
-plot.phylo(nj_phylogeny_tree, tip.color=cols[sample_alleles_vector$pop], label.offset=0.0125, cex=0.3, font=2, lwd=4, align.tip.label=F, no.margin=T);
-# Add a scale bar showing 5% difference.
-add.scale.bar(0, 0.95, length=0.05, cex=0.65, lwd=3);
-nodelabels(nj_phylogeny_tree$node.label, cex=.5, adj=c(1.5, -0.1), frame="n", font=3, xpd=TRUE);
-legend("topright", legend=c(levels(sample_alleles_vector$pop)), text.col=cols, xpd=T, cex=0.8);
-dev.off()
-time_elapsed(start_time);
+if (!is.null(opt$output_nj_phylogeny_tree)) {
+    # Create a phylogeny tree of samples based on distance matrices.
+    # Start PDF device driver.
+    start_time <- time_start("Creating nj_phylogeny_tree.pdf");
+    dev.new(width=10, height=7);
+    file_path = get_file_path("nj_phylogeny_tree.pdf");
+    pdf(file=file_path, width=10, height=7);
+    # Organize branches by clade.
+    nj_phylogeny_tree <- sample_alleles_vector %>%
+        aboot(dist=provesti.dist, sample=100, tree="nj", cutoff=50, quiet=TRUE) %>%
+        ladderize();
+    nj_phylogeny_tree$tip.label <- stag_db_report$user_specimen_id[match(nj_phylogeny_tree$tip.label, stag_db_report$affy_id)];
+    plot.phylo(nj_phylogeny_tree, tip.color=cols[sample_alleles_vector$pop], label.offset=0.0125, cex=0.3, font=2, lwd=4, align.tip.label=F, no.margin=T);
+    # Add a scale bar showing 5% difference.
+    add.scale.bar(0, 0.95, length=0.05, cex=0.65, lwd=3);
+    nodelabels(nj_phylogeny_tree$node.label, cex=.5, adj=c(1.5, -0.1), frame="n", font=3, xpd=TRUE);
+    legend("topright", legend=c(levels(sample_alleles_vector$pop)), text.col=cols, xpd=T, cex=0.8);
+    dev.off()
+    time_elapsed(start_time);
+}
 
 # Subset VCF to the user samples.
 start_time <- time_start("Subsetting vcf to the user samples");
@@ -501,18 +504,17 @@ snpgdsClose(genofile);
 
 # Sample MLG on a map.
 start_time <- time_start("Creating mlg_map.pdf");
-world_map_spatial_data_frame <- getMap(resolution="low");
-world_map_data_frame <- as.data.frame(world_map_spatial_data_frame);
+world_map_list <- map("world", col="black", xlim=c(32, 44), ylim=c(17, 29.9), lty=1, fill=TRUE, lwd=1);
+world_map_data_frame <- map_data(world_map_list);
 affy_metadata_data_frame$mlg <- stag_db_report$coral_mlg_clonal_id;
-n <- nrow(affy_metadata_data_frame);
+# FIXME: n is not used, so likely should be removed.
+#n <- nrow(affy_metadata_data_frame);
 mxlat <- max(affy_metadata_data_frame$latitude, na.rm=TRUE);
 mnlat <- min(affy_metadata_data_frame$latitude, na.rm=TRUE);
 mxlong <- max(affy_metadata_data_frame$longitude, na.rm=TRUE);
 mnlong <- min(affy_metadata_data_frame$longitude, na.rm=TRUE);
-# FIXME: figure out a way to replace the sf calls below.
-#world_map_prep <- ggplot(data=world_map_data_frame) + geom_sf() + coord_sf(xlim=c(mnlong-3, mxlong+3), ylim=c(mnlat-3, mxlat+3), expand=FALSE);
-world_map_prep <- ggplot(data=world_map_data_frame, ylim=c(mnlat-3, mxlat+3), expand=FALSE);
-colourCount = length(unique(affy_metadata_data_frame$mlg));
+world_map_prep <- ggplot() + geom_polygon(data=world_map_data_frame, aes(long, lat, group=group), xlim=c(mnlong-3, mxlong+3), ylim=c(mnlat-3, mxlat+3), ratio=1.3) + geom_point();
+color_count = length(unique(affy_metadata_data_frame$mlg));
 getPalette = colorRampPalette(piratepal("basel"));
 # Start PDF device driver.
 dev.new(width=10, height=7);
@@ -520,7 +522,7 @@ file_path = get_file_path("mlg_map.pdf");
 pdf(file=file_path, width=10, height=7);
 world_map_plot <- world_map_prep +
       geom_point(data=affy_metadata_data_frame, aes(x=longitude, y=latitude, group=mlg, color=mlg), alpha=.7, size=3) +
-      scale_color_manual(values=getPalette(colourCount)) +
+      scale_color_manual(values=getPalette(color_count)) +
       theme(legend.position="bottom") +
       guides(color=guide_legend(nrow=8,byrow=F));
 dev.off()

@@ -9,11 +9,11 @@
         <requirement type="package" version="0.7.6">r-dplyr</requirement>
         <requirement type="package" version="3.0.0">r-ggplot2</requirement>
         <requirement type="package" version="1.20">r-knitr</requirement>
+        <requirement type="package" version="3.3.0">r-maps</requirement>
         <requirement type="package" version="1.6.0">r-optparse</requirement>
         <requirement type="package" version="2.8.1">r-poppr</requirement>
         <requirement type="package" version="1.1.2">r-rcolorbrewer</requirement>
         <requirement type="package" version="1.1.1">r-rpostgres</requirement>
-        <requirement type="package" version="1.3_6">r-rworldmap</requirement>
         <requirement type="package" version="0.8.1">r-tidyr</requirement>
         <requirement type="package" version="1.8.0">r-vcfr</requirement>
         <requirement type="package" version="2.5_3">r-vegan</requirement>
@@ -27,32 +27,26 @@ Rscript '$__tool_directory__/multilocus_genotype.R'
 --input_affy_metadata '$input_affy_metadata'
 --input_pop_info '$input_pop_info'
 --input_vcf '$input_vcf'
+#if str($output_nj_phylogeny_tree) == "yes":
+    --output_nj_phylogeny_tree '$output_nj_phylogeny_tree'
+#end if
 --output_stag_db_report '$output_stag_db_report'
-&> multilocus_genotype.log;
-#if str($output_process_log) == "yes":
-    cp multilocus_genotype.log '$output_log';
-#end if:
-if [[ $? -ne 0 ]]; then
-    cp multilocus_genotype.log '$output_stag_db_report';
-    exit 1;
-fi]]></command>
+&> '$output_log']]></command>
     <inputs>
         <param name="input_vcf" type="data" format="vcf" label="VCF file" />
         <param name="input_affy_metadata" type="data" format="tabular" label="Affymetrix 96 well plate file" />
         <param name="input_pop_info" type="data" format="txt" label="Genotype population information file" />
-        <param name="output_process_log" type="select" display="radio" label="Output process log?">
-            <option value="yes" selected="true">Yes</option>
-            <option value="no">No</option>
+        <param name="output_nj_phylogeny_tree" type="select" display="radio" label="Plot neighbor-joining phylogeny tree?">
+            <option value="yes">Yes</option>
+            <option value="no" selected="true">No</option>
         </param>
     </inputs>
     <outputs>
-        <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}">
-            <filter>output_process_log == 'yes'</filter>
-        </data>
-        <data name="output_stag_db_report" format="csv" label="${tool.name} (stag db report) on ${on_string}"/>
         <collection name="output_plot_collection" type="list" label="${tool.name} (plots), on ${on_string}">
             <discover_datasets pattern="__name__" directory="output_plots_dir" format="pdf"/>
         </collection>
+        <data name="output_stag_db_report" format="csv" label="${tool.name} (stag db report) on ${on_string}"/>
+        <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}"/>
     </outputs>
     <tests>
         <test>
@@ -73,6 +67,7 @@ fi]]></command>
 Renders the unique combination of the alleles for two or more loci for each individual. The multilocus genotypes
 are critically important for tracking dispersal and population structure of organisms, especially those that
 reproduce clonally (plants, sponges, cnidarians, flatworms, annelids, sea stars, and many more).
+
 -----
 
 **Required options**
@@ -80,3 +75,4 @@ reproduce clonally (plants, sponges, cnidarians, flatworms, annelids, sea stars,
     <citations>
     </citations>
 </tool>
+
