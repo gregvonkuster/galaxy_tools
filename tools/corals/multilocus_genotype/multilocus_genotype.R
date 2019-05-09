@@ -1,6 +1,4 @@
-#!/usr/bin/env Rscript
-
-suppressPackageStartupMessages(library("adegenet"))
+uppressPackageStartupMessages(library("adegenet"))
 suppressPackageStartupMessages(library("ape"))
 suppressPackageStartupMessages(library("data.table"))
 suppressPackageStartupMessages(library("dbplyr"))
@@ -8,6 +6,7 @@ suppressPackageStartupMessages(library("dplyr"))
 suppressPackageStartupMessages(library("ggplot2"))
 suppressPackageStartupMessages(library("knitr"))
 suppressPackageStartupMessages(library("maps"))
+suppressPackageStartupMessages(library("mapproj"))
 suppressPackageStartupMessages(library("optparse"))
 suppressPackageStartupMessages(library("poppr"))
 suppressPackageStartupMessages(library("RColorBrewer"))
@@ -93,8 +92,8 @@ start_time <- time_start("Calculating the bitwise distance between individuals")
 bitwise_distance <- bitwise.dist(genind_clone);
 time_elapsed(start_time);
 
-# Multilocus genotypes (threshold of 3.2%).
-mlg.filter(genind_clone, distance=bitwise_distance) <- 0.032;
+# Multilocus genotypes (threshold of 1.6%).
+mlg.filter(genind_clone, distance=bitwise_distance) <- 0.016;
 m <- mlg.table(genind_clone, background=TRUE, color=TRUE);
 
 # Create list of MLGs.
@@ -270,16 +269,6 @@ ct <- length(unique(n.g));
 # the seq() function.
 n.g_ids <- sprintf("HG%04d", seq((sum(!is.na(unique(sample_mlg_match_tibble["coral_mlg_clonal_id"]))) + 1), by=1, length=ct));
 
-#####################################
-# FIXME: the following code is commented because it is not used.
-# Pair group with new ids.
-# rat looks like this:
-#             n.g_ids 
-#  [1,] "1"   "HG0135"
-#  [2,] "10"  "HG0136"
-#rat <- cbind(unique(n.g), n.g_ids);
-#####################################
-
 # Assign the new id iteratively for all that have NA.
 for (i in 1:length(na.mlg2)) {
     sample_mlg_match_tibble$coral_mlg_clonal_id[na.mlg2[i]] <- n.g_ids[match(sample_mlg_match_tibble$group[na.mlg2[i]], unique(n.g))];
@@ -376,18 +365,6 @@ time_elapsed(start_time);
 i <- ifelse(is.na(stag_db_report[1]), "", stag_db_report[[1]]);
 i <- i[!apply(i== "", 1, all),];
 sample_alleles_vector <- genind_clone[i, mlg.reset=FALSE, drop=FALSE];
-
-#####################################
-# FIXME: the following code is commented because it is not used.
-# Convert to data frame.
-#at_96 <- genind2df(sample_alleles_vector, sep="");
-#at_96 <- at_96 %>%
-#select(-pop);
-# Allele string for Allele.table in database.
-#uat_96 <- unite(at_96, alleles, 1:19696, sep=" ", remove=TRUE);
-#uat_96 <- setDT(uat_96, keep.rownames=TRUE)[];
-#setnames(uat_96, c("rn"), c("user_specimen_id"));
-#####################################
 
 # cols looks like this:
 #       blue1         red       green        pink      orange       blue2 
@@ -504,14 +481,40 @@ snpgdsClose(genofile);
 
 # Sample MLG on a map.
 start_time <- time_start("Creating mlg_map.pdf");
-world_map_list <- map("world", col="black", lty=1, fill=TRUE, lwd=1);
-world_map_data_frame <- map_data(world_map_list);
+# Get the lattitude and longitude boundaries for rendering
+# the map.  Tese boundaries will restrict the map to focus
+# (i.e., zoom) on the region of the world map from which
+# the samples were taken.
+max_latitude <- max(affy_metadata_data_frame$latitude, na.rm=TRUE);
+min_latitude <- min(affy_metadata_data_frame$latitude, na.rm=TRUE);
+latitude_range_vector <- c(min_latitude-3, max_latitude+3);
+max_longitude <- max(affy_metadata_data_frame$longitude, na.rm=TRUE);
+min_longitude <- min(affy_metadata_data_frame$longitude, na.rm=TRUE);
+longitude_range_vector <- c(min_longitude-3, max_longitude+3);
+# Get the palette colors for rendering plots.
+colors <- length(unique(stag_db_report$coral_mlg_clonal_id));
+# Get a color palette.
+palette <- colorRampPalette(piratepal("basel"));
 # Start PDF device driver.
 dev.new(width=10, height=7);
 file_path = get_file_path("mlg_map.pdf");
 pdf(file=file_path, width=10, height=7);
-# FIXME: get aes settings, color, etc to work.
-world_map_plot <- ggplot() + geom_polygon(data=world_map_data_frame);
+world_data = map_data("world");
+# Add the coral_mlg_clonal_id column from the stag_db_report
+# data fram to the affy_metadata_data_frame.
+affy_metadata_data_frame$mlg <- stag_db_report$coral_mlg_clonal_id;
+# Get the number of colors needed from the palette for plotting
+# the sample locations on the world map.
+num_colors = length(unique(affy_metadata_data_frame$mlg));
+# Get a color palette.
+palette = colorRampPalette(piratepal("basel"));
+ggplot() + 
+geom_map(data=world_data, map=world_data, aes(x=long, y=lat, group=group, map_id=region), fill="white", colour="#7f7f7f") +
+coord_map(xlim=longitude_range_vector, ylim=latitude_range_vector) +
+geom_point(data=affy_metadata_data_frame, aes(x=longitude, y=latitude, group=mlg, color=mlg), alpha=.7, size=3) +
+scale_color_manual(values=palette(num_colors)) +
+theme(legend.position="bottom") +
+guides(color=guide_legend(nrow=8, byrow=F));
 dev.off()
 time_elapsed(start_time);
 
@@ -536,23 +539,17 @@ time_elapsed(start_time);
 # stag_db_report for the charts (user_specimen_id names
 # will be used to label each chart).
 start_time <- time_start("Creating percent_breakdown.pdf");
-dt1 <- data.table(stag_db_report);
-dt1 <- stag_db_report[c(-2, -3, -4)];
-dt1 <- na.omit(dt1);
+stag_db_report_data_table <- data.table(stag_db_report);
+stag_db_report_data_table <- stag_db_report[c(-2, -3, -4)];
+stag_db_report_data_table <- na.omit(stag_db_report_data_table);
 # Translate to N (i.e., number of samples with a
 # genotype) columns and 5 rows.
-tdt1 <- t(dt1);
-# Make another data table and transpose it the same as dt1 to
-# get numerics. These will feed into the creation of N vectors.
-dt2 <- data.table(stag_db_report);
-dt2 <- stag_db_report[c(-1, -2, -3, -4)];
-# Translate to N columns and 5 rows.
-tdt2 <- t(dt2);
-tdt1_matrix <- as.matrix(tdt1[-1,]);
+translated_stag_db_report_data_table <- t(stag_db_report_data_table);
+translated_stag_db_report_matrix <- as.matrix(translated_stag_db_report_data_table[-1,]);
 # The number of columns is the number of samples with genotypes.
-nc <- ncol(tdt1_matrix);
-mode(tdt1_matrix) <- "numeric";
-spy <- rowMeans(tdt1_matrix);
+nc <- ncol(translated_stag_db_report_matrix);
+mode(translated_stag_db_report_matrix) <- "numeric";
+spy <- rowMeans(translated_stag_db_report_matrix);
 dev.new(width=10, height=7);
 file_path = get_file_path("percent_breakdown.pdf");
 pdf(file=file_path, width=10, height=7);
@@ -564,9 +561,9 @@ pie(spy, labels=labels, radius=0.60, col=col, main=main, cex.main=.75);
 par(mfrow=c(3, 2));
 col <- c("GREY", "#006DDB", "#24FF24", "#920000");
 for (i in 1:nc) {
-    tmp_labels <- paste(labels, " (", round(tdt1_matrix[,i], 1), "%)", sep="");
-    main <- paste("Breakdown of SNP assignments for", tdt1[1, i]);
-    pie(tdt1_matrix[,i], labels=tmp_labels, radius=0.90, col=col, main=main, cex.main=.85, cex=0.75);
+    tmp_labels <- paste(labels, " (", round(translated_stag_db_report_matrix[,i], 1), "%)", sep="");
+    main <- paste("Breakdown of SNP assignments for", translated_stag_db_report_data_table[1, i]);
+    pie(translated_stag_db_report_matrix[,i], labels=tmp_labels, radius=0.90, col=col, main=main, cex.main=.85, cex=0.75);
 }
 dev.off()
 time_elapsed(start_time);
