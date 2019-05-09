@@ -92,8 +92,8 @@ start_time <- time_start("Calculating the bitwise distance between individuals")
 bitwise_distance <- bitwise.dist(genind_clone);
 time_elapsed(start_time);
 
-# Multilocus genotypes (threshold of 1.6%).
-mlg.filter(genind_clone, distance=bitwise_distance) <- 0.016;
+# Multilocus genotypes (threshold of 3.2%).
+mlg.filter(genind_clone, distance=bitwise_distance) <- 0.032;
 m <- mlg.table(genind_clone, background=TRUE, color=TRUE);
 
 # Create list of MLGs.
@@ -557,7 +557,11 @@ pdf(file=file_path, width=10, height=7);
 labels <- paste(c("missing data", "mixed", "reference", "alternative"), " (", round(spy, 1), "%)", sep="");
 col <- c("GREY", "#006DDB", "#24FF24", "#920000");
 main <- "Average breakdown of SNP assignments across all samples";
-pie(spy, labels=labels, radius=0.60, col=col, main=main, cex.main=.75);
+# FIXME: the following produces this error:
+# Error in pie(spy, labels = labels, radius = 0.6, col = col, main = main,  : 
+#  'x' values must be positive.
+#Execution halted
+#pie(spy, labels=labels, radius=0.60, col=col, main=main, cex.main=.75);
 par(mfrow=c(3, 2));
 col <- c("GREY", "#006DDB", "#24FF24", "#920000");
 for (i in 1:nc) {
