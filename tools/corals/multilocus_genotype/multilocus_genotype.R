@@ -1,4 +1,6 @@
-uppressPackageStartupMessages(library("adegenet"))
+#!/usr/bin/env Rscript
+
+suppressPackageStartupMessages(library("adegenet"))
 suppressPackageStartupMessages(library("ape"))
 suppressPackageStartupMessages(library("data.table"))
 suppressPackageStartupMessages(library("dbplyr"))
@@ -539,32 +541,34 @@ time_elapsed(start_time);
 # stag_db_report for the charts (user_specimen_id names
 # will be used to label each chart).
 start_time <- time_start("Creating percent_breakdown.pdf");
-stag_db_report_data_table <- data.table(stag_db_report);
 stag_db_report_data_table <- stag_db_report[c(-2, -3, -4)];
+# Remove NA and NaN values.
 stag_db_report_data_table <- na.omit(stag_db_report_data_table);
-# Translate to N (i.e., number of samples with a
-# genotype) columns and 5 rows.
+# Translate to N (i.e., number of samples with a genotype)
+# columns and 5 rows.
 translated_stag_db_report_data_table <- t(stag_db_report_data_table);
 translated_stag_db_report_matrix <- as.matrix(translated_stag_db_report_data_table[-1,]);
-# The number of columns is the number of samples with genotypes.
-nc <- ncol(translated_stag_db_report_matrix);
+# Set the storage mode of the matrix to numeric.  In some
+# cases this could result in the following:
+# Warning message:
+# In mde(x) : NAs introduced by coercion
 mode(translated_stag_db_report_matrix) <- "numeric";
-spy <- rowMeans(translated_stag_db_report_matrix);
+# Remove NA and NaN values that may have been introduced
+# by coercion.
+translated_stag_db_report_matrix <- na.omit(translated_stag_db_report_matrix);
+tsdbrm_row_means <- rowMeans(translated_stag_db_report_matrix, na.rm=TRUE);
 dev.new(width=10, height=7);
 file_path = get_file_path("percent_breakdown.pdf");
 pdf(file=file_path, width=10, height=7);
 # Average pie of all samples.
-labels <- paste(c("missing data", "mixed", "reference", "alternative"), " (", round(spy, 1), "%)", sep="");
+labels <- paste(c("missing data", "mixed", "reference", "alternative"), " (", round(tsdbrm_row_means, 1), "%)", sep="");
 col <- c("GREY", "#006DDB", "#24FF24", "#920000");
 main <- "Average breakdown of SNP assignments across all samples";
-# FIXME: the following produces this error:
-# Error in pie(spy, labels = labels, radius = 0.6, col = col, main = main,  : 
-#  'x' values must be positive.
-#Execution halted
-#pie(spy, labels=labels, radius=0.60, col=col, main=main, cex.main=.75);
+pie(tsdbrm_row_means, labels=labels, radius=0.60, col=col, main=main, cex.main=.75);
 par(mfrow=c(3, 2));
 col <- c("GREY", "#006DDB", "#24FF24", "#920000");
-for (i in 1:nc) {
+# Generate a pie chart for each sample with genotypes.
+for (i in 1:ncol(translated_stag_db_report_matrix)) {
     tmp_labels <- paste(labels, " (", round(translated_stag_db_report_matrix[,i], 1), "%)", sep="");
     main <- paste("Breakdown of SNP assignments for", translated_stag_db_report_data_table[1, i]);
     pie(translated_stag_db_report_matrix[,i], labels=tmp_labels, radius=0.90, col=col, main=main, cex.main=.85, cex=0.75);
