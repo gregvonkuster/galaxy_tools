@@ -380,9 +380,9 @@ if (!is.null(opt$output_nj_phylogeny_tree)) {
     # Create a phylogeny tree of samples based on distance matrices.
     # Start PDF device driver.
     start_time <- time_start("Creating nj_phylogeny_tree.pdf");
-    dev.new(width=30, height=30);
+    dev.new(width=40, height=80);
     file_path = get_file_path("nj_phylogeny_tree.pdf");
-    pdf(file=file_path, width=30, height=30);
+    pdf(file=file_path, width=40, height=80);
     # Organize branches by clade.
     nj_phylogeny_tree <- sample_alleles_vector %>%
         aboot(dist=provesti.dist, sample=100, tree="nj", cutoff=50, quiet=TRUE) %>%
