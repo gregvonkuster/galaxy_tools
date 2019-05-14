@@ -380,9 +380,9 @@ if (!is.null(opt$output_nj_phylogeny_tree)) {
     # Create a phylogeny tree of samples based on distance matrices.
     # Start PDF device driver.
     start_time <- time_start("Creating nj_phylogeny_tree.pdf");
-    dev.new(width=10, height=7);
+    dev.new(width=30, height=30);
     file_path = get_file_path("nj_phylogeny_tree.pdf");
-    pdf(file=file_path, width=10, height=7);
+    pdf(file=file_path, width=30, height=30);
     # Organize branches by clade.
     nj_phylogeny_tree <- sample_alleles_vector %>%
         aboot(dist=provesti.dist, sample=100, tree="nj", cutoff=50, quiet=TRUE) %>%
@@ -456,9 +456,9 @@ time_elapsed(start_time);
 # Default clustering.
 start_time <- time_start("Creating ibs_default.pdf");
 # Start PDF device driver.
-dev.new(width=10, height=7);
+dev.new(width=40, height=20);
 file_path = get_file_path("ibs_default.pdf");
-pdf(file=file_path, width=10, height=7);
+pdf(file=file_path, width=40, height=20);
 rv <- snpgdsCutTree(ibs.hc, col.list=cols, pch.list=15);
 snpgdsDrawTree(rv, main="Color by Cluster", leaflab="perpendicular", y.label=0.2);
 legend("topleft", legend=levels(rv$samp.group), xpd=T, col=cols[1:nlevels(rv$samp.group)], pch=15, ncol=4, cex=1.2);
@@ -468,9 +468,9 @@ time_elapsed(start_time);
 # Color cluster by region.
 start_time <- time_start("Creating ibs_region.pdf");
 # Start PDF device driver.
-dev.new(width=10, height=7);
+dev.new(width=40, height=20);
 file_path = get_file_path("ibs_region.pdf");
-pdf(file=file_path, width=10, height=7);
+pdf(file=file_path, width=40, height=20);
 race <- as.factor(population_code);
 rv2 <- snpgdsCutTree(ibs.hc, samp.group=race,col.list=cols, pch.list=15);
 snpgdsDrawTree(rv2, main="Color by Region", leaflab="perpendicular", y.label=0.2);
@@ -498,9 +498,9 @@ colors <- length(unique(stag_db_report$coral_mlg_clonal_id));
 # Get a color palette.
 palette <- colorRampPalette(piratepal("basel"));
 # Start PDF device driver.
-dev.new(width=10, height=7);
+dev.new(width=20, height=20);
 file_path = get_file_path("mlg_map.pdf");
-pdf(file=file_path, width=10, height=7);
+pdf(file=file_path, width=20, height=20);
 world_data = map_data("world");
 # Add the coral_mlg_clonal_id column from the stag_db_report
 # data fram to the affy_metadata_data_frame.
@@ -527,9 +527,9 @@ test2 <- which(!is.na(population_info_data_table$miss));
 miss96 <- population_info_data_table$miss[test2];
 name96 <- population_info_data_table$user_specimen_id[test2];
 # Start PDF device driver.
-dev.new(width=10, height=7);
+dev.new(width=20, height=10);
 file_path = get_file_path("missing_data.pdf");
-pdf(file=file_path, width=10, height=7);
+pdf(file=file_path, width=20, height=10);
 par(mar = c(8, 4, 4, 2));
 x <- barplot(miss96, las=2, col=cols, ylim=c(0, 3), cex.axis=0.8, space=0.8, ylab="Missingness (%)", xaxt="n");
 text(cex=0.6, x=x-0.25, y=-.05, name96, xpd=TRUE, srt=60, adj=1);
