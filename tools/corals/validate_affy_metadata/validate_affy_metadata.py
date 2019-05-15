@@ -107,7 +107,7 @@ with open(args.input, "r") as ih:
         # Optional.
         geographic_origin = items[8]
         # Optional.
-        sample_location = items[9]
+        colony_location = items[9]
         # Optional.
         latitude_outplant = items[10]
         # Optional.

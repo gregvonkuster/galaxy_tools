@@ -104,7 +104,7 @@ mlg_ids <- mlg.id(genind_clone);
 # Read user's Affymetrix 96 well plate tabular file.
 affy_metadata_data_frame <- read.table(opt$input_affy_metadata, header=FALSE, stringsAsFactors=FALSE, sep="\t", na.strings = c("", "NA"));
 colnames(affy_metadata_data_frame) <- c("user_specimen_id", "field_call", "bcoral_genet_id", "bsym_genet_id", "reef",
-                                        "region", "latitude", "longitude", "geographic_origin", "sample_location",
+                                        "region", "latitude", "longitude", "geographic_origin", "colony_location",
                                         "latitude_outplant", "longitude_outplant", "depth", "disease_resist",
                                         "bleach_resist", "mortality","tle", "spawning", "collector_last_name",
                                         "collector_first_name", "organization", "collection_date", "email", "seq_facility",

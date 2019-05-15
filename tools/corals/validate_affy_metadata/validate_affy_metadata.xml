@@ -37,7 +37,7 @@ The tool will output the input file if it is valid.
  * latitude
  * longitude
  * geographic_origin
- * sample_location
+ * colony_location
  * latitude_outplant
  * longitude_outplant
  * depth
