@@ -1,4 +1,4 @@
-<tool id="affr2vcf" name="Convert Affymetrix" version="@WRAPPER_VERSION@">
+<tool id="affy2vcf" name="Convert Affymetrix" version="@WRAPPER_VERSION@">
     <description>genotype calls and intensities to VCF</description>
     <macros>
         <import>macros.xml</import>
