@@ -33,8 +33,8 @@ parser <- OptionParser(usage="%prog [options] file", option_list=option_list);
 args <- parse_args(parser, positional_arguments=TRUE);
 opt <- args$options;
 
-get_file_path = function(file_name) {
-    file_path = paste("output_plots_dir", file_name, sep="/");
+get_file_path = function(dir, file_name) {
+    file_path = paste(dir, file_name, sep="/");
     return(file_path);
 }
 
@@ -103,20 +103,20 @@ mlg_ids <- mlg.id(genind_clone);
 
 # Read user's Affymetrix 96 well plate tabular file.
 affy_metadata_data_frame <- read.table(opt$input_affy_metadata, header=FALSE, stringsAsFactors=FALSE, sep="\t", na.strings = c("", "NA"));
-colnames(affy_metadata_data_frame) <- c("user_specimen_id", "field_call", "bcoral_genet_id", "bsym_genet_id", "reef",
-                                        "region", "latitude", "longitude", "geographic_origin", "colony_location",
-                                        "latitude_outplant", "longitude_outplant", "depth", "disease_resist",
-                                        "bleach_resist", "mortality","tle", "spawning", "collector_last_name",
-                                        "collector_first_name", "organization", "collection_date", "email", "seq_facility",
-                                        "array_version", "public", "public_after_date", "sperm_motility", "healing_time",
-                                        "dna_extraction_method", "dna_concentration", "registry_id");
-affy_metadata_data_frame$user_specimen_id <- as.character(affy_metadata_data_frame$user_specimen_id);
-user_specimen_ids <- as.character(affy_metadata_data_frame$user_specimen_id);
+colnames(affy_metadata_data_frame) <- c("USER_SPECIMEN_ID", "FIELD_CALL", "BCORAL_GENET_ID", "BSYM_GENET_ID", "REEF",
+                                        "REGION", "LATITUDE", "LONGITUDE", "GEOGRAPHIC_ORIGIN", "COLONY_LOCATION",
+                                        "LATITUDE_OUTPLANT", "LONGITUDE_OUTPLANT", "DEPTH", "DISEASE_RESIST",
+                                        "BLEACH_RESIST", "MORTALITY","TLE", "SPAWNING", "COLLECTOR_LAST_NAME",
+                                        "COLLECTOR_FIRST_NAME", "ORGANIZATION", "COLLECTION_DATE", "EMAIL", "SEQ_FACILITY",
+                                        "ARRAY_VERSION", "PUBLIC", "PUBLIC_AFTER_DATE", "SPERM_MOTILITY", "HEALING_TIME",
+                                        "DNA_EXTRACTION_METHOD", "DNA_CONCENTRATION", "REGISTRY_ID");
+affy_metadata_data_frame$USER_SPECIMEN_ID <- as.character(affy_metadata_data_frame$USER_SPECIMEN_ID);
+user_specimen_ids <- as.character(affy_metadata_data_frame$USER_SPECIMEN_ID);
 # The specimen_id_field_call_data_table looks like this:
 # user_specimen_ids V2
 # test_002          prolifera
 # test_003          prolifera
-specimen_id_field_call_data_table <- data.table(user_specimen_ids, affy_metadata_data_frame$field_call);
+specimen_id_field_call_data_table <- data.table(user_specimen_ids, affy_metadata_data_frame$FIELD_CALL);
 # Rename the user_specimen_ids column.
 setnames(specimen_id_field_call_data_table, c("user_specimen_ids"), c("user_specimen_id"));
 # Rename the V2 column.
@@ -317,12 +317,6 @@ start_time <- time_start("Writing csv output");
 write.csv(stag_db_report, file=opt$output_stag_db_report, quote=FALSE);
 time_elapsed(start_time);
 
-# Database sample table.
-sample_db <- affy_metadata_data_frame %>%
-  left_join(stag_db_report %>%
-      select("user_specimen_id","affy_id", "percent_missing_data_coral", "percent_heterozygous_coral", "percent_reference_coral", "percent_alternative_coral"),
-      by='user_specimen_id');
-
 # Representative clone for genotype table.
 start_time <- time_start("Creating representative clone for genotype table");
 no_dup_genotypes_genind <- clonecorrect(genind_clone, strata = ~pop.genind_obj.);
@@ -332,70 +326,12 @@ id_data_table <- data.table(id_rep, keep.rownames=TRUE);
 setnames(id_data_table, c("id_rep"), c("affy_id"));
 time_elapsed(start_time);
 
-# # Combine with previously genotyped samples in the database.
-start_time <- time_start("Selecting from various database tables");
-representative_mlg_tibble <- id_data_table %>%
-    group_by(row_number()) %>%
-    rename(group='row_number()') %>%
-    unnest(affy_id) %>%
-    left_join(stag_db_report %>%
-              select("coral_mlg_clonal_id", "user_specimen_id", "affy_id"),
-              by='affy_id') %>%
-    mutate(coral_mlg_rep_sample_id=ifelse(is.na(coral_mlg_clonal_id), "", affy_id)) %>%
-    ungroup() %>%
-    select(-group);
-
-# Database genotype table.
-genotype_table_join <- sample_mlg_match_tibble %>%
-    left_join(representative_mlg_tibble %>%
-    select("affy_id", "coral_mlg_rep_sample_id", "user_specimen_id"),
-    by='affy_id') %>%
-    ungroup() %>%
-    select(-group);
-
-# Database taxonomy table.
-taxonomy_table_join <- stag_db_report %>%
-    select(genetic_coral_species_call, affy_id) %>%
-    mutate(genus_name = ifelse(genetic_coral_species_call == genetic_coral_species_call[grep("^A.*", genetic_coral_species_call)], "Acropora", "other")) %>%
-    mutate(species_name = ifelse(genetic_coral_species_call == "A.palmata", "palmata", "other")) %>%
-    mutate(species_name = ifelse(genetic_coral_species_call == "A.cervicornis", "cervicornis", species_name)) %>%
-    mutate(species_name = ifelse(genetic_coral_species_call == "A.prolifera", "prolifera", species_name));
-time_elapsed(start_time);
 # Table of alleles for the new samples subset to new plate data.
 # Create vector indicating number of individuals desired from
 # affy_id column of stag_db_report data table.
 i <- ifelse(is.na(stag_db_report[1]), "", stag_db_report[[1]]);
 i <- i[!apply(i== "", 1, all),];
 sample_alleles_vector <- genind_clone[i, mlg.reset=FALSE, drop=FALSE];
-
-# cols looks like this:
-#       blue1         red       green        pink      orange       blue2 
-# "#0C5BB0FF" "#EE0011FF" "#15983DFF" "#EC579AFF" "#FA6B09FF" "#149BEDFF" 
-#      green2      yellow   turquoise        poop 
-# "#A1C720FF" "#FEC10BFF" "#16A08CFF" "#9A703EFF"
-cols <- piratepal("basel");
-set.seed(999);
-
-if (!is.null(opt$output_nj_phylogeny_tree)) {
-    # Create a phylogeny tree of samples based on distance matrices.
-    # Start PDF device driver.
-    start_time <- time_start("Creating nj_phylogeny_tree.pdf");
-    dev.new(width=40, height=80);
-    file_path = get_file_path("nj_phylogeny_tree.pdf");
-    pdf(file=file_path, width=40, height=80);
-    # Organize branches by clade.
-    nj_phylogeny_tree <- sample_alleles_vector %>%
-        aboot(dist=provesti.dist, sample=100, tree="nj", cutoff=50, quiet=TRUE) %>%
-        ladderize();
-    nj_phylogeny_tree$tip.label <- stag_db_report$user_specimen_id[match(nj_phylogeny_tree$tip.label, stag_db_report$affy_id)];
-    plot.phylo(nj_phylogeny_tree, tip.color=cols[sample_alleles_vector$pop], label.offset=0.0125, cex=0.3, font=2, lwd=4, align.tip.label=F, no.margin=T);
-    # Add a scale bar showing 5% difference.
-    add.scale.bar(0, 0.95, length=0.05, cex=0.65, lwd=3);
-    nodelabels(nj_phylogeny_tree$node.label, cex=.5, adj=c(1.5, -0.1), frame="n", font=3, xpd=TRUE);
-    legend("topright", legend=c(levels(sample_alleles_vector$pop)), text.col=cols, xpd=T, cex=0.8);
-    dev.off()
-    time_elapsed(start_time);
-}
 
 # Subset VCF to the user samples.
 start_time <- time_start("Subsetting vcf to the user samples");
@@ -453,11 +389,21 @@ par(cex=0.6, cex.lab=1, cex.axis=1.5,cex.main=2);
 ibs.hc <- snpgdsHCluster(snpgdsIBS(genofile, autosome.only=FALSE));
 time_elapsed(start_time);
 
+# cols looks like this:
+#       blue1         red       green        pink      orange       blue2 
+# "#0C5BB0FF" "#EE0011FF" "#15983DFF" "#EC579AFF" "#FA6B09FF" "#149BEDFF" 
+#      green2      yellow   turquoise        poop 
+# "#A1C720FF" "#FEC10BFF" "#16A08CFF" "#9A703EFF"
+cols <- piratepal("basel");
+set.seed(999);
+
+# Generate plots.
+output_plots_dir = "output_plots_dir";
 # Default clustering.
 start_time <- time_start("Creating ibs_default.pdf");
 # Start PDF device driver.
 dev.new(width=40, height=20);
-file_path = get_file_path("ibs_default.pdf");
+file_path = get_file_path(output_plots_dir, "ibs_default.pdf");
 pdf(file=file_path, width=40, height=20);
 rv <- snpgdsCutTree(ibs.hc, col.list=cols, pch.list=15);
 snpgdsDrawTree(rv, main="Color by Cluster", leaflab="perpendicular", y.label=0.2);
@@ -469,54 +415,12 @@ time_elapsed(start_time);
 start_time <- time_start("Creating ibs_region.pdf");
 # Start PDF device driver.
 dev.new(width=40, height=20);
-file_path = get_file_path("ibs_region.pdf");
+file_path = get_file_path(output_plots_dir, "ibs_region.pdf");
 pdf(file=file_path, width=40, height=20);
 race <- as.factor(population_code);
 rv2 <- snpgdsCutTree(ibs.hc, samp.group=race,col.list=cols, pch.list=15);
 snpgdsDrawTree(rv2, main="Color by Region", leaflab="perpendicular", y.label=0.2);
 legend("topleft", legend=levels(race), xpd=T, col=cols[1:nlevels(race)], pch=15, ncol=4, cex=1.2);
-dev.off()
-time_elapsed(start_time);
-
-# close GDS file.
-snpgdsClose(genofile);
-
-# Sample MLG on a map.
-start_time <- time_start("Creating mlg_map.pdf");
-# Get the lattitude and longitude boundaries for rendering
-# the map.  Tese boundaries will restrict the map to focus
-# (i.e., zoom) on the region of the world map from which
-# the samples were taken.
-max_latitude <- max(affy_metadata_data_frame$latitude, na.rm=TRUE);
-min_latitude <- min(affy_metadata_data_frame$latitude, na.rm=TRUE);
-latitude_range_vector <- c(min_latitude-3, max_latitude+3);
-max_longitude <- max(affy_metadata_data_frame$longitude, na.rm=TRUE);
-min_longitude <- min(affy_metadata_data_frame$longitude, na.rm=TRUE);
-longitude_range_vector <- c(min_longitude-3, max_longitude+3);
-# Get the palette colors for rendering plots.
-colors <- length(unique(stag_db_report$coral_mlg_clonal_id));
-# Get a color palette.
-palette <- colorRampPalette(piratepal("basel"));
-# Start PDF device driver.
-dev.new(width=20, height=20);
-file_path = get_file_path("mlg_map.pdf");
-pdf(file=file_path, width=20, height=20);
-world_data = map_data("world");
-# Add the coral_mlg_clonal_id column from the stag_db_report
-# data fram to the affy_metadata_data_frame.
-affy_metadata_data_frame$mlg <- stag_db_report$coral_mlg_clonal_id;
-# Get the number of colors needed from the palette for plotting
-# the sample locations on the world map.
-num_colors = length(unique(affy_metadata_data_frame$mlg));
-# Get a color palette.
-palette = colorRampPalette(piratepal("basel"));
-ggplot() + 
-geom_map(data=world_data, map=world_data, aes(x=long, y=lat, group=group, map_id=region), fill="white", colour="#7f7f7f") +
-coord_map(xlim=longitude_range_vector, ylim=latitude_range_vector) +
-geom_point(data=affy_metadata_data_frame, aes(x=longitude, y=latitude, group=mlg, color=mlg), alpha=.7, size=3) +
-scale_color_manual(values=palette(num_colors)) +
-theme(legend.position="bottom") +
-guides(color=guide_legend(nrow=8, byrow=F));
 dev.off()
 time_elapsed(start_time);
 
@@ -528,13 +432,79 @@ miss96 <- population_info_data_table$miss[test2];
 name96 <- population_info_data_table$user_specimen_id[test2];
 # Start PDF device driver.
 dev.new(width=20, height=10);
-file_path = get_file_path("missing_data.pdf");
+file_path = get_file_path(output_plots_dir, "missing_data.pdf");
 pdf(file=file_path, width=20, height=10);
 par(mar = c(8, 4, 4, 2));
 x <- barplot(miss96, las=2, col=cols, ylim=c(0, 3), cex.axis=0.8, space=0.8, ylab="Missingness (%)", xaxt="n");
 text(cex=0.6, x=x-0.25, y=-.05, name96, xpd=TRUE, srt=60, adj=1);
 dev.off()
 time_elapsed(start_time);
+
+# Sample MLG on a map.
+start_time <- time_start("Creating mlg_map.pdf");
+# Get the lattitude and longitude boundaries for rendering
+# the map.  Tese boundaries will restrict the map to focus
+# (i.e., zoom) on the region of the world map from which
+# the samples were taken.
+max_latitude <- max(affy_metadata_data_frame$LATITUDE, na.rm=TRUE);
+min_latitude <- min(affy_metadata_data_frame$LATITUDE, na.rm=TRUE);
+latitude_range_vector <- c(min_latitude-3, max_latitude+3);
+max_longitude <- max(affy_metadata_data_frame$LONGITUDE, na.rm=TRUE);
+min_longitude <- min(affy_metadata_data_frame$LONGITUDE, na.rm=TRUE);
+longitude_range_vector <- c(min_longitude-3, max_longitude+3);
+# Get the palette colors for rendering plots.
+colors <- length(unique(stag_db_report$coral_mlg_clonal_id));
+# Get a color palette.
+palette <- colorRampPalette(piratepal("basel"));
+# Start PDF device driver.
+dev.new(width=20, height=20);
+file_path = get_file_path(output_plots_dir, "mlg_map.pdf");
+pdf(file=file_path, width=20, height=20);
+world_data = map_data("world");
+# Add the coral_mlg_clonal_id column from the stag_db_report
+# data fram to the affy_metadata_data_frame.
+affy_metadata_data_frame$mlg <- stag_db_report$coral_mlg_clonal_id;
+# Get the number of colors needed from the palette for plotting
+# the sample locations on the world map.
+num_colors = length(unique(affy_metadata_data_frame$mlg));
+# Get a color palette.
+palette = colorRampPalette(piratepal("basel"));
+ggplot() +
+geom_map(data=world_data, map=world_data, aes(x=long, y=lat, group=group, map_id=region), fill="white", colour="#7f7f7f") +
+coord_map(xlim=longitude_range_vector, ylim=latitude_range_vector) +
+geom_point(data=affy_metadata_data_frame, aes(x=longitude, y=latitude, group=mlg, color=mlg), alpha=.7, size=3) +
+scale_color_manual(values=palette(num_colors)) +
+theme(legend.position="bottom") +
+guides(color=guide_legend(nrow=8, byrow=F));
+dev.off()
+time_elapsed(start_time);
+
+if (!is.null(opt$output_nj_phylogeny_tree)) {
+    # Create a phylogeny tree of samples based on distance matrices.
+    # Start PDF device driver.
+    start_time <- time_start("Creating nj_phylogeny_tree.pdf");
+    # Table of alleles for the new samples subset to new plate data.
+    # Create vector indicating number of individuals desired from
+    # affy_id column of stag_db_report data table.
+    i <- ifelse(is.na(stag_db_report[1]), "", stag_db_report[[1]]);
+    i <- i[!apply(i== "", 1, all),];
+    sample_alleles_vector <- genind_clone[i, mlg.reset=FALSE, drop=FALSE];
+    dev.new(width=40, height=80);
+    file_path = get_file_path(output_plots_dir, "nj_phylogeny_tree.pdf");
+    pdf(file=file_path, width=40, height=80);
+    # Organize branches by clade.
+    nj_phylogeny_tree <- sample_alleles_vector %>%
+        aboot(dist=provesti.dist, sample=100, tree="nj", cutoff=50, quiet=TRUE) %>%
+        ladderize();
+    nj_phylogeny_tree$tip.label <- stag_db_report$user_specimen_id[match(nj_phylogeny_tree$tip.label, stag_db_report$affy_id)];
+    plot.phylo(nj_phylogeny_tree, tip.color=cols[sample_alleles_vector$pop], label.offset=0.0125, cex=0.3, font=2, lwd=4, align.tip.label=F, no.margin=T);
+    # Add a scale bar showing 5% difference.
+    add.scale.bar(0, 0.95, length=0.05, cex=0.65, lwd=3);
+    nodelabels(nj_phylogeny_tree$node.label, cex=.5, adj=c(1.5, -0.1), frame="n", font=3, xpd=TRUE);
+    legend("topright", legend=c(levels(sample_alleles_vector$pop)), text.col=cols, xpd=T, cex=0.8);
+    dev.off()
+    time_elapsed(start_time);
+}
 
 # Generate a pie chart for each sample with a genotype.
 # Store the numerical and user_specimen_id values from
@@ -558,7 +528,7 @@ mode(translated_stag_db_report_matrix) <- "numeric";
 translated_stag_db_report_matrix <- na.omit(translated_stag_db_report_matrix);
 tsdbrm_row_means <- rowMeans(translated_stag_db_report_matrix, na.rm=TRUE);
 dev.new(width=10, height=7);
-file_path = get_file_path("percent_breakdown.pdf");
+file_path = get_file_path(output_plots_dir, "percent_breakdown.pdf");
 pdf(file=file_path, width=10, height=7);
 # Average pie of all samples.
 labels <- paste(c("missing data", "mixed", "reference", "alternative"), " (", round(tsdbrm_row_means, 1), "%)", sep="");
@@ -574,4 +544,113 @@ for (i in 1:ncol(translated_stag_db_report_matrix)) {
     pie(translated_stag_db_report_matrix[,i], labels=tmp_labels, radius=0.90, col=col, main=main, cex.main=.85, cex=0.75);
 }
 dev.off()
+time_elapsed(start_time);
+
+# close GDS file.
+snpgdsClose(genofile);
+
+# Prepare to output data frames for input to a downstream
+# tool that will use them to update the stag database.
+start_time <- time_start("Building data frames for insertion into database tables");
+output_df_dir = "output_df_dir";
+# sample_prep_data_frame looks like this (split across comment lines):
+# user_specimen_id  field_call bcoral_genet_id bsym_genet_id reef
+# test_002          prolifera  NA              NA            JohnsonsReef
+# region  latitude longitude geographic_origin colony_location
+# Bahamas 18.36173 -64.77430 Reef              NA
+# latitude_outplant longitude_outplant depth disease_resist bleach_resist
+# NA                NA                 5     NA             N
+# mortality tle spawning collector_last_name collector_first_name organization
+# NA        NA  False    Kitchen             Sheila               Penn State
+# collection_date email       seq_facility array_version public
+# 2018-11-08      k89@psu.edu Affymetrix   1             True
+# public_after_date sperm_motility healing_time dna_extraction_method
+# NA               -9             -9            NA
+# dna_concentration registry_id affy_id
+# NA                NA          a550962-4368120-060520-500_A03.CEL
+# percent_missing_data_coral percent_heterozygous_coral
+# 1.06                       19.10
+# percent_reference_coral percent_alternative_coral
+# 40.10459                39.73396
+sample_prep_data_frame <- affy_metadata_data_frame %>%
+    left_join(stag_db_report %>%
+        select("user_specimen_id","affy_id", "percent_missing_data_coral", "percent_heterozygous_coral", "percent_reference_coral", "percent_alternative_coral"),
+        by='user_specimen_id');
+# Get the number of rows for all data frames.
+num_rows <- nrow(sample_prep_data_frame);
+# Set the column names so that we can extract only those columns
+# needed for the sample table.
+colnames(sample_prep_data_frame) <- c("USER_SPECIMEN_ID", "FIELD_CALL", "BCORAL_GENET_ID", "BSYM_GENET_ID", "REEF",
+                                      "REGION", "LATITUDE", "LONGITUDE", "GEOGRAPHIC_ORIGIN", "COLONY_LOCATION",
+                                      "LATITUDE_OUTPLANT", "LONGITUDE_OUTPLANT", "DEPTH", "DISEASE_RESIST" "BLEACH_RESIST",
+                                      "MORTALITY", "TLE", "SPAWNING", "COLLECTOR_LAST_NAME", "COLLECTOR_FIRST_NAME",
+                                      "ORGANIZATION", "COLLECTION_DATE", "EMAIL", "SEQ_FACILITY", "ARRAY_VERSION",
+                                      "PUBLIC", "PUBLIC_AFTER_DATE", "SPERM_MOTILITY", "HEALING_TIME", "DNA_EXTRACTION_METHOD",
+                                      "DNA_CONCENTRATION", "REGISTRY_ID", "AFFY_ID", "PERCENT_MISSING_DATA_CORAL", "PERCENT_HETEROZYGOUS_CORAL",
+                                      "PERCENT_REFERENCE_CORAL", "PERCENT_ALTERNATIVE_CORAL");
+
+# representative_mlg_tibble looks like this:
+# # A tibble: 230 x 4
+# affy_id                            coral_mlg_clonal_id user_specimen_id coral_mlg_rep_sample_id
+# <chr>                              <chr>               <chr>            <chr>                  
+# a550962-4368120-060520-500_A05.CEL HG0135              test_084         a550962-4368120-060520…
+representative_mlg_tibble <- id_data_table %>%
+    group_by(row_number()) %>%
+    rename(group='row_number()') %>%
+    unnest(affy_id) %>%
+    left_join(stag_db_report %>%
+              select("coral_mlg_clonal_id", "user_specimen_id", "affy_id"),
+              by='affy_id') %>%
+    mutate(coral_mlg_rep_sample_id=ifelse(is.na(coral_mlg_clonal_id), "", affy_id)) %>%
+    ungroup() %>%
+    select(-group);
+
+# genotype_table_tibble looks like this:
+# # A tibble: 262 x 5
+# affy_id                            coral_mlg_clonal_id DB_match coral_mlg_rep_samp… user_specimen_id
+# <chr>                              <chr>               <chr>    <chr>               <chr>           
+# a550962-4368120-060520-500_A05.CEL HG0135              no_match a550962-4368120-06… test_084
+genotype_table_tibble <- sample_mlg_match_tibble %>%
+    left_join(representative_mlg_tibble %>%
+    select("affy_id", "coral_mlg_rep_sample_id", "user_specimen_id"),
+    by='affy_id') %>%
+    ungroup() %>%
+    select(-group);
+# Output the data frame for updating the genotype table.
+file_path <- get_file_path(output_df_dir, "genotype.tabular");
+write.tab(genotype_table_tibble, file_path);
+
+# taxonomy_table_data_frame looks like this:
+# genetic_coral_species_call affy_id                            genus_name species_name
+# A.palmata                  a550962-4368120-060520-500_A05.CEL Acropora   palmata
+taxonomy_table_data_frame <- stag_db_report %>%
+    select(genetic_coral_species_call, affy_id) %>%
+    mutate(genus_name = ifelse(genetic_coral_species_call == genetic_coral_species_call[grep("^A.*", genetic_coral_species_call)], "Acropora", "other")) %>%
+    mutate(species_name = ifelse(genetic_coral_species_call == "A.palmata", "palmata", "other")) %>%
+    mutate(species_name = ifelse(genetic_coral_species_call == "A.cervicornis", "cervicornis", species_name)) %>%
+    mutate(species_name = ifelse(genetic_coral_species_call == "A.prolifera", "prolifera", species_name));
+colnames(taxonomy_table_data_frame) <- c("GENETIC_CORAL_SPECIES_CALL", "AFFY_ID", "GENUS_NAME", "SPECIES_NAME");
+time_elapsed(start_time);
+
+# Output the file needed for populating the person table.
+person_table_data_frame <- data.frame(matrix(ncol=4, nrow=num_rows));
+colnames(person_table_data_frame) <- c("LAST_NAME", "FIRST_NAME", "ORGANIZATION", "EMAIL");
+for (i in 1:num_rows) {
+    person_table_data_frame$LAST_NAME[i] <- sample_prep_data_frame$COLLECTOR_LAST_NAME[i];
+    person_table_data_frame$FIRST_NAME[i] <- sample_prep_data_frame$COLLECTOR_FIRST_NAME[i];
+    person_table_data_frame$ORGANIZATION[i] <- sample_prep_data_frame$ORGANIZATION[i];
+    person_table_data_frame$EMAIL[i] <- sample_prep_data_frame$EMAIL[i];
+}
+file_path <- get_file_path(output_df_dir, "person");
+write.tab(person_table_data_frame, file_path);
+
+# Output the file needed for populating the sample table.
+sample_table_data_frame <- data.frame(matrix(ncol=28, nrow=num_rows));
+colnames(sample_table_data_frame) <- c("AFFY_ID", "SAMPLE_ID", "ALLELE_ID", "GENOTYPE_ID", "PHENOTYPE_ID",
+                                       "EXPERIMENT_ID", "COLONY_ID", "COLONY_LOCATION", "FRAGMENT_ID", "TAXONOMY_ID",
+                                       "COLLECTOR_ID", "COLLECTION_DATE", "USER_SPECIMEN_ID", "REGISTRY_ID", "DEPTH",
+                                       "DNA_EXTRACTION_METHOD", "DNA_CONCENTRATION", "PUBLIC", "PUBLIC_AFTER_DATE", "PERCENT_MISSING_DATA_CORAL",
+                                       "PERCENT_MISSING_DATA_SYM", "PERCENT_REFERENCE_CORAL", "PERCENT_REFERENCE_SYM", "PERCENT_ALTERNATIVE_CORAL", "PERCENT_ALTERNATIVE_SYM",
+                                       "PERCENT_HETEROZYGOUS_CORAL", "PERCENT_HETEROZYGOUS_SYM", "FIELD_CALL");
+
 time_elapsed(start_time);

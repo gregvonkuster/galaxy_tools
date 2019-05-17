@@ -21,7 +21,9 @@
         <requirement type="package" version="0.1.5">r-yarrr</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
+#set output_data_dir = 'output_data_dir'
 #set output_plots_dir = 'output_plots_dir'
+mkdir $output_data_dir &&
 mkdir $output_plots_dir &&
 Rscript '$__tool_directory__/multilocus_genotype.R'
 --database_connection_string '$__app__.config.corals_database_connection'
@@ -43,11 +45,14 @@ Rscript '$__tool_directory__/multilocus_genotype.R'
         </param>
     </inputs>
     <outputs>
+        <collection name="output_data_collection" type="list" label="${tool.name} (table data), on ${on_string}">
+            <discover_datasets pattern="__name__" directory="output_data_dir" format="tabular"/>
+        </collection>
         <collection name="output_plot_collection" type="list" label="${tool.name} (plots), on ${on_string}">
             <discover_datasets pattern="__name__" directory="output_plots_dir" format="pdf"/>
         </collection>
-        <data name="output_stag_db_report" format="csv" label="${tool.name} (stag db report) on ${on_string}"/>
         <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}"/>
+        <data name="output_stag_db_report" format="csv" label="${tool.name} (stag db report) on ${on_string}"/>
     </outputs>
     <tests>
         <test>
@@ -55,6 +60,9 @@ Rscript '$__tool_directory__/multilocus_genotype.R'
             <param name="input_affy_metadata" value="affy_metadata.tabular" ftype="tabular"/>
             <param name="input_pop_info" value="pop_info.txt" ftype="txt"/>
             <output name="output_stag_db_report" file="output_stag_db_report.csv" ftype="csv"/>
+            <output_collection name="output_data_collection" type="list">
+                <element name="person.tabular" file="person.tabular" ftype="tabular" compare="contains"/>
+            </output_collection>
             <output_collection name="output_plot_collection" type="list">
                 <element name="nj_phylogeny.pdf" file="nj_phylogeny.pdf" ftype="pdf" compare="contains"/>
                 <element name="missing_data.pdf" file="missing_data.pdf" ftype="pdf" compare="contains"/>
