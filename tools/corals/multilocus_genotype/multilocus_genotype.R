@@ -472,7 +472,7 @@ palette = colorRampPalette(piratepal("basel"));
 ggplot() +
 geom_map(data=world_data, map=world_data, aes(x=long, y=lat, group=group, map_id=region), fill="white", colour="#7f7f7f") +
 coord_map(xlim=longitude_range_vector, ylim=latitude_range_vector) +
-geom_point(data=affy_metadata_data_frame, aes(x=longitude, y=latitude, group=mlg, color=mlg), alpha=.7, size=3) +
+geom_point(data=affy_metadata_data_frame, aes(x=LONGITUDE, y=LATITUDE, group=mlg, color=mlg), alpha=.7, size=3) +
 scale_color_manual(values=palette(num_colors)) +
 theme(legend.position="bottom") +
 guides(color=guide_legend(nrow=8, byrow=F));
