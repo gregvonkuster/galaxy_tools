@@ -68,6 +68,14 @@ time_start <- function(msg) {
     return(start_time);
 }
 
+write_data_frame <- function(dir, file_name, data_frame) {
+    file_path <- get_file_path(dir, file_name);
+    write.table(data_frame, file=file_path, row.names=FALSE, sep="\t");
+}
+
+# Prepare for processing.
+output_data_dir = "output_data_dir";
+output_plots_dir = "output_plots_dir";
 # Read in VCF input file.
 start_time <- time_start("Reading VCF input");
 vcf <- read.vcfR(opt$input_vcf);
@@ -131,14 +139,13 @@ genotype_table <- tbl(conn, "genotype");
 # Select columns from the sample table and the
 # genotype table joined by genotype_id.
 sample_table_columns <- sample_table %>% select(user_specimen_id, affy_id, genotype_id);
-smlg <- sample_table_columns %>%
+sample_multilocus_genotype_tibble <- sample_table_columns %>%
     left_join(genotype_table %>%
-              select("id", "coral_mlg_clonal_id", "symbio_mlg_clonal_id"),
-              by=c("genotype_id"="id"));
-# Convert to dataframe.
-smlg_data_frame <- data.frame(smlg);
+        select("id", "coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "symbio_mlg_clonal_id", "symbio_mlg_rep_sample_id", "genetic_coral_species_call", "bcoral_genet_id", "bsym_genet_id"),
+        by=c("genotype_id"="id"));
 # Name the columns.
-colnames(smlg_data_frame) <- c("user_specimen_id", "affy_id", "genotype_id", "coral_mlg_clonal_id", "symbio_mlg_clonal_id");
+colnames(sample_multilocus_genotype_tibble) <- c("user_specimen_id", "affy_id", "genotype_id", "coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "symbio_mlg_clonal_id", "symbio_mlg_rep_sample_id", "genetic_coral_species_call", "bcoral_genet_id", "bsym_genet_id");
+write_data_frame(output_data_dir, "sample_multilocus_genotype_tibble", sample_multilocus_genotype_tibble);
 
 # Missing GT in samples submitted.
 start_time <- time_start("Discovering missing GT in samples");
@@ -233,8 +240,8 @@ sample_mlg_tibble <- mlg_ids_data_table %>%
     dplyr::rename(group="row_number()") %>%
     unnest (affy_id) %>%
     # Join with mlg table.
-    left_join(smlg_data_frame %>%
-              select("affy_id","coral_mlg_clonal_id"),
+    left_join(sample_multilocus_genotype_tibble %>%
+              select("affy_id","coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "symbio_mlg_clonal_id", "symbio_mlg_rep_sample_id", "genetic_coral_species_call", "bcoral_genet_id", "bsym_genet_id"),
               by="affy_id");
 
 # If found in database, group members on previous mlg id.
@@ -243,6 +250,7 @@ uniques <- uniques[!is.na(uniques$coral_mlg_clonal_id),];
 na.mlg <- which(is.na(sample_mlg_tibble$coral_mlg_clonal_id));
 na.group <- sample_mlg_tibble$group[na.mlg];
 sample_mlg_tibble$coral_mlg_clonal_id[na.mlg] <- uniques$coral_mlg_clonal_id[match(na.group, uniques$group)];
+write_data_frame(output_data_dir, "sample_mlg_tibble.tabular", sample_mlg_tibble);
 
 # Find out if the sample mlg matched a previous genotyped sample.
 # sample_mlg_match_tibble looks like this:
@@ -254,7 +262,7 @@ sample_mlg_tibble$coral_mlg_clonal_id[na.mlg] <- uniques$coral_mlg_clonal_id[mat
 # 2     a550962-4368120-060520-256_A19.CEL HG0006              match 
 sample_mlg_match_tibble <- sample_mlg_tibble %>%
     group_by(group) %>%
-    mutate(DB_match = ifelse(is.na(coral_mlg_clonal_id),"no_match", "match"));
+    mutate(DB_match = ifelse(is.na(coral_mlg_clonal_id), "no_match", "match"));
 
 # Create new mlg id for samples with no matches in the database.
 none <- unique(sample_mlg_match_tibble[c("group", "coral_mlg_clonal_id")]);
@@ -275,6 +283,7 @@ n.g_ids <- sprintf("HG%04d", seq((sum(!is.na(unique(sample_mlg_match_tibble["cor
 for (i in 1:length(na.mlg2)) {
     sample_mlg_match_tibble$coral_mlg_clonal_id[na.mlg2[i]] <- n.g_ids[match(sample_mlg_match_tibble$group[na.mlg2[i]], unique(n.g))];
 }
+write_data_frame(output_data_dir, "sample_mlg_match_tibble.tabular", sample_mlg_match_tibble);
 
 # Subset population_info_data_table for all samples.
 # affy_id_user_specimen_id_vector looks like this:
@@ -398,7 +407,6 @@ cols <- piratepal("basel");
 set.seed(999);
 
 # Generate plots.
-output_plots_dir = "output_plots_dir";
 # Default clustering.
 start_time <- time_start("Creating ibs_default.pdf");
 # Start PDF device driver.
@@ -552,7 +560,6 @@ snpgdsClose(genofile);
 # Prepare to output data frames for input to a downstream
 # tool that will use them to update the stag database.
 start_time <- time_start("Building data frames for insertion into database tables");
-output_df_dir = "output_df_dir";
 # sample_prep_data_frame looks like this (split across comment lines):
 # user_specimen_id  field_call bcoral_genet_id bsym_genet_id reef
 # test_002          prolifera  NA              NA            JohnsonsReef
@@ -578,16 +585,18 @@ sample_prep_data_frame <- affy_metadata_data_frame %>%
         by='user_specimen_id');
 # Get the number of rows for all data frames.
 num_rows <- nrow(sample_prep_data_frame);
+cat("XXX nrow(sample_prep_data_frame): ", nrow(sample_prep_data_frame), "\n");
 # Set the column names so that we can extract only those columns
 # needed for the sample table.
 colnames(sample_prep_data_frame) <- c("user_specimen_id", "field_call", "bcoral_genet_id", "bsym_genet_id", "reef",
                                       "region", "latitude", "longitude", "geographic_origin", "colony_location",
-                                      "latitude_outplant", "longitude_outplant", "depth", "disease_resist" "bleach_resist",
+                                      "latitude_outplant", "longitude_outplant", "depth", "disease_resist", "bleach_resist",
                                       "mortality", "tle", "spawning", "collector_last_name", "collector_first_name",
                                       "organization", "collection_date", "email", "seq_facility", "array_version",
                                       "public", "public_after_date", "sperm_motility", "healing_time", "dna_extraction_method",
                                       "dna_concentration", "registry_id", "affy_id", "percent_missing_data_coral", "percent_heterozygous_coral",
                                       "percent_reference_coral", "percent_alternative_coral");
+write_data_frame(output_data_dir, "sample_prep_data_frame.tabular", sample_prep_data_frame);
 
 # representative_mlg_tibble looks like this:
 # # A tibble: 230 x 4
@@ -604,6 +613,8 @@ representative_mlg_tibble <- id_data_table %>%
     mutate(coral_mlg_rep_sample_id=ifelse(is.na(coral_mlg_clonal_id), "", affy_id)) %>%
     ungroup() %>%
     select(-group);
+cat("XXX nrow(representative_mlg_tibble): ", nrow(representative_mlg_tibble), "\n");
+write_data_frame(output_data_dir, "representative_mlg_tibble.tabular", representative_mlg_tibble);
 
 # genotype_table_tibble looks like this:
 # # A tibble: 262 x 5
@@ -612,13 +623,13 @@ representative_mlg_tibble <- id_data_table %>%
 # a550962-4368120-060520-500_A05.CEL HG0135              no_match a550962-4368120-06… test_084
 genotype_table_tibble <- sample_mlg_match_tibble %>%
     left_join(representative_mlg_tibble %>%
-    select("affy_id", "coral_mlg_rep_sample_id", "user_specimen_id"),
+    select("coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "symbio_mlg_clonal_id", "symbio_mlg_rep_sample_id", "genetic_coral_species_call", "bcoral_genet_id", "bsym_genet_id", "affy_id"),
     by='affy_id') %>%
     ungroup() %>%
     select(-group);
+cat("XXX nrow(genotype_table_tibble): ", nrow(genotype_table_tibble), "\n");
 # Output the data frame for updating the genotype table.
-file_path <- get_file_path(output_df_dir, "genotype.tabular");
-write.tab(genotype_table_tibble, file_path);
+write_data_frame(output_data_dir, "genotype.tabular", genotype_table_tibble);
 
 # taxonomy_table_data_frame looks like this:
 # genetic_coral_species_call affy_id                            genus_name species_name
@@ -630,19 +641,20 @@ taxonomy_table_data_frame <- stag_db_report %>%
     mutate(species_name = ifelse(genetic_coral_species_call == "A.cervicornis", "cervicornis", species_name)) %>%
     mutate(species_name = ifelse(genetic_coral_species_call == "A.prolifera", "prolifera", species_name));
 colnames(taxonomy_table_data_frame) <- c("genetic_coral_species_call", "affy_id", "genus_name", "species_name");
-time_elapsed(start_time);
+cat("XXX nrow(taxonomy_table_data_frame): ", nrow(taxonomy_table_data_frame), "\n");
+write_data_frame(output_data_dir, "taxonomy_table_data_frame.tabular", taxonomy_table_data_frame);
 
 # Output the file needed for populating the person table.
 person_table_data_frame <- data.frame(matrix(ncol=4, nrow=num_rows));
 colnames(person_table_data_frame) <- c("last_name", "first_name", "organization", "email");
 for (i in 1:num_rows) {
-    person_table_data_frame$LAST_NAME[i] <- sample_prep_data_frame$COLLECTOR_LAST_NAME[i];
-    person_table_data_frame$FIRST_NAME[i] <- sample_prep_data_frame$COLLECTOR_FIRST_NAME[i];
-    person_table_data_frame$ORGANIZATION[i] <- sample_prep_data_frame$ORGANIZATION[i];
-    person_table_data_frame$EMAIL[i] <- sample_prep_data_frame$EMAIL[i];
+    person_table_data_frame$last_name[i] <- sample_prep_data_frame$collector_last_name[i];
+    person_table_data_frame$first_name[i] <- sample_prep_data_frame$collector_first_name[i];
+    person_table_data_frame$organization[i] <- sample_prep_data_frame$organization[i];
+    person_table_data_frame$email[i] <- sample_prep_data_frame$email[i];
 }
-file_path <- get_file_path(output_df_dir, "person");
-write.tab(person_table_data_frame, file_path);
+cat("XXX nrow(person_table_data_frame): ", nrow(person_table_data_frame), "\n");
+write_data_frame(output_data_dir, "person_table_data_frame.tabular", person_table_data_frame);
 
 # Output the file needed for populating the sample table.
 sample_table_data_frame <- data.frame(matrix(ncol=28, nrow=num_rows));
@@ -653,4 +665,6 @@ colnames(sample_table_data_frame) <- c("affy_id", "sample_id", "allele_id", "gen
                                        "percent_missing_data_sym", "percent_reference_coral", "percent_reference_sym", "percent_alternative_coral", "percent_alternative_sym",
                                        "percent_heterozygous_coral", "percent_heterozygous_sym", "field_call");
 
+cat("XXX nrow(sample_table_data_frame): ", nrow(sample_table_data_frame), "\n");
+write_data_frame(output_data_dir, "sample_table_data_frame.tabular", sample_table_data_frame);
 time_elapsed(start_time);
