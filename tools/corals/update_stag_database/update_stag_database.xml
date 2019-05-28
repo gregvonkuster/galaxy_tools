@@ -1,0 +1,35 @@
+<tool id="update_stag_database" name="Update stag database" version="1.0.0">
+    <description>with new genotyped samples</description>
+    <command detect_errors="exit_code"><![CDATA[
+#set input_dir = 'input_dir'
+mkdir $input_dir &&
+#for $i in $input:
+    #set filename = $i.file_name
+    #set name = $i.name
+    ln -s $filename $input_dir/$name &&
+#end for
+python '$__tool_directory__/update_stag_database.py'
+--database_connection_string '$__app__.config.corals_database_connection'
+--input_dir '$input_dir'
+--output '$output']]></command>
+    <inputs>
+        <param name="input" format="tabular" type="data_collection" collection_type="list" label="Tabular datasets for database update" />
+    </inputs>
+    <outputs>
+        <data name="output" format="txt" label="${tool.name} (process log) on ${on_string}"/>
+    </outputs>
+    <tests>
+        <test>
+            <!--Testing this tool is a bit difficult at the current time.-->
+        </test>
+    </tests>
+    <help>
+
+-----
+
+    </help>
+    <citations>
+        <citation>
+        </citation>
+    </citations>
+</tool>

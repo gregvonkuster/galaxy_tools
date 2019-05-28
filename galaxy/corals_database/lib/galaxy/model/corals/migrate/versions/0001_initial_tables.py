@@ -51,7 +51,7 @@ except Exception:
     # Handle leap years.
     year_from_now = today + (datetime.date(today.year + 1, 1, 1) - datetime.date(today.year, 1, 1))
 
-# The current working direectory is the Galaxy
+# The current working directory is the Galaxy
 # installation root, so the following file must
 # exist from that location.
 ALLELES_SEED_DATA_FILE = "stag_database_seed_data/alleles_seed_data_file.tabular"
