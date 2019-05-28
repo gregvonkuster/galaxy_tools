@@ -143,11 +143,14 @@ genotype_table <- tbl(conn, "genotype");
 sample_table_columns <- sample_table %>% select(user_specimen_id, affy_id, genotype_id);
 smlg <- sample_table_columns %>%
     left_join(genotype_table %>%
-        select("id", "coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "symbio_mlg_clonal_id", "symbio_mlg_rep_sample_id", "genetic_coral_species_call", "bcoral_genet_id", "bsym_genet_id"),
+        select("id", "coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "symbio_mlg_clonal_id",
+			   "symbio_mlg_rep_sample_id", "genetic_coral_species_call", "bcoral_genet_id", "bsym_genet_id"),
         by=c("genotype_id"="id"));
 # Name the columns.
 smlg_data_frame <- as.data.frame(smlg);
-colnames(smlg_data_frame) <- c("user_specimen_id", "affy_id", "genotype_id", "coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "symbio_mlg_clonal_id", "symbio_mlg_rep_sample_id", "genetic_coral_species_call", "bcoral_genet_id", "bsym_genet_id");
+colnames(smlg_data_frame) <- c("user_specimen_id", "affy_id", "genotype_id", "coral_mlg_clonal_id",
+		                       "coral_mlg_rep_sample_id", "symbio_mlg_clonal_id", "symbio_mlg_rep_sample_id",
+							   "genetic_coral_species_call", "bcoral_genet_id", "bsym_genet_id");
 #write_data_frame(output_data_dir, "smlg_data_frame", smlg_data_frame);
 
 # Missing GT in samples submitted.
@@ -244,7 +247,8 @@ sample_mlg_tibble <- mlg_ids_data_table %>%
     unnest (affy_id) %>%
     # Join with mlg table.
     left_join(smlg_data_frame %>%
-              select("affy_id","coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "symbio_mlg_clonal_id", "symbio_mlg_rep_sample_id", "genetic_coral_species_call", "bcoral_genet_id", "bsym_genet_id"),
+              select("affy_id","coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "symbio_mlg_clonal_id",
+					 "symbio_mlg_rep_sample_id", "genetic_coral_species_call", "bcoral_genet_id", "bsym_genet_id"),
               by="affy_id");
 
 # If found in database, group members on previous mlg id.
@@ -584,7 +588,8 @@ start_time <- time_start("Building data frames for insertion into database table
 # 40.10459                39.73396
 sample_prep_data_frame <- affy_metadata_data_frame %>%
     left_join(stag_db_report %>%
-        select("user_specimen_id","affy_id", "percent_missing_data_coral", "percent_heterozygous_coral", "percent_reference_coral", "percent_alternative_coral"),
+        select("user_specimen_id","affy_id", "percent_missing_data_coral", "percent_heterozygous_coral",
+			   "percent_reference_coral", "percent_alternative_coral"),
         by='user_specimen_id');
 # Get the number of rows for all data frames.
 num_rows <- nrow(sample_prep_data_frame);
@@ -621,6 +626,19 @@ representative_mlg_tibble <- id_data_table %>%
 # FIXME: We have no data for populating the experiment table.
 # FIXME: We have no data for populating the fragment table.
 
+# Output the data frame for updating the colony table.
+colony_table_data_frame <- data.frame(matrix(ncol=3, nrow=num_rows));
+colnames(colony_table_data_frame) <- c("latitude", "longitude", "depth");
+for (i in 1:num_rows) {
+	# TODO: Make sure latitide_outplant and longitude_outplant values should
+	# be used for the latitude and longitude columns in the colony table.
+	colony_table_data_frame$latitude[i] <- sample_prep_data_frame$latitude_outplant[i];
+	colony_table_data_frame$longitude[i] <- sample_prep_data_frame$longitude_outplant[i];
+	colony_table_data_frame$depth[i] <- sample_prep_data_frame$depth[i];
+}
+write_data_frame(output_data_dir, "colony.tabular", colony_table_data_frame);
+
+# Output the data frame for populating the genotype table.
 # genotype_table_tibble looks like this:
 # # A tibble: 262 x 5
 # affy_id                            coral_mlg_clonal_id DB_match coral_mlg_rep_samp… user_specimen_id
@@ -638,7 +656,6 @@ genotype_table_tibble <- sample_mlg_match_tibble %>%
     by='affy_id') %>%
     ungroup() %>%
     select(-group);
-# Output the data frame for updating the genotype table.
 write_data_frame(output_data_dir, "genotype.tabular", genotype_table_tibble);
 
 # Output the file needed for populating the person table.
@@ -690,7 +707,7 @@ for (i in 1:num_rows) {
 write_data_frame(output_data_dir, "reef.tabular", reef_table_data_frame);
 
 # Output the file needed for populating the sample table.
-sample_table_data_frame <- data.frame(matrix(ncol=20, nrow=num_rows));
+sample_table_data_frame <- data.frame(matrix(ncol=19, nrow=num_rows));
 colnames(sample_table_data_frame) <- c("affy_id", "colony_location", "collection_date", "user_specimen_id",
                                        "registry_id", "depth", "dna_extraction_method", "dna_concentration", "public",
                                        "public_after_date", "percent_missing_data_coral", "percent_missing_data_sym", "percent_reference_coral", "percent_reference_sym",
