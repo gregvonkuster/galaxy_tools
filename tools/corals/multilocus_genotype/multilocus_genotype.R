@@ -639,6 +639,10 @@ for (i in 1:num_rows) {
 write_data_frame(output_data_dir, "colony.tabular", colony_table_data_frame);
 
 # Output the data frame for populating the genotype table.
+# FIXME: This genotyope data frame contains 263 lines (including
+# the header), while all other data frames contain 97 lines
+# (including the header).  We need to figure out how these genotype
+# records map to the sample table.
 # genotype_table_tibble looks like this:
 # # A tibble: 262 x 5
 # affy_id                            coral_mlg_clonal_id DB_match coral_mlg_rep_samp… user_specimen_id
