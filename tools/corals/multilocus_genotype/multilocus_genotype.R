@@ -111,7 +111,7 @@ m <- mlg.table(genind_clone, background=TRUE, color=TRUE);
 mlg_ids <- mlg.id(genind_clone);
 
 # Read user's Affymetrix 96 well plate tabular file.
-affy_metadata_data_frame <- read.table(opt$input_affy_metadata, header=FALSE, stringsAsFactors=FALSE, sep="\t", na.strings = c("", "NA"));
+affy_metadata_data_frame <- read.table(opt$input_affy_metadata, header=FALSE, stringsAsFactors=FALSE, sep="\t", na.strings=c("", "NA"));
 colnames(affy_metadata_data_frame) <- c("user_specimen_id", "field_call", "bcoral_genet_id", "bsym_genet_id", "reef",
                                         "region", "latitude", "longitude", "geographic_origin", "colony_location",
                                         "latitude_outplant", "longitude_outplant", "depth", "disease_resist",
@@ -144,13 +144,13 @@ sample_table_columns <- sample_table %>% select(user_specimen_id, affy_id, genot
 smlg <- sample_table_columns %>%
     left_join(genotype_table %>%
         select("id", "coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "symbio_mlg_clonal_id",
-			   "symbio_mlg_rep_sample_id", "genetic_coral_species_call", "bcoral_genet_id", "bsym_genet_id"),
+               "symbio_mlg_rep_sample_id", "genetic_coral_species_call", "bcoral_genet_id", "bsym_genet_id"),
         by=c("genotype_id"="id"));
 # Name the columns.
 smlg_data_frame <- as.data.frame(smlg);
 colnames(smlg_data_frame) <- c("user_specimen_id", "affy_id", "genotype_id", "coral_mlg_clonal_id",
-		                       "coral_mlg_rep_sample_id", "symbio_mlg_clonal_id", "symbio_mlg_rep_sample_id",
-							   "genetic_coral_species_call", "bcoral_genet_id", "bsym_genet_id");
+                               "coral_mlg_rep_sample_id", "symbio_mlg_clonal_id", "symbio_mlg_rep_sample_id",
+                               "genetic_coral_species_call", "bcoral_genet_id", "bsym_genet_id");
 #write_data_frame(output_data_dir, "smlg_data_frame", smlg_data_frame);
 
 # Missing GT in samples submitted.
@@ -170,6 +170,7 @@ setnames(missing_gt_data_table, c("rn"), c("affy_id"));
 setnames(missing_gt_data_table, c("missing_gt"), c("percent_missing_data_coral"));
 # Round data to two digits.
 missing_gt_data_table$percent_missing_data_coral <- round(missing_gt_data_table$percent_missing_data_coral, digits=2);
+#write_data_frame(output_data_dir, "missing_gt_data_table.tabular", missing_gt_data_table);
 time_elapsed(start_time);
 
 # Heterozygous alleles.
@@ -248,7 +249,7 @@ sample_mlg_tibble <- mlg_ids_data_table %>%
     # Join with mlg table.
     left_join(smlg_data_frame %>%
               select("affy_id","coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "symbio_mlg_clonal_id",
-					 "symbio_mlg_rep_sample_id", "genetic_coral_species_call", "bcoral_genet_id", "bsym_genet_id"),
+                     "symbio_mlg_rep_sample_id", "genetic_coral_species_call", "bcoral_genet_id", "bsym_genet_id"),
               by="affy_id");
 
 # If found in database, group members on previous mlg id.
@@ -580,16 +581,20 @@ start_time <- time_start("Building data frames for insertion into database table
 # 2018-11-08      k89@psu.edu Affymetrix   1             True
 # public_after_date sperm_motility healing_time dna_extraction_method
 # NA               -9             -9            NA
-# dna_concentration registry_id affy_id
-# NA                NA          a550962-4368120-060520-500_A03.CEL
+# dna_concentration registry_id mlg    affy_id
+# NA                NA          HG0227 a550962-4368120-060520-500_A03.CEL
 # percent_missing_data_coral percent_heterozygous_coral
 # 1.06                       19.10
 # percent_reference_coral percent_alternative_coral
 # 40.10459                39.73396
 sample_prep_data_frame <- affy_metadata_data_frame %>%
     left_join(stag_db_report %>%
-        select("user_specimen_id","affy_id", "percent_missing_data_coral", "percent_heterozygous_coral",
-			   "percent_reference_coral", "percent_alternative_coral"),
+        select("user_specimen_id",
+               "affy_id",
+               "percent_missing_data_coral",
+               "percent_heterozygous_coral",
+               "percent_reference_coral",
+               "percent_alternative_coral"),
         by='user_specimen_id');
 # Get the number of rows for all data frames.
 num_rows <- nrow(sample_prep_data_frame);
@@ -597,12 +602,13 @@ num_rows <- nrow(sample_prep_data_frame);
 # needed for the sample table.
 colnames(sample_prep_data_frame) <- c("user_specimen_id", "field_call", "bcoral_genet_id", "bsym_genet_id", "reef",
                                       "region", "latitude", "longitude", "geographic_origin", "colony_location",
-                                      "latitude_outplant", "longitude_outplant", "depth", "disease_resist", "bleach_resist",
-                                      "mortality", "tle", "spawning", "collector_last_name", "collector_first_name",
-                                      "organization", "collection_date", "email", "seq_facility", "array_version",
-                                      "public", "public_after_date", "sperm_motility", "healing_time", "dna_extraction_method",
-                                      "dna_concentration", "registry_id", "affy_id", "percent_missing_data_coral", "percent_heterozygous_coral",
-                                      "percent_reference_coral", "percent_alternative_coral");
+                                      "latitude_outplant", "longitude_outplant", "depth", "disease_resist",
+                                      "bleach_resist", "mortality", "tle", "spawning", "collector_last_name",
+                                      "collector_first_name", "organization", "collection_date", "email",
+                                      "seq_facility", "array_version", "public", "public_after_date",
+                                      "sperm_motility", "healing_time", "dna_extraction_method", "dna_concentration",
+                                      "registry_id", "mlg", "affy_id", "percent_missing_data_coral",
+                                      "percent_heterozygous_coral", "percent_reference_coral", "percent_alternative_coral");
 #write_data_frame(output_data_dir, "sample_prep_data_frame.tabular", sample_prep_data_frame);
 
 # representative_mlg_tibble looks like this:
@@ -630,11 +636,11 @@ representative_mlg_tibble <- id_data_table %>%
 colony_table_data_frame <- data.frame(matrix(ncol=3, nrow=num_rows));
 colnames(colony_table_data_frame) <- c("latitude", "longitude", "depth");
 for (i in 1:num_rows) {
-	# TODO: Make sure latitide_outplant and longitude_outplant values should
-	# be used for the latitude and longitude columns in the colony table.
-	colony_table_data_frame$latitude[i] <- sample_prep_data_frame$latitude_outplant[i];
-	colony_table_data_frame$longitude[i] <- sample_prep_data_frame$longitude_outplant[i];
-	colony_table_data_frame$depth[i] <- sample_prep_data_frame$depth[i];
+    # TODO: Make sure latitide_outplant and longitude_outplant values should
+    # be used for the latitude and longitude columns in the colony table.
+    colony_table_data_frame$latitude[i] <- sample_prep_data_frame$latitude_outplant[i];
+    colony_table_data_frame$longitude[i] <- sample_prep_data_frame$longitude_outplant[i];
+    colony_table_data_frame$depth[i] <- sample_prep_data_frame$depth[i];
 }
 write_data_frame(output_data_dir, "colony.tabular", colony_table_data_frame);
 
@@ -713,9 +719,12 @@ write_data_frame(output_data_dir, "reef.tabular", reef_table_data_frame);
 # Output the file needed for populating the sample table.
 sample_table_data_frame <- data.frame(matrix(ncol=19, nrow=num_rows));
 colnames(sample_table_data_frame) <- c("affy_id", "colony_location", "collection_date", "user_specimen_id",
-                                       "registry_id", "depth", "dna_extraction_method", "dna_concentration", "public",
-                                       "public_after_date", "percent_missing_data_coral", "percent_missing_data_sym", "percent_reference_coral", "percent_reference_sym",
-                                       "percent_alternative_coral", "percent_alternative_sym", "percent_heterozygous_coral", "percent_heterozygous_sym", "field_call");
+                                       "registry_id", "depth", "dna_extraction_method", "dna_concentration",
+                                       "public", "public_after_date", "percent_missing_data_coral",
+                                       "percent_missing_data_sym", "percent_reference_coral",
+                                       "percent_reference_sym", "percent_alternative_coral",
+                                       "percent_alternative_sym", "percent_heterozygous_coral",
+                                       "percent_heterozygous_sym", "field_call");
 for (i in 1:num_rows) {
     sample_table_data_frame$affy_id[i] <- sample_prep_data_frame$affy_id[i];
     sample_table_data_frame$colony_location[i] <- sample_prep_data_frame$colony_location[i];
