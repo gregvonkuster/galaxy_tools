@@ -738,16 +738,16 @@ for (i in 1:num_rows) {
     sample_table_data_frame$public_after_date[i] <- sample_prep_data_frame$public_after_date[i];
     sample_table_data_frame$percent_missing_data_coral[i] <- sample_prep_data_frame$percent_missing_data_coral[i];
     # FIXME: we have no data for percent_missing_data_sym
-    sample_table_data_frame$percent_missing_data_sym[i] <- "FIXME";
+    sample_table_data_frame$percent_missing_data_sym[i] <- "0.0";
     sample_table_data_frame$percent_reference_coral[i] <- sample_prep_data_frame$percent_reference_coral[i];
     # FIXME: we have no data for percent_reference_sym
-    sample_table_data_frame$percent_reference_sym[i] <- "FIXME";
+    sample_table_data_frame$percent_reference_sym[i] <- "0.0";
     sample_table_data_frame$percent_alternative_coral[i] <- sample_prep_data_frame$percent_alternative_coral[i];
     # FIXME: we have no data for percent_alternative_sym
-    sample_table_data_frame$percent_alternative_sym[i] <- "FIXME";
+    sample_table_data_frame$percent_alternative_sym[i] <- "0.0";
     sample_table_data_frame$percent_heterozygous_coral[i] <- sample_prep_data_frame$percent_heterozygous_coral[i];
     # FIXME: we have no data for percent_heterozygous_sym.
-    sample_table_data_frame$percent_heterozygous_sym[i] <- "FIXME";
+    sample_table_data_frame$percent_heterozygous_sym[i] <- "0.0";
     sample_table_data_frame$field_call[i] <- sample_prep_data_frame$field_call[i];
 }
 write_data_frame(output_data_dir, "sample.tabular", sample_table_data_frame);
