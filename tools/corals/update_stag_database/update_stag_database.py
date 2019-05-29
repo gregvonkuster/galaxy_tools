@@ -60,17 +60,12 @@ class StagDatabaseUpdater(object):
         self.connect_db()
         self.engine = create_engine(self.args.database_connection_string)
         self.metadata = MetaData(self.engine)
+        self.colony_ids = []
         self.genotype_ids = []
-        self.genotype_table_inserts = 0
         self.person_ids = []
-        self.person_table_inserts = 0
         self.phenotype_ids = []
-        self.phenotype_table_inserts = 0
         self.reef_ids = []
-        self.reef_table_inserts = 0
-        self.sample_table_inserts = 0
         self.taxonomy_ids = []
-        self.taxonomy_table_inserts = 0
 
     def connect_db(self):
         url = make_url(self.args.database_connection_string)
@@ -79,6 +74,7 @@ class StagDatabaseUpdater(object):
         args.update(url.query)
         assert url.get_dialect().name == 'postgresql', 'This script can only be used with PostgreSQL.'
         self.conn = psycopg2.connect(**args)
+        self.log("Successfully connected to the stag database...")
 
     def convert_date_string_for_database(self, date_string):
         # The value of date_string is %y/%m/%d with
@@ -107,11 +103,52 @@ class StagDatabaseUpdater(object):
             next_sample_id = "A10000"
         return next_sample_id
 
-    def load_genotype_table(self, file_path):
+    def log(self, msg):
+        self.outfh.write("%s\n" % msg)
+
+    def update_colony_table(self, file_path):
+        self.log("Updating the colony table...")
+        # Columns in the colony file are:
+        # latitude longitude depth
+        colony_table_inserts = 0
+        with open(file_path) as fh:
+            for i, line in enumerate(fh):
+                if i == 0:
+                    # Skip header
+                    continue
+                items = line.split("\t")
+                latitude, latitude_db_str = handle_null(items[0])
+                longitude, longitude_db_str = handle_null(items[1])
+                depth, depth_db_str = handle_null(items[2])
+                # See if we need to add a row to the table.
+                cmd = """
+                    SELECT id
+                    FROM colony
+                    WHERE latitude = %s
+                    AND longitude = %s
+                    AND depth = %s;""" % (latitude_db_str, longitude_db_str, depth_db_str)
+                cur = self.conn.cursor()
+                cur.execute(cmd)
+                try:
+                    colony_id = cur.fetchone()[0]
+                except Exception:
+                    # Insert a row into the colony table.
+                    cmd = "INSERT INTO colony VALUES (nextval('colony_id_seq'), %s, %s, %s) RETURNING id;"
+                    args = [longitude, latitude, depth]
+                    cur = self.update(cmd, tuple(args))
+                    self.flush()
+                    colony_id = cur.fetchone()[0]
+                    colony_table_inserts += 1
+                self.colony_ids.append(colony_id)
+        self.log("Inserted %d rows into the colony table..." % colony_table_inserts)
+
+    def update_genotype_table(self, file_path):
+        self.log("Updating the genotype table...")
         # Columns in the genotype file are:
         # affy_id coral_mlg_clonal_id.x coral_mlg_rep_sample_id.x symbio_mlg_clonal_id symbio_mlg_rep_sample_id
         # genetic_coral_species_call bcoral_genet_id bsym_genet_id DB_match coral_mlg_clonal_id.y
         # coral_mlg_rep_sample_id.y
+        genotype_table_inserts = 0
         with open(file_path) as fh:
             for i, line in enumerate(fh):
                 if i == 0:
@@ -154,12 +191,15 @@ class StagDatabaseUpdater(object):
                     cur = self.update(cmd, tuple(args))
                     self.flush()
                     genotype_id = cur.fetchone()[0]
-                    self.genotype_table_inserts += 1
+                    genotype_table_inserts += 1
                 self.genotype_ids.append(genotype_id)
+        self.log("Inserted %d rows into the genotype table..." % genotype_table_inserts)
 
-    def load_person_table(self, file_path):
+    def update_person_table(self, file_path):
+        self.log("Updating the person table...")
         # Columns in the person file are:
         # last_name first_name organization email
+        person_table_inserts = 0
         with open(file_path) as fh:
             for i, line in enumerate(fh):
                 if i == 0:
@@ -183,14 +223,17 @@ class StagDatabaseUpdater(object):
                     cur = self.update(cmd, tuple(args))
                     self.flush()
                     person_id = cur.fetchone()[0]
-                    self.person_table_inserts += 1
+                    person_table_inserts += 1
                 self.person_ids.append(person_id)
+        self.log("Inserted %d rows into the person table..." % person_table_inserts)
 
-    def load_phenotype_table(self, file_path):
+    def update_phenotype_table(self, file_path):
+        self.log("Updating the phenotype table...")
         # Columns in the phenotype file are:
         # last_name first_name organization email disease_resist
         # bleach_resist mortality tle spawning sperm_motility
         # healing_time
+        phenotype_table_inserts = 0
         with open(file_path) as fh:
             for i, line in enumerate(fh):
                 if i == 0:
@@ -232,12 +275,15 @@ class StagDatabaseUpdater(object):
                     cur = self.update(cmd, tuple(args))
                     self.flush()
                     phenotype_id = cur.fetchone()[0]
-                    self.phenotype_table_inserts += 1
+                    phenotype_table_inserts += 1
                 self.phenotype_ids.append(phenotype_id)
+        self.log("Inserted %d rows into the phenotype table..." % phenotype_table_inserts)
 
-    def load_reef_table(self, file_path):
+    def update_reef_table(self, file_path):
+        self.log("Updating the reef table...")
         # Columns in the reef file are:
         # name region latitude longitude geographic_origin
+        reef_table_inserts = 0
         with open(file_path) as fh:
             for i, line in enumerate(fh):
                 if i == 0:
@@ -263,15 +309,18 @@ class StagDatabaseUpdater(object):
                     cur = self.update(cmd, tuple(args))
                     self.flush()
                     reef_id = cur.fetchone()[0]
-                    self.reef_table_inserts += 1
+                    reef_table_inserts += 1
                 self.reef_ids.append(reef_id)
+        self.log("Inserted %d rows into the reef table..." % reef_table_inserts)
 
-    def load_sample_table(self, file_path):
+    def update_sample_table(self, file_path):
+        self.log("Updating the sample table...")
         # Columns in the sample file are:
         # affy_id colony_location collection_date user_specimen_id registry_id
         # depth dna_extraction_method dna_concentration public public_after_date
         # percent_missing_data_coral percent_missing_data_sym percent_reference_coral percent_reference_sym percent_alternative_coral
         # percent_alternative_sym percent_heterozygous_coral percent_heterozygous_sym field_call
+        sample_table_inserts = 0
         with open(file_path) as fh:
             for i, line in enumerate(fh):
                 if i == 0:
@@ -282,16 +331,63 @@ class StagDatabaseUpdater(object):
                 items = line.split("\t")
                 affy_id = items[0]
                 sample_id = self.get_next_sample_id()
-                # FIXME: need to insert alleles soe we have the list of allele_ids.
+                # FIXME: need to insert alleles so we have the list of allele_ids.
                 allele_id = sql.null()
                 genotype_id = self.genotype_ids[id_index]
                 phenotype_id = self.phenotype_ids[id_index]
                 # FIXME: We cannot populate the experiment table with our current data.
                 experiment_id = sql.null()
+                colony_id = self.colony_ids[id_index]
+                colony_location, colony_location_db_str = handle_null(items[1])
+                # FIXME: We cannot populate the fragment table with our current data.
+                fragment_id = sql.null()
+                taxonomy_id = self.taxonomy_ids[id_index]
+                # FIXME: We should eliminate the collector table and use the person table.
+                collector_id = self.person_ids[id_index]
+                collection_date = items[2]
+                user_specimen_id = items[3]
+                registry_id, registry_id_db_str = handle_null(items[4])
+                depth = items[5]
+                dna_extraction_method, dna_extraction_method_db_str = handle_null(items[6])
+                dna_concentration, dna_concentration_db_str = handle_null(items[7])
+                public = items[8]
+                if set_to_null(items[9]):
+                    public_after_date = self.year_from_now
+                else:
+                    public_after_date = items[9]
+                percent_missing_data_coral = items[10]
+                percent_missing_data_sym = items[11]
+                percent_reference_coral = items[12]
+                percent_reference_sym = items[13]
+                percent_alternative_coral = items[14]
+                percent_alternative_sym = items[15]
+                percent_heterozygous_coral = items[16]
+                percent_heterozygous_sym = items[17]
+                field_call = items[18]
+                # Insert a row into the sample table.
+                cmd = """
+                    INSERT INTO sample
+                    VALUES (nextval('sample_id_seq'),
+                            '%s' '%s' %s %s %s, %s, %s, '%s', %s, %s, %s, '%s', '%s', '%s', %s, '%s', '%s', '%s', '%s', %s, %s, %s, %s, %s, %s, %s, %s, '%s')
+                    RETURNING id;"""
+                args = [affy_id, sample_id, allele_id, genotype_id, phenotype_id,
+                        experiment_id, colony_id, colony_location, fragment_id, taxonomy_id,
+                        collector_id, collection_date, user_specimen_id, registry_id, depth,
+                        dna_extraction_method, dna_concentration, public, public_after_date,
+                        percent_missing_data_coral, percent_missing_data_sym, percent_reference_coral,
+                        percent_reference_sym, percent_alternative_coral, percent_alternative_sym,
+                        percent_heterozygous_coral, percent_heterozygous_sym, field_call]
+                cur = self.update(cmd, tuple(args))
+                self.flush()
+                sample_id = cur.fetchone()[0]
+                sample_table_inserts += 1
+        self.log("Inserted %d rows into the sample table..." % sample_table_inserts)
 
-    def load_taxonomy_table(self, file_path):
+    def update_taxonomy_table(self, file_path):
+        self.log("Updating the taxonomy table...")
         # Columns in the taxonomy file are:
         # genetic_coral_species_call affy_id genus_name species_name"
+        taxonomy_table_inserts = 0
         with open(file_path) as fh:
             for i, line in enumerate(fh):
                 if i == 0:
@@ -313,8 +409,9 @@ class StagDatabaseUpdater(object):
                     cur = self.update(cmd, tuple(args))
                     self.flush()
                     taxonomy_id = cur.fetchone()[0]
-                    self.taxonomy_table_inserts += 1
+                    taxonomy_table_inserts += 1
                 self.taxonomy_ids.append(taxonomy_id)
+        self.log("Inserted %d rows into the taxonomy table..." % taxonomy_table_inserts)
 
     def parse_args(self):
         parser = argparse.ArgumentParser()
@@ -329,6 +426,8 @@ class StagDatabaseUpdater(object):
             # are properly handled.  The sample table must be loaded
             # last.
             file_path, file_name = input
+            if file_name.startswith("colony"):
+                colony_file = file_path
             if file_name.startswith("genotype"):
                 genotype_file = file_path
             elif file_name.startswith("person"):
@@ -342,14 +441,16 @@ class StagDatabaseUpdater(object):
             elif file_name.startswith("taxonomy"):
                 taxonomy_file = file_path
         # Now tables can be loaded in the appropriate order.
-        self.load_genotype_table(genotype_file)
-        self.load_person_table(person_file)
-        self.load_phenotype_table(phenotype_file)
-        self.load_reef_table(reef_file)
-        self.load_taxonomy_table(taxonomy_file)
-        self.load_sample_table(sample_file)
+        self.update_colony_table(colony_file)
+        self.update_genotype_table(genotype_file)
+        self.update_person_table(person_file)
+        self.update_phenotype_table(phenotype_file)
+        self.update_reef_table(reef_file)
+        self.update_taxonomy_table(taxonomy_file)
+        self.update_sample_table(sample_file)
 
     def shutdown(self):
+        self.log("Shutting down...")
         self.conn.close()
 
     def stop_err(self, msg):
