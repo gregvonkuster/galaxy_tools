@@ -40,9 +40,9 @@ def get_year_from_now():
 
 def handle_null(column_val):
     if set_to_null(column_val):
-        return sql.null(), "%s"
+        return "is null", "%s"
     else:
-        return column_val, "'%s'"
+        return "= '%s'" % column_val, "'%s'"
 
 
 def set_to_null(val):
@@ -117,17 +117,15 @@ class StagDatabaseUpdater(object):
                 if i == 0:
                     # Skip header
                     continue
+                line = line.rstrip('\r\n')
                 items = line.split("\t")
                 latitude, latitude_db_str = handle_null(items[0])
                 longitude, longitude_db_str = handle_null(items[1])
                 depth, depth_db_str = handle_null(items[2])
                 # See if we need to add a row to the table.
-                cmd = """
-                    SELECT id
-                    FROM colony
-                    WHERE latitude = %s
-                    AND longitude = %s
-                    AND depth = %s;""" % (latitude_db_str, longitude_db_str, depth_db_str)
+                cmd = "SELECT id FROM colony WHERE latitude %s AND longitude %s AND depth %s;" % (latitude_db_str, longitude_db_str, depth_db_str)
+                cmd = cmd % (latitude, longitude, depth)
+                print("cmd: %s" % str(cmd))
                 cur = self.conn.cursor()
                 cur.execute(cmd)
                 try:
@@ -417,29 +415,30 @@ class StagDatabaseUpdater(object):
     def parse_args(self):
         parser = argparse.ArgumentParser()
         parser.add_argument('--database_connection_string', dest='database_connection_string', help='Postgres database connection string'),
-        parser.add_argument('--input_dir', dest='input_dir', action='append', help='Input datasets for database insertion')
+        parser.add_argument('--input_dir', dest='input_dir', help='Input datasets for database insertion')
         parser.add_argument('--output', dest='output', help='Output dataset'),
         self.args = parser.parse_args()
 
     def run(self):
-        for file_name in os.listdir(self.args.input_dir):
+        input_dir = self.args.input_dir
+        for file_name in os.listdir(input_dir):
             # Tables must be loaded in such a way that foreign keys
             # are properly handled.  The sample table must be loaded
             # last.
             if file_name.startswith("colony"):
-                colony_file = file_path
+                colony_file = os.path.join(input_dir, file_name)
             if file_name.startswith("genotype"):
-                genotype_file = file_path
+                genotype_file = os.path.join(input_dir, file_name)
             elif file_name.startswith("person"):
-                person_file = file_path
+                person_file = os.path.join(input_dir, file_name)
             elif file_name.startswith("phenotype"):
-                phenotype_file = file_path
+                phenotype_file = os.path.join(input_dir, file_name)
             elif file_name.startswith("reef"):
-                reef_file = file_path
+                reef_file = os.path.join(input_dir, file_name)
             elif file_name.startswith("sample"):
-                sample_file = file_path
+                sample_file = os.path.join(input_dir, file_name)
             elif file_name.startswith("taxonomy"):
-                taxonomy_file = file_path
+                taxonomy_file = os.path.join(input_dir, file_name)
         # Now tables can be loaded in the appropriate order.
         self.update_colony_table(colony_file)
         self.update_genotype_table(genotype_file)
