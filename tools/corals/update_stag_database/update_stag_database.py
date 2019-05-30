@@ -3,6 +3,7 @@ from __future__ import print_function
 import argparse
 import datetime
 import dateutil.parser
+import os
 import psycopg2
 import sys
 
@@ -416,16 +417,15 @@ class StagDatabaseUpdater(object):
     def parse_args(self):
         parser = argparse.ArgumentParser()
         parser.add_argument('--database_connection_string', dest='database_connection_string', help='Postgres database connection string'),
-        parser.add_argument('--input', dest='inputs', action='append', nargs=6, help='Input datasets for database insertion')
+        parser.add_argument('--input_dir', dest='input_dir', action='append', help='Input datasets for database insertion')
         parser.add_argument('--output', dest='output', help='Output dataset'),
         self.args = parser.parse_args()
 
     def run(self):
-        for input in self.args.inputs:
+        for file_name in os.listdir(self.args.input_dir):
             # Tables must be loaded in such a way that foreign keys
             # are properly handled.  The sample table must be loaded
             # last.
-            file_path, file_name = input
             if file_name.startswith("colony"):
                 colony_file = file_path
             if file_name.startswith("genotype"):

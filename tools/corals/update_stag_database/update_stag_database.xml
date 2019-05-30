@@ -1,7 +1,7 @@
 <tool id="update_stag_database" name="Update stag database" version="1.0.0">
     <description>with new genotyped samples</description>
     <command detect_errors="exit_code"><![CDATA[
-#set input_dir = 'input_dir'
+#set input_dir = "input_dir"
 mkdir $input_dir &&
 #for $i in $input:
     #set filename = $i.file_name
@@ -13,7 +13,7 @@ python '$__tool_directory__/update_stag_database.py'
 --input_dir '$input_dir'
 --output '$output']]></command>
     <inputs>
-        <param name="input" format="tabular" type="data_collection" collection_type="list" label="Tabular datasets for database update" />
+        <param name="input" format="tabular" type="data_collection" collection_type="list" label="Tabular datasets for database update"/>
     </inputs>
     <outputs>
         <data name="output" format="txt" label="${tool.name} (process log) on ${on_string}"/>
@@ -24,12 +24,9 @@ python '$__tool_directory__/update_stag_database.py'
         </test>
     </tests>
     <help>
-
------
-
+**What it does**
     </help>
     <citations>
-        <citation>
-        </citation>
     </citations>
 </tool>
+
