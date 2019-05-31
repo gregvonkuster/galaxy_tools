@@ -70,7 +70,7 @@ time_start <- function(msg) {
 
 write_data_frame <- function(dir, file_name, data_frame) {
     file_path <- get_file_path(dir, file_name);
-    write.table(data_frame, file=file_path, row.names=FALSE, sep="\t");
+    write.table(data_frame, file=file_path, quote=FALSE, row.names=FALSE, sep="\t");
 }
 
 # Prepare for processing.
