@@ -16,11 +16,12 @@ now = datetime.datetime.utcnow
 metadata = MetaData()
 
 
-def get_sql_param_val_str(column_val):
+def get_sql_param_val_str(column_val, default):
     if set_to_null(column_val):
-        return "is null"
+        val = default
     else:
-        return "= '%s'" % column_val
+        val = column_val
+    return "= '%s'" % val
 
 
 def get_year_from_now():
@@ -45,12 +46,21 @@ def get_year_from_now():
         return today + (datetime.date(today.year + 1, 1, 1) - datetime.date(today.year, 1, 1))
 
 
-def handle_column_value(val, default=None):
+def handle_column_value(val, get_sql_param=True, default=''):
+    # Regarding the default value, a NULL value indicates n unknown value
+    # and typically should not be confused with an empty string. Our application
+    # does not need the concept of unknown value, so most columns are
+    # non-nullable and our default is an empty string.
     param = handle_null(val)
-    param_val_str = get_param_val_str(val)
+    if get_sql_param:
+        param_val_str = get_sql_param_val_str(val, default)
     if param is None:
-        return default, param_val_str
-    return param, param_val_str
+        if get_sql_param:
+            return default, param_val_str
+        return default
+    if get_sql_param:
+        return param, param_val_str
+    return param
 
 
 def handle_null(val):
@@ -65,6 +75,13 @@ def set_to_null(val):
     return False
 
 
+def string_as_bool(string):
+    if str(string).lower() in ('true', 'yes', 'on', '1'):
+        return True
+    else:
+        return False
+
+
 class StagDatabaseUpdater(object):
     def __init__(self):
         self.args = None
@@ -75,6 +92,8 @@ class StagDatabaseUpdater(object):
         self.connect_db()
         self.engine = create_engine(self.args.database_connection_string)
         self.metadata = MetaData(self.engine)
+        # FIXME: remove tjhis when we drop the collector table.
+        self.collector_ids = []
         self.colony_ids = []
         self.genotype_ids = []
         self.person_ids = []
@@ -106,19 +125,14 @@ class StagDatabaseUpdater(object):
 
     def get_next_sample_id(self):
         cmd = "SELECT sample_id FROM sample ORDER by id DESC;"
-        print("cmd: ", cmd)
         cur = self.conn.cursor()
         cur.execute(cmd)
         try:
             last_sample_id = cur.fetchone()[0]
-            print("last_sample_id: ", last_sample_id)
             # The value of last_sample_id will be something like A10171.
             last_sample_id_num = int(last_sample_id.lstrip("A"))
-            print("last_sample_id_num: ", last_sample_id_num)
             next_sample_id_num = last_sample_id_num + 1
-            print("next_sample_id_num: ", next_sample_id_num)
             next_sample_id = "A%d" % next_sample_id_num
-            print("next_sample_id: ", next_sample_id)
         except Exception:
             next_sample_id = "A10000"
         return next_sample_id
@@ -136,28 +150,26 @@ class StagDatabaseUpdater(object):
                 if i == 0:
                     # Skip header
                     continue
+                # Keep track of foreign keys since we skip the header line
+                id_index = i - 1
                 line = line.rstrip()
                 items = line.split("\t")
-                latitude, latitude_param_val_str = get_column_value(items[0], default=-9.0)
-                print("latitude: ", latitude)
-                longitude, longitude_param_val_str = get_column_value(items[1], default=-9.0)
-                print("longitude: ", longitude)
-                depth, depth_param_val_str = get_column_value(items[2], default=-9)
-                print("depth: ", depth)
+                latitude, latitude_param_val_str = handle_column_value(items[0], default=-9.0)
+                longitude, longitude_param_val_str = handle_column_value(items[1], default=-9.0)
+                depth, depth_param_val_str = handle_column_value(items[2], default=-9)
+                reef_id = self.reef_ids[id_index]
                 # See if we need to add a row to the table.
                 cmd = "SELECT id FROM colony WHERE latitude %s " % latitude_param_val_str
-                cmd += "AND longitude %s AND depth %s;" % (longitude_param_val_str, depth_param_val_str)
-                print("cmd: ", cmd)
+                cmd += "AND longitude %s AND depth %s " % (longitude_param_val_str, depth_param_val_str)
+                cmd += "AND reef_id = %s;" % reef_id
                 cur = self.conn.cursor()
                 cur.execute(cmd)
                 try:
                     colony_id = cur.fetchone()[0]
                 except Exception:
                     # Insert a row into the colony table.
-                    cmd = "INSERT INTO colony VALUES (nextval('colony_id_seq'), %s, %s, "
-                    cmd += "$$%s$$, $$%s$$, $$%s$$) RETURNING id;"
-                    print("cmd: ", cmd)
-                    args = ['NOW()', 'NOW()', longitude, latitude, depth]
+                    cmd = "INSERT INTO colony VALUES (nextval('colony_id_seq'), %s, %s, %s, %s, %s, %s) RETURNING id;"
+                    args = ['NOW()', 'NOW()', longitude, latitude, depth, reef_id]
                     cur = self.update(cmd, args)
                     self.flush()
                     colony_id = cur.fetchone()[0]
@@ -187,18 +199,12 @@ class StagDatabaseUpdater(object):
                     coral_mlg_rep_sample_id = items[10]
                 else:
                     coral_mlg_rep_sample_id = items[2]
-                coral_mlg_rep_sample_id, coral_mlg_rep_sample_id_param_val_str = get_column_value(coral_mlg_rep_sample_id)
-                print("coral_mlg_rep_sample_id: ", coral_mlg_rep_sample_id)
-                symbio_mlg_clonal_id, symbio_mlg_clonal_id_param_val_str = get_column_value(items[3])
-                print("symbio_mlg_clonal_id: ", symbio_mlg_clonal_id)
-                symbio_mlg_rep_sample_id, symbio_mlg_rep_sample_id_param_val_str = get_column_value(items[4])
-                print("symbio_mlg_rep_sample_id: ", symbio_mlg_rep_sample_id)
-                genetic_coral_species_call, genetic_coral_species_call_param_val_str = get_column_value(items[5])
-                print("genetic_coral_species_call: ", genetic_coral_species_call)
-                bcoral_genet_id, bcoral_genet_id_param_val_str = get_sql_param_val_str(items[6])
-                print("bcoral_genet_id: ", bcoral_genet_id)
-                bsym_genet_id, bsym_genet_id_param_val_str = get_column_value(items[7])
-                print("bsym_genet_id: ", bsym_genet_id)
+                coral_mlg_rep_sample_id = handle_column_value(coral_mlg_rep_sample_id, get_sql_param=False)
+                symbio_mlg_clonal_id = handle_column_value(items[3], get_sql_param=False)
+                symbio_mlg_rep_sample_id = handle_column_value(items[4], get_sql_param=False)
+                genetic_coral_species_call = handle_column_value(items[5], get_sql_param=False)
+                bcoral_genet_id = handle_column_value(items[6], get_sql_param=False)
+                bsym_genet_id = handle_column_value(items[7], get_sql_param=False)
                 # See if we need to add a row to the table.
                 # TODO: find out if the coral_mlg_clonal_id column is the
                 # optimal unique identifier for determining if a new row
@@ -246,15 +252,28 @@ class StagDatabaseUpdater(object):
                 cur.execute(cmd)
                 try:
                     person_id = cur.fetchone()[0]
+                    ###########################
+                    # TODO: eliminate this when the collector table is dropped.
+                    self.collector_ids.append(13)
+                    ###########################
                 except Exception:
                     # Insert a row into the person table.
                     cmd = "INSERT INTO person VALUES (nextval('person_id_seq'), NOW(), NOW(), "
-                    cmd += "$$%s$$, $$%s$$, $$%s$$, $$%s$$) RETURNING id;"
+                    cmd += "%s, %s, %s, %s) RETURNING id;"
                     args = [last_name, first_name, organization, email]
                     cur = self.update(cmd, args)
                     self.flush()
                     person_id = cur.fetchone()[0]
                     person_table_inserts += 1
+                    ###########################
+                    # TODO: eliminate this when the collector table is dropped.
+                    cmd = "INSERT INTO collector VALUES (nextval('collector_id_seq'), NOW(), NOW(), %s, %s) RETURNING id;"
+                    args = [person_id, person_id]
+                    cur = self.update(cmd, args)
+                    self.flush()
+                    collector_id = cur.fetchone()[0]
+                    self.collector_ids.append(collector_id)
+                    ###########################
                 self.person_ids.append(person_id)
         self.log("Inserted %d rows into the person table..." % person_table_inserts)
 
@@ -272,20 +291,13 @@ class StagDatabaseUpdater(object):
                     continue
                 line = line.rstrip()
                 items = line.split("\t")
-                disease_resist, disease_resist_param_val_str = get_column_value(items[4], default=-9)
-                print("disease_resist: ", disease_resist)
-                bleach_resist, bleach_resist_param_val_str = get_column_value(items[5], default=-9)
-                print("bleach_resist: ", bleach_resist)
-                mortality, mortality_param_val_str = get_column_value(items[6], default=-9)
-                print("mortality: ", mortality)
-                tle, tle_param_val_str = get_column_value(items[7], default=-9)
-                print("tle: ", tle)
-                spawning, spawning_param_val_str = get_sql_param_val_str(items[8])
-                print("spawning: ", spawning)
-                sperm_motility, sperm_motility_param_val_str = get_sql_param_val_str(items[9], default=-9.0)
-                print("sperm_motility: ", sperm_motility)
-                healing_time, healing_time_param_val_str = get_sql_param_val_str(items[10], default=-9.0)
-                print("healing_time: ", healing_time)
+                disease_resist, disease_resist_param_val_str = handle_column_value(items[4], default=-9)
+                bleach_resist, bleach_resist_param_val_str = handle_column_value(items[5], default=-9)
+                mortality, mortality_param_val_str = handle_column_value(items[6], default=-9)
+                tle, tle_param_val_str = handle_column_value(items[7], default=-9)
+                spawning, spawning_param_val_str = handle_column_value(items[8])
+                sperm_motility, sperm_motility_param_val_str = handle_column_value(items[9], default=-9.0)
+                healing_time, healing_time_param_val_str = handle_column_value(items[10], default=-9.0)
                 # See if we need to add a row to the phenotype table.
                 cmd = " SELECT id FROM phenotype WHERE disease_resist %s "
                 cmd += "AND bleach_resist %s AND mortality %s AND tle %s "
@@ -293,23 +305,18 @@ class StagDatabaseUpdater(object):
                 cmd = cmd % (disease_resist_param_val_str, bleach_resist_param_val_str,
                              mortality_param_val_str, tle_param_val_str, spawning_param_val_str,
                              sperm_motility_param_val_str, healing_time_param_val_str)
-                print("cmd: ", cmd)
                 cur = self.conn.cursor()
                 cur.execute(cmd)
                 try:
                     phenotype_id = cur.fetchone()[0]
-                    print("phenotype_id: ", phenotype_id)
                 except Exception:
                     # Insert a row into the phenotype table.
                     cmd = "INSERT INTO phenotype VALUES (nextval('phenotype_id_seq'), NOW(), NOW(), "
-                    cmd += "$$%s$$, $$%s$$, $$%s$$, "$$%s$$, $$%s$$, $$%s$$, "$$%s$$) RETURNING id;"
-                    print("cmd: ", cmd)
+                    cmd += "%s, %s, %s, %s, %s, %s, %s) RETURNING id;"
                     args = [disease_resist, bleach_resist, mortality, tle, spawning, sperm_motility, healing_time]
-                    print("args: ", args)
                     cur = self.update(cmd, args)
                     self.flush()
                     phenotype_id = cur.fetchone()[0]
-                    print("phenotype_id: ", phenotype_id)
                     phenotype_table_inserts += 1
                 self.phenotype_ids.append(phenotype_id)
         self.log("Inserted %d rows into the phenotype table..." % phenotype_table_inserts)
@@ -338,23 +345,17 @@ class StagDatabaseUpdater(object):
                 cmd = "SELECT id FROM reef WHERE name = '%s' AND region = '%s' " % (name, region)
                 cmd += "AND latitude = %s AND longitude = %s " % (latitude, longitude)
                 cmd += "AND geographic_origin = '%s';" % geographic_origin
-                print("cmd: ", cmd)
                 cur = self.conn.cursor()
                 cur.execute(cmd)
                 try:
                     reef_id = cur.fetchone()[0]
-                    print("reef_id: ", reef_id)
                 except Exception:
                     # Insert a row into the reef table.
-                    cmd = "INSERT INTO reef VALUES (nextval('reef_id_seq'), %s, %s, "
-                    cmd += "$$%s$$, $$%s$$, $$%s$$, $$%s$$, $$%s$$) RETURNING id;"
-                    print("cmd: ", cmd)
+                    cmd = "INSERT INTO reef VALUES (nextval('reef_id_seq'), %s, %s, %s, %s, %s, %s, %s) RETURNING id;"
                     args = ['NOW()', 'NOW()', name, region, latitude, longitude, geographic_origin]
-                    print("args`: ", args`)
                     cur = self.update(cmd, args)
                     self.flush()
                     reef_id = cur.fetchone()[0]
-                    print("reef_id: ", reef_id)
                     reef_table_inserts += 1
                 self.reef_ids.append(reef_id)
         self.log("Inserted %d rows into the reef table..." % reef_table_inserts)
@@ -377,88 +378,59 @@ class StagDatabaseUpdater(object):
                 id_index = i - 1
                 items = line.split("\t")
                 affy_id = items[0]
-                print("affy_id: ", affy_id)
                 sample_id = self.get_next_sample_id()
-                print("sample_id: ", sample_id)
                 # FIXME: need to insert alleles so we have the list of allele_ids.
                 allele_id = None
                 genotype_id = self.genotype_ids[id_index]
-                print("genotype_id: ", genotype_id)
                 phenotype_id = self.phenotype_ids[id_index]
-                print("phenotype_id: ", phenotype_id)
                 # FIXME: We cannot populate the experiment table with our current data.
                 experiment_id = None
                 colony_id = self.colony_ids[id_index]
-                print("colony_id: ", colony_id)
                 colony_location = items[1]
                 if set_to_null(colony_location):
                     colony_location = 'unknown'
-                print("colony_location: ", colony_location)
                 # FIXME: We cannot populate the fragment table with our current data.
                 fragment_id = None
                 taxonomy_id = self.taxonomy_ids[id_index]
-                print("taxonomy_id: ", taxonomy_id)
                 # FIXME: We should eliminate the collector table and use the person table.
-                collector_id = self.person_ids[id_index]
-                print("collector_id: ", collector_id)
+                collector_id = self.collector_ids[id_index]
                 collection_date = items[2]
-                print("collection_date: ", collection_date)
                 user_specimen_id = items[3]
-                print("user_specimen_id: ", user_specimen_id)
-                registry_id = get_sql_param_val_str(items[4])
-                print("registry_id: ", registry_id)
-                depth = items[5]
-                print("depth: ", depth)
-                dna_extraction_method = get_sql_param_val_str(items[6])
-                print("dna_extraction_method: ", dna_extraction_method)
-                dna_concentration = get_sql_param_val_str(items[7])
-                print("dna_concentration: ", dna_concentration)
+                registry_id = handle_column_value(items[4], get_sql_param=False, default=-9)
+                depth = handle_column_value(items[5], get_sql_param=False, default=-9)
+                dna_extraction_method = handle_column_value(items[6], get_sql_param=False)
+                dna_concentration = handle_column_value(items[7], get_sql_param=False)
                 public = items[8]
-                print("public: ", public)
-                if set_to_null(items[9]):
-                    public_after_date = self.year_from_now
+                if string_as_bool(public):
+                    public_after_date = None
                 else:
-                    public_after_date = items[9]
-                print("public_after_date: ", public_after_date)
-                percent_missing_data_coral = items[10]
-                print("percent_missing_data_coral: ", percent_missing_data_coral)
-                percent_missing_data_sym = items[11]
-                print("percent_missing_data_sym: ", percent_missing_data_sym)
-                percent_reference_coral = items[12]
-                print("percent_reference_coral: ", percent_reference_coral)
-                percent_reference_sym = items[13]
-                print("percent_reference_sym: ", percent_reference_sym)
-                percent_alternative_coral = items[14]
-                print("percent_alternative_coral: ", percent_alternative_coral)
-                percent_alternative_sym = items[15]
-                print("percent_alternative_sym: ", percent_alternative_sym)
-                percent_heterozygous_coral = items[16]
-                print("percent_heterozygous_coral: ", percent_heterozygous_coral)
-                percent_heterozygous_sym = items[17]
-                print("percent_heterozygous_sym: ", percent_heterozygous_sym)
-                field_call = items[18]
-                print("percent_field_call: ", percent_field_call)
+                    if set_to_null(items[9]):
+                        public_after_date = self.year_from_now
+                    else:
+                        public_after_date = items[9]
+                percent_missing_data_coral = handle_column_value(items[10], get_sql_param=False)
+                percent_missing_data_sym = handle_column_value(items[11], get_sql_param=False)
+                percent_reference_coral = handle_column_value(items[12], get_sql_param=False)
+                percent_reference_sym = handle_column_value(items[13], get_sql_param=False)
+                percent_alternative_coral = handle_column_value(items[14], get_sql_param=False)
+                percent_alternative_sym = handle_column_value(items[15], get_sql_param=False)
+                percent_heterozygous_coral = handle_column_value(items[16], get_sql_param=False)
+                percent_heterozygous_sym = handle_column_value(items[17], get_sql_param=False)
+                field_call = handle_column_value(items[18], get_sql_param=False)
                 # Insert a row into the sample table.
-                cmd = "INSERT INTO sample VALUES (nextval('sample_id_seq'), %s, %s, "
-                cmd += "$$%s$$, $$%s$$, $$%s$$, $$%s$$, $$%s$$, "
-                cmd += "$$%s$$, $$%s$$, $$%s$$, $$%s$$, $$%s$$, "
-                cmd += "$$%s$$, $$%s$$, $$%s$$, $$%s$$, $$%s$$, "
-                cmd += "$$%s$$, $$%s$$, $$%s$$, $$%s$$, $$%s$$, "
-                cmd += "$$%s$$, $$%s$$, $$%s$$, $$%s$$, $$%s$$, "
-                cmd += "$$%s$$, $$%s$$, $$%s$$) RETURNING id;"
-                print("cmd:\n", cmd)
-                args = [affy_id, sample_id, allele_id, genotype_id, phenotype_id,
+                cmd = "INSERT INTO sample VALUES (nextval('sample_id_seq'), %s, %s, %s, %s, %s, %s, %s, "
+                cmd += "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, "
+                cmd += "%s, %s, %s) RETURNING id;"
+                args = ['NOW()', 'NOW()', affy_id, sample_id, allele_id, genotype_id, phenotype_id,
                         experiment_id, colony_id, colony_location, fragment_id, taxonomy_id,
                         collector_id, collection_date, user_specimen_id, registry_id, depth,
                         dna_extraction_method, dna_concentration, public, public_after_date,
                         percent_missing_data_coral, percent_missing_data_sym, percent_reference_coral,
                         percent_reference_sym, percent_alternative_coral, percent_alternative_sym,
                         percent_heterozygous_coral, percent_heterozygous_sym, field_call]
-                print("args:\n", args)
                 cur = self.update(cmd, args)
                 self.flush()
                 sample_id = cur.fetchone()[0]
-                print("sample_id: ", sample_id)
                 sample_table_inserts += 1
         self.log("Inserted %d rows into the sample table..." % sample_table_inserts)
 
@@ -475,27 +447,20 @@ class StagDatabaseUpdater(object):
                 line = line.rstrip()
                 items = line.split("\t")
                 genus_name = items[2]
-                print("genus_name: ", genus_name)
                 species_name = items[3]
-                print("species_name: ", species_name)
                 # See if we need to add a row to the taxonomy table.
                 cmd = "SELECT id FROM taxonomy WHERE species_name = '%s' AND genus_name = '%s';" % (species_name, genus_name)
-                print("cmd: ", cmd)
                 cur = self.conn.cursor()
                 cur.execute(cmd)
                 try:
                     taxonomy_id = cur.fetchone()[0]
-                    print("taxonomy_id: ", taxonomy_id)
                 except Exception:
                     # Insert a row into the taxonomy table.
-                    cmd = "INSERT INTO taxonomy VALUES (nextval('taxonomy_id_seq'), %s, %s, $$%s$$, $$%s$$) RETURNING id;"
-                    print("cmd: ", cmd)
+                    cmd = "INSERT INTO taxonomy VALUES (nextval('taxonomy_id_seq'), %s, %s, %s, %s) RETURNING id;"
                     args = ['NOW()', 'NOW()', species_name, genus_name]
-                    print("args: ", args)
                     cur = self.update(cmd, args)
                     self.flush()
                     taxonomy_id = cur.fetchone()[0]
-                    print("taxonomy_id: ", taxonomy_id)
                     taxonomy_table_inserts += 1
                 self.taxonomy_ids.append(taxonomy_id)
         self.log("Inserted %d rows into the taxonomy table..." % taxonomy_table_inserts)
@@ -508,6 +473,16 @@ class StagDatabaseUpdater(object):
         self.args = parser.parse_args()
 
     def run(self):
+        """
+        TODO: remove this when done developing.
+        delete from sample where id > 172;
+        delete from genotype where id > 156;
+        delete from collector where id > 13;
+        delete from person where id > 13;
+        delete from colony where id > 58;
+        delete from reef where id > 58;
+        delete from taxonomy where id > 8;
+        """
         input_dir = self.args.input_dir
         for file_name in os.listdir(input_dir):
             # Tables must be loaded in such a way that foreign keys
