@@ -92,8 +92,6 @@ class StagDatabaseUpdater(object):
         self.connect_db()
         self.engine = create_engine(self.args.database_connection_string)
         self.metadata = MetaData(self.engine)
-        # FIXME: remove tjhis when we drop the collector table.
-        self.collector_ids = []
         self.colony_ids = []
         self.genotype_ids = []
         self.person_ids = []
@@ -252,10 +250,6 @@ class StagDatabaseUpdater(object):
                 cur.execute(cmd)
                 try:
                     person_id = cur.fetchone()[0]
-                    ###########################
-                    # TODO: eliminate this when the collector table is dropped.
-                    self.collector_ids.append(13)
-                    ###########################
                 except Exception:
                     # Insert a row into the person table.
                     cmd = "INSERT INTO person VALUES (nextval('person_id_seq'), NOW(), NOW(), "
@@ -265,15 +259,6 @@ class StagDatabaseUpdater(object):
                     self.flush()
                     person_id = cur.fetchone()[0]
                     person_table_inserts += 1
-                    ###########################
-                    # TODO: eliminate this when the collector table is dropped.
-                    cmd = "INSERT INTO collector VALUES (nextval('collector_id_seq'), NOW(), NOW(), %s, %s) RETURNING id;"
-                    args = [person_id, person_id]
-                    cur = self.update(cmd, args)
-                    self.flush()
-                    collector_id = cur.fetchone()[0]
-                    self.collector_ids.append(collector_id)
-                    ###########################
                 self.person_ids.append(person_id)
         self.log("Inserted %d rows into the person table..." % person_table_inserts)
 
@@ -392,8 +377,7 @@ class StagDatabaseUpdater(object):
                 # FIXME: We cannot populate the fragment table with our current data.
                 fragment_id = None
                 taxonomy_id = self.taxonomy_ids[id_index]
-                # FIXME: We should eliminate the collector table and use the person table.
-                collector_id = self.collector_ids[id_index]
+                collector_id = self.person_ids[id_index]
                 collection_date = items[2]
                 user_specimen_id = items[3]
                 registry_id = handle_column_value(items[4], get_sql_param=False, default=-9)
@@ -477,7 +461,6 @@ class StagDatabaseUpdater(object):
         TODO: remove this when done developing.
         delete from sample where id > 172;
         delete from genotype where id > 156;
-        delete from collector where id > 13;
         delete from person where id > 13;
         delete from colony where id > 58;
         delete from reef where id > 58;
