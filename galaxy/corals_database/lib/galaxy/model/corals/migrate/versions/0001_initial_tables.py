@@ -57,6 +57,7 @@ except Exception:
 ALLELES_SEED_DATA_FILE = "stag_database_seed_data/alleles_seed_data_file.tabular"
 GENERAL_SEED_DATA_FILE = "stag_database_seed_data/general_seed_data_file.tabular"
 PROBE_ANNOTATION_DATA_FILE = "stag_database_seed_data/probe_annotation.csv"
+DEFAULT_MISSING_NUMERIC_VALUE = -9.000000
 
 Allele_table = Table("allele", metadata,
                      Column("id", Integer, primary_key=True),
@@ -122,8 +123,8 @@ Phenotype_table = Table("phenotype", metadata,
                         Column("mortality", TrimmedString(255)),
                         Column("tle", TrimmedString(255)),
                         Column("spawning", Boolean),
-                        Column("sperm_motility", Numeric(15, 6), nullable=False),
-                        Column("healing_time", Numeric(15, 6), nullable=False))
+                        Column("sperm_motility", Numeric(15, 6)),
+                        Column("healing_time", Numeric(15, 6)))
 
 
 Probe_annotation_table = Table("probe_annotation", metadata,
@@ -434,11 +435,11 @@ def load_general_seed_data(migrate_engine):
             try:
                 latitude = "%6f" % float(items[6])
             except Exception:
-                latitude = '-9.000000'
+                latitude = DEFAULT_MISSING_NUMERIC_VALUE
             try:
                 longitude = "%6f" % float(items[7])
             except Exception:
-                longitude = '-9.000000'
+                longitude = DEFAULT_MISSING_NUMERIC_VALUE
             if len(items[8]) == 0:
                 geographic_origin = ''
             else:
@@ -450,11 +451,11 @@ def load_general_seed_data(migrate_engine):
             try:
                 latitude_outplant = "%6f" % float(items[10])
             except Exception:
-                latitude_outplant = '-9.000000'
+                latitude_outplant = DEFAULT_MISSING_NUMERIC_VALUE
             try:
                 longitude_outplant = "%6f" % float(items[11])
             except Exception:
-                longitude_outplant = '-9.000000'
+                longitude_outplant = DEFAULT_MISSING_NUMERIC_VALUE
             try:
                 depth = int(items[12])
             except Exception:
@@ -474,11 +475,11 @@ def load_general_seed_data(migrate_engine):
                 collection_date = localtimestamp(migrate_engine)
             email = handle_column_value(items[22])
             seq_facility = items[23]
-            array_version = items[24]
+            array_version = handle_column_value(items[24])
             # Convert original public value to Boolean.
             public = string_as_bool(items[25])
             if public:
-                public_after_date = ''
+                public_after_date = 'NOW()'
             else:
                 if len(items[26]) == 0:
                     # Set the value of public_after_date to the default.
@@ -487,23 +488,23 @@ def load_general_seed_data(migrate_engine):
                     public_after_date = convert_date_string_for_database(items[26])
             coral_mlg_clonal_id = handle_column_value(items[27])
             symbio_mlg_clonal_id = handle_column_value(items[28])
-            genetic_coral_species_call = handle_column_value((items[29])
+            genetic_coral_species_call = handle_column_value(items[29])
             try:
                 percent_missing_data_coral = "%6f" % float(items[30])
             except Exception:
-                percent_missing_data_coral = ''
+                percent_missing_data_coral = DEFAULT_MISSING_NUMERIC_VALUE
             try:
                 percent_reference_coral = "%6f" % float(items[31])
             except Exception:
-                percent_reference_coral = ''
+                percent_reference_coral = DEFAULT_MISSING_NUMERIC_VALUE
             try:
                 percent_alternative_sym = "%6f" % float(items[32])
             except Exception:
-                percent_alternative_sym = ''
+                percent_alternative_sym = DEFAULT_MISSING_NUMERIC_VALUE
             try:
                 percent_heterozygous_coral = "%6f" % float(items[33])
             except Exception:
-                percent_heterozygous_coral = ''
+                percent_heterozygous_coral = DEFAULT_MISSING_NUMERIC_VALUE
             affy_id = items[34]
             if len(items[35]) == 0:
                 coral_mlg_rep_sample_id = ''
@@ -528,7 +529,7 @@ def load_general_seed_data(migrate_engine):
             if len(items[40]) == 0:
                 dna_extraction_method = ''
             else:
-                dna_extraction_method = handle_column_value((items[40])
+                dna_extraction_method = handle_column_value(items[40])
             try:
                 dna_concentration = "%6f" % float(items[41])
             except Exception:
@@ -702,14 +703,17 @@ def load_general_seed_data(migrate_engine):
             cmd = "SELECT id FROM sample WHERE sample_id = '%s'" % sample_id
             sample_id_db = get_primary_id(migrate_engine, table, cmd)
             if sample_id_db is None:
-                # Add a row to the table.  Values for
-                # the following are not in the seed data.
-                allele_id = ''
-                fragment_id = ''
-                percent_missing_data_sym = ''
-                percent_reference_sym = ''
-                percent_alternative_coral = ''
-                percent_heterozygous_sym = ''
+                # We set allele_id top NULL here since we process the
+                # allele data after the general seed data.  When the
+                # allele data is processed, this column value will ne
+                # updated with the foreign key value.
+                allele_id = sql.null()
+                # FIXME: either implement support for the fragment table or drop the table.
+                fragment_id = sql.null()
+                percent_missing_data_sym = DEFAULT_MISSING_NUMERIC_VALUE
+                percent_reference_sym = DEFAULT_MISSING_NUMERIC_VALUE
+                percent_alternative_coral = DEFAULT_MISSING_NUMERIC_VALUE
+                percent_heterozygous_sym = DEFAULT_MISSING_NUMERIC_VALUE
                 # id, create_time, update_time, affy_id, sample_id,
                 # allele_id, genotype_id, phenotype_id, experiment_id, colony_id,
                 # colony_location, fragment_id, taxonomy_id, person_id
@@ -724,7 +728,7 @@ def load_general_seed_data(migrate_engine):
                 # public, public_after_date, percent_missing_data_coral, percent_missing_data_sym, percent_reference_coral,
                 # percent_reference_sym, percent_alternative_coral, percent_alternative_sym, percent_heterozygous_coral, percent_heterozygous_sym,
                 # field_call
-                cmd += "'%s', '%s', %s, '%s', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s')"
+                cmd += "'%s', '%s', %s, '%s', %s, %s, '%s', %s, '%s', %s, '%s', '%s', '%s', %s, '%s', '%s')"
                 cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),
