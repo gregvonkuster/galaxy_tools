@@ -449,14 +449,6 @@ def load_general_seed_data(migrate_engine):
             else:
                 colony_location = items[9]
             try:
-                latitude_outplant = "%6f" % float(items[10])
-            except Exception:
-                latitude_outplant = DEFAULT_MISSING_NUMERIC_VALUE
-            try:
-                longitude_outplant = "%6f" % float(items[11])
-            except Exception:
-                longitude_outplant = DEFAULT_MISSING_NUMERIC_VALUE
-            try:
                 depth = int(items[12])
             except Exception:
                 depth = 0
@@ -681,7 +673,7 @@ def load_general_seed_data(migrate_engine):
             table = "colony"
             # See if we need to add a row to the table.
             cmd = "SELECT id FROM colony WHERE latitude = %s AND longitude = %s and reef_id = %s"
-            cmd = cmd % (latitude_outplant, longitude_outplant, reef_id)
+            cmd = cmd % (latitude, longitude, reef_id)
             colony_id = get_primary_id(migrate_engine, table, cmd)
             if colony_id is None:
                 # Add a row to the table.
@@ -689,8 +681,8 @@ def load_general_seed_data(migrate_engine):
                 cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),
-                             latitude_outplant,
-                             longitude_outplant,
+                             latitude,
+                             longitude,
                              depth,
                              reef_id)
                 migrate_engine.execute(cmd)
