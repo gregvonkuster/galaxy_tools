@@ -114,11 +114,10 @@ mlg_ids <- mlg.id(genind_clone);
 affy_metadata_data_frame <- read.table(opt$input_affy_metadata, header=FALSE, stringsAsFactors=FALSE, sep="\t", na.strings=c("", "NA"));
 colnames(affy_metadata_data_frame) <- c("user_specimen_id", "field_call", "bcoral_genet_id", "bsym_genet_id", "reef",
                                         "region", "latitude", "longitude", "geographic_origin", "colony_location",
-                                        "latitude_outplant", "longitude_outplant", "depth", "disease_resist",
-                                        "bleach_resist", "mortality","tle", "spawning", "collector_last_name",
-                                        "collector_first_name", "organization", "collection_date", "email", "seq_facility",
-                                        "array_version", "public", "public_after_date", "sperm_motility", "healing_time",
-                                        "dna_extraction_method", "dna_concentration", "registry_id");
+                                        "depth", "disease_resist", "bleach_resist", "mortality","tle",
+                                        "spawning", "collector_last_name", "collector_first_name", "organization", "collection_date",
+                                        "email", "seq_facility", "array_version", "public", "public_after_date",
+                                        "sperm_motility", "healing_time", "dna_extraction_method", "dna_concentration", "registry_id");
 #write_data_frame(output_data_dir, "affy_metadata_data_frame", affy_metadata_data_frame);
 affy_metadata_data_frame$user_specimen_id <- as.character(affy_metadata_data_frame$user_specimen_id);
 user_specimen_ids <- as.character(affy_metadata_data_frame$user_specimen_id);
@@ -573,8 +572,8 @@ start_time <- time_start("Building data frames for insertion into database table
 # test_002          prolifera  NA              NA            JohnsonsReef
 # region  latitude longitude geographic_origin colony_location
 # Bahamas 18.36173 -64.77430 Reef              NA
-# latitude_outplant longitude_outplant depth disease_resist bleach_resist
-# NA                NA                 5     NA             N
+# depth disease_resist bleach_resist
+# 5     NA             N
 # mortality tle spawning collector_last_name collector_first_name organization
 # NA        NA  False    Kitchen             Sheila               Penn State
 # collection_date email       seq_facility array_version public
@@ -602,12 +601,11 @@ num_rows <- nrow(sample_prep_data_frame);
 # needed for the sample table.
 colnames(sample_prep_data_frame) <- c("user_specimen_id", "field_call", "bcoral_genet_id", "bsym_genet_id", "reef",
                                       "region", "latitude", "longitude", "geographic_origin", "colony_location",
-                                      "latitude_outplant", "longitude_outplant", "depth", "disease_resist",
-                                      "bleach_resist", "mortality", "tle", "spawning", "collector_last_name",
-                                      "collector_first_name", "organization", "collection_date", "email",
-                                      "seq_facility", "array_version", "public", "public_after_date",
-                                      "sperm_motility", "healing_time", "dna_extraction_method", "dna_concentration",
-                                      "registry_id", "mlg", "affy_id", "percent_missing_data_coral",
+                                      "depth", "disease_resist", "bleach_resist", "mortality", "tle",
+                                      "spawning", "collector_last_name", "collector_first_name", "organization",
+                                      "collection_date", "email", "seq_facility", "array_version", "public",
+                                      "public_after_date", "sperm_motility", "healing_time", "dna_extraction_method",
+                                      "dna_concentration", "registry_id", "mlg", "affy_id", "percent_missing_data_coral",
                                       "percent_heterozygous_coral", "percent_reference_coral", "percent_alternative_coral");
 #write_data_frame(output_data_dir, "sample_prep_data_frame.tabular", sample_prep_data_frame);
 
@@ -636,10 +634,8 @@ representative_mlg_tibble <- id_data_table %>%
 colony_table_data_frame <- data.frame(matrix(ncol=3, nrow=num_rows));
 colnames(colony_table_data_frame) <- c("latitude", "longitude", "depth");
 for (i in 1:num_rows) {
-    # TODO: Make sure latitide_outplant and longitude_outplant values should
-    # be used for the latitude and longitude columns in the colony table.
-    colony_table_data_frame$latitude[i] <- sample_prep_data_frame$latitude_outplant[i];
-    colony_table_data_frame$longitude[i] <- sample_prep_data_frame$longitude_outplant[i];
+    colony_table_data_frame$latitude[i] <- sample_prep_data_frame$latitude[i];
+    colony_table_data_frame$longitude[i] <- sample_prep_data_frame$longitude[i];
     colony_table_data_frame$depth[i] <- sample_prep_data_frame$depth[i];
 }
 write_data_frame(output_data_dir, "colony.tabular", colony_table_data_frame);
