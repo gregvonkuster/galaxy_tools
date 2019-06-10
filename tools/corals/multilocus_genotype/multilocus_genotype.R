@@ -718,16 +718,16 @@ colnames(sample_prep_data_frame) <- c("user_specimen_id", "field_call", "bcoral_
 # affy_id                            coral_mlg_clonal_id user_specimen_id coral_mlg_rep_sample_id
 # <chr>                              <chr>               <chr>            <chr>
 # a550962-4368120-060520-500_A05.CEL HG0135              test_084         a550962-4368120-060520…
-representative_mlg_tibble <- id_data_table %>%
-    group_by(row_number()) %>%
-    rename(group='row_number()') %>%
-    unnest(affy_id) %>%
-    left_join(stag_db_report %>%
-              select("coral_mlg_clonal_id", "user_specimen_id", "affy_id"),
-              by='affy_id') %>%
-    mutate(coral_mlg_rep_sample_id=ifelse(is.na(coral_mlg_clonal_id), "", affy_id)) %>%
-    ungroup() %>%
-    select(-group);
+#representative_mlg_tibble <- id_data_table %>%
+#    group_by(row_number()) %>%
+#    rename(group='row_number()') %>%
+#    unnest(affy_id) %>%
+#    left_join(stag_db_report %>%
+#              select("coral_mlg_clonal_id", "user_specimen_id", "affy_id"),
+#              by='affy_id') %>%
+#    mutate(coral_mlg_rep_sample_id=ifelse(is.na(coral_mlg_clonal_id), "", affy_id)) %>%
+#    ungroup() %>%
+#    select(-group);
 #write_data_frame(output_data_dir, "representative_mlg_tibble.tabular", representative_mlg_tibble);
 
 # FIXME: We have no data for populating the allele table.
