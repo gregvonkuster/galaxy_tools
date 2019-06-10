@@ -46,13 +46,6 @@ corals_model.Allele.table = Table("allele", metadata,
     Column("update_time", DateTime, default=now, onupdate=now),
     Column("allele", Text))
 
-corals_model.Collector.table = Table("collector", metadata,
-    Column("id", Integer, primary_key=True),
-    Column("create_time", DateTime, default=now),
-    Column("update_time", DateTime, default=now, onupdate=now),
-    Column("person_id", Integer, ForeignKey("person.id"), index=True),
-    Column("contact_id", Integer, ForeignKey("person.id"), index=True))
-
 corals_model.Colony.table = Table("colony", metadata,
     Column("id", Integer, primary_key=True),
     Column("create_time", DateTime, default=now),
@@ -105,8 +98,8 @@ corals_model.Phenotype.table = Table("phenotype", metadata,
     Column("mortality", TrimmedString(255)),
     Column("tle", TrimmedString(255)),
     Column("spawning", Boolean),
-    Column("sperm_motility", Numeric(15, 6), nullable=False),
-    Column("healing_time", Numeric(15, 6), nullable=False))
+    Column("sperm_motility", Numeric(15, 6)),
+    Column("healing_time", Numeric(15, 6))
 
 corals_model.Probe_annotation.table = Table("probe_annotation", metadata,
     Column("id", Integer, primary_key=True),
@@ -158,7 +151,7 @@ corals_model.Sample.table = Table("sample", metadata,
     Column("colony_location", TrimmedString(255)),
     Column("fragment_id", Integer, ForeignKey("fragment.id"), index=True),
     Column("taxonomy_id", Integer, ForeignKey("taxonomy.id"), index=True),
-    Column("collector_id", Integer, ForeignKey("collector.id"), index=True),
+    Column("collector_id", Integer, ForeignKey("person.id"), index=True),
     Column("collection_date", DateTime),
     Column("user_specimen_id", TrimmedString(255)),
     Column("registry_id", TrimmedString(255)),
@@ -246,10 +239,10 @@ mapper(corals_model.Sample, corals_model.Sample.table, properties=dict(
                       lazy=False,
                       backref="samples",
                       primaryjoin=(corals_model.Sample.table.c.taxonomy_id == corals_model.Taxonomy.table.c.id)),
-    collector=relation(corals_model.Collector,
+    collector=relation(corals_model.Person,
                        lazy=False,
                        backref="samples",
-                       primaryjoin=(corals_model.Sample.table.c.collector_id == corals_model.Collector.table.c.id))))
+                       primaryjoin=(corals_model.Sample.table.c.collector_id == corals_model.Person.table.c.id))))
 
 mapper(corals_model.Taxonomy, corals_model.Taxonomy.table, properties=None)
 

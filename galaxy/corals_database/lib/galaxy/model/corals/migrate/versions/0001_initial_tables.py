@@ -51,26 +51,19 @@ except Exception:
     # Handle leap years.
     year_from_now = today + (datetime.date(today.year + 1, 1, 1) - datetime.date(today.year, 1, 1))
 
-# The current working direectory is the Galaxy
+# The current working directory is the Galaxy
 # installation root, so the following file must
 # exist from that location.
 ALLELES_SEED_DATA_FILE = "stag_database_seed_data/alleles_seed_data_file.tabular"
 GENERAL_SEED_DATA_FILE = "stag_database_seed_data/general_seed_data_file.tabular"
 PROBE_ANNOTATION_DATA_FILE = "stag_database_seed_data/probe_annotation.csv"
+DEFAULT_MISSING_NUMERIC_VALUE = -9.000000
 
 Allele_table = Table("allele", metadata,
                      Column("id", Integer, primary_key=True),
                      Column("create_time", DateTime, default=now),
                      Column("update_time", DateTime, default=now, onupdate=now),
                      Column("allele", Text))
-
-
-Collector_table = Table("collector", metadata,
-                        Column("id", Integer, primary_key=True),
-                        Column("create_time", DateTime, default=now),
-                        Column("update_time", DateTime, default=now, onupdate=now),
-                        Column("person_id", Integer, ForeignKey("person.id"), index=True),
-                        Column("contact_id", Integer, ForeignKey("person.id"), index=True))
 
 
 Colony_table = Table("colony", metadata,
@@ -130,8 +123,8 @@ Phenotype_table = Table("phenotype", metadata,
                         Column("mortality", TrimmedString(255)),
                         Column("tle", TrimmedString(255)),
                         Column("spawning", Boolean),
-                        Column("sperm_motility", Numeric(15, 6), nullable=False),
-                        Column("healing_time", Numeric(15, 6), nullable=False))
+                        Column("sperm_motility", Numeric(15, 6)),
+                        Column("healing_time", Numeric(15, 6)))
 
 
 Probe_annotation_table = Table("probe_annotation", metadata,
@@ -186,7 +179,7 @@ Sample_table = Table("sample", metadata,
                      Column("colony_location", TrimmedString(255)),
                      Column("fragment_id", Integer, ForeignKey("fragment.id"), index=True),
                      Column("taxonomy_id", Integer, ForeignKey("taxonomy.id"), index=True),
-                     Column("collector_id", Integer, ForeignKey("collector.id"), index=True),
+                     Column("collector_id", Integer, ForeignKey("person.id"), index=True),
                      Column("collection_date", DateTime),
                      Column("user_specimen_id", TrimmedString(255)),
                      Column("registry_id", TrimmedString(255)),
@@ -259,6 +252,16 @@ def get_primary_id(migrate_engine, table, cmd):
         return row[0]
     else:
         return None
+
+
+def handle_column_value(val, default=''):
+    # Regarding the default value, a NULL value indicates n unknown value
+    # and typically should not be confused with an empty string. Our application
+    # does not need the concept of unknown value, so most columns are
+    # non-nullable and our default is an empty string.
+    if val in ["", "NA", "NULL"]:
+        return default
+    return val
 
 
 def localtimestamp(migrate_engine):
@@ -394,7 +397,6 @@ def load_general_seed_data(migrate_engine):
     # [35]coral_mlg_rep_sample_id [36]genus_name [37]species [38]sperm_motility [39]healing_time
     # [40]dna_extraction_method [41]dna_concentration [42]registry_id
 
-    collector_table_inserts = 0
     colony_table_inserts = 0
     experiment_table_inserts = 0
     genotype_table_inserts = 0
@@ -417,43 +419,35 @@ def load_general_seed_data(migrate_engine):
             SAMPLE_ID += 1
             user_specimen_id = items[0]
             if len(items[1]) == 0:
-                field_call = sql.null()
+                field_call = ''
             else:
-                field_call = items[1]
+                field_call = handle_column_value(items[1])
             if len(items[2]) == 0:
-                bcoral_genet_id = sql.null()
+                bcoral_genet_id = ''
             else:
-                bcoral_genet_id = items[2]
+                bcoral_genet_id = handle_column_value(items[2])
             if len(items[3]) == 0:
-                bsym_genet_id = sql.null()
+                bsym_genet_id = ''
             else:
-                bsym_genet_id = items[3]
-            reef = items[4]
-            region = items[5]
+                bsym_genet_id = handle_column_value(items[3])
+            reef = handle_column_value(items[4])
+            region = handle_column_value(items[5])
             try:
                 latitude = "%6f" % float(items[6])
             except Exception:
-                latitude = sql.null()
+                latitude = DEFAULT_MISSING_NUMERIC_VALUE
             try:
                 longitude = "%6f" % float(items[7])
             except Exception:
-                longitude = sql.null()
+                longitude = DEFAULT_MISSING_NUMERIC_VALUE
             if len(items[8]) == 0:
-                geographic_origin = sql.null()
+                geographic_origin = ''
             else:
-                geographic_origin = items[8]
+                geographic_origin = handle_column_value(items[8])
             if len(items[9]) == 0:
-                colony_location = sql.null()
+                colony_location = ''
             else:
                 colony_location = items[9]
-            try:
-                latitude_outplant = "%6f" % float(items[10])
-            except Exception:
-                latitude_outplant = sql.null()
-            try:
-                longitude_outplant = "%6f" % float(items[11])
-            except Exception:
-                longitude_outplant = sql.null()
             try:
                 depth = int(items[12])
             except Exception:
@@ -464,78 +458,78 @@ def load_general_seed_data(migrate_engine):
             tle = items[16]
             # Convert original spawning value to Boolean.
             spawning = string_as_bool(items[17])
-            collector_last_name = items[18]
-            collector_first_name = items[19]
-            organization = items[20]
+            collector_last_name = handle_column_value(items[18])
+            collector_first_name = handle_column_value(items[19])
+            organization = handle_column_value(items[20])
             try:
                 collection_date = convert_date_string_for_database(items[21])
             except Exception:
                 collection_date = localtimestamp(migrate_engine)
-            email = items[22]
+            email = handle_column_value(items[22])
             seq_facility = items[23]
-            array_version = items[24]
+            array_version = handle_column_value(items[24])
             # Convert original public value to Boolean.
             public = string_as_bool(items[25])
             if public:
-                public_after_date = sql.null()
+                public_after_date = 'NOW()'
             else:
                 if len(items[26]) == 0:
                     # Set the value of public_after_date to the default.
                     public_after_date = year_from_now
                 else:
                     public_after_date = convert_date_string_for_database(items[26])
-            coral_mlg_clonal_id = items[27]
-            symbio_mlg_clonal_id = items[28]
-            genetic_coral_species_call = items[29]
+            coral_mlg_clonal_id = handle_column_value(items[27])
+            symbio_mlg_clonal_id = handle_column_value(items[28])
+            genetic_coral_species_call = handle_column_value(items[29])
             try:
                 percent_missing_data_coral = "%6f" % float(items[30])
             except Exception:
-                percent_missing_data_coral = sql.null()
+                percent_missing_data_coral = DEFAULT_MISSING_NUMERIC_VALUE
             try:
                 percent_reference_coral = "%6f" % float(items[31])
             except Exception:
-                percent_reference_coral = sql.null()
+                percent_reference_coral = DEFAULT_MISSING_NUMERIC_VALUE
             try:
                 percent_alternative_sym = "%6f" % float(items[32])
             except Exception:
-                percent_alternative_sym = sql.null()
+                percent_alternative_sym = DEFAULT_MISSING_NUMERIC_VALUE
             try:
                 percent_heterozygous_coral = "%6f" % float(items[33])
             except Exception:
-                percent_heterozygous_coral = sql.null()
+                percent_heterozygous_coral = DEFAULT_MISSING_NUMERIC_VALUE
             affy_id = items[34]
             if len(items[35]) == 0:
-                coral_mlg_rep_sample_id = sql.null()
+                coral_mlg_rep_sample_id = ''
             else:
-                coral_mlg_rep_sample_id = items[35]
+                coral_mlg_rep_sample_id = handle_column_value(items[35])
             if len(items[36]) == 0:
-                genus_name = sql.null()
+                genus_name = ''
             else:
-                genus_name = items[36]
+                genus_name = handle_column_value(items[36])
             if len(items[37]) == 0:
-                species_name = sql.null()
+                species_name = ''
             else:
-                species_name = items[37]
+                species_name = handle_column_value(items[37])
             try:
                 sperm_motility = "%6f" % float(items[38])
             except Exception:
-                sperm_motility = sql.null()
+                sperm_motility = ''
             try:
                 healing_time = "%6f" % float(items[39])
             except Exception:
-                healing_time = sql.null()
+                healing_time = ''
             if len(items[40]) == 0:
-                dna_extraction_method = sql.null()
+                dna_extraction_method = ''
             else:
-                dna_extraction_method = items[40]
+                dna_extraction_method = handle_column_value(items[40])
             try:
                 dna_concentration = "%6f" % float(items[41])
             except Exception:
-                dna_concentration = sql.null()
+                dna_concentration = ''
             if len(items[42]) == 0:
-                registry_id = sql.null()
+                registry_id = ''
             else:
-                registry_id = items[42]
+                registry_id = handle_column_value(items[42])
 
             # Process the taxonomy items.  Dependent tables: sample.
             table = "taxonomy"
@@ -577,7 +571,7 @@ def load_general_seed_data(migrate_engine):
             table = "genotype"
             # See if we need to add a row to the table.
             # Values for the following are not in the seed data.
-            symbio_mlg_rep_sample_id = sql.null()
+            symbio_mlg_rep_sample_id = ''
             cmd = "SELECT id FROM genotype WHERE coral_mlg_clonal_id = '%s' AND coral_mlg_rep_sample_id = '%s'"
             cmd += " AND symbio_mlg_clonal_id = '%s' AND symbio_mlg_rep_sample_id = '%s' AND genetic_coral_species_call = '%s'"
             cmd += " AND bcoral_genet_id = '%s' AND bsym_genet_id = '%s'"
@@ -636,7 +630,7 @@ def load_general_seed_data(migrate_engine):
                 phenotype_table_inserts += 1
                 phenotype_id = get_latest_id(migrate_engine, table)
 
-            # Process the person items.  Dependent tables: collector.
+            # Process the person items.  Dependent tables: sample.
             table = "person"
             # See if we need to add a row to the table.
             cmd = "SELECT id FROM person WHERE last_name = '%s' AND first_name = '%s' AND email = '%s'" % (collector_last_name, collector_first_name, email)
@@ -654,23 +648,6 @@ def load_general_seed_data(migrate_engine):
                 migrate_engine.execute(cmd)
                 person_table_inserts += 1
                 person_id = get_latest_id(migrate_engine, table)
-
-            # Process the collector items.  Dependent tables: sample.
-            table = "collector"
-            # See if we need to add a row to the table.
-            cmd = "SELECT id FROM collector WHERE person_id = %s" % person_id
-            collector_id = get_primary_id(migrate_engine, table, cmd)
-            if collector_id is None:
-                # Add a row to the table.
-                cmd = "INSERT INTO collector VALUES (%s, %s, %s, %s, %s)"
-                cmd = cmd % (nextval(migrate_engine, table),
-                             localtimestamp(migrate_engine),
-                             localtimestamp(migrate_engine),
-                             person_id,
-                             person_id)
-                migrate_engine.execute(cmd)
-                collector_table_inserts += 1
-                collector_id = get_latest_id(migrate_engine, table)
 
             # Process the reef items.  Dependent tables: colony.
             table = "reef"
@@ -696,9 +673,7 @@ def load_general_seed_data(migrate_engine):
             table = "colony"
             # See if we need to add a row to the table.
             cmd = "SELECT id FROM colony WHERE latitude = %s AND longitude = %s and reef_id = %s"
-            cmd = cmd % (latitude_outplant,
-                         longitude_outplant,
-                         reef_id)
+            cmd = cmd % (latitude, longitude, reef_id)
             colony_id = get_primary_id(migrate_engine, table, cmd)
             if colony_id is None:
                 # Add a row to the table.
@@ -706,8 +681,8 @@ def load_general_seed_data(migrate_engine):
                 cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),
-                             latitude_outplant,
-                             longitude_outplant,
+                             latitude,
+                             longitude,
                              depth,
                              reef_id)
                 migrate_engine.execute(cmd)
@@ -720,17 +695,20 @@ def load_general_seed_data(migrate_engine):
             cmd = "SELECT id FROM sample WHERE sample_id = '%s'" % sample_id
             sample_id_db = get_primary_id(migrate_engine, table, cmd)
             if sample_id_db is None:
-                # Add a row to the table.  Values for
-                # the following are not in the seed data.
+                # We set allele_id top NULL here since we process the
+                # allele data after the general seed data.  When the
+                # allele data is processed, this column value will ne
+                # updated with the foreign key value.
                 allele_id = sql.null()
+                # FIXME: either implement support for the fragment table or drop the table.
                 fragment_id = sql.null()
-                percent_missing_data_sym = sql.null()
-                percent_reference_sym = sql.null()
-                percent_alternative_coral = sql.null()
-                percent_heterozygous_sym = sql.null()
+                percent_missing_data_sym = DEFAULT_MISSING_NUMERIC_VALUE
+                percent_reference_sym = DEFAULT_MISSING_NUMERIC_VALUE
+                percent_alternative_coral = DEFAULT_MISSING_NUMERIC_VALUE
+                percent_heterozygous_sym = DEFAULT_MISSING_NUMERIC_VALUE
                 # id, create_time, update_time, affy_id, sample_id,
                 # allele_id, genotype_id, phenotype_id, experiment_id, colony_id,
-                # colony_location, fragment_id, taxonomy_id, collector_id
+                # colony_location, fragment_id, taxonomy_id, person_id
                 cmd = "INSERT INTO sample VALUES (%s, %s, %s, '%s', '%s', %s, %s, %s, %s, %s, '%s', %s, %s, %s, "
                 if collection_date == "LOCALTIMESTAMP":
                     # collection_date
@@ -742,7 +720,7 @@ def load_general_seed_data(migrate_engine):
                 # public, public_after_date, percent_missing_data_coral, percent_missing_data_sym, percent_reference_coral,
                 # percent_reference_sym, percent_alternative_coral, percent_alternative_sym, percent_heterozygous_coral, percent_heterozygous_sym,
                 # field_call
-                cmd += "'%s', '%s', %s, '%s', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s')"
+                cmd += "'%s', '%s', %s, '%s', %s, %s, '%s', %s, '%s', %s, '%s', '%s', '%s', %s, '%s', '%s')"
                 cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),
@@ -756,7 +734,7 @@ def load_general_seed_data(migrate_engine):
                              colony_location,
                              fragment_id,
                              taxonomy_id,
-                             collector_id,
+                             person_id,
                              collection_date,
                              user_specimen_id,
                              registry_id,
@@ -778,7 +756,6 @@ def load_general_seed_data(migrate_engine):
                 sample_table_inserts += 1
                 sample_id = get_latest_id(migrate_engine, table)
 
-    print("Inserted %d rows into the collector table." % collector_table_inserts)
     print("Inserted %d rows into the colony table." % colony_table_inserts)
     print("Inserted %d rows into the experiment table." % experiment_table_inserts)
     print("Inserted %d rows into the genotype table." % genotype_table_inserts)

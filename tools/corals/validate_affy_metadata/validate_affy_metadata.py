@@ -37,22 +37,22 @@ def string_as_boolean_string(string):
         return 'False'
 
 
-def validate_date_string(line_no, date_string, accumulated_msgs):
+def validate_date_string(line_no, date_string, column, accumulated_msgs):
     if len(date_string) == 0:
         return accumulated_msgs
     try:
         datetime.datetime.strptime(date_string, '%Y-%m-%d')
         return accumulated_msgs
     except ValueError:
-        return add_error_msg(accumulated_msgs, "Line %d contains an incorrect date format (%s must be YYYY-MM-DD)." % (line_no, date_string))
+        return add_error_msg(accumulated_msgs, "Line %d contains an incorrect date format (%s must be YYYY-MM-DD) for column %s." % (line_no, date_string, column))
 
 
-def validate_decimal(line_no, decimal_string, accumulated_msgs):
+def validate_decimal(line_no, decimal_string, column, accumulated_msgs):
     try:
         decimal.Decimal(decimal_string)
         return accumulated_msgs
     except Exception:
-        return add_error_msg(accumulated_msgs, "Line %d contains an incorrect decimal value (%s)." % (line_no, decimal_string))
+        return add_error_msg(accumulated_msgs, "Line %d contains an incorrect decimal value (%s) for column %s." % (line_no, decimal_string, column))
 
 
 def validate_email(line_no, email, accumulated_msgs):
@@ -76,8 +76,8 @@ with open(args.input, "r") as ih:
             accumulated_msgs = add_error_msg(accumulated_msgs, "The input file contains more than 97 lines (must be 1 header line and no more than 96 data lines).")
             stop_error(accumulated_msgs)
         items = line.split("\t")
-        if len(items) != 33:
-            accumulated_msgs = add_error_msg(accumulated_msgs, "Line %d contains %s columns, (must be 33)." % (i, len(items)))
+        if len(items) != 30:
+            accumulated_msgs = add_error_msg(accumulated_msgs, "Line %d contains %s columns, (must be 30)." % (i, len(items)))
             stop_error(accumulated_msgs)
         # Required and validated.
         # Required.
@@ -100,77 +100,71 @@ with open(args.input, "r") as ih:
             accumulated_msgs = empty_value(i, "region", accumulated_msgs)
         # Required and validated.
         latitude = items[6]
-        accumulated_msgs = validate_decimal(i, latitude, accumulated_msgs)
+        accumulated_msgs = validate_decimal(i, latitude, "latitude", accumulated_msgs)
         # Required and validated.
         longitude = items[7]
-        accumulated_msgs = validate_decimal(i, longitude, accumulated_msgs)
+        accumulated_msgs = validate_decimal(i, longitude, "longitude", accumulated_msgs)
         # Optional.
         geographic_origin = items[8]
         # Optional.
-        sample_location = items[9]
+        colony_location = items[9]
         # Optional.
-        latitude_outplant = items[10]
+        depth = items[10]
         # Optional.
-        longitude_outplant = items[11]
+        disease_resist = items[11]
         # Optional.
-        depth = items[12]
+        bleach_resist = items[12]
         # Optional.
-        dist_shore = items[13]
+        mortality = items[13]
         # Optional.
-        disease_resist = items[14]
+        tle = items[14]
         # Optional.
-        bleach_resist = items[15]
-        # Optional.
-        mortality = items[16]
-        # Optional.
-        tle = items[17]
-        # Optional.
-        spawning = string_as_boolean_string(items[18])
+        spawning = string_as_boolean_string(items[15])
         # Required.
-        collector_last_name = items[19]
+        collector_last_name = items[16]
         if len(collector_last_name) == 0:
             accumulated_msgs = empty_value(i, "collector_last_name", accumulated_msgs)
         # Required.
-        collector_first_name = items[20]
+        collector_first_name = items[17]
         if len(collector_first_name) == 0:
             accumulated_msgs = empty_value(i, "collector_first_name", accumulated_msgs)
         # Required.
-        org = items[21]
+        org = items[18]
         if len(org) == 0:
             accumulated_msgs = empty_value(i, "org", accumulated_msgs)
         # Required and validated.
-        collection_date = items[22]
-        accumulated_msgs = validate_date_string(i, collection_date, accumulated_msgs)
+        collection_date = items[19]
+        accumulated_msgs = validate_date_string(i, collection_date, "collection_date", accumulated_msgs)
         # Required and validated.
-        contact_email = items[23]
+        contact_email = items[20]
         accumulated_msgs = validate_email(i, contact_email, accumulated_msgs)
         # Required.
-        seq_facility = items[24]
+        seq_facility = items[21]
         if len(seq_facility) == 0:
             accumulated_msgs = empty_value(i, "seq_facility", accumulated_msgs)
         # Optional.
-        array_version = items[25]
+        array_version = items[22]
         # Optional.
-        public = string_as_boolean_string(items[26])
+        public = string_as_boolean_string(items[23])
         # Optional.
-        public_after_date = items[27]
-        accumulated_msga = validate_date_string(i, public_after_date, accumulated_msgs)
+        public_after_date = items[24]
+        accumulated_msga = validate_date_string(i, public_after_date, "public_after_date", accumulated_msgs)
         # Required and validated.
-        sperm_motility = items[28]
-        accumulated_msgs = validate_decimal(i, sperm_motility, accumulated_msgs)
+        sperm_motility = items[25]
+        accumulated_msgs = validate_decimal(i, sperm_motility, "sperm_motility", accumulated_msgs)
         # Required and validated.
-        healing_time = items[29]
-        accumulated_msgs = validate_decimal(i, healing_time, accumulated_msgs)
+        healing_time = items[26]
+        accumulated_msgs = validate_decimal(i, healing_time, "healing_time", accumulated_msgs)
         # Optional.
-        dna_extraction_method = items[30]
+        dna_extraction_method = items[27]
         # Optional.
-        dna_concentration = items[31]
+        dna_concentration = items[28]
         # If dna_concentration has a value, then it must be decimal.
         if len(dna_concentration) > 0:
-            accumulated_msgs = validate_decimal(i, dna_concentration, accumulated_msgs)
+            accumulated_msgs = validate_decimal(i, dna_concentration, "dna_concentration", accumulated_msgs)
         # Optional.
-        registry_id = items[32]
-       
+        registry_id = items[29]
+
 
 if len(accumulated_msgs) > 0:
     stop_error(accumulated_msgs)

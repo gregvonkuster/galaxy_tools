@@ -1,6 +1,7 @@
 <tool id="multilocus_genotype" name="Multilocus genotype" version="1.0.0">
     <description>unique combination of alleles for loci</description>
     <requirements>
+        <requirement type="package" version="1.16.0">bioconductor-snprelate</requirement>
         <requirement type="package" version="2.1.1">r-adegenet</requirement>
         <requirement type="package" version="5.1">r-ape</requirement>
         <requirement type="package" version="1.11.6">r-data.table</requirement>
@@ -8,38 +9,50 @@
         <requirement type="package" version="0.7.6">r-dplyr</requirement>
         <requirement type="package" version="3.0.0">r-ggplot2</requirement>
         <requirement type="package" version="1.20">r-knitr</requirement>
+        <requirement type="package" version="3.3.0">r-maps</requirement>
+        <requirement type="package" version="1.2.6">r-mapproj</requirement>
         <requirement type="package" version="1.6.0">r-optparse</requirement>
         <requirement type="package" version="2.8.1">r-poppr</requirement>
         <requirement type="package" version="1.1.2">r-rcolorbrewer</requirement>
         <requirement type="package" version="1.1.1">r-rpostgres</requirement>
         <requirement type="package" version="0.8.1">r-tidyr</requirement>
-        <requirement type="package" version="2.5_3">r-vegan</requirement>
         <requirement type="package" version="1.8.0">r-vcfr</requirement>
+        <requirement type="package" version="2.5_3">r-vegan</requirement>
+        <requirement type="package" version="0.1.5">r-yarrr</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
+#set output_data_dir = 'output_data_dir'
 #set output_plots_dir = 'output_plots_dir'
+mkdir $output_data_dir &&
 mkdir $output_plots_dir &&
 Rscript '$__tool_directory__/multilocus_genotype.R'
 --database_connection_string '$__app__.config.corals_database_connection'
 --input_affy_metadata '$input_affy_metadata'
 --input_pop_info '$input_pop_info'
 --input_vcf '$input_vcf'
+#if str($output_nj_phylogeny_tree) == "yes":
+    --output_nj_phylogeny_tree '$output_nj_phylogeny_tree'
+#end if
 --output_stag_db_report '$output_stag_db_report'
-&> multilocus_genotype.log;
-if [[ $? -ne 0 ]]; then
-    cp multilocus_genotype.log '$output_stag_db_report';
-    exit 1;
-fi]]></command>
+&> '$output_log']]></command>
     <inputs>
         <param name="input_vcf" type="data" format="vcf" label="VCF file" />
         <param name="input_affy_metadata" type="data" format="tabular" label="Affymetrix 96 well plate file" />
         <param name="input_pop_info" type="data" format="txt" label="Genotype population information file" />
+        <param name="output_nj_phylogeny_tree" type="select" display="radio" label="Plot neighbor-joining phylogeny tree?">
+            <option value="yes">Yes</option>
+            <option value="no" selected="true">No</option>
+        </param>
     </inputs>
     <outputs>
-        <data name="output_stag_db_report" format="csv" label="${tool.name} (stag db report) on ${on_string}"/>
+        <collection name="output_data_collection" type="list" label="${tool.name} (table data), on ${on_string}">
+            <discover_datasets pattern="__name__" directory="output_data_dir" format="tabular"/>
+        </collection>
         <collection name="output_plot_collection" type="list" label="${tool.name} (plots), on ${on_string}">
             <discover_datasets pattern="__name__" directory="output_plots_dir" format="pdf"/>
         </collection>
+        <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}"/>
+        <data name="output_stag_db_report" format="csv" label="${tool.name} (stag db report) on ${on_string}"/>
     </outputs>
     <tests>
         <test>
@@ -47,6 +60,9 @@ fi]]></command>
             <param name="input_affy_metadata" value="affy_metadata.tabular" ftype="tabular"/>
             <param name="input_pop_info" value="pop_info.txt" ftype="txt"/>
             <output name="output_stag_db_report" file="output_stag_db_report.csv" ftype="csv"/>
+            <output_collection name="output_data_collection" type="list">
+                <element name="person.tabular" file="person.tabular" ftype="tabular" compare="contains"/>
+            </output_collection>
             <output_collection name="output_plot_collection" type="list">
                 <element name="nj_phylogeny.pdf" file="nj_phylogeny.pdf" ftype="pdf" compare="contains"/>
                 <element name="missing_data.pdf" file="missing_data.pdf" ftype="pdf" compare="contains"/>
@@ -60,6 +76,7 @@ fi]]></command>
 Renders the unique combination of the alleles for two or more loci for each individual. The multilocus genotypes
 are critically important for tracking dispersal and population structure of organisms, especially those that
 reproduce clonally (plants, sponges, cnidarians, flatworms, annelids, sea stars, and many more).
+
 -----
 
 **Required options**
