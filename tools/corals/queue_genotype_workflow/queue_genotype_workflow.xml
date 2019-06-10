@@ -24,7 +24,7 @@ python $__tool_directory__/queue_genotype_workflow.py
     </configfiles>
     <inputs>
         <param name="affy_metadata" type="data" format="tabular" label="Affymetrix 96 well plate metadata file" help="The word 'metadata' must be in the file name.">
-            <validator type="expression" message="96 well plate data must have 32 columns and no more than 96 lines of data"><![CDATA[value is not None and value.metadata.columns==32 and value.metadata.data_lines<=96]]></validator>
+            <validator type="expression" message="96 well plate data must have 30 columns and no more than 96 lines of data"><![CDATA[value is not None and value.metadata.columns==30 and value.metadata.data_lines<=96]]></validator>
         </param>
         <param name="sample_attributes" type="data" format="tabular" label="Sample attributes file" help="The word 'attributes' must be in the file name."/>
         <param name="annot" type="data" format="csv" label="Probeset annotation file" help="The word 'annotation' must be in the file name."/>
