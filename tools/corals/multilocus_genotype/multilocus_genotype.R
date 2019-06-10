@@ -395,7 +395,7 @@ sample_alleles_df<- sample_alleles_df %>%
 concat_sample_alleles<-unite(sample_alleles_df, alleles, 1:19696, sep = " ", remove = TRUE);
 concat_sample_alleles<-setDT(concat_sample_alleles, keep.rownames = TRUE)[];
 setnames(concat_sample_alleles, c("rn"), c("affy_id"));
-# write.csv(uat_96,file=paste("Seed_genotype_alleles.csv",sep = ""),quote=FALSE,row.names=FALSE);
+# write.csv(concat_sample_alleles,file=paste("Seed_genotype_alleles.csv",sep = ""),quote=FALSE,row.names=FALSE);
 
 # Create a phylogeny of samples based on distance matrices.
 cols <- piratepal("basel");
