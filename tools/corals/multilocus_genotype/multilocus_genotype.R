@@ -306,6 +306,8 @@ stag_db_report <- specimen_id_field_call_data_table %>%
     left_join(affy_id_user_specimen_id_vector %>%
         select("affy_id", "user_specimen_id"),
         by="user_specimen_id") %>%
+    mutate(DB_record = ifelse(affy_id %in% smlg_data_frame$affy_id,"genotyped","new")) %>%
+    filter(DB_record=="new") %>%
     left_join(sample_mlg_match_tibble %>%
         select("affy_id", "coral_mlg_clonal_id", "DB_match"),
         by="affy_id") %>%
@@ -327,7 +329,7 @@ stag_db_report <- specimen_id_field_call_data_table %>%
     mutate(genetic_coral_species_call = ifelse(percent_alternative_coral >= 45.5 & percent_alternative_coral <= 50, "A.cervicornis", genetic_coral_species_call)) %>%
     mutate(genetic_coral_species_call = ifelse(percent_heterozygous_coral > 40, "A.prolifera", genetic_coral_species_call)) %>%
     ungroup() %>%
-    select(-group);
+    select(-group,-DB_record);
 <<<<<<< HEAD
 
 write.csv(report_user, file=opt$output_stag_db_report, quote=FALSE);
