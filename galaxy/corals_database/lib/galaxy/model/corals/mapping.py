@@ -60,8 +60,11 @@ corals_model.Experiment.table = Table("experiment", metadata,
     Column("create_time", DateTime, default=now),
     Column("update_time", DateTime, default=now, onupdate=now),
     Column("seq_facility", String),
-    Column("array_version", TrimmedString(255)))
+    Column("array_version", TrimmedString(255)),
+    Column("result_folder_name", TrimmedString(255)),
+    Column("plate_barcode", TrimmedString(255)))
 
+# For future use.
 corals_model.Fragment.table = Table("fragment", metadata,
     Column("id", Integer, primary_key=True),
     Column("create_time", DateTime, default=now),
@@ -74,11 +77,8 @@ corals_model.Genotype.table = Table("genotype", metadata,
     Column("update_time", DateTime, default=now, onupdate=now),
     Column("coral_mlg_clonal_id", TrimmedString(255)),
     Column("coral_mlg_rep_sample_id", TrimmedString(255)),
-    Column("symbio_mlg_clonal_id", TrimmedString(255)),
-    Column("symbio_mlg_rep_sample_id", TrimmedString(255)),
     Column("genetic_coral_species_call", TrimmedString(255)),
-    Column("bcoral_genet_id", TrimmedString(255)),
-    Column("bsym_genet_id", TrimmedString(255)))
+    Column("bcoral_genet_id", TrimmedString(255)))
 
 corals_model.Person.table = Table("person", metadata,
     Column("id", Integer, primary_key=True),
@@ -149,7 +149,6 @@ corals_model.Sample.table = Table("sample", metadata,
     Column("experiment_id", Integer, ForeignKey("experiment.id"), index=True),
     Column("colony_id", Integer, ForeignKey("colony.id"), index=True),
     Column("colony_location", TrimmedString(255)),
-    Column("fragment_id", Integer, ForeignKey("fragment.id"), index=True),
     Column("taxonomy_id", Integer, ForeignKey("taxonomy.id"), index=True),
     Column("collector_id", Integer, ForeignKey("person.id"), index=True),
     Column("collection_date", DateTime),
@@ -169,6 +168,15 @@ corals_model.Sample.table = Table("sample", metadata,
     Column("percent_heterozygous_coral", Numeric(15, 6)),
     Column("percent_heterozygous_sym", Numeric(15, 6)),
     Column("field_call", TrimmedString(255)))
+
+# For future use.
+corals_model.symbio_genotype = Table("symbio_genotype", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("create_time", DateTime, default=now),
+    Column("update_time", DateTime, default=now, onupdate=now),
+    Column("symbio_mlg_clonal_id", TrimmedString(255)),
+    Column("symbio_mlg_rep_sample_id", TrimmedString(255)),
+    Column("bsym_genet_id", TrimmedString(255)))
 
 corals_model.Taxonomy.table = Table("taxonomy", metadata,
     Column("id", Integer, primary_key=True),
@@ -227,10 +235,6 @@ mapper(corals_model.Sample, corals_model.Sample.table, properties=dict(
                         lazy=False,
                         backref="samples",
                         primaryjoin=(corals_model.Sample.table.c.experiment_id == corals_model.Experiment.table.c.id)),
-    fragment=relation(corals_model.Fragment,
-                      lazy=False,
-                      backref="samples",
-                      primaryjoin=(corals_model.Sample.table.c.fragment_id == corals_model.Fragment.table.c.id)),
     colony=relation(corals_model.Colony,
                     lazy=False,
                     backref="matching_samples",
@@ -243,6 +247,8 @@ mapper(corals_model.Sample, corals_model.Sample.table, properties=dict(
                        lazy=False,
                        backref="samples",
                        primaryjoin=(corals_model.Sample.table.c.collector_id == corals_model.Person.table.c.id))))
+
+mapper(corals_model.Symbio_genotype, corals_model.Symbio_genotype.table, properties=None)
 
 mapper(corals_model.Taxonomy, corals_model.Taxonomy.table, properties=None)
 
