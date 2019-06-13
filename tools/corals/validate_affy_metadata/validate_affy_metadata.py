@@ -166,14 +166,10 @@ with open(args.input, "r") as ih:
             accumulated_msgs = validate_decimal(line_no, dna_concentration, "dna_concentration", accumulated_msgs)
         # Optional.
         registry_id = items[29]
-        # Required.
+        # Optional.
         result_folder_name = items[30]
-        if len(result_folder_name) == 0:
-            accumulated_msgs = empty_value(line_no, "result_folder_name", accumulated_msgs)
-        # Required.
+        # Optional.
         plate_barcode = items[31]
-        if len(plate_barcode) == 0:
-            accumulated_msgs = empty_value(line_no, "plate_barcode", accumulated_msgs)
 
 
 if len(accumulated_msgs) > 0:
