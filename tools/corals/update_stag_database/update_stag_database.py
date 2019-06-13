@@ -141,7 +141,10 @@ class StagDatabaseUpdater(object):
     def update_colony_table(self, file_path):
         self.log("Updating the colony table...")
         # Columns in the colony file are:
-        # latitude longitude depth
+        # latitude longitude depth geographic_origin
+        # The geographic_origin value is used for deciding into which table
+        # to insert the latitude and longitude values.  If the geographic_origin
+        # is "colony", the values will be inserted into the colony table.
         colony_table_inserts = 0
         with open(file_path) as fh:
             for i, line in enumerate(fh):
@@ -151,9 +154,20 @@ class StagDatabaseUpdater(object):
                 # Keep track of foreign keys since we skip the header line
                 id_index = i - 1
                 line = line.rstrip()
-                items = line.split("\t")
-                latitude, latitude_param_val_str = handle_column_value(items[0], default=-9.0)
-                longitude, longitude_param_val_str = handle_column_value(items[1], default=-9.0)
+                geographic_origin = items[3]
+                if set_to_null(geographic_origin):
+                    # TODO: find out if the default for geographic_origin should be reef or null.
+                    geographic_origin = "reef"
+                else:
+                    geographic_origin = geographic_origin.lower()
+                if geographic_origin == "colony":
+                    latitude, latitude_param_val_str = handle_column_value(items[0], default=-9.0)
+                    longitude, longitude_param_val_str = handle_column_value(items[1], default=-9.0)
+                else:
+                     latitude = ""
+                     latitude_param_val_str = ""
+                     longitude = ""
+                     longitude_param_val_str = ""
                 depth, depth_param_val_str = handle_column_value(items[2], default=-9)
                 reef_id = self.reef_ids[id_index]
                 # See if we need to add a row to the table.
@@ -310,6 +324,9 @@ class StagDatabaseUpdater(object):
         self.log("Updating the reef table...")
         # Columns in the reef file are:
         # name region latitude longitude geographic_origin
+        # The geographic_origin value is used for deciding into which table
+        # to insert the latitude and longitude values.  If the geographic_origin
+        # is "reef", the values will be inserted into the reef table.
         reef_table_inserts = 0
         with open(file_path) as fh:
             for i, line in enumerate(fh):
@@ -320,12 +337,18 @@ class StagDatabaseUpdater(object):
                 items = line.split("\t")
                 name = items[0]
                 region = items[1]
-                latitude = "%6f" % float(items[2])
-                longitude = "%6f" % float(items[3])
                 geographic_origin = items[4]
                 if set_to_null(geographic_origin):
                     # TODO: find out if the default for geographic_origin should be reef or null.
-                    geographic_origin = "Reef"
+                    geographic_origin = "reef"
+                else:
+                    geographic_origin = geographic_origin.lower()
+                if geographic_origin == "reef":
+                    latitude = "%6f" % float(items[2])
+                    longitude = "%6f" % float(items[3])
+                else:
+                    latitude = ""
+                    longitude = ""
                 # See if we need to add a row to the reef table.
                 cmd = "SELECT id FROM reef WHERE name = '%s' AND region = '%s' " % (name, region)
                 cmd += "AND latitude = %s AND longitude = %s " % (latitude, longitude)

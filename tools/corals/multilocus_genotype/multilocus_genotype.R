@@ -113,7 +113,7 @@ mlg_ids <- mlg.id(genind_clone);
 
 # Read user's Affymetrix 96 well plate tabular file.
 affy_metadata_data_frame <- read.table(opt$input_affy_metadata, header=FALSE, stringsAsFactors=FALSE, sep="\t", na.strings=c("", "NA"));
-colnames(affy_metadata_data_frame) <- c("user_specimen_id", "field_call", "bcoral_genet_id", "bsym_genet_id", "reef",
+colnames(affy_metadata_data_frame) <- c("user_specimen_id", "field_call", "bcoral_genet_id", "_sym_genet_id", "reef",
                                         "region", "latitude", "longitude", "geographic_origin", "colony_location",
                                         "depth", "disease_resist", "bleach_resist", "mortality","tle",
                                         "spawning", "collector_last_name", "collector_first_name", "organization", "collection_date",
@@ -123,9 +123,9 @@ write_data_frame(output_data_dir, "affy_metadata_data_frame", affy_metadata_data
 affy_metadata_data_frame$user_specimen_id <- as.character(affy_metadata_data_frame$user_specimen_id);
 user_specimen_ids <- as.character(affy_metadata_data_frame$user_specimen_id);
 # The specimen_id_field_call_data_table looks like this:
-# user_specimen_ids V2
-# test_002          prolifera
-# test_003          prolifera
+# user_specimen_ids field_call
+# 1090              prolifera
+# 1091              prolifera
 specimen_id_field_call_data_table <- data.table(user_specimen_ids, affy_metadata_data_frame$field_call);
 # Rename the user_specimen_ids column.
 setnames(specimen_id_field_call_data_table, c("user_specimen_ids"), c("user_specimen_id"));
@@ -144,12 +144,12 @@ genotype_table <- tbl(conn, "genotype");
 sample_table_columns <- sample_table %>% select(user_specimen_id, affy_id, genotype_id);
 smlg <- sample_table_columns %>%
     left_join(genotype_table %>%
-        select("id", "coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "genetic_coral_species_call", "bcoral_genet_id"),
+        select("id", "coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "genetic_coral_species_call", "bcoral_genet_id", "bsym_genet_id"),
         by=c("genotype_id"="id"));
 # Name the columns.
 smlg_data_frame <- as.data.frame(smlg);
-colnames(smlg_data_frame) <- c("user_specimen_id", "affy_id", "genotype_id", "coral_mlg_clonal_id",
-                               "coral_mlg_rep_sample_id", "genetic_coral_species_call", "bcoral_genet_id");
+colnames(smlg_data_frame) <- c("user_specimen_id", "affy_id", "genotype_id", "coral_mlg_clonal_id", "coral_mlg_rep_sample_id",
+                               "genetic_coral_species_call", "bcoral_genet_id", "bsym_genet_id");
 write_data_frame(output_data_dir, "smlg_data_frame", smlg_data_frame);
 
 # Missing GT in samples submitted.
@@ -237,19 +237,19 @@ setnames(mlg_ids_data_table, c("mlg_ids"), c("affy_id"));
 # sample_mlg_tibble looks like this:
 # A tibble: 262 x 3
 # Groups:   group [?]
-# group affy_id                            coral_mlg_clonal_id
-# <int> <chr>                              <chr>
-# 1     a550962-4368120-060520-500_M23.CEL NA
-# 2     a550962-4368120-060520-256_A19.CEL HG0006
+# group affy_id                            coral_mlg_clonal_id coral_mlg_rep_sample_id
+# <int> <chr>                              <chr>               <chr>
+# 1     a550962-4368120-060520-500_M23.CEL NA                  13905
 sample_mlg_tibble <- mlg_ids_data_table %>%
     group_by(row_number()) %>%
     dplyr::rename(group="row_number()") %>%
     unnest (affy_id) %>%
     # Join with mlg table.
     left_join(smlg_data_frame %>%
-              select("affy_id","coral_mlg_clonal_id", "coral_mlg_rep_sample_id",
-                     "genetic_coral_species_call", "bcoral_genet_id"),
+              select("affy_id","coral_mlg_clonal_id", "coral_mlg_rep_sample_id"),
               by="affy_id");
+cat("\nsample_mlg_tibble:\n");
+print(sample_mlg_tibble);
 
 # If found in database, group members on previous mlg id.
 uniques <- unique(sample_mlg_tibble[c("group", "coral_mlg_clonal_id")]);
@@ -479,7 +479,7 @@ palette <- colorRampPalette(piratepal("basel"));
 # Start PDF device driver.
 dev.new(width=20, height=20);
 file_path = get_file_path(output_plots_dir, "mlg_map.pdf");
-cat("file_path: ", file_path);
+cat("file_path: ", file_path, "\n");
 pdf(file=file_path, width=20, height=20);
 world_data = map_data("world");
 # Add the coral_mlg_clonal_id column from the stag_db_report
@@ -620,23 +620,6 @@ colnames(sample_prep_data_frame) <- c("user_specimen_id", "field_call", "bcoral_
                                       "percent_heterozygous_coral", "percent_reference_coral", "percent_alternative_coral");
 write_data_frame(output_data_dir, "sample_prep_data_frame.tabular", sample_prep_data_frame);
 
-# representative_mlg_tibble looks like this:
-# # A tibble: 230 x 4
-# affy_id                            coral_mlg_clonal_id user_specimen_id coral_mlg_rep_sample_id
-# <chr>                              <chr>               <chr>            <chr>
-# a550962-4368120-060520-500_A05.CEL HG0135              test_084         a550962-4368120-060520
-#representative_mlg_tibble <- id_data_table %>%
-#    group_by(row_number()) %>%
-#    rename(group='row_number()') %>%
-#    unnest(affy_id) %>%
-#    left_join(stag_db_report %>%
-#              select("coral_mlg_clonal_id", "user_specimen_id", "affy_id"),
-#              by='affy_id') %>%
-#    mutate(coral_mlg_rep_sample_id=ifelse(is.na(coral_mlg_clonal_id), "", affy_id)) %>%
-#    ungroup() %>%
-#    select(-group);
-#write_data_frame(output_data_dir, "representative_mlg_tibble.tabular", representative_mlg_tibble);
-
 # Output the data frame for updating the alleles table.
 # Subset to only the new plate data.
 i <- ifelse(is.na(stag_db_report[2]), "", stag_db_report[[2]]);
@@ -659,12 +642,19 @@ write_data_frame(output_data_dir, "alleles.tabular", alleles_table_data_frame);
 # FIXME: We have no data for populating the experiment table.
 
 # Output the data frame for updating the colony table.
-colony_table_data_frame <- data.frame(matrix(ncol=3, nrow=num_rows));
-colnames(colony_table_data_frame) <- c("latitude", "longitude", "depth");
+# The geographic_origin value is used for deciding into which table
+# to insert the latitude and longitude values.  If the geographic_origin
+# is "reef", the values will be inserted into the reef table, and if it is
+# "colony", the values will be inserted into the colony table.  We insert
+# these values in both data frames so that the downstream tool that parses
+# them can determine the appropriate table.
+colony_table_data_frame <- data.frame(matrix(ncol=4, nrow=num_rows));
+colnames(colony_table_data_frame) <- c("latitude", "longitude", "depth", "geographic_origin");
 for (i in 1:num_rows) {
     colony_table_data_frame$latitude[i] <- sample_prep_data_frame$latitude[i];
     colony_table_data_frame$longitude[i] <- sample_prep_data_frame$longitude[i];
     colony_table_data_frame$depth[i] <- sample_prep_data_frame$depth[i];
+    colony_table_data_frame$geographic_origin[i] <- sample_prep_data_frame$geographic_origin[i];
 }
 write_data_frame(output_data_dir, "colony.tabular", colony_table_data_frame);
 
@@ -675,35 +665,52 @@ genotype_data_frame <- id_data_table %>%
     dplyr::rename(group='row_number()') %>%
     unnest(affy_id) %>%
     left_join(smlg_data_frame %>%
-        select("affy_id", "coral_mlg_rep_sample_id", "coral_mlg_clonal_id", "user_specimen_id"),
+        select("affy_id", "coral_mlg_rep_sample_id", "coral_mlg_clonal_id", "user_specimen_id",
+               "genetic_coral_species_call", "bcoral_genet_id", "bsym_genet_id"),
         by='affy_id');
+cat("\ngenotype_data_frame:\n");
+print(genotype_data_frame);
 # Confirm that the representative mlg is the same between runs.
 uniques2 <- unique(genotype_data_frame[c("group", "coral_mlg_rep_sample_id")]);
+cat("\nuniques2:\n");
+print(uniques2);
 uniques2 <- uniques2[!is.na(uniques2$coral_mlg_rep_sample_id),];
+cat("\nuniques2:\n");
+print(uniques2);
 na.mlg3 <- which(is.na(genotype_data_frame$coral_mlg_rep_sample_id));
-na.group2 <- genotype_data_frame$group(na.mlg3);
+cat("\nna.mlg3:\n");
+print(na.mlg3);
+na.group2 <- genotype_data_frame$group[na.mlg3];
+cat("\nna.group2:\n");
+print(na.group2);
 genotype_data_frame$coral_mlg_rep_sample_id[na.mlg3] <- uniques2$coral_mlg_rep_sample_id[match(na.group2, uniques2$group)];
+cat("\ngenotype_data_frame:\n");
+print(genotype_data_frame);
 # Transform the representative mlg column with new genotyped samples.
+# representative_mlg_tibble looks like this:
+# A tibble: 220 x 5
+# affy_id   coral_mlg_rep_sa… coral_mlg_clona… user_specimen_id
+# <chr>     <chr>             <chr>            <chr>
+# a100000-… 13905             HG0048           13905
+# genetic_coral_species_call bcoral_genet_id bsym_genet_id
+# <chr>                      <chr>           <chr>
+# A.palmata                  C1651           <NA>
 representative_mlg_tibble <- genotype_data_frame %>%
     mutate(coral_mlg_rep_sample_id=ifelse(is.na(coral_mlg_rep_sample_id), affy_id, coral_mlg_rep_sample_id)) %>%
     ungroup() %>%
     select(-group);
+cat("\nrepresentative_mlg_tibble:\n");
+print(representative_mlg_tibble);
 write_data_frame(output_data_dir, "representative_mlg_tibble.tabular", representative_mlg_tibble);
 # genotype_table_tibble looks like this:
-# # A tibble: 262 x 5
-# affy_id                            coral_mlg_clonal_id db_match coral_mlg_rep_samp… user_specimen_id
-# <chr>                              <chr>               <chr>    <chr>               <chr>
-# a550962-4368120-060520-500_A05.CEL HG0135              no_match a550962-4368120-06… test_084
-# affy_id                            coral_mlg_clonal_id.x coral_mlg_rep_sample_id.x symbio_mlg_clonal_id
-# a550962-4368120-060520-500_M23.CEL HG0135                NA                        NA
-# symbio_mlg_rep_sample_id genetic_coral_species_call bcoral_genet_id bsym_genet_id db_match
-# NA                       NA                         NA              NA            no_match
-# coral_mlg_clonal_id.y coral_mlg_rep_sample_id.y
-# HG0135                a550962-4368120-060520-500_M23.CEL
+# affy_id       coral_mlg_clonal_id user_specimen_id db_match
+# a550962...CEL HG0120              1090             match
+#  coral_mlg_rep_sample_id genetic_coral_species_call bcoral_genet_id bsym_genet_id
+#  1104                    <NA>                       <NA>            <NA>
 genotype_table_tibble <- stag_db_report %>%
     select("affy_id","coral_mlg_clonal_id", "user_specimen_id", "db_match") %>%
     left_join(representative_mlg_tibble %>%
-    select("coral_mlg_clonal_id", "coral_mlg_rep_sample_id"),
+    select("affy_id", "coral_mlg_rep_sample_id", "genetic_coral_species_call", "bcoral_genet_id", "bsym_genet_id"),
     by='affy_id');
 cat("genotype_table_tibble:\n");
 print(genotype_table_tibble);
@@ -745,6 +752,12 @@ write_data_frame(output_data_dir, "phenotype.tabular", phenotype_table_data_fram
 # Output the file needed for populating the reef table.
 reef_table_data_frame <- data.frame(matrix(ncol=5, nrow=num_rows));
 colnames(reef_table_data_frame) <- c("name", "region", "latitude", "longitude", "geographic_origin");
+# The geographic_origin value is used for deciding into which table
+# to insert the latitude and longitude values.  If the geographic_origin
+# is "reef", the values will be inserted into the reef table, and if it is
+# "colony", the values will be inserted into the colony table.  We insert
+# these values in both data frames so that the downstream tool that parses
+# them can determine the appropriate table.
 # reef_table_data_frame looks like this:
 # name         region  latitude  longitude geographic_origin
 # JohnsonsReef Bahamas 18.361733 -64.7743  Reef
