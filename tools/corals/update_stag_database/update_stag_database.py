@@ -8,8 +8,8 @@ import psycopg2
 import sys
 
 from sqlalchemy import create_engine
-from sqlalchemy import MetaData
 from sqlalchemy import sql
+from sqlalchemy import MetaData
 from sqlalchemy.engine.url import make_url
 
 now = datetime.datetime.utcnow
@@ -92,7 +92,9 @@ class StagDatabaseUpdater(object):
         self.connect_db()
         self.engine = create_engine(self.args.database_connection_string)
         self.metadata = MetaData(self.engine)
+        self.allele_ids = []
         self.colony_ids = []
+        self.experiment_ids = []
         self.genotype_ids = []
         self.person_ids = []
         self.phenotype_ids = []
@@ -138,6 +140,36 @@ class StagDatabaseUpdater(object):
     def log(self, msg):
         self.outfh.write("%s\n" % msg)
 
+    def update_allele_table(self, file_path):
+        self.log("Updating the allele table...")
+        # Columns in the experiment file are:
+        # affy_id allele
+        allele_table_inserts = 0
+        with open(file_path) as fh:
+            for i, line in enumerate(fh):
+                if i == 0:
+                    # Skip header
+                    continue
+                line = line.rstrip()
+                items = line.split("\t")
+                allele = items[1]
+                # See if we need to add a row to the table.
+                cmd = "SELECT id FROM allele WHERE allele = '%s';" % allele
+                cur = self.conn.cursor()
+                cur.execute(cmd)
+                try:
+                    allele_id = cur.fetchone()[0]
+                except Exception:
+                    # Insert a row into the allele table.
+                    cmd = "INSERT INTO allele VALUES (nextval('allele_id_seq'), %s, %s, %s) RETURNING id;"
+                    args = ['NOW()', 'NOW()', allele]
+                    cur = self.update(cmd, args)
+                    self.flush()
+                    allele_id = cur.fetchone()[0]
+                    allele_table_inserts += 1
+                self.allele_ids.append(allele_id)
+        self.log("Inserted %d rows into the allele table..." % allele_table_inserts)
+
     def update_colony_table(self, file_path):
         self.log("Updating the colony table...")
         # Columns in the colony file are:
@@ -154,20 +186,22 @@ class StagDatabaseUpdater(object):
                 # Keep track of foreign keys since we skip the header line
                 id_index = i - 1
                 line = line.rstrip()
+                items = line.split("\t")
                 geographic_origin = items[3]
                 if set_to_null(geographic_origin):
-                    # TODO: find out if the default for geographic_origin should be reef or null.
                     geographic_origin = "reef"
                 else:
                     geographic_origin = geographic_origin.lower()
                 if geographic_origin == "colony":
-                    latitude, latitude_param_val_str = handle_column_value(items[0], default=-9.0)
-                    longitude, longitude_param_val_str = handle_column_value(items[1], default=-9.0)
+                    latitude = "%6f" % float(items[0])
+                    latitude_param_val_str = "= %s" % latitude
+                    longitude = "%6f" % float(items[1])
+                    longitude_param_val_str = "= %s" % longitude
                 else:
-                     latitude = ""
-                     latitude_param_val_str = ""
-                     longitude = ""
-                     longitude_param_val_str = ""
+                    latitude = ""
+                    latitude_param_val_str = "is null"
+                    longitude = ""
+                    longitude_param_val_str = "is null"
                 depth, depth_param_val_str = handle_column_value(items[2], default=-9)
                 reef_id = self.reef_ids[id_index]
                 # See if we need to add a row to the table.
@@ -189,12 +223,48 @@ class StagDatabaseUpdater(object):
                 self.colony_ids.append(colony_id)
         self.log("Inserted %d rows into the colony table..." % colony_table_inserts)
 
+    def update_experiment_table(self, file_path):
+        self.log("Updating the experiment table...")
+        # Columns in the experiment file are:
+        # seq_facility array_version result_folder_name plate_barcode
+        experiment_table_inserts = 0
+        with open(file_path) as fh:
+            for i, line in enumerate(fh):
+                if i == 0:
+                    # Skip header
+                    continue
+                # Keep track of foreign keys since we skip the header line
+                line = line.rstrip()
+                items = line.split("\t")
+                seq_facility, seq_facility_param_val_str = handle_column_value(items[0])
+                array_version, array_version_param_val_str = handle_column_value(items[1])
+                result_folder_name, result_folder_name_param_val_str = handle_column_value(items[2])
+                plate_barcode, plate_barcode_param_val_str = handle_column_value(items[3])
+                # See if we need to add a row to the table.
+                cmd = "SELECT id FROM experiment WHERE seq_facility %s " % seq_facility_param_val_str
+                cmd += "AND array_version %s " % array_version_param_val_str
+                cmd += "AND result_folder_name %s " % result_folder_name_param_val_str
+                cmd += "AND plate_barcode %s;" % plate_barcode_param_val_str
+                cur = self.conn.cursor()
+                cur.execute(cmd)
+                try:
+                    experiment_id = cur.fetchone()[0]
+                except Exception:
+                    # Insert a row into the experiment table.
+                    cmd = "INSERT INTO experiment VALUES (nextval('experiment_id_seq'), %s, %s, %s, %s, %s, %s) RETURNING id;"
+                    args = ['NOW()', 'NOW()', seq_facility, array_version, result_folder_name, plate_barcode]
+                    cur = self.update(cmd, args)
+                    self.flush()
+                    experiment_id = cur.fetchone()[0]
+                    experiment_table_inserts += 1
+                self.experiment_ids.append(experiment_id)
+        self.log("Inserted %d rows into the experiment table..." % experiment_table_inserts)
+
     def update_genotype_table(self, file_path):
         self.log("Updating the genotype table...")
         # Columns in the genotype file are:
-        # affy_id coral_mlg_clonal_id.x coral_mlg_rep_sample_id.x symbio_mlg_clonal_id symbio_mlg_rep_sample_id
-        # genetic_coral_species_call bcoral_genet_id bsym_genet_id DB_match coral_mlg_clonal_id.y
-        # coral_mlg_rep_sample_id.y
+        # affy_id coral_mlg_clonal_id user_specimen_id db_match genetic_coral_species_call
+        # coral_mlg_rep_sample_id bcoral_genet_id
         genotype_table_inserts = 0
         with open(file_path) as fh:
             for i, line in enumerate(fh):
@@ -204,40 +274,32 @@ class StagDatabaseUpdater(object):
                 line = line.rstrip()
                 items = line.split("\t")
                 coral_mlg_clonal_id = items[1]
-                # TODO: Make sure this is correct.
-                # In those cases in which column 2 is null, we'll set
-                # coral_mlg_rep_sample_id to the value of column 10.
-                if set_to_null(items[2]):
-                    coral_mlg_rep_sample_id = items[10]
-                else:
-                    coral_mlg_rep_sample_id = items[2]
-                coral_mlg_rep_sample_id = handle_column_value(coral_mlg_rep_sample_id, get_sql_param=False)
-                symbio_mlg_clonal_id = handle_column_value(items[3], get_sql_param=False)
-                symbio_mlg_rep_sample_id = handle_column_value(items[4], get_sql_param=False)
-                genetic_coral_species_call = handle_column_value(items[5], get_sql_param=False)
-                bcoral_genet_id = handle_column_value(items[6], get_sql_param=False)
-                bsym_genet_id = handle_column_value(items[7], get_sql_param=False)
+                # The value of db_match will be "no_match" if
+                # a new row should be inserted into the table.
+                db_match = items[3].lower()
+                genetic_coral_species_call = items[4]
+                coral_mlg_rep_sample_id = items[5]
+                bcoral_genet_id = items[6]
                 # See if we need to add a row to the table.
-                # TODO: find out if the coral_mlg_clonal_id column is the
-                # optimal unique identifier for determining if a new row
-                # should be inserted.
-                cmd = "SELECT id FROM genotype WHERE coral_mlg_clonal_id = '%s';" % coral_mlg_clonal_id
+                cmd = "SELECT id FROM genotype WHERE coral_mlg_clonal_id = '%s' " % coral_mlg_clonal_id
+                cmd += "AND coral_mlg_rep_sample_id = '%s'" % coral_mlg_rep_sample_id
+                cmd += "AND genetic_coral_species_call = '%s'" % genetic_coral_species_call
+                cmd += "AND bcoral_genet_id = '%s'" % bcoral_genet_id
                 cur = self.conn.cursor()
                 cur.execute(cmd)
                 try:
                     genotype_id = cur.fetchone()[0]
+                    self.log("Found genotype row with id %d, value of db_match: %s, should be 'match'." % (genotype_id, db_match))
                 except Exception:
                     # Insert a row into the genotype table.
                     cmd = "INSERT INTO genotype VALUES (nextval('genotype_id_seq'), NOW(), NOW(), "
-                    cmd += "$$%s$$, $$%s$$, $$%s$$, $$%s$$, $$%s$$, $$%s$$, $$%s$$) RETURNING id;"
-                    cmd = cmd % (coral_mlg_clonal_id, coral_mlg_rep_sample_id, symbio_mlg_clonal_id,
-                                 symbio_mlg_rep_sample_id, genetic_coral_species_call, bcoral_genet_id,
-                                 bsym_genet_id)
-                    args = [coral_mlg_rep_sample_id, symbio_mlg_clonal_id, symbio_mlg_rep_sample_id,
-                            genetic_coral_species_call, bcoral_genet_id, bsym_genet_id]
+                    cmd += "'%s', '%s', '%s', '%s') RETURNING id;"
+                    cmd = cmd % (coral_mlg_clonal_id, coral_mlg_rep_sample_id, genetic_coral_species_call, bcoral_genet_id)
+                    args = [coral_mlg_clonal_id, coral_mlg_rep_sample_id, genetic_coral_species_call, bcoral_genet_id]
                     cur = self.update(cmd, args)
                     self.flush()
                     genotype_id = cur.fetchone()[0]
+                    self.log("Inserted genotype row with id %d, value of db_match: %s, should be 'no_match'." % (genotype_id, db_match))
                     genotype_table_inserts += 1
                 self.genotype_ids.append(genotype_id)
         self.log("Inserted %d rows into the genotype table..." % genotype_table_inserts)
@@ -279,9 +341,7 @@ class StagDatabaseUpdater(object):
     def update_phenotype_table(self, file_path):
         self.log("Updating the phenotype table...")
         # Columns in the phenotype file are:
-        # last_name first_name organization email disease_resist
-        # bleach_resist mortality tle spawning sperm_motility
-        # healing_time
+        # disease_resist bleach_resist mortality tle spawning sperm_motility healing_time
         phenotype_table_inserts = 0
         with open(file_path) as fh:
             for i, line in enumerate(fh):
@@ -290,13 +350,13 @@ class StagDatabaseUpdater(object):
                     continue
                 line = line.rstrip()
                 items = line.split("\t")
-                disease_resist, disease_resist_param_val_str = handle_column_value(items[4], default=-9)
-                bleach_resist, bleach_resist_param_val_str = handle_column_value(items[5], default=-9)
-                mortality, mortality_param_val_str = handle_column_value(items[6], default=-9)
-                tle, tle_param_val_str = handle_column_value(items[7], default=-9)
-                spawning, spawning_param_val_str = handle_column_value(items[8])
-                sperm_motility, sperm_motility_param_val_str = handle_column_value(items[9], default=-9.0)
-                healing_time, healing_time_param_val_str = handle_column_value(items[10], default=-9.0)
+                disease_resist, disease_resist_param_val_str = handle_column_value(items[0], default=-9)
+                bleach_resist, bleach_resist_param_val_str = handle_column_value(items[1], default=-9)
+                mortality, mortality_param_val_str = handle_column_value(items[2], default=-9)
+                tle, tle_param_val_str = handle_column_value(items[3], default=-9)
+                spawning, spawning_param_val_str = handle_column_value(items[4])
+                sperm_motility, sperm_motility_param_val_str = handle_column_value(items[5], default=-9.0)
+                healing_time, healing_time_param_val_str = handle_column_value(items[6], default=-9.0)
                 # See if we need to add a row to the phenotype table.
                 cmd = " SELECT id FROM phenotype WHERE disease_resist %s "
                 cmd += "AND bleach_resist %s AND mortality %s AND tle %s "
@@ -339,19 +399,22 @@ class StagDatabaseUpdater(object):
                 region = items[1]
                 geographic_origin = items[4]
                 if set_to_null(geographic_origin):
-                    # TODO: find out if the default for geographic_origin should be reef or null.
                     geographic_origin = "reef"
                 else:
                     geographic_origin = geographic_origin.lower()
                 if geographic_origin == "reef":
                     latitude = "%6f" % float(items[2])
+                    latitude_param_val_str = "= %s" % latitude
                     longitude = "%6f" % float(items[3])
+                    longitude_param_val_str = "= %s" % longitude
                 else:
                     latitude = ""
+                    latitude_param_val_str = "is null"
                     longitude = ""
+                    longitude_param_val_str = "is null"
                 # See if we need to add a row to the reef table.
                 cmd = "SELECT id FROM reef WHERE name = '%s' AND region = '%s' " % (name, region)
-                cmd += "AND latitude = %s AND longitude = %s " % (latitude, longitude)
+                cmd += "AND latitude %s AND longitude %s " % (latitude_param_val_str, longitude_param_val_str)
                 cmd += "AND geographic_origin = '%s';" % geographic_origin
                 cur = self.conn.cursor()
                 cur.execute(cmd)
@@ -385,20 +448,18 @@ class StagDatabaseUpdater(object):
                 # Keep track of foreign keys since we skip the header line
                 id_index = i - 1
                 items = line.split("\t")
-                affy_id = items[0]
+                # FIXME: If affy_id is NA, do we stil insert a row into the sample table?
+                affy_id = registry_id = handle_column_value(items[0], get_sql_param=False, default=sql.null())
                 sample_id = self.get_next_sample_id()
-                # FIXME: need to insert alleles so we have the list of allele_ids.
-                allele_id = None
+                # FIXME: allele_ids has more than 96 rows, so need info to map.
+                allele_id = self.allele_ids[id_index]
                 genotype_id = self.genotype_ids[id_index]
                 phenotype_id = self.phenotype_ids[id_index]
-                # FIXME: We cannot populate the experiment table with our current data.
-                experiment_id = None
+                experiment_id = self.experiment_ids[id_index]
                 colony_id = self.colony_ids[id_index]
                 colony_location = items[1]
                 if set_to_null(colony_location):
                     colony_location = 'unknown'
-                # FIXME: We cannot populate the fragment table with our current data.
-                fragment_id = None
                 taxonomy_id = self.taxonomy_ids[id_index]
                 collector_id = self.person_ids[id_index]
                 collection_date = items[2]
@@ -426,11 +487,11 @@ class StagDatabaseUpdater(object):
                 field_call = handle_column_value(items[18], get_sql_param=False)
                 # Insert a row into the sample table.
                 cmd = "INSERT INTO sample VALUES (nextval('sample_id_seq'), %s, %s, %s, %s, %s, %s, %s, "
-                cmd += "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, "
+                cmd += "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, "
                 cmd += "%s, %s, %s) RETURNING id;"
                 args = ['NOW()', 'NOW()', affy_id, sample_id, allele_id, genotype_id, phenotype_id,
-                        experiment_id, colony_id, colony_location, fragment_id, taxonomy_id,
-                        collector_id, collection_date, user_specimen_id, registry_id, depth,
+                        experiment_id, colony_id, colony_location, taxonomy_id, collector_id,
+                        collection_date, user_specimen_id, registry_id, depth,
                         dna_extraction_method, dna_concentration, public, public_after_date,
                         percent_missing_data_coral, percent_missing_data_sym, percent_reference_coral,
                         percent_reference_sym, percent_alternative_coral, percent_alternative_sym,
@@ -494,8 +555,12 @@ class StagDatabaseUpdater(object):
             # Tables must be loaded in such a way that foreign keys
             # are properly handled.  The sample table must be loaded
             # last.
+            if file_name.startswith("allele"):
+                allele_file = os.path.join(input_dir, file_name)
             if file_name.startswith("colony"):
                 colony_file = os.path.join(input_dir, file_name)
+            if file_name.startswith("experiment"):
+                experiment_file = os.path.join(input_dir, file_name)
             if file_name.startswith("genotype"):
                 genotype_file = os.path.join(input_dir, file_name)
             elif file_name.startswith("person"):
@@ -509,6 +574,8 @@ class StagDatabaseUpdater(object):
             elif file_name.startswith("taxonomy"):
                 taxonomy_file = os.path.join(input_dir, file_name)
         # Now tables can be loaded in the appropriate order.
+        self.update_allele_table(allele_file)
+        self.update_experiment_table(experiment_file)
         self.update_genotype_table(genotype_file)
         self.update_person_table(person_file)
         self.update_phenotype_table(phenotype_file)
@@ -527,14 +594,14 @@ class StagDatabaseUpdater(object):
         self.outfh.close()
         sys.exit(1)
 
-    def update(self, sql, args):
+    def update(self, cmd, args):
         for i, arg in enumerate(args):
             args[i] = handle_null(arg)
         try:
             cur = self.conn.cursor()
-            cur.execute(sql, tuple(args))
+            cur.execute(cmd, tuple(args))
         except Exception as e:
-            msg = "Caught exception executing SQL:\n%s\nException:\n%s\n" % (sql.format(args), e)
+            msg = "Caught exception executing SQL:\n%s\nException:\n%s\n" % (cmd.format(args), e)
             self.stop_err(msg)
         return cur
 

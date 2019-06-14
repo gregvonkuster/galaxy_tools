@@ -70,6 +70,7 @@ time_start <- function(msg) {
 }
 
 write_data_frame <- function(dir, file_name, data_frame) {
+    cat("\nWriting file: ", file_name, "\n");
     file_path <- get_file_path(dir, file_name);
     write.table(data_frame, file=file_path, quote=FALSE, row.names=FALSE, sep="\t");
 }
@@ -601,17 +602,17 @@ i <- ifelse(is.na(stag_db_report[2]), "", stag_db_report[[2]]);
 # from the affy_id collumn in the report_user data table.
 i <- i[!apply(i=="", 1, all),];
 # Subset the genclone object to the user data.
-alleles_vector <- genind_clone[i, mlg.reset=FALSE, drop=FALSE];
+allele_vector <- genind_clone[i, mlg.reset=FALSE, drop=FALSE];
 # Convert the subset genclone to a data frame.
-alleles_data_frame <- genind2df(alleles_vector, sep="");
-alleles_data_frame <- alleles_data_frame %>%
+allele_data_frame <- genind2df(allele_vector, sep="");
+allele_data_frame <- allele_data_frame %>%
 select(-pop);
 # Allele string for Allele.table in database.
-alleles_table_data_frame <- unite(alleles_data_frame, alleles, 1:19696, sep=" ", remove=TRUE);
-alleles_table_data_frame <- setDT(alleles_table_data_frame, keep.rownames=TRUE)[];
-setnames(alleles_table_data_frame, c("rn"), c("affy_id"));
+allele_table_data_frame <- unite(allele_data_frame, alleles, 1:19696, sep=" ", remove=TRUE);
+allele_table_data_frame <- setDT(allele_table_data_frame, keep.rownames=TRUE)[];
+setnames(allele_table_data_frame, c("rn"), c("affy_id"));
 # write.csv(concat_sample_alleles,file=paste("Seed_genotype_alleles.csv",sep = ""),quote=FALSE,row.names=FALSE);
-write_data_frame(output_data_dir, "alleles.tabular", alleles_table_data_frame);
+write_data_frame(output_data_dir, "allele.tabular", allele_table_data_frame);
 
 # Output the data frame for updating the experiment table.
 experiment_table_data_frame <- data.frame(matrix(ncol=4, nrow=num_rows));
@@ -715,8 +716,9 @@ for (i in 1:num_rows) {
 write_data_frame(output_data_dir, "person.tabular", person_table_data_frame);
 
 # Output the file needed for populating the phenotype table.
-phenotype_table_data_frame <- data.frame(matrix(ncol=4, nrow=num_rows));
-colnames(phenotype_table_data_frame) <- c("last_name", "first_name", "organization", "email");
+phenotype_table_data_frame <- data.frame(matrix(ncol=7, nrow=num_rows));
+colnames(phenotype_table_data_frame) <- c("disease_resist", "bleach_resist", "mortality", "tle",
+                                          "spawning", "sperm_motility", "healing_time");
 # phenotype_table_data_frame looks like this:
 # disease_resist bleach_resist mortality tle spawning sperm_motility healing_time
 # NA            NA             NA        NA  False   NA              NA
