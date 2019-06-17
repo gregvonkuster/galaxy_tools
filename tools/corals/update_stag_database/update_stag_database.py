@@ -8,7 +8,6 @@ import psycopg2
 import sys
 
 from sqlalchemy import create_engine
-from sqlalchemy import sql
 from sqlalchemy import MetaData
 from sqlalchemy.engine.url import make_url
 
@@ -448,8 +447,6 @@ class StagDatabaseUpdater(object):
                 # Keep track of foreign keys since we skip the header line
                 id_index = i - 1
                 items = line.split("\t")
-                # FIXME: If affy_id is NA, do we stil insert a row into the sample table?
-                affy_id = registry_id = handle_column_value(items[0], get_sql_param=False, default=sql.null())
                 sample_id = self.get_next_sample_id()
                 # FIXME: allele_ids has more than 96 rows, so need info to map.
                 allele_id = self.allele_ids[id_index]
@@ -457,20 +454,19 @@ class StagDatabaseUpdater(object):
                 phenotype_id = self.phenotype_ids[id_index]
                 experiment_id = self.experiment_ids[id_index]
                 colony_id = self.colony_ids[id_index]
-                colony_location = items[1]
-                if set_to_null(colony_location):
-                    colony_location = 'unknown'
+                colony_location = handle_column_value(items[1], get_sql_param=False)
                 taxonomy_id = self.taxonomy_ids[id_index]
                 collector_id = self.person_ids[id_index]
                 collection_date = items[2]
                 user_specimen_id = items[3]
+                affy_id = handle_column_value(items[0], get_sql_param=False, default="%s_%s" % (sample_id, user_specimen_id))
                 registry_id = handle_column_value(items[4], get_sql_param=False, default=-9)
                 depth = handle_column_value(items[5], get_sql_param=False, default=-9)
                 dna_extraction_method = handle_column_value(items[6], get_sql_param=False)
                 dna_concentration = handle_column_value(items[7], get_sql_param=False)
                 public = items[8]
                 if string_as_bool(public):
-                    public_after_date = None
+                    public_after_date = ''
                 else:
                     if set_to_null(items[9]):
                         public_after_date = self.year_from_now
