@@ -677,8 +677,8 @@ def load_general_seed_data(migrate_engine):
                     lat_val = latitude
                     long_val = longitude
                 else:
-                    lat_val = DEFAULT_MISSING_NUMERIC_VALUE
-                    long_val = DEFAULT_MISSING_NUMERIC_VALUE
+                    lat_val = ""
+                    long_val = ""
                 # Add a row to the table.
                 cmd = "INSERT INTO reef VALUES (%s, %s, %s, '%s', '%s', %s, %s, '%s')"
                 cmd = cmd % (nextval(migrate_engine, table),
@@ -707,8 +707,8 @@ def load_general_seed_data(migrate_engine):
                     lat_val = latitude
                     long_val = longitude
                 else:
-                    lat_val = DEFAULT_MISSING_NUMERIC_VALUE
-                    long_val = DEFAULT_MISSING_NUMERIC_VALUE
+                    lat_val = ""
+                    long_val = ""
                 # Add a row to the table.
                 cmd = "INSERT INTO colony VALUES (%s, %s, %s, %s, %s, %s, %s)"
                 cmd = cmd % (nextval(migrate_engine, table),
