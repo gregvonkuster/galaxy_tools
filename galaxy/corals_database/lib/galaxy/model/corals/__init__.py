@@ -152,19 +152,16 @@ class Fragment(Dictifiable):
 
 
 class Genotype(Dictifiable):
-    dict_collection_visible_keys = ['id', 'coral_mlg_clonal_id', 'coral_mlg_rep_sample_id', 'symbio_mlg_clonal_id', 'symbio_mlg_rep_sample_id',
-                                    'genetic_coral_species_call', 'bcoral_genet_id', 'bsym_genet_id']
+    dict_collection_visible_keys = ['id', 'coral_mlg_clonal_id', 'coral_mlg_rep_sample_id',
+                                    'genetic_coral_species_call', 'bcoral_genet_id']
 
-    def __init__(self, coral_mlg_clonal_id=None, coral_mlg_rep_sample_id=None, symbio_mlg_clonal_id=None,
-                 symbio_mlg_rep_sample_id=None, genetic_coral_species_call=None, bcoral_genet_id=None, bsym_genet_id=None):
+    def __init__(self, coral_mlg_clonal_id=None, coral_mlg_rep_sample_id=None,
+                 genetic_coral_species_call=None, bcoral_genet_id=None):
         # Description of experiment metadata.
         self.coral_mlg_clonal_id = coral_mlg_clonal_id
         self.coral_mlg_rep_sample_id = coral_mlg_rep_sample_id
-        self.symbio_mlg_clonal_id = symbio_mlg_clonal_id
-        self.symbio_mlg_rep_sample_id = symbio_mlg_rep_sample_id
         self.genetic_coral_species_call = genetic_coral_species_call
         self.bcoral_genet_id = bcoral_genet_id
-        self.bsym_genet_id = bsym_genet_id
 
     def as_dict(self, value_mapper=None):
         return self.to_dict(view='element', value_mapper=value_mapper)
@@ -217,7 +214,7 @@ class Person(Dictifiable):
         return rval
 
 
-class Probe_annotation(Dictifiable):
+class ProbeAnnotation(Dictifiable):
     dict_collection_visible_keys = ['id', 'probe_set_id', 'affy_snp_id', 'chr_id', 'start',
                                     'strand', 'flank', 'allele_a', 'allele_b', 'allele_frequencies',
                                     'annotation_notes', 'allele_count', 'ordered_alleles', 'chrtype', 'custchr',

@@ -99,9 +99,9 @@ corals_model.Phenotype.table = Table("phenotype", metadata,
     Column("tle", TrimmedString(255)),
     Column("spawning", Boolean),
     Column("sperm_motility", Numeric(15, 6)),
-    Column("healing_time", Numeric(15, 6))
+    Column("healing_time", Numeric(15, 6)))
 
-corals_model.Probe_annotation.table = Table("probe_annotation", metadata,
+corals_model.ProbeAnnotation.table = Table("probe_annotation", metadata,
     Column("id", Integer, primary_key=True),
     Column("create_time", DateTime, default=now),
     Column("update_time", DateTime, default=now, onupdate=now),
@@ -170,7 +170,7 @@ corals_model.Sample.table = Table("sample", metadata,
     Column("field_call", TrimmedString(255)))
 
 # For future use.
-corals_model.symbio_genotype = Table("symbio_genotype", metadata,
+corals_model.SymbioGenotype = Table("symbio_genotype", metadata,
     Column("id", Integer, primary_key=True),
     Column("create_time", DateTime, default=now),
     Column("update_time", DateTime, default=now, onupdate=now),
@@ -188,11 +188,6 @@ corals_model.Taxonomy.table = Table("taxonomy", metadata,
 # With the tables defined we can define the mappers and setup the
 # relationships between the model objects.
 mapper(corals_model.Allele, corals_model.Allele.table, properties=None)
-mapper(corals_model.Collector, corals_model.Collector.table, properties=dict(
-    person=relation(corals_model.Person,
-                    primaryjoin=(corals_model.Collector.table.c.person_id == corals_model.Person.table.c.id)),
-    contact=relation(corals_model.Person,
-                    primaryjoin=(corals_model.Collector.table.c.contact_id == corals_model.Person.table.c.id))))
 
 mapper(corals_model.Colony, corals_model.Colony.table, properties=dict(
     reef=relation(corals_model.Reef,
@@ -214,7 +209,7 @@ mapper(corals_model.Person, corals_model.Person.table, properties=None)
 
 mapper(corals_model.Phenotype, corals_model.Phenotype.table, properties=None)
 
-mapper(corals_model.Probe_annotation, corals_model.Probe_annotation.table, properties=None)
+mapper(corals_model.ProbeAnnotation, corals_model.ProbeAnnotation.table, properties=None)
 
 mapper(corals_model.Reef, corals_model.Reef.table, properties=None)
 
@@ -248,10 +243,7 @@ mapper(corals_model.Sample, corals_model.Sample.table, properties=dict(
                        backref="samples",
                        primaryjoin=(corals_model.Sample.table.c.collector_id == corals_model.Person.table.c.id))))
 
-mapper(corals_model.Symbio_genotype, corals_model.Symbio_genotype.table, properties=None)
-
 mapper(corals_model.Taxonomy, corals_model.Taxonomy.table, properties=None)
-
 
 def init(url, engine_options={}, create_tables=False):
     """Connect mappings to the database"""

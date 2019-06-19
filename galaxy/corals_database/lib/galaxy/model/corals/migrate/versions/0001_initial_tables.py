@@ -126,31 +126,31 @@ Phenotype_table = Table("phenotype", metadata,
                         Column("healing_time", Numeric(15, 6)))
 
 
-Probe_annotation_table = Table("probe_annotation", metadata,
-                               Column("id", Integer, primary_key=True),
-                               Column("create_time", DateTime, default=now),
-                               Column("update_time", DateTime, default=now, onupdate=now),
-                               Column("probe_set_id", TrimmedString(255)),
-                               Column("affy_snp_id", TrimmedString(255)),
-                               Column("chr_id", Integer),
-                               Column("start", Integer),
-                               Column("strand", TrimmedString(255)),
-                               Column("flank", TrimmedString(255)),
-                               Column("allele_a", TrimmedString(255)),
-                               Column("allele_b", TrimmedString(255)),
-                               Column("allele_frequencies", TrimmedString(255)),
-                               Column("annotation_notes", TrimmedString(255)),
-                               Column("allele_count", TrimmedString(255)),
-                               Column("ordered_alleles", TrimmedString(255)),
-                               Column("chrtype", TrimmedString(255)),
-                               Column("custchr", TrimmedString(255)),
-                               Column("custid", TrimmedString(255)),
-                               Column("custpos", TrimmedString(255)),
-                               Column("organism", TrimmedString(255)),
-                               Column("pconvert", TrimmedString(255)),
-                               Column("recommendation", TrimmedString(255)),
-                               Column("refstr", TrimmedString(255)),
-                               Column("snppriority", TrimmedString(255)))
+ProbeAnnotation_table = Table("probe_annotation", metadata,
+                              Column("id", Integer, primary_key=True),
+                              Column("create_time", DateTime, default=now),
+                              Column("update_time", DateTime, default=now, onupdate=now),
+                              Column("probe_set_id", TrimmedString(255)),
+                              Column("affy_snp_id", TrimmedString(255)),
+                              Column("chr_id", Integer),
+                              Column("start", Integer),
+                              Column("strand", TrimmedString(255)),
+                              Column("flank", TrimmedString(255)),
+                              Column("allele_a", TrimmedString(255)),
+                              Column("allele_b", TrimmedString(255)),
+                              Column("allele_frequencies", TrimmedString(255)),
+                              Column("annotation_notes", TrimmedString(255)),
+                              Column("allele_count", TrimmedString(255)),
+                              Column("ordered_alleles", TrimmedString(255)),
+                              Column("chrtype", TrimmedString(255)),
+                              Column("custchr", TrimmedString(255)),
+                              Column("custid", TrimmedString(255)),
+                              Column("custpos", TrimmedString(255)),
+                              Column("organism", TrimmedString(255)),
+                              Column("pconvert", TrimmedString(255)),
+                              Column("recommendation", TrimmedString(255)),
+                              Column("refstr", TrimmedString(255)),
+                              Column("snppriority", TrimmedString(255)))
 
 
 Reef_table = Table("reef", metadata,
@@ -197,7 +197,7 @@ Sample_table = Table("sample", metadata,
                      Column("field_call", TrimmedString(255)))
 
 
-Symbio_genotype_table = Table("symbio_genotype", metadata,
+SymbioGenotype_table = Table("symbio_genotype", metadata,
                              Column("id", Integer, primary_key=True),
                              Column("create_time", DateTime, default=now),
                              Column("update_time", DateTime, default=now, onupdate=now),
@@ -233,10 +233,14 @@ def string_as_bool(string):
 
 
 def convert_date_string_for_database(date_string):
-    # The value of date_string is %y/%m/%d with
+    # The value of date_string is %d/%m/%y with
     # the year being 2 digits (yikes!).
-    fixed_century = "20%s" % date_string
-    fixed_date = fixed_century.replace("/", "-")
+    items = date_string.split("/")
+    day = items[0]
+    month = items[1]
+    fixed_century = "20%s" % items[2]
+    new_items = [fixed_century, month, day]
+    fixed_date = "-".join(new_items)
     # Convert the string to a format required for
     # inserting into the database.
     database_format = dateutil.parser.parse(fixed_date)
