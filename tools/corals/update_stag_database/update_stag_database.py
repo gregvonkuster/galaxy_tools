@@ -14,6 +14,8 @@ from sqlalchemy.engine.url import make_url
 now = datetime.datetime.utcnow
 metadata = MetaData()
 
+DEFAULT_MISSING_NUMERIC_VALUE = -9.000000
+
 
 def get_sql_param_val_str(column_val, default):
     if set_to_null(column_val):
@@ -46,7 +48,7 @@ def get_year_from_now():
 
 
 def handle_column_value(val, get_sql_param=True, default=''):
-    # Regarding the default value, a NULL value indicates n unknown value
+    # Regarding the default value, a NULL value indicates an unknown value
     # and typically should not be confused with an empty string. Our application
     # does not need the concept of unknown value, so most columns are
     # non-nullable and our default is an empty string.
@@ -193,19 +195,15 @@ class StagDatabaseUpdater(object):
                     geographic_origin = geographic_origin.lower()
                 if geographic_origin == "colony":
                     latitude = "%6f" % float(items[0])
-                    latitude_param_val_str = "= %s" % latitude
                     longitude = "%6f" % float(items[1])
-                    longitude_param_val_str = "= %s" % longitude
                 else:
-                    latitude = ""
-                    latitude_param_val_str = "is null"
-                    longitude = ""
-                    longitude_param_val_str = "is null"
-                depth, depth_param_val_str = handle_column_value(items[2], default=-9)
+                    latitude = DEFAULT_MISSING_NUMERIC_VALUE
+                    longitude = DEFAULT_MISSING_NUMERIC_VALUE
+                depth = handle_column_value(items[2], get_sql_param=False, default=-9)
                 reef_id = self.reef_ids[id_index]
                 # See if we need to add a row to the table.
-                cmd = "SELECT id FROM colony WHERE latitude %s " % latitude_param_val_str
-                cmd += "AND longitude %s AND depth %s " % (longitude_param_val_str, depth_param_val_str)
+                cmd = "SELECT id FROM colony WHERE latitude = %s " % latitude
+                cmd += "AND longitude = %s AND depth = %s " % (longitude, depth)
                 cmd += "AND reef_id = %s;" % reef_id
                 cur = self.conn.cursor()
                 cur.execute(cmd)
@@ -276,9 +274,9 @@ class StagDatabaseUpdater(object):
                 # The value of db_match will be "no_match" if
                 # a new row should be inserted into the table.
                 db_match = items[3].lower()
-                genetic_coral_species_call = items[4]
-                coral_mlg_rep_sample_id = items[5]
-                bcoral_genet_id = items[6]
+                genetic_coral_species_call = handle_column_value(items[4], get_sql_param=False)
+                coral_mlg_rep_sample_id = handle_column_value(items[5], get_sql_param=False)
+                bcoral_genet_id = handle_column_value(items[6], get_sql_param=False)
                 # See if we need to add a row to the table.
                 cmd = "SELECT id FROM genotype WHERE coral_mlg_clonal_id = '%s' " % coral_mlg_clonal_id
                 cmd += "AND coral_mlg_rep_sample_id = '%s'" % coral_mlg_rep_sample_id
@@ -403,17 +401,13 @@ class StagDatabaseUpdater(object):
                     geographic_origin = geographic_origin.lower()
                 if geographic_origin == "reef":
                     latitude = "%6f" % float(items[2])
-                    latitude_param_val_str = "= %s" % latitude
                     longitude = "%6f" % float(items[3])
-                    longitude_param_val_str = "= %s" % longitude
                 else:
-                    latitude = ""
-                    latitude_param_val_str = "is null"
-                    longitude = ""
-                    longitude_param_val_str = "is null"
+                    latitude = DEFAULT_MISSING_NUMERIC_VALUE
+                    longitude = DEFAULT_MISSING_NUMERIC_VALUE
                 # See if we need to add a row to the reef table.
                 cmd = "SELECT id FROM reef WHERE name = '%s' AND region = '%s' " % (name, region)
-                cmd += "AND latitude %s AND longitude %s " % (latitude_param_val_str, longitude_param_val_str)
+                cmd += "AND latitude = %s AND longitude = %s " % (latitude, longitude)
                 cmd += "AND geographic_origin = '%s';" % geographic_origin
                 cur = self.conn.cursor()
                 cur.execute(cmd)
