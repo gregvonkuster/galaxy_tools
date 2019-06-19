@@ -8,7 +8,7 @@
 <div class="report">
     <div class="reportBody">
         <h3 align="center">
-            User Registrations for ${month_label}&nbsp;${year_label}
+            Samples for ${month_label}&nbsp;${year_label}
         </h3>
         <h4 align="center">
             Click Day to see samples for that day

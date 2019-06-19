@@ -50,6 +50,18 @@
                         <div class="toolTitle"><a target="galaxy_main" href="${h.url_for( controller='samples', action='per_month', sort_id='default', order='default' )}">Samples per month</a></div>
                     </div>
                 </div>
+                <div class="toolSectionPad"></div>
+                <div class="toolSectionTitle">
+                    <span>Genotypes</span>
+                </div>
+                <div class="toolSectionBody">
+                    <div class="toolSectionBg">
+                        <div class="toolTitle"><a target="galaxy_main" href="${h.url_for( controller='genotypes', action='all', sort_id='default', order='default' )}">All Genotypes</a></div>
+                        <div class="toolTitle"><a target="galaxy_main" href="${h.url_for( controller='genotypes', action='specified_date', specified_date=datetime.utcnow().strftime( "%Y-%m-%d" ), sort_id='default', order='default' )}">Today's Genotypes</a></div>
+                        <div class="toolTitle"><a target="galaxy_main" href="${h.url_for( controller='genotypes', action='specified_month', sort_id='default', order='default' )}">Genotypes per day this month</a></div>
+                        <div class="toolTitle"><a target="galaxy_main" href="${h.url_for( controller='genotypes', action='per_month', sort_id='default', order='default' )}">Genotypes per month</a></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
