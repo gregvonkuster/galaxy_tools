@@ -1,4 +1,4 @@
-laxy coralsnp reports controllers."""
+"""Galaxy coralsnp reports controllers."""
 import logging
 
 log = logging.getLogger(__name__)
