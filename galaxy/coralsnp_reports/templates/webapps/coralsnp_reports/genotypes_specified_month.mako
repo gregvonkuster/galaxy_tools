@@ -8,33 +8,33 @@
 <div class="report">
     <div class="reportBody">
         <h3 align="center">
-            Samples uploaded in ${month_label}&nbsp;${year_label}
+            Genotypes for samples uploaded in ${month_label}&nbsp;${year_label}
         </h3>
         <h4 align="center">
-            Click the day to view samples uploaded on that day
+            Click the day to view genotypes for samples uploaded that day
         </h4>
         <table align="center" width="60%" class="colored">
-            %if len( samples ) == 0:
+            %if len( genotypes ) == 0:
                 <tr>
                     <td colspan="2">
-                        No samples were uploaded in
+                        There are no genotypes for
                         ${month_label}&nbsp;${year_label}
                     </td>
                 </tr>
             %else:
                 <tr class="header">
                     <td class="half_width">Day</td>
-                    <td class="half_width">Number of Uploaded Samples</td>
+                    <td class="half_width">Number of Genotypes</td>
                 </tr>
                 <% ctr = 0 %>
-                %for sample in samples:
+                %for sample in genotypes:
                     %if ctr % 2 == 1:
                         <tr class="odd_row">
                     %else:
                         <tr class="tr">
                     %endif
                         <td>
-                            <a href="${h.url_for( controller='samples', action='specified_date', specified_date=sample[0] )}">
+                            <a href="${h.url_for( controller='genotypes', action='specified_date', specified_date=sample[0] )}">
                                 ${sample[3]},
                                 &nbsp;${month_label}&nbsp;${sample[1]},
                                 &nbsp;${year_label}

@@ -8,13 +8,17 @@
 <div class="report">
     <div class="reportBody">
         <h3 align="center">
-            Genotype of sample with affy id ${affy_id}
+            Genotypes for samples uploaded on ${day_label},
+            &nbsp;${month_label}&nbsp;${day_of_month},
+            &nbsp;${year_label}
         </h3>
         <table align="center" class="colored">
             %if len(genotypes) == 0:
                 <tr>
                     <td colspan="2">
-                        This sample has no genotype
+                        No samples were uploaded on ${day_label},
+                        &nbsp;${month_label}&nbsp;${day_of_month},
+                        &nbsp;${year_label}
                     </td>
                 </tr>
             %else:
@@ -23,6 +27,7 @@
                     <td>Coral MLG Rep Sample ID</td>
                     <td>Genetic Coral Species Call</td>
                     <td>Bcoral Genet ID</td>
+                    <td>Samples with this Genotype</td>
                 </tr>
                 <% ctr = 0 %>
                 %for genotype in genotypes:
@@ -31,10 +36,11 @@
                     %else:
                         <tr class="tr">
                     %endif
-                        <td>${genotype[0]}</td>
                         <td>${genotype[1]}</td>
                         <td>${genotype[2]}</td>
                         <td>${genotype[3]}</td>
+                        <td>${genotype[4]}</td>
+                        <td><a href="${h.url_for( controller='samples', action='with_genotype', sort_id='default', order='default', genotype_id=genotype[0], coral_mlg_clonal_id=genotype[1], coral_mlg_rep_sample_id=genotype[2], genetic_coral_species_call=genotype[3], bcoral_genet_id=genotype[4] )}">Samples</a></td>
                     </tr>
                     <% ctr += 1 %>
                 %endfor

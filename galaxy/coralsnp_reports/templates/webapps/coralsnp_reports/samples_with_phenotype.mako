@@ -8,17 +8,22 @@
 <div class="report">
     <div class="reportBody">
         <h3 align="center">
-            Samples uploaded on ${day_label},
-            &nbsp;${month_label}&nbsp;${day_of_month},
-            &nbsp;${year_label}
+            Samples with Phenotype
         </h3>
+        <h4>
+            Disease Resist: <b>${disease_resist}</b><br/>
+            Bleach Resist: <b>${bleach_resist}</b><br/>
+            Mortality: <b>${mortality}</b><br/>
+            TLE: <b>${tle}</b><br/>
+            Spawning: <b>${spawning}</b><br/>
+            Sperm Motility: <b>${sperm_motility}</b><br/>
+            Healing Time: <b>${healing_time}</b>
+        </h4>
         <table align="center" class="colored">
             %if len(samples) == 0:
                 <tr>
                     <td colspan="2">
-                        No samples were upoladed on ${day_label},
-                        &nbsp;${month_label}&nbsp;${day_of_month},
-                        &nbsp;${year_label}
+                        There are no samples with this phenotype
                     </td>
                 </tr>
             %else:
@@ -39,7 +44,6 @@
                     <td>% Alt</td>
                     <td>% Het</td>
                     <td>Geno ID</td>
-                    <td>Pheno ID</td>
                     <td>Collect ID</td>
                 </tr>
                 <% ctr = 0 %>
@@ -65,8 +69,7 @@
                         <td>${sample[13]}</td>
                         <td>${sample[14]}</td>
                         <td><a href="${h.url_for(controller='genotypes', action='for_sample', sort_id='default', order='default', genotype_id=sample[15], affy_id=sample[0])}">${sample[15]}</a></td>
-                        <td>${sample[16]}</td>
-                        <td><a href="${h.url_for(controller='collectors', action='of_sample', sort_id='default', order='default', collector_id=sample[17], affy_id=sample[0])}">${sample[17]}</a></td>
+                        <td><a href="${h.url_for(controller='collectors', action='of_sample', sort_id='default', order='default', collector_id=sample[16], affy_id=sample[0])}">${sample[16]}</a></td>
                     </tr>
                     <% ctr += 1 %>
                 %endfor
