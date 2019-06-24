@@ -42,6 +42,9 @@
                     <td>% Het</td>
                     <td>Pheno ID</td>
                     <td>Collect ID</td>
+                    <td>Exper ID</td>
+                    <td>Colony ID</td>
+                    <td>Taxon ID</td>
                 </tr>
                 <% ctr = 0 %>
                 %for sample in samples:
@@ -65,8 +68,11 @@
                         <td>${sample[12]}</td>
                         <td>${sample[13]}</td>
                         <td>${sample[14]}</td>
-                        <td>${sample[15]}</td>
+                        <td><a href="${h.url_for(controller='phenotypes', action='of_sample', sort_id='default', order='default', phenotype_id=sample[15], affy_id=sample[0])}">${sample[15]}</td>
                         <td><a href="${h.url_for(controller='collectors', action='of_sample', sort_id='default', order='default', collector_id=sample[16], affy_id=sample[0])}">${sample[16]}</a></td>
+                        <td><a href="${h.url_for(controller='experiments', action='of_sample', sort_id='default', order='default', experiment_id=sample[17], affy_id=sample[0])}">${sample[17]}</a></td>
+                        <td><a href="${h.url_for(controller='colonies', action='of_sample', sort_id='default', order='default', colony_id=sample[18], affy_id=sample[0])}">${sample[18]}</a></td>
+                        <td><a href="${h.url_for(controller='taxonomies', action='of_sample', sort_id='default', order='default', taxonomy_id=sample[19], affy_id=sample[0])}">${sample[19]}</a></td>
                     </tr>
                     <% ctr += 1 %>
                 %endfor

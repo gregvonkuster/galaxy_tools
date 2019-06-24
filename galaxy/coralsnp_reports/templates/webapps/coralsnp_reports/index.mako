@@ -82,6 +82,42 @@
                         <div class="toolTitle"><a target="galaxy_main" href="${h.url_for(controller='collectors', action='all', sort_id='default', order='default')}">All collectors</a></div>
                     </div>
                 </div>
+                <div class="toolSectionPad"></div>
+                <div class="toolSectionTitle">
+                    <span>Experiments</span>
+                </div>
+                <div class="toolSectionBody">
+                    <div class="toolSectionBg">
+                        <div class="toolTitle"><a target="galaxy_main" href="${h.url_for( controller='experiments', action='all', sort_id='default', order='default' )}">All experiments for uploaded samples</a></div>
+                    </div>
+                </div>
+                <div class="toolSectionPad"></div>
+                <div class="toolSectionTitle">
+                    <span>Colonies</span>
+                </div>
+                <div class="toolSectionBody">
+                    <div class="toolSectionBg">
+                        <div class="toolTitle"><a target="galaxy_main" href="${h.url_for( controller='colonies', action='all', sort_id='default', order='default' )}">All colonies of uploaded samples</a></div>
+                    </div>
+                </div>
+                <div class="toolSectionPad"></div>
+                <div class="toolSectionTitle">
+                    <span>Reefs</span>
+                </div>
+                <div class="toolSectionBody">
+                    <div class="toolSectionBg">
+                        <div class="toolTitle"><a target="galaxy_main" href="${h.url_for( controller='reefs', action='all', sort_id='default', order='default' )}">All reefs of uploaded samples</a></div>
+                    </div>
+                </div>
+                <div class="toolSectionPad"></div>
+                <div class="toolSectionTitle">
+                    <span>Taxonomies</span>
+                </div>
+                <div class="toolSectionBody">
+                    <div class="toolSectionBg">
+                        <div class="toolTitle"><a target="galaxy_main" href="${h.url_for( controller='taxonomies', action='all', sort_id='default', order='default' )}">All taxonomies of uploaded samples</a></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

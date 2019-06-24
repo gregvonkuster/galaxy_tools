@@ -8,17 +8,19 @@
 <div class="report">
     <div class="reportBody">
         <h3 align="center">
-            Samples uploaded on ${day_label},
-            &nbsp;${month_label}&nbsp;${day_of_month},
-            &nbsp;${year_label}
+            Samples of Colony
         </h3>
+        <h4>
+            Latitude: <b>${latitude}</b><br/>
+            Longitude: <b>${longitude}</b><br/>
+            Depth: <b>${depth}</b><br/>
+            Reef ID: <b>${reef_id}</b><br/>
+        </h4>
         <table align="center" class="colored">
             %if len(samples) == 0:
                 <tr>
                     <td colspan="2">
-                        No samples were upoladed on ${day_label},
-                        &nbsp;${month_label}&nbsp;${day_of_month},
-                        &nbsp;${year_label}
+                        There are no samples of this colony
                     </td>
                 </tr>
             %else:
@@ -41,8 +43,6 @@
                     <td>Geno ID</td>
                     <td>Pheno ID</td>
                     <td>Collect ID</td>
-                    <td>Exper ID</td>
-                    <td>Colony ID</td>
                     <td>Taxon ID</td>
                 </tr>
                 <% ctr = 0 %>
@@ -70,9 +70,7 @@
                         <td><a href="${h.url_for(controller='genotypes', action='of_sample', sort_id='default', order='default', genotype_id=sample[15], affy_id=sample[0])}">${sample[15]}</a></td>
                         <td><a href="${h.url_for(controller='phenotypes', action='of_sample', sort_id='default', order='default', phenotype_id=sample[16], affy_id=sample[0])}">${sample[16]}</a></td>
                         <td><a href="${h.url_for(controller='collectors', action='of_sample', sort_id='default', order='default', collector_id=sample[17], affy_id=sample[0])}">${sample[17]}</a></td>
-                        <td><a href="${h.url_for(controller='experiments', action='of_sample', sort_id='default', order='default', experiment_id=sample[18], affy_id=sample[0])}">${sample[18]}</a></td>
-                        <td><a href="${h.url_for(controller='colonies', action='of_sample', sort_id='default', order='default', colony_id=sample[19], affy_id=sample[0])}">${sample[19]}</a></td>
-                        <td><a href="${h.url_for(controller='taxonomies', action='of_sample', sort_id='default', order='default', taxonomy_id=sample[20], affy_id=sample[0])}">${sample[20]}</a></td>
+                        <td><a href="${h.url_for(controller='taxonomies', action='of_sample', sort_id='default', order='default', taxonomy_id=sample[18], affy_id=sample[0])}">${sample[18]}</a></td>
                     </tr>
                     <% ctr += 1 %>
                 %endfor

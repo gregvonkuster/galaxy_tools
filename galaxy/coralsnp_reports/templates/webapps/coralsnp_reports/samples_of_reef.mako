@@ -8,17 +8,20 @@
 <div class="report">
     <div class="reportBody">
         <h3 align="center">
-            Samples uploaded on ${day_label},
-            &nbsp;${month_label}&nbsp;${day_of_month},
-            &nbsp;${year_label}
+            Samples of Reef
         </h3>
+        <h4>
+            Name: <b>${name}</b><br/>
+            Region: <b>${region}</b><br/>
+            Latitude: <b>${latitude}</b><br/>
+            Longitude: <b>${longitude}</b><br/>
+            Geographic Origin: <b>${geographic_origin}</b><br/>
+        </h4>
         <table align="center" class="colored">
             %if len(samples) == 0:
                 <tr>
                     <td colspan="2">
-                        No samples were upoladed on ${day_label},
-                        &nbsp;${month_label}&nbsp;${day_of_month},
-                        &nbsp;${year_label}
+                        There are no samples of this reef
                     </td>
                 </tr>
             %else:
