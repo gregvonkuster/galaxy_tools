@@ -47,7 +47,7 @@ class Genotypes(BaseUIController, ReportQueryBuilder):
         return trans.fill_template('/webapps/coralsnp_reports/genotypes_by_sample_upload_date.mako', num_genotypes=num_genotypes, message=message)
 
     @web.expose
-    def for_sample(self, trans, **kwd):
+    def of_sample(self, trans, **kwd):
         message = escape(util.restore_text(kwd.get('message', '')))
         # If specified_date is not received, we'll default to the current month
         affy_id = kwd.get('affy_id')

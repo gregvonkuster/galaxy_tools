@@ -1,4 +1,4 @@
-"""CoralSNP Reports configuration builder."""
+"""Universe configuration builder."""
 import logging
 import os
 import re

@@ -45,7 +45,7 @@ class Phenotypes(BaseUIController, ReportQueryBuilder):
         return trans.fill_template('/webapps/coralsnp_reports/phenotypes.mako', phenotypes=phenotypes, message=message)
 
     @web.expose
-    def for_sample(self, trans, **kwd):
+    def of_sample(self, trans, **kwd):
         message = escape(util.restore_text(kwd.get('message', '')))
         affy_id = kwd.get('affy_id')
         phenotype_id = kwd.get('phenotype_id')

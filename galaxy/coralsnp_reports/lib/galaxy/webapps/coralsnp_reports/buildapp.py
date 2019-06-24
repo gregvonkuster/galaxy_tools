@@ -31,6 +31,7 @@ def add_ui_controllers(webapp, app):
     Search for controllers in the 'galaxy.webapps.coralsnp_reports.controllers'
     module and add them to the webapp.
     """
+    #from galaxy.web.base.controller import BaseUIController
     import galaxy.webapps.coralsnp_reports.controllers
     from galaxy.webapps.coralsnp_reports.controllers import BaseUIController
     controller_dir = galaxy.webapps.coralsnp_reports.controllers.__path__[0]
