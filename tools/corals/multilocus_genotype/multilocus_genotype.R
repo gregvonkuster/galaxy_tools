@@ -597,7 +597,7 @@ colnames(sample_prep_data_frame) <- c("user_specimen_id", "field_call", "bcoral_
 
 # Output the data frame for updating the alleles table.
 # Subset to only the new plate data.
-i <- ifelse(is.na(stag_db_report[2]), "", stag_db_report[[2]]);
+i <- ifelse(is.na(stag_db_report[3]), "", stag_db_report[[3]]);
 # Create a vector indicating the number of individuals desired
 # from the affy_id collumn in the report_user data table.
 i <- i[!apply(i=="", 1, all),];

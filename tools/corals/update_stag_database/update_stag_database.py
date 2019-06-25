@@ -93,6 +93,7 @@ class StagDatabaseUpdater(object):
         self.connect_db()
         self.engine = create_engine(self.args.database_connection_string)
         self.metadata = MetaData(self.engine)
+        self.affy_ids = []
         self.allele_ids = []
         self.colony_ids = []
         self.experiment_ids = []
@@ -146,29 +147,45 @@ class StagDatabaseUpdater(object):
         # Columns in the experiment file are:
         # affy_id allele
         allele_table_inserts = 0
-        with open(file_path) as fh:
-            for i, line in enumerate(fh):
-                if i == 0:
-                    # Skip header
-                    continue
+        # The allele.tabular file contains a subset of the number of samples
+        # to be inserted.  This is because those samples that failed will not
+        # be included in the file.  Failed samples will have an affy_id value
+        # of NA in self.affy_ids, which was generated when the genotype.tabular
+        # file was processed, so we'll use that list to build the correct list
+        # of self.allele_ids for later use when inserting into the sample table.
+        fh = open(file_path, "r")
+        # Skip the header
+        header = fh.readline()
+        for id_index, affy_id in enumerate(self.affy_ids):
+            if set_to_null(affy_id):
+                # This is a failed sample, so no allele strings will be
+                # inserted, and we'll set the allele_id to the default
+                # empty string.
+                self.allele_ids.append("")
+                continue
+            # See if we need to add a row to the table.  The affy_id value
+            # should not exist in the sample table.
+            cmd = "SELECT allele_id FROM sample WHERE affy_id = '%s';" % affy_id
+            cur = self.conn.cursor()
+            cur.execute(cmd)
+            try:
+                allele_id = cur.fetchone()[0]
+            except Exception:
+                # Insert a row into the allele table.
+                line = fh.readline()
                 line = line.rstrip()
                 items = line.split("\t")
                 allele = items[1]
-                # See if we need to add a row to the table.
-                cmd = "SELECT id FROM allele WHERE allele = '%s';" % allele
-                cur = self.conn.cursor()
-                cur.execute(cmd)
-                try:
-                    allele_id = cur.fetchone()[0]
-                except Exception:
-                    # Insert a row into the allele table.
-                    cmd = "INSERT INTO allele VALUES (nextval('allele_id_seq'), %s, %s, %s) RETURNING id;"
-                    args = ['NOW()', 'NOW()', allele]
-                    cur = self.update(cmd, args)
-                    self.flush()
-                    allele_id = cur.fetchone()[0]
-                    allele_table_inserts += 1
-                self.allele_ids.append(allele_id)
+                cmd = "INSERT INTO allele VALUES (nextval('allele_id_seq'), %s, %s, %s) RETURNING id;"
+                args = ['NOW()', 'NOW()', allele]
+                cur = self.update(cmd, args)
+                self.flush()
+                allele_id = cur.fetchone()[0]
+                allele_table_inserts += 1
+            self.allele_ids.append(allele_id)
+        self.log("XXXXXXXXXXXXXXXXXXXXXXXXX")
+        self.log("self.allele_ids: %s" % str(self.allele_ids))
+        self.log("XXXXXXXXXXXXXXXXXXXXXXXXX")
         self.log("Inserted %d rows into the allele table..." % allele_table_inserts)
 
     def update_colony_table(self, file_path):
@@ -184,7 +201,7 @@ class StagDatabaseUpdater(object):
                 if i == 0:
                     # Skip header
                     continue
-                # Keep track of foreign keys since we skip the header line
+                # Keep track of foreign keys since we skip the header line.
                 id_index = i - 1
                 line = line.rstrip()
                 items = line.split("\t")
@@ -230,7 +247,7 @@ class StagDatabaseUpdater(object):
                 if i == 0:
                     # Skip header
                     continue
-                # Keep track of foreign keys since we skip the header line
+                # Keep track of foreign keys since we skip the header line.
                 line = line.rstrip()
                 items = line.split("\t")
                 seq_facility, seq_facility_param_val_str = handle_column_value(items[0])
@@ -270,6 +287,9 @@ class StagDatabaseUpdater(object):
                     continue
                 line = line.rstrip()
                 items = line.split("\t")
+                # Keep an in-memory list of affy_ids for use
+                # when updating the allele table.
+                self.affy_ids.append(items[0])
                 coral_mlg_clonal_id = items[1]
                 # The value of db_match will be "no_match" if
                 # a new row should be inserted into the table.
@@ -438,12 +458,15 @@ class StagDatabaseUpdater(object):
                     # Skip header
                     continue
                 line = line.rstrip()
-                # Keep track of foreign keys since we skip the header line
+                # Keep track of foreign keys since we skip the header line.
                 id_index = i - 1
                 items = line.split("\t")
                 sample_id = self.get_next_sample_id()
-                # FIXME: allele_ids has more than 96 rows, so need info to map.
+                self.log("i: %s" % str(i))
+                self.log("id_index: %s" % str(id_index))
+                self.log("len(self.allele_ids): %s" % str(len(self.allele_ids)))
                 allele_id = self.allele_ids[id_index]
+                self.log("allele_id: %s" % str(allele_id))
                 genotype_id = self.genotype_ids[id_index]
                 phenotype_id = self.phenotype_ids[id_index]
                 experiment_id = self.experiment_ids[id_index]
@@ -504,8 +527,8 @@ class StagDatabaseUpdater(object):
                     continue
                 line = line.rstrip()
                 items = line.split("\t")
-                genus_name = items[2]
-                species_name = items[3]
+                genus_name = handle_column_value(items[2], get_sql_param=False, default='unknown')
+                species_name = handle_column_value(items[3], get_sql_param=False, default='unknown')
                 # See if we need to add a row to the taxonomy table.
                 cmd = "SELECT id FROM taxonomy WHERE species_name = '%s' AND genus_name = '%s';" % (species_name, genus_name)
                 cur = self.conn.cursor()
@@ -564,9 +587,9 @@ class StagDatabaseUpdater(object):
             elif file_name.startswith("taxonomy"):
                 taxonomy_file = os.path.join(input_dir, file_name)
         # Now tables can be loaded in the appropriate order.
-        self.update_allele_table(allele_file)
         self.update_experiment_table(experiment_file)
         self.update_genotype_table(genotype_file)
+        self.update_allele_table(allele_file)
         self.update_person_table(person_file)
         self.update_phenotype_table(phenotype_file)
         self.update_reef_table(reef_file)
