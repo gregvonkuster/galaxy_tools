@@ -44,6 +44,7 @@
                     <td>Exper ID</td>
                     <td>Colony ID</td>
                     <td>Taxon ID</td>
+                    <td>Allele_id ID</td>
                 </tr>
                 <% ctr = 0 %>
                 %for sample in samples:
@@ -73,6 +74,11 @@
                         <td><a href="${h.url_for(controller='experiments', action='of_sample', sort_id='default', order='default', experiment_id=sample[18], affy_id=sample[0])}">${sample[18]}</a></td>
                         <td><a href="${h.url_for(controller='colonies', action='of_sample', sort_id='default', order='default', colony_id=sample[19], affy_id=sample[0])}">${sample[19]}</a></td>
                         <td><a href="${h.url_for(controller='taxonomies', action='of_sample', sort_id='default', order='default', taxonomy_id=sample[20], affy_id=sample[0])}">${sample[20]}</a></td>
+                    %if str(sample[21]).lower() not in ["none", "", "null"]:
+                        <td><a href="${h.url_for(controller='alleles', action='of_sample', sort_id='default', order='default', allele_id=sample[21], affy_id=sample[0])}">${sample[21]}</a></td>
+                    %else:
+                        <td></td>
+                    %endif
                     </tr>
                     <% ctr += 1 %>
                 %endfor
