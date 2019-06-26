@@ -1,6 +1,5 @@
 import calendar
 import logging
-import operator
 from datetime import (
     date,
     datetime,
@@ -9,7 +8,6 @@ from datetime import (
 
 import sqlalchemy as sa
 from markupsafe import escape
-from sqlalchemy import false
 
 import galaxy.model
 from galaxy import util

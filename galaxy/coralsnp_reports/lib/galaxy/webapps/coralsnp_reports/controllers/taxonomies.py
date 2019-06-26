@@ -1,21 +1,12 @@
-import calendar
 import logging
-import operator
-from datetime import (
-    date,
-    datetime,
-    timedelta
-)
 
 import sqlalchemy as sa
 from markupsafe import escape
-from sqlalchemy import false
 
 import galaxy.model
 from galaxy import util
 from . import BaseUIController
 from galaxy.web.base.controller import web
-from galaxy.webapps.reports.controllers.jobs import sorter
 from galaxy.webapps.reports.controllers.query import ReportQueryBuilder
 
 log = logging.getLogger(__name__)

@@ -1,6 +1,8 @@
 """Galaxy coralsnp reports controllers."""
 import logging
 
+from galaxy import util
+
 log = logging.getLogger(__name__)
 
 
@@ -21,8 +23,6 @@ class BaseUIController(BaseController):
         try:
             return BaseController.get_object(self, trans, id, class_name, check_ownership=check_ownership,
                                              check_accessible=check_accessible, deleted=deleted)
-        except exceptions.MessageException:
-            raise       # handled in the caller
         except Exception:
             log.exception("Exception in get_object check for %s %s:", class_name, str(id))
             raise Exception('Server error retrieving %s id ( %s ).' % (class_name, str(id)))
