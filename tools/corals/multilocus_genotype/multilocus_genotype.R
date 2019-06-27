@@ -141,16 +141,15 @@ sample_table <- tbl(conn, "sample");
 genotype_table <- tbl(conn, "genotype");
 # Select columns from the sample table and the
 # genotype table joined by genotype_id.
-sample_table_columns <- sample_table %>% select(user_specimen_id, affy_id, genotype_id);
+sample_table_columns <- sample_table %>% select(user_specimen_id, affy_id, bcoral_genet_id, genotype_id);
 smlg <- sample_table_columns %>%
     left_join(genotype_table %>%
-        select("id", "coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "genetic_coral_species_call", "bcoral_genet_id"),
+        select("id", "coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "genetic_coral_species_call"),
         by=c("genotype_id"="id"));
 # Name the columns.
 smlg_data_frame <- as.data.frame(smlg);
-colnames(smlg_data_frame) <- c("user_specimen_id", "affy_id", "genotype_id", "coral_mlg_clonal_id", "coral_mlg_rep_sample_id",
-                               "genetic_coral_species_call", "bcoral_genet_id");
-
+colnames(smlg_data_frame) <- c("user_specimen_id", "affy_id", "bcoral_genet_id", "genotype_id",
+		                       "coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "genetic_coral_species_call");
 # Missing GT in samples submitted.
 start_time <- time_start("Discovering missing GT in samples");
 gt <- extract.gt(vcf, element="GT", as.numeric=FALSE);
@@ -755,14 +754,14 @@ for (i in 1:num_rows) {
 write_data_frame(output_data_dir, "reef.tabular", reef_table_data_frame);
 
 # Output the file needed for populating the sample table.
-sample_table_data_frame <- data.frame(matrix(ncol=19, nrow=num_rows));
+sample_table_data_frame <- data.frame(matrix(ncol=20, nrow=num_rows));
 colnames(sample_table_data_frame) <- c("affy_id", "colony_location", "collection_date", "user_specimen_id",
                                        "registry_id", "depth", "dna_extraction_method", "dna_concentration",
                                        "public", "public_after_date", "percent_missing_data_coral",
                                        "percent_missing_data_sym", "percent_reference_coral",
                                        "percent_reference_sym", "percent_alternative_coral",
                                        "percent_alternative_sym", "percent_heterozygous_coral",
-                                       "percent_heterozygous_sym", "field_call");
+                                       "percent_heterozygous_sym", "field_call", "bcoral_genet_id");
 for (i in 1:num_rows) {
     sample_table_data_frame$affy_id[i] <- sample_prep_data_frame$affy_id[i];
     sample_table_data_frame$colony_location[i] <- sample_prep_data_frame$colony_location[i];
@@ -783,6 +782,7 @@ for (i in 1:num_rows) {
     sample_table_data_frame$percent_heterozygous_coral[i] <- sample_prep_data_frame$percent_heterozygous_coral[i];
     sample_table_data_frame$percent_heterozygous_sym[i] <- DEFAULT_MISSING_NUMERIC_VALUE;
     sample_table_data_frame$field_call[i] <- sample_prep_data_frame$field_call[i];
+	sample_table_data_frame$bcoral_genet_id[i] <- sample_prep_data_frame$bcoral_genet_id[i];
 }
 write_data_frame(output_data_dir, "sample.tabular", sample_table_data_frame);
 

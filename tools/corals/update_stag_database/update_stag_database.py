@@ -183,9 +183,6 @@ class StagDatabaseUpdater(object):
                 allele_id = cur.fetchone()[0]
                 allele_table_inserts += 1
             self.allele_ids.append(allele_id)
-        self.log("XXXXXXXXXXXXXXXXXXXXXXXXX")
-        self.log("self.allele_ids: %s" % str(self.allele_ids))
-        self.log("XXXXXXXXXXXXXXXXXXXXXXXXX")
         self.log("Inserted %d rows into the allele table..." % allele_table_inserts)
 
     def update_colony_table(self, file_path):
@@ -278,7 +275,7 @@ class StagDatabaseUpdater(object):
         self.log("Updating the genotype table...")
         # Columns in the genotype file are:
         # affy_id coral_mlg_clonal_id user_specimen_id db_match genetic_coral_species_call
-        # coral_mlg_rep_sample_id bcoral_genet_id
+        # coral_mlg_rep_sample_id
         genotype_table_inserts = 0
         with open(file_path) as fh:
             for i, line in enumerate(fh):
@@ -296,24 +293,35 @@ class StagDatabaseUpdater(object):
                 db_match = items[3].lower()
                 genetic_coral_species_call = handle_column_value(items[4], get_sql_param=False)
                 coral_mlg_rep_sample_id = handle_column_value(items[5], get_sql_param=False)
-                bcoral_genet_id = handle_column_value(items[6], get_sql_param=False)
+                if db_match == "failed":
+                    # Handle the special case of a failed sample.
+                    cmd = "SELECT id FROM genotype WHERE coral_mlg_clonal_id = 'failed'"
+                else:
+                    cmd = "SELECT id FROM genotype WHERE coral_mlg_clonal_id = '%s'" % coral_mlg_clonal_id
                 # See if we need to add a row to the table.
-                cmd = "SELECT id FROM genotype WHERE coral_mlg_clonal_id = '%s' " % coral_mlg_clonal_id
                 cur = self.conn.cursor()
                 cur.execute(cmd)
                 try:
                     genotype_id = cur.fetchone()[0]
-                    self.log("Found genotype row with id %d, value of db_match: %s, should be 'match'." % (genotype_id, db_match))
+                    if db_match == "failed":
+                        val = db_match
+                    else:
+                        val = "match"
+                    self.log("Found genotype row with id %d, value of db_match: %s, should be %s." % (genotype_id, db_match, val))
                 except Exception:
                     # Insert a row into the genotype table.
                     cmd = "INSERT INTO genotype VALUES (nextval('genotype_id_seq'), NOW(), NOW(), "
-                    cmd += "'%s', '%s', '%s', '%s') RETURNING id;"
-                    cmd = cmd % (coral_mlg_clonal_id, coral_mlg_rep_sample_id, genetic_coral_species_call, bcoral_genet_id)
-                    args = [coral_mlg_clonal_id, coral_mlg_rep_sample_id, genetic_coral_species_call, bcoral_genet_id]
+                    cmd += "'%s', '%s', '%s') RETURNING id;"
+                    cmd = cmd % (coral_mlg_clonal_id, coral_mlg_rep_sample_id, genetic_coral_species_call)
+                    args = [coral_mlg_clonal_id, coral_mlg_rep_sample_id, genetic_coral_species_call]
                     cur = self.update(cmd, args)
                     self.flush()
                     genotype_id = cur.fetchone()[0]
-                    self.log("Inserted genotype row with id %d, value of db_match: %s, should be 'no_match'." % (genotype_id, db_match))
+                    if db_match == "failed":
+                        val = db_match
+                    else:
+                        val = "no_match"
+                    self.log("Inserted genotype row with id %d, value of db_match: %s, should be %s." % (genotype_id, db_match, val))
                     genotype_table_inserts += 1
                 self.genotype_ids.append(genotype_id)
         self.log("Inserted %d rows into the genotype table..." % genotype_table_inserts)
@@ -447,7 +455,7 @@ class StagDatabaseUpdater(object):
         # affy_id colony_location collection_date user_specimen_id registry_id
         # depth dna_extraction_method dna_concentration public public_after_date
         # percent_missing_data_coral percent_missing_data_sym percent_reference_coral percent_reference_sym percent_alternative_coral
-        # percent_alternative_sym percent_heterozygous_coral percent_heterozygous_sym field_call
+        # percent_alternative_sym percent_heterozygous_coral percent_heterozygous_sym field_call, bcoral_genet_id
         sample_table_inserts = 0
         with open(file_path) as fh:
             for i, line in enumerate(fh):
@@ -459,11 +467,7 @@ class StagDatabaseUpdater(object):
                 id_index = i - 1
                 items = line.split("\t")
                 sample_id = self.get_next_sample_id()
-                self.log("i: %s" % str(i))
-                self.log("id_index: %s" % str(id_index))
-                self.log("len(self.allele_ids): %s" % str(len(self.allele_ids)))
                 allele_id = self.allele_ids[id_index]
-                self.log("allele_id: %s" % str(allele_id))
                 genotype_id = self.genotype_ids[id_index]
                 phenotype_id = self.phenotype_ids[id_index]
                 experiment_id = self.experiment_ids[id_index]
@@ -495,17 +499,18 @@ class StagDatabaseUpdater(object):
                 percent_heterozygous_coral = handle_column_value(items[16], get_sql_param=False)
                 percent_heterozygous_sym = handle_column_value(items[17], get_sql_param=False)
                 field_call = handle_column_value(items[18], get_sql_param=False)
+                bcoral_genet_id = handle_column_value(items[19], get_sql_param=False)
                 # Insert a row into the sample table.
                 cmd = "INSERT INTO sample VALUES (nextval('sample_id_seq'), %s, %s, %s, %s, %s, %s, %s, "
                 cmd += "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, "
-                cmd += "%s, %s, %s) RETURNING id;"
+                cmd += "%s, %s, %s, %s) RETURNING id;"
                 args = ['NOW()', 'NOW()', affy_id, sample_id, allele_id, genotype_id, phenotype_id,
                         experiment_id, colony_id, colony_location, taxonomy_id, collector_id,
                         collection_date, user_specimen_id, registry_id, depth,
                         dna_extraction_method, dna_concentration, public, public_after_date,
                         percent_missing_data_coral, percent_missing_data_sym, percent_reference_coral,
                         percent_reference_sym, percent_alternative_coral, percent_alternative_sym,
-                        percent_heterozygous_coral, percent_heterozygous_sym, field_call]
+                        percent_heterozygous_coral, percent_heterozygous_sym, field_call, bcoral_genet_id]
                 cur = self.update(cmd, args)
                 self.flush()
                 sample_id = cur.fetchone()[0]
