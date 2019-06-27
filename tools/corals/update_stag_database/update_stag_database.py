@@ -299,9 +299,6 @@ class StagDatabaseUpdater(object):
                 bcoral_genet_id = handle_column_value(items[6], get_sql_param=False)
                 # See if we need to add a row to the table.
                 cmd = "SELECT id FROM genotype WHERE coral_mlg_clonal_id = '%s' " % coral_mlg_clonal_id
-                cmd += "AND coral_mlg_rep_sample_id = '%s'" % coral_mlg_rep_sample_id
-                cmd += "AND genetic_coral_species_call = '%s'" % genetic_coral_species_call
-                cmd += "AND bcoral_genet_id = '%s'" % bcoral_genet_id
                 cur = self.conn.cursor()
                 cur.execute(cmd)
                 try:
