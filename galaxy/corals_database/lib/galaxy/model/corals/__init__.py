@@ -152,16 +152,13 @@ class Fragment(Dictifiable):
 
 
 class Genotype(Dictifiable):
-    dict_collection_visible_keys = ['id', 'coral_mlg_clonal_id', 'coral_mlg_rep_sample_id',
-                                    'genetic_coral_species_call', 'bcoral_genet_id']
+    dict_collection_visible_keys = ['id', 'coral_mlg_clonal_id', 'coral_mlg_rep_sample_id', 'genetic_coral_species_call']
 
-    def __init__(self, coral_mlg_clonal_id=None, coral_mlg_rep_sample_id=None,
-                 genetic_coral_species_call=None, bcoral_genet_id=None):
+    def __init__(self, coral_mlg_clonal_id=None, coral_mlg_rep_sample_id=None, genetic_coral_species_call=None):
         # Description of experiment metadata.
         self.coral_mlg_clonal_id = coral_mlg_clonal_id
         self.coral_mlg_rep_sample_id = coral_mlg_rep_sample_id
         self.genetic_coral_species_call = genetic_coral_species_call
-        self.bcoral_genet_id = bcoral_genet_id
 
     def as_dict(self, value_mapper=None):
         return self.to_dict(view='element', value_mapper=value_mapper)
@@ -343,15 +340,19 @@ class Sample(Dictifiable):
                                     'genotype_id', 'phenotype_id', 'experiment_id', 'colony_id', 'colony_location',
                                     'fragment_id', 'taxonomy_id', 'collector_id', 'collection_date', 'user_specimen_id',
                                     'registry_id', 'depth', 'dna_extraction_method', 'dna_concentration', 'public',
-                                    'public_after_date,' 'percent_missing_data_coral', 'percent_missing_data_sym', 'percent_reference_coral', 'percent_reference_sym',
-                                    'percent_alternative_coral', 'percent_alternative_sym', 'percent_heterozygous_coral', 'percent_heterozygous_sym', 'field_call']
+                                    'public_after_date,' 'percent_missing_data_coral', 'percent_missing_data_sym',
+                                    'percent_reference_coral', 'percent_reference_sym', 'percent_alternative_coral',
+                                    'percent_alternative_sym', 'percent_heterozygous_coral', 'percent_heterozygous_sym',
+                                    'field_call', 'bcoral_genet_id']
 
     def __init__(self, create_time=None, affy_id=None, sample_id=None, allele_id=None,
                  genotype_id=None, phenotype_id=None, experiment_id=None, colony_id=None, colony_location=None,
                  fragment_id=None, taxonomy_id=None, collector_id=None, collection_date=None, user_specimen_id=None,
                  registry_id=None, depth=None, dna_extraction_method=None, dna_concentration=None, public=None,
-                 public_after_date=None, percent_missing_data_coral=None, percent_missing_data_sym=None, percent_reference_coral=None, percent_reference_sym=None,
-                 percent_alternative_coral=None, percent_alternative_sym=None, percent_heterozygous_coral=None, percent_heterozygous_sym=None, field_call=None):
+                 public_after_date=None, percent_missing_data_coral=None, percent_missing_data_sym=None,
+                 percent_reference_coral=None, percent_reference_sym=None, percent_alternative_coral=None,
+                 percent_alternative_sym=None, percent_heterozygous_coral=None, percent_heterozygous_sym=None,
+                 field_call=None, bcoral_genet_id=None):
         self.create_time = create_time
         self.affy_id = affy_id
         self.sample_id = sample_id
@@ -385,6 +386,7 @@ class Sample(Dictifiable):
         self.percent_heterozygous_coral = percent_heterozygous_coral
         self.percent_heterozygous_sym = percent_heterozygous_sym
         self.field_call = field_call
+        self.bcoral_genet_id = bcoral_genet_id
 
     def as_dict(self, value_mapper=None):
         return self.to_dict(view='element', value_mapper=value_mapper)

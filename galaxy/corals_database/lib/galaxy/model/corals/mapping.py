@@ -77,8 +77,7 @@ corals_model.Genotype.table = Table("genotype", metadata,
     Column("update_time", DateTime, default=now, onupdate=now),
     Column("coral_mlg_clonal_id", TrimmedString(255)),
     Column("coral_mlg_rep_sample_id", TrimmedString(255)),
-    Column("genetic_coral_species_call", TrimmedString(255)),
-    Column("bcoral_genet_id", TrimmedString(255)))
+    Column("genetic_coral_species_call", TrimmedString(255)))
 
 corals_model.Person.table = Table("person", metadata,
     Column("id", Integer, primary_key=True),
@@ -167,7 +166,8 @@ corals_model.Sample.table = Table("sample", metadata,
     Column("percent_alternative_sym", Numeric(15, 6)),
     Column("percent_heterozygous_coral", Numeric(15, 6)),
     Column("percent_heterozygous_sym", Numeric(15, 6)),
-    Column("field_call", TrimmedString(255)))
+    Column("field_call", TrimmedString(255)),
+    Column("bcoral_genet_id", TrimmedString(255)))
 
 # For future use.
 corals_model.SymbioGenotype = Table("symbio_genotype", metadata,

@@ -99,8 +99,7 @@ Genotype_table = Table("genotype", metadata,
                        Column("update_time", DateTime, default=now, onupdate=now),
                        Column("coral_mlg_clonal_id", TrimmedString(255)),
                        Column("coral_mlg_rep_sample_id", TrimmedString(255)),
-                       Column("genetic_coral_species_call", TrimmedString(255)),
-                       Column("bcoral_genet_id", TrimmedString(255)))
+                       Column("genetic_coral_species_call", TrimmedString(255)))
 
 
 Person_table = Table("person", metadata,
@@ -194,7 +193,8 @@ Sample_table = Table("sample", metadata,
                      Column("percent_alternative_sym", Numeric(15, 6)),
                      Column("percent_heterozygous_coral", Numeric(15, 6)),
                      Column("percent_heterozygous_sym", Numeric(15, 6)),
-                     Column("field_call", TrimmedString(255)))
+                     Column("field_call", TrimmedString(255)),
+                     Column("bcoral_genet_id", TrimmedString(255)))
 
 
 SymbioGenotype_table = Table("symbio_genotype", metadata,
@@ -595,22 +595,18 @@ def load_general_seed_data(migrate_engine):
             # See if we need to add a row to the table.
             # Values for the following are not in the seed data.
             cmd = "SELECT id FROM genotype WHERE coral_mlg_clonal_id = '%s' AND coral_mlg_rep_sample_id = '%s'"
-            cmd += " AND genetic_coral_species_call = '%s' AND bcoral_genet_id = '%s'"
-            cmd = cmd % (coral_mlg_clonal_id,
-                         coral_mlg_rep_sample_id,
-                         genetic_coral_species_call,
-                         bcoral_genet_id)
+            cmd += " AND genetic_coral_species_call = '%s'"
+            cmd = cmd % (coral_mlg_clonal_id, coral_mlg_rep_sample_id, genetic_coral_species_call)
             genotype_id = get_primary_id(migrate_engine, table, cmd)
             if genotype_id is None:
                 # Add a row to the table.
-                cmd = "INSERT INTO genotype VALUES (%s, %s, %s, '%s', '%s', '%s', '%s')"
+                cmd = "INSERT INTO genotype VALUES (%s, %s, %s, '%s', '%s', '%s')"
                 cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),
                              coral_mlg_clonal_id,
                              coral_mlg_rep_sample_id,
-                             genetic_coral_species_call,
-                             bcoral_genet_id)
+                             genetic_coral_species_call)
                 migrate_engine.execute(cmd)
                 genotype_table_inserts += 1
                 genotype_id = get_latest_id(migrate_engine, table)
@@ -750,8 +746,8 @@ def load_general_seed_data(migrate_engine):
                 # user_specimen_id, registry_id, depth, dna_extraction_method, dna_concentration,
                 # public, public_after_date, percent_missing_data_coral, percent_missing_data_sym, percent_reference_coral,
                 # percent_reference_sym, percent_alternative_coral, percent_alternative_sym, percent_heterozygous_coral, percent_heterozygous_sym,
-                # field_call
-                cmd += "'%s', '%s', %s, '%s', %s, %s, '%s', %s, '%s', %s, '%s', '%s', '%s', %s, '%s', '%s')"
+                # field_call, bcoral_genet_id
+                cmd += "'%s', '%s', %s, '%s', %s, %s, '%s', %s, '%s', %s, '%s', '%s', '%s', %s, '%s', '%s', '%s')"
                 cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),
@@ -781,7 +777,8 @@ def load_general_seed_data(migrate_engine):
                              percent_alternative_sym,
                              percent_heterozygous_coral,
                              percent_heterozygous_sym,
-                             field_call)
+                             field_call,
+                             bcoral_genet_id)
                 migrate_engine.execute(cmd)
                 sample_table_inserts += 1
                 sample_id = get_latest_id(migrate_engine, table)
