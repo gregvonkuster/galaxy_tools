@@ -46,7 +46,8 @@ class Samples(BaseUIController, ReportQueryBuilder):
                        galaxy.model.corals.Sample.table.c.percent_missing_data_coral,
                        galaxy.model.corals.Sample.table.c.percent_reference_coral,
                        galaxy.model.corals.Sample.table.c.percent_alternative_coral,
-                       galaxy.model.corals.Sample.table.c.percent_heterozygous_coral),
+                       galaxy.model.corals.Sample.table.c.percent_heterozygous_coral,
+                       galaxy.model.corals.Sample.table.c.bcoral_genet_id),
                       from_obj=[galaxy.model.corals.Sample.table],
                       order_by=[galaxy.model.corals.Sample.table.c.id])
         samples = []
@@ -65,7 +66,8 @@ class Samples(BaseUIController, ReportQueryBuilder):
                         row.percent_missing_data_coral, row.percent_reference_coral,
                         row.percent_alternative_coral, row.percent_heterozygous_coral,
                         row.genotype_id, row.phenotype_id, row.collector_id,
-                        row.experiment_id, row.colony_id, row.taxonomy_id, row.allele_id)
+                        row.experiment_id, row.colony_id, row.taxonomy_id, row.allele_id,
+                        row.bcoral_genet_id)
             samples.append(cols_tup)
         return trans.fill_template('/webapps/coralsnp_reports/samples.mako', samples=samples, message=message)
 
@@ -102,7 +104,8 @@ class Samples(BaseUIController, ReportQueryBuilder):
                        galaxy.model.corals.Sample.table.c.percent_missing_data_coral,
                        galaxy.model.corals.Sample.table.c.percent_reference_coral,
                        galaxy.model.corals.Sample.table.c.percent_alternative_coral,
-                       galaxy.model.corals.Sample.table.c.percent_heterozygous_coral),
+                       galaxy.model.corals.Sample.table.c.percent_heterozygous_coral,
+                       galaxy.model.corals.Sample.table.c.bcoral_genet_id),
                       whereclause=galaxy.model.corals.Sample.table.c.collector_id == collector_id,
                       from_obj=[galaxy.model.corals.Sample.table],
                       order_by=[galaxy.model.corals.Sample.table.c.id])
@@ -122,7 +125,8 @@ class Samples(BaseUIController, ReportQueryBuilder):
                         public_after_date, row.percent_missing_data_coral,
                         row.percent_reference_coral, row.percent_alternative_coral,
                         row.percent_heterozygous_coral, row.genotype_id, row.phenotype_id,
-                        row.experiment_id, row.colony_id, row.taxonomy_id, row.allele_id)
+                        row.experiment_id, row.colony_id, row.taxonomy_id, row.allele_id,
+                        row.bcoral_genet_id)
             samples.append(cols_tup)
         return trans.fill_template('/webapps/coralsnp_reports/samples_collected_by.mako',
                                    last_name=last_name,
@@ -160,7 +164,8 @@ class Samples(BaseUIController, ReportQueryBuilder):
                        galaxy.model.corals.Sample.table.c.percent_reference_coral,
                        galaxy.model.corals.Sample.table.c.percent_alternative_coral,
                        galaxy.model.corals.Sample.table.c.percent_heterozygous_coral,
-                       galaxy.model.corals.Sample.table.c.field_call),
+                       galaxy.model.corals.Sample.table.c.field_call,
+                       galaxy.model.corals.Sample.table.c.bcoral_genet_id),
                       whereclause=galaxy.model.corals.Sample.table.c.colony_id == colony_id,
                       from_obj=[galaxy.model.corals.Sample.table],
                       order_by=[galaxy.model.corals.Sample.table.c.id])
@@ -180,7 +185,7 @@ class Samples(BaseUIController, ReportQueryBuilder):
                         row.percent_missing_data_coral, row.percent_reference_coral,
                         row.percent_alternative_coral, row.percent_heterozygous_coral,
                         row.genotype_id, row.phenotype_id, row.collector_id, row.experiment_id,
-                        row.taxonomy_id, row.allele_id)
+                        row.taxonomy_id, row.allele_id, row.bcoral_genet_id)
             samples.append(cols_tup)
         return trans.fill_template('/webapps/coralsnp_reports/samples_of_colony.mako',
                                    latitude=latitude,
@@ -220,7 +225,8 @@ class Samples(BaseUIController, ReportQueryBuilder):
                        galaxy.model.corals.Sample.table.c.percent_reference_coral,
                        galaxy.model.corals.Sample.table.c.percent_alternative_coral,
                        galaxy.model.corals.Sample.table.c.percent_heterozygous_coral,
-                       galaxy.model.corals.Sample.table.c.field_call),
+                       galaxy.model.corals.Sample.table.c.field_call,
+                       galaxy.model.corals.Sample.table.c.bcoral_genet_id),
                       whereclause=galaxy.model.corals.Sample.table.c.experiment_id == experiment_id,
                       from_obj=[galaxy.model.corals.Sample.table],
                       order_by=[galaxy.model.corals.Sample.table.c.id])
@@ -240,7 +246,7 @@ class Samples(BaseUIController, ReportQueryBuilder):
                         row.percent_missing_data_coral, row.percent_reference_coral,
                         row.percent_alternative_coral, row.percent_heterozygous_coral,
                         row.genotype_id, row.phenotype_id, row.collector_id, row.colony_id,
-                        row.taxonomy_id, row.allele_id)
+                        row.taxonomy_id, row.allele_id, row.bcoral_genet_id)
             samples.append(cols_tup)
         return trans.fill_template('/webapps/coralsnp_reports/samples_of_experiment.mako',
                                    seq_facility=seq_facility,
@@ -282,6 +288,7 @@ class Samples(BaseUIController, ReportQueryBuilder):
                        galaxy.model.corals.Sample.table.c.percent_alternative_coral,
                        galaxy.model.corals.Sample.table.c.percent_heterozygous_coral,
                        galaxy.model.corals.Sample.table.c.field_call,
+                       galaxy.model.corals.Sample.table.c.bcoral_genet_id,
                        galaxy.model.corals.Colony.table.c.reef_id,
                        galaxy.model.corals.Reef.table.c.id),
                       from_obj=[galaxy.model.corals.Sample.table,
@@ -307,7 +314,7 @@ class Samples(BaseUIController, ReportQueryBuilder):
                         row.percent_missing_data_coral, row.percent_reference_coral,
                         row.percent_alternative_coral, row.percent_heterozygous_coral,
                         row.genotype_id, row.phenotype_id, row.collector_id, row.experiment_id,
-                        row.colony_id, row.taxonomy_id, row.allele_id)
+                        row.colony_id, row.taxonomy_id, row.allele_id, row.bcoral_genet_id)
             samples.append(cols_tup)
         return trans.fill_template('/webapps/coralsnp_reports/samples_of_reef.mako',
                                    name=name,
@@ -346,7 +353,8 @@ class Samples(BaseUIController, ReportQueryBuilder):
                        galaxy.model.corals.Sample.table.c.percent_reference_coral,
                        galaxy.model.corals.Sample.table.c.percent_alternative_coral,
                        galaxy.model.corals.Sample.table.c.percent_heterozygous_coral,
-                       galaxy.model.corals.Sample.table.c.field_call),
+                       galaxy.model.corals.Sample.table.c.field_call,
+                       galaxy.model.corals.Sample.table.c.bcoral_genet_id),
                       whereclause=galaxy.model.corals.Sample.table.c.taxonomy_id == taxonomy_id,
                       from_obj=[galaxy.model.corals.Sample.table],
                       order_by=[galaxy.model.corals.Sample.table.c.id])
@@ -366,7 +374,7 @@ class Samples(BaseUIController, ReportQueryBuilder):
                         row.percent_missing_data_coral, row.percent_reference_coral,
                         row.percent_alternative_coral, row.percent_heterozygous_coral,
                         row.genotype_id, row.phenotype_id, row.collector_id, row.experiment_id,
-                        row.colony_id, row.allele_id)
+                        row.colony_id, row.allele_id, row.bcoral_genet_id)
             samples.append(cols_tup)
         return trans.fill_template('/webapps/coralsnp_reports/samples_of_taxonomy.mako',
                                    species_name=species_name,
@@ -436,7 +444,8 @@ class Samples(BaseUIController, ReportQueryBuilder):
                        galaxy.model.corals.Sample.table.c.percent_missing_data_coral,
                        galaxy.model.corals.Sample.table.c.percent_reference_coral,
                        galaxy.model.corals.Sample.table.c.percent_alternative_coral,
-                       galaxy.model.corals.Sample.table.c.percent_heterozygous_coral),
+                       galaxy.model.corals.Sample.table.c.percent_heterozygous_coral,
+                       galaxy.model.corals.Sample.table.c.bcoral_genet_id),
                       whereclause=sa.and_(galaxy.model.corals.Sample.table.c.create_time >= start_date,
                                           galaxy.model.corals.Sample.table.c.create_time < end_date),
                       from_obj=[galaxy.model.corals.Sample.table],
@@ -458,7 +467,7 @@ class Samples(BaseUIController, ReportQueryBuilder):
                         row.percent_reference_coral, row.percent_alternative_coral,
                         row.percent_heterozygous_coral, row.genotype_id, row.phenotype_id,
                         row.collector_id, row.experiment_id, row.colony_id, row.taxonomy_id,
-                        row.allele_id)
+                        row.allele_id, row.bcoral_genet_id)
             samples.append(cols_tup)
         return trans.fill_template('/webapps/coralsnp_reports/samples_specified_date.mako',
                                    specified_date=start_date,
@@ -507,7 +516,6 @@ class Samples(BaseUIController, ReportQueryBuilder):
         coral_mlg_clonal_id = kwd.get('coral_mlg_clonal_id')
         coral_mlg_rep_sample_id = kwd.get('coral_mlg_rep_sample_id')
         genetic_coral_species_call = kwd.get('genetic_coral_species_call')
-        bcoral_genet_id = kwd.get('bcoral_genet_id')
         q = sa.select((galaxy.model.corals.Sample.table.c.id,
                        galaxy.model.corals.Sample.table.c.affy_id,
                        galaxy.model.corals.Sample.table.c.sample_id,
@@ -529,7 +537,8 @@ class Samples(BaseUIController, ReportQueryBuilder):
                        galaxy.model.corals.Sample.table.c.percent_reference_coral,
                        galaxy.model.corals.Sample.table.c.percent_alternative_coral,
                        galaxy.model.corals.Sample.table.c.percent_heterozygous_coral,
-                       galaxy.model.corals.Sample.table.c.field_call),
+                       galaxy.model.corals.Sample.table.c.field_call,
+                       galaxy.model.corals.Sample.table.c.bcoral_genet_id),
                       whereclause=galaxy.model.corals.Sample.table.c.genotype_id == genotype_id,
                       from_obj=[galaxy.model.corals.Sample.table],
                       order_by=[galaxy.model.corals.Sample.table.c.id])
@@ -549,13 +558,12 @@ class Samples(BaseUIController, ReportQueryBuilder):
                         row.percent_missing_data_coral, row.percent_reference_coral,
                         row.percent_alternative_coral, row.percent_heterozygous_coral,
                         row.phenotype_id, row.collector_id, row.experiment_id, row.colony_id,
-                        row.taxonomy_id, row.allele_id)
+                        row.taxonomy_id, row.allele_id, row.bcoral_genet_id)
             samples.append(cols_tup)
         return trans.fill_template('/webapps/coralsnp_reports/samples_with_genotype.mako',
                                    coral_mlg_clonal_id=coral_mlg_clonal_id,
                                    coral_mlg_rep_sample_id=coral_mlg_rep_sample_id,
                                    genetic_coral_species_call=genetic_coral_species_call,
-                                   bcoral_genet_id=bcoral_genet_id,
                                    samples=samples,
                                    message=message)
 
@@ -591,7 +599,8 @@ class Samples(BaseUIController, ReportQueryBuilder):
                        galaxy.model.corals.Sample.table.c.percent_reference_coral,
                        galaxy.model.corals.Sample.table.c.percent_alternative_coral,
                        galaxy.model.corals.Sample.table.c.percent_heterozygous_coral,
-                       galaxy.model.corals.Sample.table.c.field_call),
+                       galaxy.model.corals.Sample.table.c.field_call,
+                       galaxy.model.corals.Sample.table.c.bcoral_genet_id),
                       whereclause=galaxy.model.corals.Sample.table.c.phenotype_id == phenotype_id,
                       from_obj=[galaxy.model.corals.Sample.table],
                       order_by=[galaxy.model.corals.Sample.table.c.id])
@@ -611,7 +620,7 @@ class Samples(BaseUIController, ReportQueryBuilder):
                         row.percent_missing_data_coral, row.percent_reference_coral,
                         row.percent_alternative_coral, row.percent_heterozygous_coral,
                         row.genotype_id, row.collector_id, row.experiment_id, row.colony_id,
-                        row.taxonomy_id, row.allele_id)
+                        row.taxonomy_id, row.allele_id, row.bcoral_genet_id)
             samples.append(cols_tup)
         return trans.fill_template('/webapps/coralsnp_reports/samples_with_phenotype.mako',
                                    disease_resist=disease_resist,

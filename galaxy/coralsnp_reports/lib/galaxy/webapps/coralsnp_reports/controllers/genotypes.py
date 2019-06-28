@@ -27,14 +27,12 @@ class Genotypes(BaseUIController, ReportQueryBuilder):
         q = sa.select((galaxy.model.corals.Genotype.table.c.id,
                        galaxy.model.corals.Genotype.table.c.coral_mlg_clonal_id,
                        galaxy.model.corals.Genotype.table.c.coral_mlg_rep_sample_id,
-                       galaxy.model.corals.Genotype.table.c.genetic_coral_species_call,
-                       galaxy.model.corals.Genotype.table.c.bcoral_genet_id),
+                       galaxy.model.corals.Genotype.table.c.genetic_coral_species_call),
                       from_obj=[galaxy.model.corals.Genotype.table],
                       order_by=[galaxy.model.corals.Genotype.table.c.id])
         genotypes = []
         for row in q.execute():
-            cols_tup = (row.id, row.coral_mlg_clonal_id, row.coral_mlg_rep_sample_id,
-                        row.genetic_coral_species_call, row.bcoral_genet_id)
+            cols_tup = (row.id, row.coral_mlg_clonal_id, row.coral_mlg_rep_sample_id, row.genetic_coral_species_call)
             genotypes.append(cols_tup)
         return trans.fill_template('/webapps/coralsnp_reports/genotypes.mako', genotypes=genotypes, message=message)
 
@@ -52,15 +50,13 @@ class Genotypes(BaseUIController, ReportQueryBuilder):
         genotype_id = kwd.get('genotype_id')
         q = sa.select((galaxy.model.corals.Genotype.table.c.coral_mlg_clonal_id,
                        galaxy.model.corals.Genotype.table.c.coral_mlg_rep_sample_id,
-                       galaxy.model.corals.Genotype.table.c.genetic_coral_species_call,
-                       galaxy.model.corals.Genotype.table.c.bcoral_genet_id),
+                       galaxy.model.corals.Genotype.table.c.genetic_coral_species_call),
                       whereclause=sa.and_(galaxy.model.corals.Genotype.table.c.id == genotype_id),
                       from_obj=[galaxy.model.corals.Genotype.table],
                       order_by=[galaxy.model.corals.Genotype.table.c.id])
         genotypes = []
         for row in q.execute():
-            cols_tup = (row.coral_mlg_clonal_id, row.coral_mlg_rep_sample_id,
-                        row.genetic_coral_species_call, row.bcoral_genet_id)
+            cols_tup = (row.coral_mlg_clonal_id, row.coral_mlg_rep_sample_id, row.genetic_coral_species_call)
             genotypes.append(cols_tup)
         return trans.fill_template('/webapps/coralsnp_reports/genotype_of_sample.mako',
                                    affy_id=affy_id,
@@ -141,16 +137,14 @@ class Genotypes(BaseUIController, ReportQueryBuilder):
                        galaxy.model.corals.Genotype.table.c.id,
                        galaxy.model.corals.Genotype.table.c.coral_mlg_clonal_id,
                        galaxy.model.corals.Genotype.table.c.coral_mlg_rep_sample_id,
-                       galaxy.model.corals.Genotype.table.c.genetic_coral_species_call,
-                       galaxy.model.corals.Genotype.table.c.bcoral_genet_id),
+                       galaxy.model.corals.Genotype.table.c.genetic_coral_species_call),
                       whereclause=sa.and_(galaxy.model.corals.Genotype.table.c.create_time >= start_date,
                                           galaxy.model.corals.Genotype.table.c.create_time < end_date),
                       from_obj=[galaxy.model.corals.Genotype.table],
                       order_by=[galaxy.model.corals.Genotype.table.c.id])
         genotypes = []
         for row in q.execute():
-            cols_tup = (row.id, row.coral_mlg_clonal_id, row.coral_mlg_rep_sample_id,
-                        row.genetic_coral_species_call, row.bcoral_genet_id)
+            cols_tup = (row.id, row.coral_mlg_clonal_id, row.coral_mlg_rep_sample_id, row.genetic_coral_species_call)
             genotypes.append(cols_tup)
         return trans.fill_template('/webapps/coralsnp_reports/genotypes_specified_date.mako',
                                    specified_date=start_date,

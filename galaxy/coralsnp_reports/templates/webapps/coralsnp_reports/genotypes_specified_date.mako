@@ -26,7 +26,6 @@
                     <td>Coral MLG Clonal ID</td>
                     <td>Coral MLG Rep Sample ID</td>
                     <td>Genetic Coral Species Call</td>
-                    <td>Bcoral Genet ID</td>
                     <td>Samples with this Genotype</td>
                 </tr>
                 <% ctr = 0 %>
@@ -39,8 +38,7 @@
                         <td>${genotype[1]}</td>
                         <td>${genotype[2]}</td>
                         <td>${genotype[3]}</td>
-                        <td>${genotype[4]}</td>
-                        <td><a href="${h.url_for( controller='samples', action='with_genotype', sort_id='default', order='default', genotype_id=genotype[0], coral_mlg_clonal_id=genotype[1], coral_mlg_rep_sample_id=genotype[2], genetic_coral_species_call=genotype[3], bcoral_genet_id=genotype[4] )}">Samples</a></td>
+                        <td><a href="${h.url_for( controller='samples', action='with_genotype', sort_id='default', order='default', genotype_id=genotype[0], coral_mlg_clonal_id=genotype[1], coral_mlg_rep_sample_id=genotype[2], genetic_coral_species_call=genotype[3] )}">Samples</a></td>
                     </tr>
                     <% ctr += 1 %>
                 %endfor

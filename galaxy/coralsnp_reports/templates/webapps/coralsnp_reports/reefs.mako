@@ -23,7 +23,7 @@
                     <td>Region</td>
                     <td>Latitude</td>
                     <td>Longitude</td>
-                    <td>Geographic Origin</td>
+                    <td>GPS Coordinates Associated With</td>
                     <td>Samples of this Reef</td>
                 </tr>
                 <% ctr = 0 %>

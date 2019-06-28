@@ -45,6 +45,7 @@
                     <td>Colony ID</td>
                     <td>Taxon ID</td>
                     <td>Allele_id ID</td>
+                    <td>Baums Coral Genet ID</td>
                 </tr>
                 <% ctr = 0 %>
                 %for sample in samples:
@@ -79,6 +80,7 @@
                     %else:
                         <td></td>
                     %endif
+                        <td>${sample[22]}</td>
                     </tr>
                     <% ctr += 1 %>
                 %endfor

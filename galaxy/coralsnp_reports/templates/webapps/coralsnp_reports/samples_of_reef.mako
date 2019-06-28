@@ -15,7 +15,7 @@
             Region: <b>${region}</b><br/>
             Latitude: <b>${latitude}</b><br/>
             Longitude: <b>${longitude}</b><br/>
-            Geographic Origin: <b>${geographic_origin}</b><br/>
+            GPS Coordinates Associated With: <b>${geographic_origin}</b><br/>
         </h4>
         <table align="center" class="colored">
             %if len(samples) == 0:
@@ -48,6 +48,7 @@
                     <td>Colony ID</td>
                     <td>Taxon ID</td>
                     <td>Allele ID</td>
+                    <td>Baums Coral Genet ID</td>
                 </tr>
                 <% ctr = 0 %>
                 %for sample in samples:
@@ -82,6 +83,7 @@
                     %else:
                         <td></td>
                     %endif
+                        <td>${sample[22]}</td>
                     </tr>
                     <% ctr += 1 %>
                 %endfor

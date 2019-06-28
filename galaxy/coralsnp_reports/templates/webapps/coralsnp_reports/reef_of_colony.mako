@@ -28,7 +28,7 @@
                     <td>Region</td>
                     <td>Latitude</td>
                     <td>Longitude</td>
-                    <td>Geographic Origin</td>
+                    <td>GPS Coordinates Associated With</td>
                 </tr>
                 <% ctr = 0 %>
                 %for reef in reefs:
