@@ -22,7 +22,6 @@
                     <td>Coral MLG Clonal ID</td>
                     <td>Coral MLG Rep Sample ID</td>
                     <td>Genetic Coral Species Call</td>
-                    <td>Bcoral Genet ID</td>
                 </tr>
                 <% ctr = 0 %>
                 %for genotype in genotypes:
@@ -34,7 +33,6 @@
                         <td>${genotype[0]}</td>
                         <td>${genotype[1]}</td>
                         <td>${genotype[2]}</td>
-                        <td>${genotype[3]}</td>
                     </tr>
                     <% ctr += 1 %>
                 %endfor
