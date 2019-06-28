@@ -485,7 +485,7 @@ def load_general_seed_data(migrate_engine):
                 collection_date = convert_date_string_for_database(items[21])
             except Exception:
                 collection_date = localtimestamp(migrate_engine)
-            email = handle_column_value(items[22])
+            email = handle_column_value(items[22], default="unknown@unknown.org")
             seq_facility = items[23]
             array_version = handle_column_value(items[24])
             # Convert original public value to Boolean.
