@@ -21,13 +21,23 @@ class Colonies(BaseUIController, ReportQueryBuilder):
                        galaxy.model.corals.Colony.table.c.latitude,
                        galaxy.model.corals.Colony.table.c.longitude,
                        galaxy.model.corals.Colony.table.c.depth,
-                       galaxy.model.corals.Colony.table.c.reef_id),
-                      from_obj=[galaxy.model.corals.Colony.table],
+                       galaxy.model.corals.Colony.table.c.reef_id,
+                       galaxy.model.corals.Sample.table.c.public,
+                       galaxy.model.corals.Sample.table.c.public_after_date),
+                      from_obj=[galaxy.model.corals.Colony.table,
+                                galaxy.model.corals.Sample.table],
+                      whereclause=galaxy.model.corals.Colony.table.c.id == galaxy.model.corals.Sample.table.c.colony_id,
                       order_by=[galaxy.model.corals.Colony.table.c.id])
         colonies = []
         for row in q.execute():
-            cols_tup = (row.id, row.latitude, row.longitude,
-                        row.depth, row.reef_id)
+            public_after_date = str(row.public_after_date)[:10]
+            if str(row.public) == "True":
+                latitude = row.latitude
+                longitude = row.longitude
+            else:
+                latitude = "Private until %s" % public_after_date
+                longitude = "Private until %s" % public_after_date
+            cols_tup = (row.id, latitude, longitude, row.depth, row.reef_id)
             colonies.append(cols_tup)
         return trans.fill_template('/webapps/coralsnp_reports/colonies.mako', colonies=colonies, message=message)
 
@@ -39,13 +49,24 @@ class Colonies(BaseUIController, ReportQueryBuilder):
         q = sa.select((galaxy.model.corals.Colony.table.c.latitude,
                        galaxy.model.corals.Colony.table.c.longitude,
                        galaxy.model.corals.Colony.table.c.depth,
-                       galaxy.model.corals.Colony.table.c.reef_id),
-                      whereclause=sa.and_(galaxy.model.corals.Colony.table.c.id == colony_id),
-                      from_obj=[galaxy.model.corals.Colony.table],
+                       galaxy.model.corals.Colony.table.c.reef_id,
+                       galaxy.model.corals.Sample.table.c.public,
+                       galaxy.model.corals.Sample.table.c.public_after_date),
+                      from_obj=[galaxy.model.corals.Colony.table,
+                                galaxy.model.corals.Sample.table],
+                      whereclause=sa.and_(galaxy.model.corals.Colony.table.c.id == colony_id,
+                                          galaxy.model.corals.Colony.table.c.id == galaxy.model.corals.Sample.table.c.colony_id),
                       order_by=[galaxy.model.corals.Colony.table.c.id])
         colonies = []
         for row in q.execute():
-            cols_tup = (row.latitude, row.longitude, row.depth, row.reef_id)
+            public_after_date = str(row.public_after_date)[:10]
+            if str(row.public) == "True":
+                latitude = row.latitude
+                longitude = row.longitude
+            else:
+                latitude = "Private until %s" % public_after_date
+                longitude = "Private until %s" % public_after_date
+            cols_tup = (latitude, longitude, row.depth, row.reef_id)
             colonies.append(cols_tup)
         return trans.fill_template('/webapps/coralsnp_reports/colony_of_sample.mako',
                                    affy_id=affy_id,
