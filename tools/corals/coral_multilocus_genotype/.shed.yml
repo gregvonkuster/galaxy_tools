@@ -1,4 +1,4 @@
-name: corals_multilocus_genotype
+name: coral_multilocus_genotype
 owner: greg
 description: |
   Contains a tool that renders the unique combination of the alleles for two or more loci for each individual.
@@ -8,7 +8,7 @@ long_description: |
   The multilocus genotypes are critically important for tracking dispersal and population structure of
   organisms, especially those that reproduce clonally (plants, sponges, cnidarians, flatworms, annelids,
   sea stars, and many more).
-remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/corals/corals_multilocus_genotype
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/corals/coral_multilocus_genotype
 type: unrestricted
 categories:
   - Micro-array Analysis
