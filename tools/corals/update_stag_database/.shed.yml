@@ -1,0 +1,11 @@
+name: update_stag_database
+owner: greg
+description: |
+  Contains a tool that updates stag database tables.
+homepage_url: http://baumslab.org
+long_description: |
+  Contains a tool that updates stag database tables.
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/corals/update_stag_database
+type: unrestricted
+categories:
+  - Micro-array Analysis
