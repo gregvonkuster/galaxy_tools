@@ -50,8 +50,20 @@ python $__tool_directory__/queue_genotype_workflow.py
     </tests>
     <help>
 **What it does**
+
+Uses the Galaxy API to execute the complete multilocus genotype analysis pipeline for corals or symbiants.
+This tool must be able to access the corals (stag) database
+
     </help>
     <citations>
+        <citation type="bibtex">
+            @misc{None,
+            journal = {None},
+            author = {Baums I},
+            title = {Manuscript in preparation},
+            year = {None},
+            url = {http://baumslab.org}
+        </citation>
     </citations>
 </tool>
 
