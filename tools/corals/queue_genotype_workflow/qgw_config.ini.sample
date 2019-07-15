@@ -5,6 +5,9 @@
 # This section contains default settings for command line parameters that
 # can be overridden when they are passed to executed scripts.
 
+ADMIN_API_KEY = 89erituieru83ihefi3838928358kefdk9
+ALL_GENOTYPED_SAMPLES_DATASET_NAME = all_genotyped_samples.vcf
 ALL_GENOTYPED_SAMPLES_LIBRARY_NAME = All Genotyped Samples
+CORALSNP_WORKFLOW_NAME = CoralSNP
 GALAXY_BASE_URL = http://localhost:8763
-WORKFLOW_NAME = CoralSNP
+VALIDATE_AFFY_METADATA_WORKFLOW_NAME = ValidateAffyMetadata
