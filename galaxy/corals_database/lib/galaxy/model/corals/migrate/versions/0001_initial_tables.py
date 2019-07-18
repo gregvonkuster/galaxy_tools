@@ -450,10 +450,10 @@ def load_general_seed_data(migrate_engine):
             try:
                 latitude = "%6f" % float(items[6])
             except Exception:
-                # Latitude of Mueller Lab building.
+                # Latitude of PSU Mueller Lab building.
                 latitude = 40.799064
             try:
-                # Longitude of Mueller Lab building.
+                # Longitude of PSU Mueller Lab building.
                 longitude = "%6f" % float(items[7])
             except Exception:
                 longitude = -77.864431
@@ -485,7 +485,7 @@ def load_general_seed_data(migrate_engine):
                 collection_date = convert_date_string_for_database(items[21])
             except Exception:
                 collection_date = localtimestamp(migrate_engine)
-            email = handle_column_value(items[22], default="unknown@unknown.org")
+            email = handle_column_value(items[22], default="%s@unknown.org" % sample_id)
             seq_facility = items[23]
             array_version = handle_column_value(items[24])
             # Convert original public value to Boolean.
