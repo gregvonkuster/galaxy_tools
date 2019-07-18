@@ -80,17 +80,17 @@ outputs are produced.
 
 **Plots**
 
- *ibs default* -
- *ibs region* -
- *missing data* -
- *mlg map* -
- *Percent Breakdown* - average breakdown of SNP assignments across all samples
+ *ibs default* - identity-by-state analysis using the default clustering (Z threshold15, outlier detection 5) based on dissimilarity matrix of the samples with colors of terminal branches representing the identified groups.
+ *ibs region* - identity-by-state analysis using the collection region information to identify clusters based on dissimilarity matrix of samples with colors of terminal branches representing the collection region.
+ *missing data* - percent of missing allele calls for each sample.
+ *mlg map* - geographic map of the samples colored by their multilocus genotype id,
+ *Percent Breakdown* - average breakdown allele assignments across all samples and per sample.
 
 **Table Data** - Data files containing all of the information for updating the stag database.
 
-**Process Log** - the log produced by the tool.
+**Process Log** - the processing log produced by the tool.
 
-**Stag DB Report** - 
+**Stag DB Report** -  summary of the analysis that includes the multilocus genotype id, database match status, percent missing data, percent for each allele (homozygous AA, homozygous BB or heterozygous AB) and genetic coral species call.
 
     </help>
     <citations>
