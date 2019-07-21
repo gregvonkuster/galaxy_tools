@@ -121,10 +121,6 @@ colnames(affy_metadata_data_frame) <- c("user_specimen_id", "field_call", "bcora
                                         "email", "seq_facility", "array_version", "public", "public_after_date",
                                         "sperm_motility", "healing_time", "dna_extraction_method", "dna_concentration", "registry_id",
                                         "result_folder_name", "plate_barcode");
-<<<<<<< HEAD:tools/corals/multilocus_genotype/multilocus_genotype.R
-#write_data_frame(output_data_dir, "affy_metadata_data_frame", affy_metadata_data_frame);
-=======
->>>>>>> 138347bc3635a2dca8555d690db876cefcc5d878:tools/corals/coral_multilocus_genotype/coral_multilocus_genotype.R
 affy_metadata_data_frame$user_specimen_id <- as.character(affy_metadata_data_frame$user_specimen_id);
 user_specimen_ids <- as.character(affy_metadata_data_frame$user_specimen_id);
 # The specimen_id_field_call_data_table looks like this:
@@ -148,25 +144,12 @@ genotype_table <- tbl(conn, "genotype");
 sample_table_columns <- sample_table %>% select(user_specimen_id, affy_id, bcoral_genet_id, genotype_id);
 smlg <- sample_table_columns %>%
     left_join(genotype_table %>%
-<<<<<<< HEAD:tools/corals/multilocus_genotype/multilocus_genotype.R
-        select("id", "coral_mlg_clonal_id", "coral_mlg_rep_sample_id",
-                "genetic_coral_species_call", "bcoral_genet_id"),
-        by=c("genotype_id"="id"));
-# Name the columns.
-smlg_data_frame <- as.data.frame(smlg);
-colnames(smlg_data_frame) <- c("user_specimen_id", "affy_id", "genotype_id", "coral_mlg_clonal_id",
-                               "coral_mlg_rep_sample_id",
-                               "genetic_coral_species_call", "bcoral_genet_id");
-#write_data_frame(output_data_dir, "smlg_data_frame", smlg_data_frame);
-
-=======
-        select("id", "coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "genetic_coral_species_call"),
+        select("id", "coral_mlg_clonal_id","coral_mlg_rep_sample_id","genetic_coral_species_call"),
         by=c("genotype_id"="id"));
 # Name the columns.
 smlg_data_frame <- as.data.frame(smlg);
 colnames(smlg_data_frame) <- c("user_specimen_id", "affy_id", "bcoral_genet_id", "genotype_id",
 		                       "coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "genetic_coral_species_call");
->>>>>>> 138347bc3635a2dca8555d690db876cefcc5d878:tools/corals/coral_multilocus_genotype/coral_multilocus_genotype.R
 # Missing GT in samples submitted.
 start_time <- time_start("Discovering missing GT in samples");
 gt <- extract.gt(vcf, element="GT", as.numeric=FALSE);
@@ -219,7 +202,7 @@ setnames(reference_alleles_data_table, c("rn"), c("affy_id"));
 # Rename the reference_alleles column.
 setnames(reference_alleles_data_table, c("reference_alleles"), c("percent_reference_coral"));
 # Round data to two digits.
-reference_alleles_data_table$percent_reference <- round(reference_alleles_data_table$percent_reference, digits=2);
+reference_alleles_data_table$percent_reference_coral <- round(reference_alleles_data_table$percent_reference_coral, digits=2);
 time_elapsed(start_time);
 
 # Alternative alleles
@@ -237,7 +220,7 @@ setnames(alternative_alleles_data_table, c("rn"), c("affy_id"));
 # Rename the alternative_alleles column.
 setnames(alternative_alleles_data_table, c("alternative_alleles"), c("percent_alternative_coral"));
 # Round data to two digits.
-alternative_alleles_data_table$percent_alternative <- round(alternative_alleles_data_table$percent_alternative, digits=2);
+alternative_alleles_data_table$percent_alternative_coral <- round(alternative_alleles_data_table$percent_alternative_coral, digits=2);
 time_elapsed(start_time);
 
 # The mlg_ids_data_table looks like this:
@@ -251,28 +234,16 @@ setnames(mlg_ids_data_table, c("mlg_ids"), c("affy_id"));
 # sample_mlg_tibble looks like this:
 # A tibble: 262 x 3
 # Groups:   group [?]
-<<<<<<< HEAD:tools/corals/multilocus_genotype/multilocus_genotype.R
 # group affy_id                            coral_mlg_clonal_id
 # <int> <chr>                              <chr>
-# 1     a550962-4368120-060520-500_M23.CEL NA
-# 2     a550962-4368120-060520-256_A19.CEL HG0006
-=======
-# group affy_id          coral_mlg_clonal_id coral_mlg_rep_sample_id
-# <int> <chr>            <chr>               <chr>
-# 1     a550962-4368.CEL NA                  13905
->>>>>>> 138347bc3635a2dca8555d690db876cefcc5d878:tools/corals/coral_multilocus_genotype/coral_multilocus_genotype.R
+# 1     a550962-4368.CEL NA                  HG0001
 sample_mlg_tibble <- mlg_ids_data_table %>%
     group_by(row_number()) %>%
     dplyr::rename(group="row_number()") %>%
     unnest (affy_id) %>%
     # Join with mlg table.
     left_join(smlg_data_frame %>%
-<<<<<<< HEAD:tools/corals/multilocus_genotype/multilocus_genotype.R
-              select("affy_id","coral_mlg_clonal_id", "coral_mlg_rep_sample_id",
-                      "genetic_coral_species_call", "bcoral_genet_id"),
-=======
               select("affy_id","coral_mlg_clonal_id", "coral_mlg_rep_sample_id"),
->>>>>>> 138347bc3635a2dca8555d690db876cefcc5d878:tools/corals/coral_multilocus_genotype/coral_multilocus_genotype.R
               by="affy_id");
 
 # If found in database, group members on previous mlg id.
@@ -286,16 +257,9 @@ sample_mlg_tibble$coral_mlg_clonal_id[na.mlg] <- uniques$coral_mlg_clonal_id[mat
 # sample_mlg_match_tibble looks like this:
 # A tibble: 262 x 4
 # Groups:   group [230]
-<<<<<<< HEAD:tools/corals/multilocus_genotype/multilocus_genotype.R
-# group affy_id                            coral_mlg_clonal_id DB_match
-# <int> <chr>                              <chr>               <chr>
-# 1     a550962-4368120-060520-500_M23.CEL NA                  no_match
-# 2     a550962-4368120-060520-256_A19.CEL HG0006              match
-=======
 # group affy_id         coral_mlg_clonal_id db_match
 # <int> <chr>           <chr>               <chr>
 # 1     a550962-436.CEL NA                  no_match
->>>>>>> 138347bc3635a2dca8555d690db876cefcc5d878:tools/corals/coral_multilocus_genotype/coral_multilocus_genotype.R
 sample_mlg_match_tibble <- sample_mlg_tibble %>%
     group_by(group) %>%
     mutate(db_match = ifelse(is.na(coral_mlg_clonal_id), "no_match", "match"));
@@ -329,13 +293,8 @@ stag_db_report <- specimen_id_field_call_data_table %>%
     left_join(affy_id_user_specimen_id_vector %>%
         select("affy_id", "user_specimen_id"),
         by="user_specimen_id") %>%
-<<<<<<< HEAD:tools/corals/multilocus_genotype/multilocus_genotype.R
-    mutate(DB_record = ifelse(affy_id %in% smlg_data_frame$affy_id,"genotyped","new")) %>%
-    filter(DB_record=="new") %>%
-=======
     mutate(db_record = ifelse(affy_id %in% smlg_data_frame$affy_id, "genotyped", "new")) %>%
     filter(db_record=="new") %>%
->>>>>>> 138347bc3635a2dca8555d690db876cefcc5d878:tools/corals/coral_multilocus_genotype/coral_multilocus_genotype.R
     left_join(sample_mlg_match_tibble %>%
         select("affy_id", "coral_mlg_clonal_id", "db_match"),
         by="affy_id") %>%
@@ -353,112 +312,11 @@ stag_db_report <- specimen_id_field_call_data_table %>%
         by="affy_id") %>%
     mutate(db_match = ifelse(is.na(db_match), "failed", db_match))%>%
     mutate(coral_mlg_clonal_id = ifelse(is.na(coral_mlg_clonal_id), "failed", coral_mlg_clonal_id)) %>%
-    mutate(genetic_coral_species_call = ifelse(percent_alternative_coral >= 40 & percent_alternative_coral <= 44.5, "A.palmata","other")) %>%
-    mutate(genetic_coral_species_call = ifelse(percent_alternative_coral >= 45.5 & percent_alternative_coral <= 50, "A.cervicornis", genetic_coral_species_call)) %>%
+    mutate(genetic_coral_species_call = ifelse(percent_alternative_coral >= 40 & percent_alternative_coral <= 44.99, "A.palmata","other")) %>%
+    mutate(genetic_coral_species_call = ifelse(percent_alternative_coral >= 45 & percent_alternative_coral <= 51, "A.cervicornis", genetic_coral_species_call)) %>%
     mutate(genetic_coral_species_call = ifelse(percent_heterozygous_coral > 40, "A.prolifera", genetic_coral_species_call)) %>%
     ungroup() %>%
-    select(-group,-DB_record);
-<<<<<<< HEAD
-
-write.csv(report_user, file=opt$output_stag_db_report, quote=FALSE);
-
-# Generate database tables from the genotyping results.
-# Parse the information for the Sample.table.
-sample_db <- affy_metadata_data_frame %>%
-  left_join(
-    stag_db_report %>%
-      select("user_specimen_id","affy_id",
-             "percent_missing_data_coral","percent_heterozygous_coral","percent_reference_coral",
-             "percent_alternative_coral"),
-    by='user_specimen_id');
-
-# Select the representative clone for the genotype.table.
-no_dup_genotypes_genind<-clonecorrect(genind_clone, strata = ~pop.genind_obj.);
-id_rep<-mlg.id(cc);
-id_data_table <-data.table(id_rep,keep.rownames = TRUE);
-setnames(id_data_table, c("id_rep"), c("affy_id"));
-
-# Combine with previously genotyped samples in the database.
-geno_data_frame <- id_data_table %>%
-  group_by(row_number()) %>%
-  dplyr::rename(group='row_number()') %>%
-  unnest(affy_id) %>%
-  left_join(smlg_data_frame %>%
-            select("affy_id","coral_mlg_rep_sample_id","coral_mlg_clonal_id", "user_specimen_id"),
-            by='affy_id');
-
-# Confirm that the representative mlg is the same between runs.
-uniques2 <- unique(geno_data_frame[c("group", "coral_mlg_rep_sample_id")]);
-uniques2 <- uniques2[!is.na(uniques2$coral_mlg_rep_sample_id),];
-na.mlg3 <- which(is.na(df5$coral_mlg_rep_sample_id));
-na.group2 <- df5$group[na.mlg3];
-geno_data_frame$coral_mlg_rep_sample_id[na.mlg3] <- uniques2$coral_mlg_rep_sample_id[match(na.group2, uniques2$group)];
-
-# Transform the representative mlg column with new genotyped samples.
-representative_mlg_tibble <- geno_data_frame %>%
-  mutate(coral_mlg_rep_sample_id=ifelse(is.na(coral_mlg_rep_sample_id),affy_id,coral_mlg_rep_sample_id)) %>%
-  ungroup() %>%
-  select(-group);
-
-# Parse the information needed to populate the genotype.table.
-geno_db <- stag_db_report %>%
-  select("affy_id","coral_mlg_clonal_id", "user_specimen_id", "DB_match") %>%
-  left_join(representative_mlg_tibble %>%
-    select("affy_id","coral_mlg_rep_sample_id"),
-    by='affy_id');
-
-# Table of alleles for the new samples
-# First subset to only the new plate data.
-# Then, create vector indicating number of individuals desired made from affy_id collumn from report_user data table.
-i<-ifelse(is.na(stag_db_report[2]),"",stag_db_report[[2]]);
-i<-i[!apply(i == "", 1, all),];
-
-#subset the genclone object to the user data
-sample_alleles_vector<-genind_clone[i, mlg.reset = FALSE, drop = FALSE];
-
-# Convert to the subset genclone to a data frame.
-sample_alleles_df<-genind2df(sample_alleles_vector, sep="");
-sample_alleles_df<- sample_alleles_df %>%
-  select(-pop);
-
-# Allele string for Allele.table in database.
-concat_sample_alleles<-unite(sample_alleles_df, alleles, 1:19696, sep = " ", remove = TRUE);
-concat_sample_alleles<-setDT(concat_sample_alleles, keep.rownames = TRUE)[];
-setnames(concat_sample_alleles, c("rn"), c("affy_id"));
-# write.csv(concat_sample_alleles,file=paste("Seed_genotype_alleles.csv",sep = ""),quote=FALSE,row.names=FALSE);
-
-# Create a phylogeny of samples based on distance matrices.
-cols <- piratepal("basel");
-set.seed(999);
-# Start PDF device driver.
-dev.new(width=10, height=7);
-file_path = get_file_path("nj_phylogeny.pdf");
-pdf(file=file_path, width=10, height=7);
-# Organize branches by clade.
-theTree <- sub96 %>%
-    aboot(dist=provesti.dist, sample=100, tree="nj", cutoff=50, quiet=TRUE) %>%
-    ladderize();
-theTree$tip.label <- report_user$user_specimen_id[match(theTree$tip.label, report_user$affy_id)];
-plot.phylo(theTree, tip.color=cols[sub96$pop], label.offset=0.0125, cex=0.3, font=2, lwd=4, align.tip.label=F, no.margin=T);
-# Add a scale bar showing 5% difference..
-add.scale.bar(0, 0.95, length=0.05, cex=0.65, lwd=3);
-nodelabels(theTree$node.label, cex=.5, adj=c(1.5, -0.1), frame="n", font=3, xpd=TRUE);
-legend("topright", legend=c(levels(sub96$pop)), text.col=cols, xpd=T, cex=0.8);
-dev.off()
-
-write.tree(theTree, file =opt$nj_tree, quote=FALSE);
-
-# Perform identity-by-state analysis.
-#if (!requireNamespace("BiocManager", quietly = TRUE))
-#  install.packages("BiocManager")
-#BiocManager::install("SNPRelate", version = "3.8")
-
-# Subset VCF to the new user samples.
-l<-length(i);
-n<-ncol(vcf@gt);
-s<-n-l;
-svcf<-vcf[,s:n];
-=======
+    select(-group,-db_record);
 time_elapsed(start_time);
 
 start_time <- time_start("Writing csv output");
@@ -477,17 +335,15 @@ time_elapsed(start_time);
 # Table of alleles for the new samples subset to new plate data.
 # Create vector indicating number of individuals desired from
 # affy_id column of stag_db_report data table.
-i <- ifelse(is.na(stag_db_report[1]), "", stag_db_report[[1]]);
+i <- ifelse(is.na(stag_db_report[3]), "", stag_db_report[[3]]);
 i <- i[!apply(i== "", 1, all),];
-sample_alleles_vector <- genind_clone[i, mlg.reset=FALSE, drop=FALSE];
 
 # Subset VCF to the user samples.
 start_time <- time_start("Subsetting vcf to the user samples");
-l <- length(i);
-n <- ncol(vcf@gt);
-s <- n - l;
-svcf <- vcf[, s:n];
->>>>>>> c00d25c955e8dbd820cdb705ebd97e1aa9d463d6
+l <- length(i)+1;
+#n <- ncol(vcf@gt);
+#s <- n - l;
+svcf <- vcf[, 1:l];
 write.vcf(svcf, "subset.vcf.gz");
 vcf.fn <- "subset.vcf.gz";
 snpgdsVCF2GDS(vcf.fn, "test3.gds", method="biallelic.only");
@@ -507,10 +363,10 @@ setnames(gds_data_table, c("gds_array"), c("affy_id"));
 # affy_id                            region
 # a100000-4368120-060520-256_I07.CEL USVI
 # a100000-4368120-060520-256_K07.CEL USVI
-affy_id_region_list <- population_info_data_table[c(2,4)];
+affy_id_region_list <- population_info_data_table[c(2,3,4)];
 gds_data_table_join <- gds_data_table %>%
     left_join(affy_id_region_list %>%
-        select("affy_id", "region"),
+        select("affy_id", "user_specimen_id", "region"),
         by='affy_id')%>%
         drop_na();
 samp.annot <- data.frame(pop.group=c(gds_data_table_join$region));
@@ -525,16 +381,16 @@ pop.group <- as.factor(read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))
 # [7] 25.11844009 25.11844009 25.11844009 25.11844009 25.11844009 25.11844009
 time_elapsed(start_time);
 
-# Distance matrix calculation.
+# Distance matrix calculation and sample labels change to user specimen ids.
 start_time <- time_start("Calculating distance matrix");
 ibs <- snpgdsIBS(genofile, num.thread=2, autosome.only=FALSE);
+ibs$sample.id <-gds_data_table_join$user_specimen_id;
 time_elapsed(start_time);
 
 # Cluster analysis on the genome-wide IBS pairwise distance matrix.
 start_time <- time_start("Clustering the genome-wide IBS pairwise distance matrix");
 set.seed(100);
-par(cex=0.6, cex.lab=1, cex.axis=1.5,cex.main=2);
-ibs.hc <- snpgdsHCluster(snpgdsIBS(genofile, autosome.only=FALSE));
+ibs.hc <- snpgdsHCluster(ibs);
 time_elapsed(start_time);
 
 # cols looks like this:
@@ -552,8 +408,10 @@ start_time <- time_start("Creating ibs_default.pdf");
 dev.new(width=40, height=20);
 file_path = get_file_path(output_plots_dir, "ibs_default.pdf");
 pdf(file=file_path, width=40, height=20);
+par(cex=0.6, cex.lab=1, cex.axis=1.8,cex.main=2);
 rv <- snpgdsCutTree(ibs.hc, col.list=cols, pch.list=15);
-snpgdsDrawTree(rv, main="Color by Cluster", leaflab="perpendicular", y.label=0.2);
+snpgdsDrawTree(rv, main="Color by Cluster", leaflab="perpendicular", yaxis.kinship=FALSE);
+abline(h = 0.032, lty = 2);
 legend("topleft", legend=levels(rv$samp.group), xpd=T, col=cols[1:nlevels(rv$samp.group)], pch=15, ncol=4, cex=1.2);
 dev.off()
 time_elapsed(start_time);
@@ -566,10 +424,13 @@ file_path = get_file_path(output_plots_dir, "ibs_region.pdf");
 pdf(file=file_path, width=40, height=20);
 race <- as.factor(population_code);
 rv2 <- snpgdsCutTree(ibs.hc, samp.group=race,col.list=cols, pch.list=15);
-snpgdsDrawTree(rv2, main="Color by Region", leaflab="perpendicular", y.label=0.2);
+snpgdsDrawTree(rv2, main="Color by Region", leaflab="perpendicular", yaxis.kinship=FALSE);
 legend("topleft", legend=levels(race), xpd=T, col=cols[1:nlevels(race)], pch=15, ncol=4, cex=1.2);
 dev.off()
 time_elapsed(start_time);
+
+# close GDS file.
+snpgdsClose(genofile);
 
 # Missing data barplot.
 start_time <- time_start("Creating missing_data.pdf");
@@ -583,7 +444,7 @@ file_path = get_file_path(output_plots_dir, "missing_data.pdf");
 pdf(file=file_path, width=20, height=10);
 par(mar = c(8, 4, 4, 2));
 x <- barplot(miss96, las=2, col=cols, ylim=c(0, 3), cex.axis=0.8, space=0.8, ylab="Missingness (%)", xaxt="n");
-text(cex=0.6, x=x-0.25, y=-.05, name96, xpd=TRUE, srt=60, adj=1);
+text(cex=0.8, x=x-0.25, y=-.05, name96, xpd=TRUE, srt=60, adj=1);
 dev.off()
 time_elapsed(start_time);
 
@@ -618,11 +479,32 @@ num_colors = length(unique(affy_metadata_data_frame$mlg));
 palette = colorRampPalette(piratepal("basel"));
 ggplot() +
 geom_map(data=world_data, map=world_data, aes(x=long, y=lat, group=group, map_id=region), fill="white", colour="#7f7f7f") +
-coord_map(xlim=longitude_range_vector, ylim=latitude_range_vector) +
+coord_quickmap(xlim=longitude_range_vector, ylim=latitude_range_vector) +
 geom_point(data=affy_metadata_data_frame, aes(x=longitude, y=latitude, group=mlg, colour=mlg), alpha=.7, size=3) +
 scale_color_manual(values=palette(num_colors)) +
 theme(legend.position="bottom") +
 guides(color=guide_legend(nrow=8, byrow=F));
+
+# Sample MLG on a map for each region.
+for (i in unique(affy_metadata_data_frame$region)) {
+  m <- i;
+  num_colors_2 = length(unique(affy_metadata_data_frame$mlg[which(affy_metadata_data_frame$region == m)]));
+  max_latitude_region <- max(affy_metadata_data_frame$latitude[which(affy_metadata_data_frame$region == m)],na.rm=TRUE);
+  min_latitude_region <- min(affy_metadata_data_frame$latitude[which(affy_metadata_data_frame$region == m)], na.rm=TRUE);
+  latitude_range_vector_region <- c(min_latitude_region-0.5, max_latitude_region+0.5);
+  max_longitude_region <- max(affy_metadata_data_frame$longitude[which(affy_metadata_data_frame$region == m)], na.rm=TRUE);
+  min_longitude_region <- min(affy_metadata_data_frame$longitude[which(affy_metadata_data_frame$region == m)], na.rm=TRUE);
+  longitude_range_vector_region <- c(min_longitude_region-0.5, max_longitude_region+0.5);
+  print(ggplot() +
+    geom_map(data=world_data, map=world_data, aes(x=long, y=lat, group=group, map_id=region),
+             fill="grey", colour="#7f7f7f") +
+    coord_quickmap(xlim=longitude_range_vector_region, ylim=latitude_range_vector_region, clip = "on") +
+    geom_point(data=affy_metadata_data_frame[which(affy_metadata_data_frame$region == m),], aes(x=longitude, y=latitude,
+                                                  group=mlg, colour=mlg), alpha=.5, size=3) +
+    scale_color_manual(values=palette(num_colors_2)) +
+    theme(legend.position="bottom") + labs(title=paste("MLG assignments for", m)) +
+    guides(color=guide_legend(nrow=8, byrow=F)));
+}
 dev.off()
 time_elapsed(start_time);
 
@@ -641,12 +523,12 @@ if (!is.null(opt$output_nj_phylogeny_tree)) {
     pdf(file=file_path, width=40, height=80);
     # Organize branches by clade.
     nj_phylogeny_tree <- sample_alleles_vector %>%
-        aboot(dist=provesti.dist, sample=100, tree="nj", cutoff=50, quiet=TRUE) %>%
+        aboot(dist=provesti.dist, sample=100, tree="nj", cutoff=50, quiet=TRUE, showtree = FALSE) %>%
         ladderize();
     nj_phylogeny_tree$tip.label <- stag_db_report$user_specimen_id[match(nj_phylogeny_tree$tip.label, stag_db_report$affy_id)];
-    plot.phylo(nj_phylogeny_tree, tip.color=cols[sample_alleles_vector$pop], label.offset=0.0125, cex=0.3, font=2, lwd=4, align.tip.label=F, no.margin=T);
+    plot.phylo(nj_phylogeny_tree, tip.color=cols[sample_alleles_vector$pop], label.offset=0.0025, cex=0.6, font=2, lwd=4, align.tip.label=F, no.margin=T);
     # Add a scale bar showing 5% difference.
-    add.scale.bar(0, 0.95, length=0.05, cex=0.65, lwd=3);
+    add.scale.bar(0, 0.95, length=0.05, cex=0.65, lwd=2);
     nodelabels(nj_phylogeny_tree$node.label, cex=.5, adj=c(1.5, -0.1), frame="n", font=3, xpd=TRUE);
     legend("topright", legend=c(levels(sample_alleles_vector$pop)), text.col=cols, xpd=T, cex=0.8);
     dev.off()
@@ -686,15 +568,13 @@ par(mfrow=c(3, 2));
 col <- c("GREY", "#006DDB", "#24FF24", "#920000");
 # Generate a pie chart for each sample with genotypes.
 for (i in 1:ncol(translated_stag_db_report_matrix)) {
-    tmp_labels <- paste(labels, " (", round(translated_stag_db_report_matrix[,i], 1), "%)", sep="");
+    tmp_labels <- paste(c("missing data", "mixed", "reference", "alternative"), " (", round(translated_stag_db_report_matrix[,i], 1), "%)", sep="");
     main <- paste("Breakdown of SNP assignments for", translated_stag_db_report_data_table[1, i]);
     pie(translated_stag_db_report_matrix[,i], labels=tmp_labels, radius=0.90, col=col, main=main, cex.main=.85, cex=0.75);
 }
 dev.off()
 time_elapsed(start_time);
 
-# close GDS file.
-snpgdsClose(genofile);
 
 # Prepare to output data frames for input to a downstream
 # tool that will use them to update the stag database.
@@ -725,43 +605,6 @@ sample_prep_data_frame <- affy_metadata_data_frame %>%
         by='user_specimen_id');
 # Get the number of rows for all data frames.
 num_rows <- nrow(sample_prep_data_frame);
-# Set the column names so that we can extract only those columns
-# needed for the sample table.
-colnames(sample_prep_data_frame) <- c("user_specimen_id", "field_call", "bcoral_genet_id", "bsym_genet_id", "reef",
-                                      "region", "latitude", "longitude", "geographic_origin", "colony_location",
-                                      "depth", "disease_resist", "bleach_resist", "mortality", "tle",
-                                      "spawning", "collector_last_name", "collector_first_name", "organization",
-                                      "collection_date", "email", "seq_facility", "array_version", "public",
-                                      "public_after_date", "sperm_motility", "healing_time", "dna_extraction_method",
-                                      "dna_concentration", "registry_id", "result_folder_name", "plate_barcode",
-<<<<<<< HEAD:tools/corals/multilocus_genotype/multilocus_genotype.R
-                                       "mlg", "affy_id", "percent_missing_data_coral",
-                                      "percent_heterozygous_coral", "percent_reference_coral", "percent_alternative_coral");
-#write_data_frame(output_data_dir, "sample_prep_data_frame.tabular", sample_prep_data_frame);
-
-# representative_mlg_tibble looks like this:
-# # A tibble: 230 x 4
-# affy_id                            coral_mlg_clonal_id user_specimen_id coral_mlg_rep_sample_id
-# <chr>                              <chr>               <chr>            <chr>
-# a550962-4368120-060520-500_A05.CEL HG0135              test_084         a550962-4368120-060520…
-#representative_mlg_tibble <- id_data_table %>%
-#    group_by(row_number()) %>%
-#    rename(group='row_number()') %>%
-#    unnest(affy_id) %>%
-#    left_join(stag_db_report %>%
-#              select("coral_mlg_clonal_id", "user_specimen_id", "affy_id"),
-#              by='affy_id') %>%
-#    mutate(coral_mlg_rep_sample_id=ifelse(is.na(coral_mlg_clonal_id), "", affy_id)) %>%
-#    ungroup() %>%
-#    select(-group);
-#write_data_frame(output_data_dir, "representative_mlg_tibble.tabular", representative_mlg_tibble);
-
-# FIXME: We have no data for populating the allele table.
-# FIXME: We have no data for populating the experiment table.
-# FIXME: We have no data for populating the fragment table.
-=======
-                                      "mlg", "affy_id", "percent_missing_data_coral", "percent_heterozygous_coral",
-                                      "percent_reference_coral", "percent_alternative_coral");
 
 # Output the data frame for updating the alleles table.
 # Subset to only the new plate data.
@@ -792,7 +635,6 @@ for (i in 1:num_rows) {
     experiment_table_data_frame$plate_barcode[i] <- sample_prep_data_frame$plate_barcode[i];
 }
 write_data_frame(output_data_dir, "experiment.tabular", experiment_table_data_frame);
->>>>>>> 138347bc3635a2dca8555d690db876cefcc5d878:tools/corals/coral_multilocus_genotype/coral_multilocus_genotype.R
 
 # Output the data frame for updating the colony table.
 # The geographic_origin value is used for deciding into which table
@@ -812,29 +654,6 @@ for (i in 1:num_rows) {
 write_data_frame(output_data_dir, "colony.tabular", colony_table_data_frame);
 
 # Output the data frame for populating the genotype table.
-<<<<<<< HEAD:tools/corals/multilocus_genotype/multilocus_genotype.R
-# FIXME: This genotyope data frame contains 263 lines (including
-# the header), while all other data frames contain 97 lines
-# (including the header).  We need to figure out how these genotype
-# records map to the sample table.
-# genotype_table_tibble looks like this:
-# # A tibble: 262 x 5
-# affy_id                            coral_mlg_clonal_id DB_match coral_mlg_rep_samp… user_specimen_id
-# <chr>                              <chr>               <chr>    <chr>               <chr>
-# a550962-4368120-060520-500_A05.CEL HG0135              no_match a550962-4368120-06… test_084
-# affy_id                            coral_mlg_clonal_id.x coral_mlg_rep_sample_id.x symbio_mlg_clonal_id
-# a550962-4368120-060520-500_M23.CEL HG0135                NA                        NA
-# symbio_mlg_rep_sample_id genetic_coral_species_call bcoral_genet_id bsym_genet_id DB_match
-# NA                       NA                         NA              NA            no_match
-# coral_mlg_clonal_id.y coral_mlg_rep_sample_id.y
-# HG0135                a550962-4368120-060520-500_M23.CEL
-genotype_table_tibble <- stag_db_report %>%
-    select("affy_id","coral_mlg_clonal_id", "user_specimen_id", "DB_match") %>%
-    left_join(representative_mlg_tibble %>%
-    select("coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "affy_id"),
-    by='affy_id');
-
-=======
 # Combine with previously genotyped samples.
 # prep_genotype_tibble looks like this:
 # A tibble: 220 x 7
@@ -891,7 +710,6 @@ genotype_table_tibble <- prep_genotype_table_tibble %>%
     left_join(affy_metadata_data_frame %>%
         select("user_specimen_id", "bcoral_genet_id"),
         by='user_specimen_id');
->>>>>>> 138347bc3635a2dca8555d690db876cefcc5d878:tools/corals/coral_multilocus_genotype/coral_multilocus_genotype.R
 write_data_frame(output_data_dir, "genotype.tabular", genotype_table_tibble);
 
 # Output the file needed for populating the person table.
@@ -986,7 +804,8 @@ write_data_frame(output_data_dir, "sample.tabular", sample_table_data_frame);
 # A.palmata                  a550962-4368120-060520-500_A05.CEL Acropora   palmata
 taxonomy_table_data_frame <- stag_db_report %>%
     select(genetic_coral_species_call, affy_id) %>%
-    mutate(genus_name = ifelse(genetic_coral_species_call == genetic_coral_species_call[grep("^A.*", genetic_coral_species_call)], "Acropora", "other")) %>%
+    mutate(genus_name = ifelse(grepl("^A.*", sm$genetic_coral_species_call), "Acropora",
+                        ifelse(!is.na(sm$genetic_coral_species_call), "other", NA))) %>%
     mutate(species_name = ifelse(genetic_coral_species_call == "A.palmata", "palmata", "other")) %>%
     mutate(species_name = ifelse(genetic_coral_species_call == "A.cervicornis", "cervicornis", species_name)) %>%
     mutate(species_name = ifelse(genetic_coral_species_call == "A.prolifera", "prolifera", species_name));
