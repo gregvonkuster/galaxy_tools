@@ -21,12 +21,21 @@ python $__tool_directory__/genotype_population_info.py
     <help>
 **What it does**
 
-Accepts a file that contains the Affymetrix ids and a subset of the user specimen ids and regions for genotyping.
-The tool queries the stag database to retrieve the user specimen ids and regions that are missing for each Affymetrix
-id anf produces a complete set of genotype population information for use as input to the multilocus_genotype tool.
-This tool can be used only within a Galaxy instance which includes the complementary corals (stag) database.
+Accepts a file that contains Affymetrix identifiers and a subset of the user specimen identifiers and
+regions for genotyping.  The corals (stag) database is queried to retrieve the user specimen identifiers
+and regions that are missing for each Affymetrix identifier, and a complete set of genotype population
+information is produced for use as input to the Corals Multilocus Genotype tool.  This tool must be able
+to access the stag database.
     </help>
     <citations>
+        <citation type="bibtex">
+            @misc{None,
+            journal = {None},
+            author = {Baums I},
+            title = {Manuscript in preparation},
+            year = {None},
+            url = {http://baumslab.org}
+        </citation>
     </citations>
 </tool>
 

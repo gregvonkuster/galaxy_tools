@@ -25,8 +25,19 @@ python '$__tool_directory__/update_stag_database.py'
     </tests>
     <help>
 **What it does**
+
+Accepts a set of tabular datasets, one for each appropriate table in the corals (stag) database, and
+updates the table with the data.
     </help>
     <citations>
+        <citation type="bibtex">
+            @misc{None,
+            journal = {None},
+            author = {Baums I},
+            title = {Manuscript in preparation},
+            year = {None},
+            url = {http://baumslab.org}
+        </citation>
     </citations>
 </tool>
 

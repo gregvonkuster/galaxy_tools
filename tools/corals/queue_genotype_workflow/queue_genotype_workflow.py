@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 import argparse
 import string
+import sys
 import threading
 import time
 
 from bioblend import galaxy
 from six.moves import configparser
-
-FINISHED_STATES = ['ok', 'error']
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--affy_metadata', dest='affy_metadata', help='Input Affymetrix 96 well plate metadata file')
@@ -37,23 +36,23 @@ def add_library_dataset_to_history(gi, history_id, dataset_id, history_datasets,
     return history_datasets
 
 
-def get_dataset_id_by_name(gi, data_lib_id, dataset_name, outputfh):
-    """
-    Use the Galaxy API to get the all samples dataset.
-    We're assuming it is in the root folder.
-    """
-    outputfh.write('\nSearching for dataset named %s.\n' % str(dataset_name))
-    lib_item_dicts = gi.libraries.show_library(data_lib_id, contents=True)
-    for lib_item_dict in lib_item_dicts:
-        if lib_item_dict['type'] == 'file':
-            dataset_name = lib_item_dict['name'].lstrip('/').lower()
-            if dataset_name.startswith(dataset_name):
-                outputfh.write('Found dataset named %s.\n' % str(dataset_name))
-                return lib_item_dict['id']
-    return None
+def copy_history_dataset_to_library(gi, library_id, dataset_id, outputfh):
+    # Copy a history dataset to a data library.
+    outputfh.write('\nCopying history dataset with id %s to data library with id %s.\n' % (str(dataset_id), str(library_id)))
+    new_library_dataset_dict = gi.libraries.copy_from_dataset(library_id, dataset_id)
+    return new_library_dataset_dict
+
+
+def delete_library_dataset(gi, library_id, dataset_id, outputfh, purged=False):
+    # Delete a library dataset.
+    outputfh.write("\nDeleting library dataset with id %s.\n" % dataset_id)
+    deleted_dataset_dict = gi.libraries.delete_library_dataset(library_id, dataset_id, purged=purged)
+    return deleted_dataset_dict
 
 
 def get_config_settings(config_file, section='defaults'):
+    # Return a dictionary consisting of the key / value pairs
+    # of the defaults section of config_file.
     d = {}
     config_parser = configparser.ConfigParser()
     config_parser.read(config_file)
@@ -65,20 +64,34 @@ def get_config_settings(config_file, section='defaults'):
     return d
 
 
-def get_data_library(gi, name, outputfh):
-    # Use the Galaxy API to get the data library named the value name.
+def get_data_library_dict(gi, name, outputfh):
+    # Use the Galaxy API to get the data library named name.
     outputfh.write('\nSearching for data library named %s.\n' % name)
     # The following is not correctly filtering out deleted libraries.
     data_lib_dicts = gi.libraries.get_libraries(library_id=None, name=name, deleted=False)
     for data_lib_dict in data_lib_dicts:
         if data_lib_dict['name'] == name and data_lib_dict['deleted'] not in [True, 'true', 'True']:
             outputfh.write('Found data library named %s.\n' % name)
-            return data_lib_dict['id']
+            outputfh.write('%s\n' % str(data_lib_dict))
+            return data_lib_dict
     return None
 
 
 def get_history_status(gi, history_id):
     return gi.histories.get_status(history_id)
+
+
+def get_history_dataset_id_by_name(gi, history_id, dataset_name, outputfh):
+    # Use the Galaxy API to get the bcftools merge dataset id
+    # from the current history.
+    outputfh.write('\nSearching for history dataset named %s.\n' % str(dataset_name))
+    history_dataset_dicts = get_history_datasets(gi, history_id)
+    for name, hd_dict in history_dataset_dicts.items():
+        name = name.lower()
+        if name.startswith(dataset_name.lower()):
+            outputfh.write('Found dataset named %s.\n' % str(dataset_name))
+            return hd_dict['id']
+    return None
 
 
 def get_history_datasets(gi, history_id):
@@ -94,10 +107,22 @@ def get_history_datasets(gi, history_id):
     return history_datasets
 
 
-def get_value_from_config(config_file, value):
-    defaults = get_config_settings(config_file)
-    config_value = defaults.get(value, None)
-    return config_value
+def get_library_dataset_id_by_name(gi, data_lib_id, dataset_name, outputfh):
+    # Use the Galaxy API to get the all_genotyped_samples.vcf dataset id.
+    # We're assuming it is in the root folder.
+    outputfh.write('\nSearching for library dataset named %s.\n' % str(dataset_name))
+    lib_item_dicts = gi.libraries.show_library(data_lib_id, contents=True)
+    for lib_item_dict in lib_item_dicts:
+        if lib_item_dict['type'] == 'file':
+            dataset_name = lib_item_dict['name'].lstrip('/').lower()
+            if dataset_name.startswith(dataset_name):
+                outputfh.write('Found dataset named %s.\n' % str(dataset_name))
+                return lib_item_dict['id']
+    return None
+
+
+def get_value_from_config(config_defaults, value):
+    return config_defaults.get(value, None)
 
 
 def get_workflow(gi, name, outputfh, galaxy_base_url=None, api_key=None):
@@ -175,6 +200,12 @@ def start_workflow(gi, workflow_id, workflow_name, inputs, params, history_id, o
     outputfh.write('%s\n' % str(workflow_invocation_dict))
 
 
+def rename_library_dataset(gi, dataset_id, name, outputfh):
+    outputfh.write('\nRenaming library dataset with id %s to be named %s.\n' % (str(dataset_id), str(name)))
+    library_dataset_dict = gi.libraries.update_library_dataset(dataset_id, name=name)
+    return library_dataset_dict
+
+
 def update_workflow_params(workflow_dict, dbkey, outputfh):
     parameter_updates = None
     name = workflow_dict['name']
@@ -206,15 +237,18 @@ def update_workflow_params(workflow_dict, dbkey, outputfh):
 
 
 outputfh = open(args.output, "w")
+config_defaults = get_config_settings(args.config_file)
 user_api_key = open(args.api_key, 'r').read()
-galaxy_base_url = get_value_from_config(args.config_file, 'GALAXY_BASE_URL')
+admin_api_key = get_value_from_config(config_defaults, 'ADMIN_API_KEY')
+galaxy_base_url = get_value_from_config(config_defaults, 'GALAXY_BASE_URL')
 gi = galaxy.GalaxyInstance(url=galaxy_base_url, key=user_api_key)
-ags_dataset_name = get_value_from_config(args.config_file, 'ALL_GENOTYPED_SAMPLES_DATASET_NAME')
-ags_library_name = get_value_from_config(args.config_file, 'ALL_GENOTYPED_SAMPLES_LIBRARY_NAME')
-coralsnp_workflow_name = get_value_from_config(args.config_file, 'CORALSNP_WORKFLOW_NAME')
-vam_workflow_name = get_value_from_config(args.config_file, 'VALIDATE_AFFY_METADATA_WORKFLOW_NAME')
+ags_dataset_name = get_value_from_config(config_defaults, 'ALL_GENOTYPED_SAMPLES_DATASET_NAME')
+ags_library_name = get_value_from_config(config_defaults, 'ALL_GENOTYPED_SAMPLES_LIBRARY_NAME')
+coralsnp_workflow_name = get_value_from_config(config_defaults, 'CORALSNP_WORKFLOW_NAME')
+vam_workflow_name = get_value_from_config(config_defaults, 'VALIDATE_AFFY_METADATA_WORKFLOW_NAME')
 
 affy_metadata_is_valid = False
+stag_database_updated = False
 lock = threading.Lock()
 lock.acquire(True)
 try:
@@ -228,7 +262,6 @@ try:
     # Map the history datasets to the input datasets for
     # the ValidateAffyMetadata workflow.
     vam_workflow_input_datasets = get_workflow_input_datasets(gi, history_datasets, vam_workflow_name, vam_workflow_dict, outputfh)
-    outputfh.write("\nValidateAffyMetadata workflow input datasets: %s\n" % str(vam_workflow_input_datasets))
     # Start the ValidateAffyMetadata workflow.
     start_workflow(gi, vam_workflow_id, vam_workflow_name, vam_workflow_input_datasets, None, args.history_id, outputfh)
     outputfh.write("\nSleeping for 15 seconds...\n")
@@ -247,7 +280,7 @@ try:
             if sd_dict['error'] == 0:
                 # The metadata is valid.
                 affy_metadata_is_valid = True
-            break
+                break
         outputfh.write("\nSleeping for 5 seconds...\n")
         time.sleep(5)
 
@@ -256,11 +289,10 @@ try:
         coralsnp_workflow_id, coralsnp_workflow_dict = get_workflow(gi, coralsnp_workflow_name, outputfh)
         outputfh.write("\nCoralSNP workflow id: %s\n" % str(coralsnp_workflow_id))
         # Get the All Genotyped Samples data library.
-        ags_library_id = get_data_library(gi, ags_library_name, outputfh)
-        outputfh.write("\nAll Genotyped Samples library id: %s\n" % str(ags_library_id))
-        # Get the public all_genotyped_samples" dataset id.
-        ags_dataset_id = get_dataset_id_by_name(gi, ags_library_id, ags_dataset_name, outputfh)
-        outputfh.write("\nAll Genotyped Samples dataset id: %s\n" % str(ags_dataset_id))
+        ags_data_library_dict = get_data_library_dict(gi, ags_library_name, outputfh)
+        ags_library_id = ags_data_library_dict['id']
+        # Get the public all_genotyped_samples.vcf dataset id.
+        ags_dataset_id = get_library_dataset_id_by_name(gi, ags_library_id, ags_dataset_name, outputfh)
         # Import the public all_genotyped_samples dataset from
         # the data library to the current history.
         history_datasets = add_library_dataset_to_history(gi, args.history_id, ags_dataset_id, history_datasets, outputfh)
@@ -300,12 +332,33 @@ try:
             # because any datasets downstream from one in an "error" state
             # will automatically be given a "paused" state. Of course, we'll
             # always break if any datasets are in the "error"state.
-            if sd_dict['error'] != 0 or (sd_dict['queued'] == 0 and sd_dict['new'] == 0 and sd_dict['running'] <= 1):
+            if sd_dict['error'] != 0:
+                break
+            if sd_dict['queued'] == 0 and sd_dict['new'] == 0 and sd_dict['running'] <= 1:
+                # The stag database has been updated.
+                stag_database_updated = True
                 break
             outputfh.write("\nSleeping for 5 seconds...\n")
             time.sleep(5)
+        if stag_database_updated:
+            # Get the id of the "bcftools merge" dataset in the current history.
+            bcftools_merge_dataset_id = get_history_dataset_id_by_name(gi, args.history_id, "bcftools merge", outputfh)
+            # Create a new dataset in the All Genotyped Samples data library by
+            # importing the "bcftools merge" dataset from the current history.
+            # We'll do this as the coraldmin user.
+            admin_gi = galaxy.GalaxyInstance(url=galaxy_base_url, key=admin_api_key)
+            new_ags_dataset_dict = copy_history_dataset_to_library(admin_gi, ags_library_id, bcftools_merge_dataset_id, outputfh)
+            # Rename the ldda to be all_genotyped_samples.vcf.
+            new_ags_dataset_id = new_ags_dataset_dict['id']
+            renamed_ags_dataset_dict = rename_library_dataset(admin_gi, new_ags_dataset_id, ags_dataset_name, outputfh)
+            # Delete the original all_genotyped_samples library dataset.
+            deleted_dataset_dict = delete_library_dataset(admin_gi, ags_library_id, ags_dataset_id, outputfh)
 except Exception as e:
     outputfh.write("Exception preparing or executing either the ValidateAffyMetadata workflow or the CoralSNP workflow:\n%s\n" % str(e))
+    outputfh.write("\nProcessing ended in error...\n")
+    outputfh.close()
+    lock.release()
+    sys.exit(1)
 finally:
     lock.release()
 

@@ -2,7 +2,7 @@ name: validate_affy_metadata
 owner: greg
 description: |
   Contains a tool that validates an Affymetrix metadata file for 96 well plate data.
-homepage_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/corals/validate_affy_metadata
+homepage_url: http://baumslab.org
 long_description: |
   Contains a tool that validates an Affymetrix metadata file for 96 well plate data.
 remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/corals/validate_affy_metadata

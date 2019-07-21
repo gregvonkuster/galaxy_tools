@@ -81,7 +81,9 @@ Experiment_table = Table("experiment", metadata,
                          Column("create_time", DateTime, default=now),
                          Column("update_time", DateTime, default=now, onupdate=now),
                          Column("seq_facility", String),
-                         Column("array_version", TrimmedString(255)))
+                         Column("array_version", TrimmedString(255)),
+                         Column("result_folder_name", TrimmedString(255)),
+                         Column("plate_barcode", TrimmedString(255)))
 
 
 Fragment_table = Table("fragment", metadata,
@@ -97,11 +99,7 @@ Genotype_table = Table("genotype", metadata,
                        Column("update_time", DateTime, default=now, onupdate=now),
                        Column("coral_mlg_clonal_id", TrimmedString(255)),
                        Column("coral_mlg_rep_sample_id", TrimmedString(255)),
-                       Column("symbio_mlg_clonal_id", TrimmedString(255)),
-                       Column("symbio_mlg_rep_sample_id", TrimmedString(255)),
-                       Column("genetic_coral_species_call", TrimmedString(255)),
-                       Column("bcoral_genet_id", TrimmedString(255)),
-                       Column("bsym_genet_id", TrimmedString(255)))
+                       Column("genetic_coral_species_call", TrimmedString(255)))
 
 
 Person_table = Table("person", metadata,
@@ -127,31 +125,31 @@ Phenotype_table = Table("phenotype", metadata,
                         Column("healing_time", Numeric(15, 6)))
 
 
-Probe_annotation_table = Table("probe_annotation", metadata,
-                               Column("id", Integer, primary_key=True),
-                               Column("create_time", DateTime, default=now),
-                               Column("update_time", DateTime, default=now, onupdate=now),
-                               Column("probe_set_id", TrimmedString(255)),
-                               Column("affy_snp_id", TrimmedString(255)),
-                               Column("chr_id", Integer),
-                               Column("start", Integer),
-                               Column("strand", TrimmedString(255)),
-                               Column("flank", TrimmedString(255)),
-                               Column("allele_a", TrimmedString(255)),
-                               Column("allele_b", TrimmedString(255)),
-                               Column("allele_frequencies", TrimmedString(255)),
-                               Column("annotation_notes", TrimmedString(255)),
-                               Column("allele_count", TrimmedString(255)),
-                               Column("ordered_alleles", TrimmedString(255)),
-                               Column("chrtype", TrimmedString(255)),
-                               Column("custchr", TrimmedString(255)),
-                               Column("custid", TrimmedString(255)),
-                               Column("custpos", TrimmedString(255)),
-                               Column("organism", TrimmedString(255)),
-                               Column("pconvert", TrimmedString(255)),
-                               Column("recommendation", TrimmedString(255)),
-                               Column("refstr", TrimmedString(255)),
-                               Column("snppriority", TrimmedString(255)))
+ProbeAnnotation_table = Table("probe_annotation", metadata,
+                              Column("id", Integer, primary_key=True),
+                              Column("create_time", DateTime, default=now),
+                              Column("update_time", DateTime, default=now, onupdate=now),
+                              Column("probe_set_id", TrimmedString(255)),
+                              Column("affy_snp_id", TrimmedString(255)),
+                              Column("chr_id", Integer),
+                              Column("start", Integer),
+                              Column("strand", TrimmedString(255)),
+                              Column("flank", TrimmedString(255)),
+                              Column("allele_a", TrimmedString(255)),
+                              Column("allele_b", TrimmedString(255)),
+                              Column("allele_frequencies", TrimmedString(255)),
+                              Column("annotation_notes", TrimmedString(255)),
+                              Column("allele_count", TrimmedString(255)),
+                              Column("ordered_alleles", TrimmedString(255)),
+                              Column("chrtype", TrimmedString(255)),
+                              Column("custchr", TrimmedString(255)),
+                              Column("custid", TrimmedString(255)),
+                              Column("custpos", TrimmedString(255)),
+                              Column("organism", TrimmedString(255)),
+                              Column("pconvert", TrimmedString(255)),
+                              Column("recommendation", TrimmedString(255)),
+                              Column("refstr", TrimmedString(255)),
+                              Column("snppriority", TrimmedString(255)))
 
 
 Reef_table = Table("reef", metadata,
@@ -177,7 +175,6 @@ Sample_table = Table("sample", metadata,
                      Column("experiment_id", Integer, ForeignKey("experiment.id"), index=True),
                      Column("colony_id", Integer, ForeignKey("colony.id"), index=True),
                      Column("colony_location", TrimmedString(255)),
-                     Column("fragment_id", Integer, ForeignKey("fragment.id"), index=True),
                      Column("taxonomy_id", Integer, ForeignKey("taxonomy.id"), index=True),
                      Column("collector_id", Integer, ForeignKey("person.id"), index=True),
                      Column("collection_date", DateTime),
@@ -196,7 +193,17 @@ Sample_table = Table("sample", metadata,
                      Column("percent_alternative_sym", Numeric(15, 6)),
                      Column("percent_heterozygous_coral", Numeric(15, 6)),
                      Column("percent_heterozygous_sym", Numeric(15, 6)),
-                     Column("field_call", TrimmedString(255)))
+                     Column("field_call", TrimmedString(255)),
+                     Column("bcoral_genet_id", TrimmedString(255)))
+
+
+SymbioGenotype_table = Table("symbio_genotype", metadata,
+                             Column("id", Integer, primary_key=True),
+                             Column("create_time", DateTime, default=now),
+                             Column("update_time", DateTime, default=now, onupdate=now),
+                             Column("symbio_mlg_clonal_id", TrimmedString(255)),
+                             Column("symbio_mlg_rep_sample_id", TrimmedString(255)),
+                             Column("bsym_genet_id", TrimmedString(255)))
 
 
 Taxonomy_table = Table("taxonomy", metadata,
@@ -226,10 +233,14 @@ def string_as_bool(string):
 
 
 def convert_date_string_for_database(date_string):
-    # The value of date_string is %y/%m/%d with
+    # The value of date_string is %d/%m/%y with
     # the year being 2 digits (yikes!).
-    fixed_century = "20%s" % date_string
-    fixed_date = fixed_century.replace("/", "-")
+    items = date_string.split("/")
+    day = items[0]
+    month = items[1]
+    fixed_century = "20%s" % items[2]
+    new_items = [fixed_century, month, day]
+    fixed_date = "-".join(new_items)
     # Convert the string to a format required for
     # inserting into the database.
     database_format = dateutil.parser.parse(fixed_date)
@@ -407,6 +418,10 @@ def load_general_seed_data(migrate_engine):
     taxonomy_table_inserts = 0
     SAMPLE_ID = 10000
 
+    # The following values are not included in the seed data.
+    result_folder_name = ''
+    plate_barcode = ''
+
     with open(GENERAL_SEED_DATA_FILE, "r") as fh:
         for i, line in enumerate(fh):
             if i == 0:
@@ -435,15 +450,20 @@ def load_general_seed_data(migrate_engine):
             try:
                 latitude = "%6f" % float(items[6])
             except Exception:
-                latitude = DEFAULT_MISSING_NUMERIC_VALUE
+                # Latitude of PSU Mueller Lab building.
+                latitude = 40.799064
             try:
+                # Longitude of PSU Mueller Lab building.
                 longitude = "%6f" % float(items[7])
             except Exception:
-                longitude = DEFAULT_MISSING_NUMERIC_VALUE
+                longitude = -77.864431
             if len(items[8]) == 0:
-                geographic_origin = ''
+                # TODO: find out if the default value for
+                # geographihc origin should be "reef".
+                geographic_origin = 'reef'
             else:
-                geographic_origin = handle_column_value(items[8])
+                geographic_origin = handle_column_value(items[8], default='reef')
+                geographic_origin = geographic_origin.lower()
             if len(items[9]) == 0:
                 colony_location = ''
             else:
@@ -465,7 +485,7 @@ def load_general_seed_data(migrate_engine):
                 collection_date = convert_date_string_for_database(items[21])
             except Exception:
                 collection_date = localtimestamp(migrate_engine)
-            email = handle_column_value(items[22])
+            email = handle_column_value(items[22], default="%s@unknown.org" % sample_id)
             seq_facility = items[23]
             array_version = handle_column_value(items[24])
             # Convert original public value to Boolean.
@@ -553,16 +573,19 @@ def load_general_seed_data(migrate_engine):
             table = "experiment"
             # See if we need to add a row to the experiment table.
             cmd = "SELECT id FROM experiment WHERE seq_facility = '%s' AND array_version = '%s'"
-            cmd = cmd % (seq_facility, array_version)
+            cmd += " AND result_folder_name = '%s' and plate_barcode = '%s'"
+            cmd = cmd % (seq_facility, array_version, result_folder_name, plate_barcode)
             experiment_id = get_primary_id(migrate_engine, table, cmd)
             if experiment_id is None:
                 # Add a row to the experiment table.
-                cmd = "INSERT INTO experiment VALUES (%s, %s, %s, '%s', '%s')"
+                cmd = "INSERT INTO experiment VALUES (%s, %s, %s, '%s', '%s', '%s', '%s')"
                 cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),
                              seq_facility,
-                             array_version)
+                             array_version,
+                             result_folder_name,
+                             plate_barcode)
                 migrate_engine.execute(cmd)
                 experiment_table_inserts += 1
                 experiment_id = get_latest_id(migrate_engine, table)
@@ -571,31 +594,19 @@ def load_general_seed_data(migrate_engine):
             table = "genotype"
             # See if we need to add a row to the table.
             # Values for the following are not in the seed data.
-            symbio_mlg_rep_sample_id = ''
             cmd = "SELECT id FROM genotype WHERE coral_mlg_clonal_id = '%s' AND coral_mlg_rep_sample_id = '%s'"
-            cmd += " AND symbio_mlg_clonal_id = '%s' AND symbio_mlg_rep_sample_id = '%s' AND genetic_coral_species_call = '%s'"
-            cmd += " AND bcoral_genet_id = '%s' AND bsym_genet_id = '%s'"
-            cmd = cmd % (coral_mlg_clonal_id,
-                         coral_mlg_rep_sample_id,
-                         symbio_mlg_clonal_id,
-                         symbio_mlg_rep_sample_id,
-                         genetic_coral_species_call,
-                         bcoral_genet_id,
-                         bsym_genet_id)
+            cmd += " AND genetic_coral_species_call = '%s'"
+            cmd = cmd % (coral_mlg_clonal_id, coral_mlg_rep_sample_id, genetic_coral_species_call)
             genotype_id = get_primary_id(migrate_engine, table, cmd)
             if genotype_id is None:
                 # Add a row to the table.
-                cmd = "INSERT INTO genotype VALUES (%s, %s, %s, '%s', '%s', '%s', '%s', '%s', '%s', '%s')"
+                cmd = "INSERT INTO genotype VALUES (%s, %s, %s, '%s', '%s', '%s')"
                 cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),
                              coral_mlg_clonal_id,
                              coral_mlg_rep_sample_id,
-                             symbio_mlg_clonal_id,
-                             symbio_mlg_rep_sample_id,
-                             genetic_coral_species_call,
-                             bcoral_genet_id,
-                             bsym_genet_id)
+                             genetic_coral_species_call)
                 migrate_engine.execute(cmd)
                 genotype_table_inserts += 1
                 genotype_id = get_latest_id(migrate_engine, table)
@@ -655,6 +666,15 @@ def load_general_seed_data(migrate_engine):
             cmd = "SELECT id FROM reef WHERE name = '%s'" % reef
             reef_id = get_primary_id(migrate_engine, table, cmd)
             if reef_id is None:
+                if geographic_origin == "reef":
+                    # The geographic_origin value is used for deciding into which table
+                    # to insert the latitude and longitude values.  If the geographic_origin
+                    # is "reef", the values will be inserted into the reef table.
+                    lat_val = latitude
+                    long_val = longitude
+                else:
+                    lat_val = DEFAULT_MISSING_NUMERIC_VALUE
+                    long_val = DEFAULT_MISSING_NUMERIC_VALUE
                 # Add a row to the table.
                 cmd = "INSERT INTO reef VALUES (%s, %s, %s, '%s', '%s', %s, %s, '%s')"
                 cmd = cmd % (nextval(migrate_engine, table),
@@ -662,27 +682,36 @@ def load_general_seed_data(migrate_engine):
                              localtimestamp(migrate_engine),
                              reef,
                              region,
-                             latitude,
-                             longitude,
+                             lat_val,
+                             long_val,
                              geographic_origin)
                 migrate_engine.execute(cmd)
                 reef_table_inserts += 1
                 reef_id = get_latest_id(migrate_engine, table)
 
-            # Process the colony items.  Dependent tables: fragment, sample.
+            # Process the colony items.  Dependent tables: sample.
             table = "colony"
             # See if we need to add a row to the table.
             cmd = "SELECT id FROM colony WHERE latitude = %s AND longitude = %s and reef_id = %s"
             cmd = cmd % (latitude, longitude, reef_id)
             colony_id = get_primary_id(migrate_engine, table, cmd)
             if colony_id is None:
+                if geographic_origin == "colony":
+                    # The geographic_origin value is used for deciding into which table
+                    # to insert the latitude and longitude values.  If the geographic_origin
+                    # is "colony", the values will be inserted into the colony table.
+                    lat_val = latitude
+                    long_val = longitude
+                else:
+                    lat_val = DEFAULT_MISSING_NUMERIC_VALUE
+                    long_val = DEFAULT_MISSING_NUMERIC_VALUE
                 # Add a row to the table.
                 cmd = "INSERT INTO colony VALUES (%s, %s, %s, %s, %s, %s, %s)"
                 cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),
-                             latitude,
-                             longitude,
+                             lat_val,
+                             long_val,
                              depth,
                              reef_id)
                 migrate_engine.execute(cmd)
@@ -700,16 +729,14 @@ def load_general_seed_data(migrate_engine):
                 # allele data is processed, this column value will ne
                 # updated with the foreign key value.
                 allele_id = sql.null()
-                # FIXME: either implement support for the fragment table or drop the table.
-                fragment_id = sql.null()
                 percent_missing_data_sym = DEFAULT_MISSING_NUMERIC_VALUE
                 percent_reference_sym = DEFAULT_MISSING_NUMERIC_VALUE
                 percent_alternative_coral = DEFAULT_MISSING_NUMERIC_VALUE
                 percent_heterozygous_sym = DEFAULT_MISSING_NUMERIC_VALUE
                 # id, create_time, update_time, affy_id, sample_id,
                 # allele_id, genotype_id, phenotype_id, experiment_id, colony_id,
-                # colony_location, fragment_id, taxonomy_id, person_id
-                cmd = "INSERT INTO sample VALUES (%s, %s, %s, '%s', '%s', %s, %s, %s, %s, %s, '%s', %s, %s, %s, "
+                # colony_location, taxonomy_id, person_id
+                cmd = "INSERT INTO sample VALUES (%s, %s, %s, '%s', '%s', %s, %s, %s, %s, %s, '%s', %s, %s, "
                 if collection_date == "LOCALTIMESTAMP":
                     # collection_date
                     cmd += "%s, "
@@ -719,8 +746,8 @@ def load_general_seed_data(migrate_engine):
                 # user_specimen_id, registry_id, depth, dna_extraction_method, dna_concentration,
                 # public, public_after_date, percent_missing_data_coral, percent_missing_data_sym, percent_reference_coral,
                 # percent_reference_sym, percent_alternative_coral, percent_alternative_sym, percent_heterozygous_coral, percent_heterozygous_sym,
-                # field_call
-                cmd += "'%s', '%s', %s, '%s', %s, %s, '%s', %s, '%s', %s, '%s', '%s', '%s', %s, '%s', '%s')"
+                # field_call, bcoral_genet_id
+                cmd += "'%s', '%s', %s, '%s', %s, %s, '%s', %s, '%s', %s, '%s', '%s', '%s', %s, '%s', '%s', '%s')"
                 cmd = cmd % (nextval(migrate_engine, table),
                              localtimestamp(migrate_engine),
                              localtimestamp(migrate_engine),
@@ -732,7 +759,6 @@ def load_general_seed_data(migrate_engine):
                              experiment_id,
                              colony_id,
                              colony_location,
-                             fragment_id,
                              taxonomy_id,
                              person_id,
                              collection_date,
@@ -751,7 +777,8 @@ def load_general_seed_data(migrate_engine):
                              percent_alternative_sym,
                              percent_heterozygous_coral,
                              percent_heterozygous_sym,
-                             field_call)
+                             field_call,
+                             bcoral_genet_id)
                 migrate_engine.execute(cmd)
                 sample_table_inserts += 1
                 sample_id = get_latest_id(migrate_engine, table)

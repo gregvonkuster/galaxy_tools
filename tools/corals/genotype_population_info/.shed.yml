@@ -1,10 +1,10 @@
 name: genotype_population_info
 owner: greg
 description: |
-  Contains a tool that generates the genotype popolation information file for use as input to the multilocus_genotype tool.
-homepage_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/corals/genotype_population_info
+  Contains a tool that generates the genotype popolation information file for use as input to the corals_multilocus_genotype tool.
+homepage_url: http://baumslab.org
 long_description: |
-  Contains a tool that generates the genotype popolation information file for use as input to the multilocus_genotype tool.
+  Contains a tool that generates the genotype popolation information file for use as input to the corals_multilocus_genotype tool.
 remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/corals/genotype_population_info
 type: unrestricted
 categories:

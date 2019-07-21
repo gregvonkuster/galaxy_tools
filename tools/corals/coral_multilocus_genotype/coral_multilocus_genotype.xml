@@ -1,4 +1,4 @@
-<tool id="multilocus_genotype" name="Multilocus genotype" version="1.0.0">
+<tool id="coral_multilocus_genotype" name="Coral multilocus genotype" version="1.0.0">
     <description>unique combination of alleles for loci</description>
     <requirements>
         <requirement type="package" version="1.16.0">bioconductor-snprelate</requirement>
@@ -25,7 +25,7 @@
 #set output_plots_dir = 'output_plots_dir'
 mkdir $output_data_dir &&
 mkdir $output_plots_dir &&
-Rscript '$__tool_directory__/multilocus_genotype.R'
+Rscript '$__tool_directory__/coral_multilocus_genotype.R'
 --database_connection_string '$__app__.config.corals_database_connection'
 --input_affy_metadata '$input_affy_metadata'
 --input_pop_info '$input_pop_info'
@@ -75,13 +75,32 @@ Rscript '$__tool_directory__/multilocus_genotype.R'
 
 Renders the unique combination of the alleles for two or more loci for each individual. The multilocus genotypes
 are critically important for tracking dispersal and population structure of organisms, especially those that
-reproduce clonally (plants, sponges, cnidarians, flatworms, annelids, sea stars, and many more).
+reproduce clonally (plants, sponges, cnidarians, flatworms, annelids, sea stars, and many more).  The following
+outputs are produced.
 
------
+**Plots**
 
-**Required options**
+ * **ibs default** - identity-by-state analysis using the default clustering (Z threshold15, outlier detection 5) based on dissimilarity matrix of the samples with colors of terminal branches representing the identified groups.
+ * **ibs region** - identity-by-state analysis using the collection region information to identify clusters based on dissimilarity matrix of samples with colors of terminal branches representing the collection region.
+ * **missing data** - percent of missing allele calls for each sample.
+ * **mlg map** - geographic map of the samples colored by their multilocus genotype id,
+ * **percent breakdown** - average breakdown allele assignments across all samples and per sample.
+
+**Table Data** - Data files containing all of the information for updating the stag database.
+
+**Process Log** - the processing log produced by the tool.
+
+**Stag DB Report** -  summary of the analysis that includes the multilocus genotype id, database match status, percent missing data, percent for each allele (homozygous AA, homozygous BB or heterozygous AB) and genetic coral species call.
+
     </help>
     <citations>
+        <citation type="bibtex">
+            @misc{None,
+            journal = {None},
+            author = {Baums I},
+            title = {Manuscript in preparation},
+            year = {None},
+            url = {http://baumslab.org}
+        </citation>
     </citations>
 </tool>
-
