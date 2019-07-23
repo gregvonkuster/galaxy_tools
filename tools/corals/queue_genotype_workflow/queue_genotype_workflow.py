@@ -43,6 +43,12 @@ def copy_history_dataset_to_library(gi, library_id, dataset_id, outputfh):
     return new_library_dataset_dict
 
 
+def delete_history_dataset(gi, history_id, dataset_id, outputfh, purged=False):
+    # Delete a history dataset.
+    outputfh.write("\nDeleting history dataset with id %s.\n" % dataset_id)
+    gi.histories.delete_dataset(history_id, dataset_id, purged=purged)
+
+
 def delete_library_dataset(gi, library_id, dataset_id, outputfh, purged=False):
     # Delete a library dataset.
     outputfh.write("\nDeleting library dataset with id %s.\n" % dataset_id)
@@ -291,11 +297,11 @@ try:
         # Get the All Genotyped Samples data library.
         ags_data_library_dict = get_data_library_dict(gi, ags_library_name, outputfh)
         ags_library_id = ags_data_library_dict['id']
-        # Get the public all_genotyped_samples.vcf dataset id.
-        ags_dataset_id = get_library_dataset_id_by_name(gi, ags_library_id, ags_dataset_name, outputfh)
+        # Get the public all_genotyped_samples.vcf library dataset id.
+        ags_ldda_id = get_library_dataset_id_by_name(gi, ags_library_id, ags_dataset_name, outputfh)
         # Import the public all_genotyped_samples dataset from
         # the data library to the current history.
-        history_datasets = add_library_dataset_to_history(gi, args.history_id, ags_dataset_id, history_datasets, outputfh)
+        history_datasets = add_library_dataset_to_history(gi, args.history_id, ags_ldda_id, history_datasets, outputfh)
         # Map the history datasets to the input datasets for
         # the CoralSNP workflow.
         coralsnp_workflow_input_datasets = get_workflow_input_datasets(gi,
@@ -349,10 +355,14 @@ try:
             admin_gi = galaxy.GalaxyInstance(url=galaxy_base_url, key=admin_api_key)
             new_ags_dataset_dict = copy_history_dataset_to_library(admin_gi, ags_library_id, bcftools_merge_dataset_id, outputfh)
             # Rename the ldda to be all_genotyped_samples.vcf.
-            new_ags_dataset_id = new_ags_dataset_dict['id']
-            renamed_ags_dataset_dict = rename_library_dataset(admin_gi, new_ags_dataset_id, ags_dataset_name, outputfh)
+            new_ags_ldda_id = new_ags_dataset_dict['id']
+            renamed_ags_dataset_dict = rename_library_dataset(admin_gi, new_ags_ldda_id, ags_dataset_name, outputfh)
             # Delete the original all_genotyped_samples library dataset.
-            deleted_dataset_dict = delete_library_dataset(admin_gi, ags_library_id, ags_dataset_id, outputfh)
+            deleted_dataset_dict = delete_library_dataset(admin_gi, ags_library_id, ags_ldda_id, outputfh)
+            # To save disk space, delete the all_genotyped_samples hda
+            # in the current history to enable later purging by an admin.
+            ags_hda_id = get_history_dataset_id_by_name(gi, args.history_id, "all_genotyped_samples", outputfh)
+            delete_history_dataset(gi, args.history_id, ags_hda_id)
 except Exception as e:
     outputfh.write("Exception preparing or executing either the ValidateAffyMetadata workflow or the CoralSNP workflow:\n%s\n" % str(e))
     outputfh.write("\nProcessing ended in error...\n")
