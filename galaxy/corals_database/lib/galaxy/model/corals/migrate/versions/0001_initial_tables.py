@@ -485,7 +485,11 @@ def load_general_seed_data(migrate_engine):
                 collection_date = convert_date_string_for_database(items[21])
             except Exception:
                 collection_date = localtimestamp(migrate_engine)
-            email = handle_column_value(items[22], default="%s@unknown.org" % sample_id)
+            # There are 3 blank email addresses in the seed data, all of which
+            # have organization TNC_ARRA, so we'll assume the samples should
+            # all be associated with the same email address.
+            missing_email = "unknown@%s.org" % organization.lower()
+            email = handle_column_value(items[22], default=missing_email)
             seq_facility = items[23]
             array_version = handle_column_value(items[24])
             # Convert original public value to Boolean.
