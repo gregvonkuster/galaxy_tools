@@ -404,7 +404,7 @@ def load_general_seed_data(migrate_engine):
     # [15]mortality [16]tle [17]spawning [18]collector_last_name [19]collector_first_name
     # [20]organization [21]collection_date [22]email [23]seq_facility [24]array_version
     # [25]public [26]public_after_date [27]coral_mlg_clonal_id [28]symbio_mlg_clonal_id [29]genetic_coral_species_call
-    # [30]percent_missing_data_coral [31]percent_reference_coral [32]percent_alternative_sym [33]percent_heterozygous_coral [34]affy_id
+    # [30]percent_missing_data_coral [31]percent_heterozygous_coral [32]percent_reference_coral [33]percent_alternative_coral [34]affy_id
     # [35]coral_mlg_rep_sample_id [36]genus_name [37]species [38]sperm_motility [39]healing_time
     # [40]dna_extraction_method [41]dna_concentration [42]registry_id
 
@@ -506,17 +506,17 @@ def load_general_seed_data(migrate_engine):
             except Exception:
                 percent_missing_data_coral = DEFAULT_MISSING_NUMERIC_VALUE
             try:
-                percent_reference_coral = "%6f" % float(items[31])
+                percent_heterozygous_coral = "%6f" % float(items[31])
+            except Exception:
+                percent_heterozygous_coral = DEFAULT_MISSING_NUMERIC_VALUE
+            try:
+                percent_reference_coral = "%6f" % float(items[32])
             except Exception:
                 percent_reference_coral = DEFAULT_MISSING_NUMERIC_VALUE
             try:
-                percent_alternative_sym = "%6f" % float(items[32])
+                percent_alternative_coral = "%6f" % float(items[33])
             except Exception:
-                percent_alternative_sym = DEFAULT_MISSING_NUMERIC_VALUE
-            try:
-                percent_heterozygous_coral = "%6f" % float(items[33])
-            except Exception:
-                percent_heterozygous_coral = DEFAULT_MISSING_NUMERIC_VALUE
+                percent_alternative_coral = DEFAULT_MISSING_NUMERIC_VALUE
             affy_id = items[34]
             if len(items[35]) == 0:
                 coral_mlg_rep_sample_id = ''
@@ -724,9 +724,9 @@ def load_general_seed_data(migrate_engine):
             cmd = "SELECT id FROM sample WHERE sample_id = '%s'" % sample_id
             sample_id_db = get_primary_id(migrate_engine, table, cmd)
             if sample_id_db is None:
-                # We set allele_id top NULL here since we process the
+                # We set allele_id to NULL here since we process the
                 # allele data after the general seed data.  When the
-                # allele data is processed, this column value will ne
+                # allele data is processed, this column value will be
                 # updated with the foreign key value.
                 allele_id = sql.null()
                 percent_missing_data_sym = DEFAULT_MISSING_NUMERIC_VALUE
