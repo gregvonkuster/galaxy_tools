@@ -362,7 +362,7 @@ try:
             # To save disk space, delete the all_genotyped_samples hda
             # in the current history to enable later purging by an admin.
             ags_hda_id = get_history_dataset_id_by_name(gi, args.history_id, "all_genotyped_samples", outputfh)
-            delete_history_dataset(gi, args.history_id, ags_hda_id)
+            delete_history_dataset(gi, args.history_id, ags_hda_id, outputfh)
 except Exception as e:
     outputfh.write("Exception preparing or executing either the ValidateAffyMetadata workflow or the CoralSNP workflow:\n%s\n" % str(e))
     outputfh.write("\nProcessing ended in error...\n")
