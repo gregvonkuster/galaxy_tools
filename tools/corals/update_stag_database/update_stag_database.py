@@ -17,6 +17,15 @@ metadata = MetaData()
 DEFAULT_MISSING_NUMERIC_VALUE = -9.000000
 
 
+def split_line(line, sep="\t"):
+    # Remove R quote chars.
+    items = line.split(sep)
+    unquoted_items = []
+    for item in items:
+        unquoted_items.append(item.strip('"'))
+    return unquoted_items
+
+
 def get_sql_param_val_str(column_val, default):
     if set_to_null(column_val):
         val = default
@@ -155,7 +164,7 @@ class StagDatabaseUpdater(object):
         # of self.allele_ids for later use when inserting into the sample table.
         fh = open(file_path, "r")
         # Skip the header
-        header = fh.readline()
+        fh.readline()
         for id_index, affy_id in enumerate(self.affy_ids):
             if set_to_null(affy_id):
                 # This is a failed sample, so no allele strings will be
@@ -174,7 +183,7 @@ class StagDatabaseUpdater(object):
                 # Insert a row into the allele table.
                 line = fh.readline()
                 line = line.rstrip()
-                items = line.split("\t")
+                items = split_line(line)
                 allele = items[1]
                 cmd = "INSERT INTO allele VALUES (nextval('allele_id_seq'), %s, %s, %s) RETURNING id;"
                 args = ['NOW()', 'NOW()', allele]
@@ -201,7 +210,7 @@ class StagDatabaseUpdater(object):
                 # Keep track of foreign keys since we skip the header line.
                 id_index = i - 1
                 line = line.rstrip()
-                items = line.split("\t")
+                items = split_line(line)
                 geographic_origin = items[3]
                 if set_to_null(geographic_origin):
                     geographic_origin = "reef"
@@ -246,7 +255,7 @@ class StagDatabaseUpdater(object):
                     continue
                 # Keep track of foreign keys since we skip the header line.
                 line = line.rstrip()
-                items = line.split("\t")
+                items = split_line(line)
                 seq_facility, seq_facility_param_val_str = handle_column_value(items[0])
                 array_version, array_version_param_val_str = handle_column_value(items[1])
                 result_folder_name, result_folder_name_param_val_str = handle_column_value(items[2])
@@ -283,7 +292,7 @@ class StagDatabaseUpdater(object):
                     # Skip header
                     continue
                 line = line.rstrip()
-                items = line.split("\t")
+                items = split_line(line)
                 # Keep an in-memory list of affy_ids for use
                 # when updating the allele table.
                 self.affy_ids.append(items[0])
@@ -337,7 +346,7 @@ class StagDatabaseUpdater(object):
                     # Skip header
                     continue
                 line = line.rstrip()
-                items = line.split("\t")
+                items = split_line(line)
                 last_name = items[0]
                 first_name = items[1]
                 organization = items[2]
@@ -371,7 +380,7 @@ class StagDatabaseUpdater(object):
                     # Skip header
                     continue
                 line = line.rstrip()
-                items = line.split("\t")
+                items = split_line(line)
                 disease_resist, disease_resist_param_val_str = handle_column_value(items[0], default=-9)
                 bleach_resist, bleach_resist_param_val_str = handle_column_value(items[1], default=-9)
                 mortality, mortality_param_val_str = handle_column_value(items[2], default=-9)
@@ -416,7 +425,7 @@ class StagDatabaseUpdater(object):
                     # Skip header
                     continue
                 line = line.rstrip()
-                items = line.split("\t")
+                items = split_line(line)
                 name = items[0]
                 region = items[1]
                 geographic_origin = items[4]
@@ -465,7 +474,7 @@ class StagDatabaseUpdater(object):
                 line = line.rstrip()
                 # Keep track of foreign keys since we skip the header line.
                 id_index = i - 1
-                items = line.split("\t")
+                items = split_line(line)
                 sample_id = self.get_next_sample_id()
                 allele_id = self.allele_ids[id_index]
                 genotype_id = self.genotype_ids[id_index]
@@ -528,7 +537,7 @@ class StagDatabaseUpdater(object):
                     # Skip header
                     continue
                 line = line.rstrip()
-                items = line.split("\t")
+                items = split_line(line)
                 genus_name = handle_column_value(items[2], get_sql_param=False, default='unknown')
                 species_name = handle_column_value(items[3], get_sql_param=False, default='unknown')
                 # See if we need to add a row to the taxonomy table.
@@ -556,15 +565,6 @@ class StagDatabaseUpdater(object):
         self.args = parser.parse_args()
 
     def run(self):
-        """
-        TODO: remove this when done developing.
-        delete from sample where id > 172;
-        delete from genotype where id > 156;
-        delete from person where id > 13;
-        delete from colony where id > 58;
-        delete from reef where id > 58;
-        delete from taxonomy where id > 8;
-        """
         input_dir = self.args.input_dir
         for file_name in os.listdir(input_dir):
             # Tables must be loaded in such a way that foreign keys
