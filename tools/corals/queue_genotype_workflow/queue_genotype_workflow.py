@@ -43,10 +43,10 @@ def copy_history_dataset_to_library(gi, library_id, dataset_id, outputfh):
     return new_library_dataset_dict
 
 
-def delete_history_dataset(gi, history_id, dataset_id, outputfh, purged=False):
+def delete_history_dataset(gi, history_id, dataset_id, outputfh, purge=False):
     # Delete a history dataset.
     outputfh.write("\nDeleting history dataset with id %s.\n" % dataset_id)
-    gi.histories.delete_dataset(history_id, dataset_id, purged=purged)
+    gi.histories.delete_dataset(history_id, dataset_id, purge=purge)
 
 
 def delete_library_dataset(gi, library_id, dataset_id, outputfh, purged=False):
@@ -254,6 +254,7 @@ coralsnp_workflow_name = get_value_from_config(config_defaults, 'CORALSNP_WORKFL
 vam_workflow_name = get_value_from_config(config_defaults, 'VALIDATE_AFFY_METADATA_WORKFLOW_NAME')
 
 affy_metadata_is_valid = False
+datasets_have_queued = False
 stag_database_updated = False
 lock = threading.Lock()
 lock.acquire(True)
@@ -302,25 +303,17 @@ try:
         # Import the public all_genotyped_samples dataset from
         # the data library to the current history.
         history_datasets = add_library_dataset_to_history(gi, args.history_id, ags_ldda_id, history_datasets, outputfh)
+        outputfh.write("\nSleeping for 5 seconds...\n")
+        time.sleep(5)
         # Map the history datasets to the input datasets for
         # the CoralSNP workflow.
-        coralsnp_workflow_input_datasets = get_workflow_input_datasets(gi,
-                                                                       history_datasets,
-                                                                       coralsnp_workflow_name,
-                                                                       coralsnp_workflow_dict,
-                                                                       outputfh)
+        coralsnp_workflow_input_datasets = get_workflow_input_datasets(gi, history_datasets, coralsnp_workflow_name, coralsnp_workflow_dict, outputfh)
         outputfh.write("\nCoralSNP workflow input datasets: %s\n" % str(coralsnp_workflow_input_datasets))
         # Get the CoralSNP workflow params that could be updated.
         coralsnp_params = update_workflow_params(coralsnp_workflow_dict, args.dbkey, outputfh)
         outputfh.write("\nCoralSNP params: %s\n" % str(coralsnp_params))
         # Start the CoralSNP workflow.
-        start_workflow(gi,
-                       coralsnp_workflow_id,
-                       coralsnp_workflow_name,
-                       coralsnp_workflow_input_datasets,
-                       coralsnp_params,
-                       args.history_id,
-                       outputfh)
+        start_workflow(gi, coralsnp_workflow_id, coralsnp_workflow_name, coralsnp_workflow_input_datasets, coralsnp_params, args.history_id, outputfh)
         outputfh.write("\nSleeping for 15 seconds...\n")
         time.sleep(15)
         # Poll the history datasets, checking the statuses, and wait until
@@ -337,10 +330,15 @@ try:
             # state.  We cannot filter on datasets in the "paused" state
             # because any datasets downstream from one in an "error" state
             # will automatically be given a "paused" state. Of course, we'll
-            # always break if any datasets are in the "error"state.
+            # always break if any datasets are in the "error" state.  At
+            # least one dataset must have reached the "queued" state before
+            # the workflow is complete.
+            if not datasets_have_queued:
+                if sd_dict['queued'] > 0:
+                    datasets_have_queued = True
             if sd_dict['error'] != 0:
                 break
-            if sd_dict['queued'] == 0 and sd_dict['new'] == 0 and sd_dict['running'] <= 1:
+            if datasets_have_queued and sd_dict['queued'] == 0 and sd_dict['new'] == 0 and sd_dict['running'] <= 1:
                 # The stag database has been updated.
                 stag_database_updated = True
                 break
