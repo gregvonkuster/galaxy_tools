@@ -89,7 +89,7 @@ genind_obj <- vcfR2genind(vcf);
 time_elapsed(start_time);
 
 # Add population information to the genind object.
-population_info_data_table <- read.table(opt$input_pop_info, check.names=FALSE, header=F, na.strings=c("", "NA"), stringsAsFactors=FALSE, sep="\t");
+population_info_data_table <- read.table(opt$input_pop_info, check.names=FALSE, header=F, na.strings=c("", "NA"), stringsAsFactors=FALSE, sep="\t", quote="");
 colnames(population_info_data_table) <- c("row_id", "affy_id", "user_specimen_id", "region");
 #write_data_frame(output_data_dir, "population_info_data_table", population_info_data_table);
 genind_obj@pop <- as.factor(population_info_data_table$region);
@@ -113,7 +113,7 @@ m <- mlg.table(genind_clone, background=TRUE, color=TRUE);
 mlg_ids <- mlg.id(genind_clone);
 
 # Read user's Affymetrix 96 well plate tabular file.
-affy_metadata_data_frame <- read.table(opt$input_affy_metadata, header=FALSE, stringsAsFactors=FALSE, sep="\t", na.strings=c("", "NA"));
+affy_metadata_data_frame <- read.table(opt$input_affy_metadata, header=FALSE, stringsAsFactors=FALSE, sep="\t", na.strings=c("", "NA"), quote="");
 colnames(affy_metadata_data_frame) <- c("user_specimen_id", "field_call", "bcoral_genet_id", "bsym_genet_id", "reef",
                                         "region", "latitude", "longitude", "geographic_origin", "colony_location",
                                         "depth", "disease_resist", "bleach_resist", "mortality","tle",
