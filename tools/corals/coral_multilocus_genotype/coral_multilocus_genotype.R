@@ -202,7 +202,7 @@ setnames(reference_alleles_data_table, c("rn"), c("affy_id"));
 # Rename the reference_alleles column.
 setnames(reference_alleles_data_table, c("reference_alleles"), c("percent_reference_coral"));
 # Round data to two digits.
-reference_alleles_data_table$percent_reference <- round(reference_alleles_data_table$percent_reference, digits=2);
+reference_alleles_data_table$percent_reference_coral <- round(reference_alleles_data_table$percent_reference_coral, digits=2);
 time_elapsed(start_time);
 
 # Alternative alleles
@@ -220,7 +220,7 @@ setnames(alternative_alleles_data_table, c("rn"), c("affy_id"));
 # Rename the alternative_alleles column.
 setnames(alternative_alleles_data_table, c("alternative_alleles"), c("percent_alternative_coral"));
 # Round data to two digits.
-alternative_alleles_data_table$percent_alternative <- round(alternative_alleles_data_table$percent_alternative, digits=2);
+alternative_alleles_data_table$percent_alternative_coral <- round(alternative_alleles_data_table$percent_alternative_coral, digits=2);
 time_elapsed(start_time);
 
 # The mlg_ids_data_table looks like this:
@@ -312,11 +312,11 @@ stag_db_report <- specimen_id_field_call_data_table %>%
         by="affy_id") %>%
     mutate(db_match = ifelse(is.na(db_match), "failed", db_match))%>%
     mutate(coral_mlg_clonal_id = ifelse(is.na(coral_mlg_clonal_id), "failed", coral_mlg_clonal_id)) %>%
-    mutate(genetic_coral_species_call = ifelse(percent_alternative_coral >= 40 & percent_alternative_coral <= 44.5, "A.palmata","other")) %>%
-    mutate(genetic_coral_species_call = ifelse(percent_alternative_coral >= 45.5 & percent_alternative_coral <= 50, "A.cervicornis", genetic_coral_species_call)) %>%
+    mutate(genetic_coral_species_call = ifelse(percent_alternative_coral >= 40 & percent_alternative_coral <= 44.99, "A.palmata","other")) %>%
+    mutate(genetic_coral_species_call = ifelse(percent_alternative_coral >= 45 & percent_alternative_coral <= 51, "A.cervicornis", genetic_coral_species_call)) %>%
     mutate(genetic_coral_species_call = ifelse(percent_heterozygous_coral > 40, "A.prolifera", genetic_coral_species_call)) %>%
     ungroup() %>%
-    select(-group);
+    select(-group,-db_record);
 time_elapsed(start_time);
 
 start_time <- time_start("Writing csv output");
@@ -335,16 +335,15 @@ time_elapsed(start_time);
 # Table of alleles for the new samples subset to new plate data.
 # Create vector indicating number of individuals desired from
 # affy_id column of stag_db_report data table.
-i <- ifelse(is.na(stag_db_report[1]), "", stag_db_report[[1]]);
+i <- ifelse(is.na(stag_db_report[3]), "", stag_db_report[[3]]);
 i <- i[!apply(i== "", 1, all),];
-sample_alleles_vector <- genind_clone[i, mlg.reset=FALSE, drop=FALSE];
 
 # Subset VCF to the user samples.
 start_time <- time_start("Subsetting vcf to the user samples");
-l <- length(i);
-n <- ncol(vcf@gt);
-s <- n - l;
-svcf <- vcf[, s:n];
+l <- length(i)+1;
+#n <- ncol(vcf@gt);
+#s <- n - l;
+svcf <- vcf[, 1:l];
 write.vcf(svcf, "subset.vcf.gz");
 vcf.fn <- "subset.vcf.gz";
 snpgdsVCF2GDS(vcf.fn, "test3.gds", method="biallelic.only");
@@ -364,16 +363,16 @@ setnames(gds_data_table, c("gds_array"), c("affy_id"));
 # affy_id                            region
 # a100000-4368120-060520-256_I07.CEL USVI
 # a100000-4368120-060520-256_K07.CEL USVI
-affy_id_region_list <- population_info_data_table[c(2,4)];
+affy_id_region_list <- population_info_data_table[c(2,3,4)];
 gds_data_table_join <- gds_data_table %>%
     left_join(affy_id_region_list %>%
-        select("affy_id", "region"),
+        select("affy_id", "user_specimen_id","region"),
         by='affy_id')%>%
         drop_na();
 samp.annot <- data.frame(pop.group=c(gds_data_table_join$region));
 add.gdsn(genofile, "sample.annot", samp.annot);
 # population_code looks like this:
-# [1] 18.361733   18.361733   18.361733   18.361733   18.361733   18.361733  
+# [1] 18.361733   18.361733   18.361733   18.361733   18.361733   18.361733
 # [7] 25.11844009 25.11844009 25.11844009 25.11844009 25.11844009 25.11844009
 population_code <- read.gdsn(index.gdsn(genofile, path="sample.annot/pop.group"));
 pop.group <- as.factor(read.gdsn(index.gdsn(genofile, "sample.annot/pop.group")));
@@ -382,16 +381,17 @@ pop.group <- as.factor(read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))
 # [7] 25.11844009 25.11844009 25.11844009 25.11844009 25.11844009 25.11844009
 time_elapsed(start_time);
 
-# Distance matrix calculation.
+# Distance matrix calculation and sample labels change to user specimen ids.
 start_time <- time_start("Calculating distance matrix");
 ibs <- snpgdsIBS(genofile, num.thread=2, autosome.only=FALSE);
+ibs$sample.id <-gds_data_table_join$user_specimen_id;
 time_elapsed(start_time);
 
 # Cluster analysis on the genome-wide IBS pairwise distance matrix.
 start_time <- time_start("Clustering the genome-wide IBS pairwise distance matrix");
 set.seed(100);
 par(cex=0.6, cex.lab=1, cex.axis=1.5,cex.main=2);
-ibs.hc <- snpgdsHCluster(snpgdsIBS(genofile, autosome.only=FALSE));
+ibs.hc <- snpgdsHCluster(ibs);
 time_elapsed(start_time);
 
 # cols looks like this:
@@ -410,7 +410,8 @@ dev.new(width=40, height=20);
 file_path = get_file_path(output_plots_dir, "ibs_default.pdf");
 pdf(file=file_path, width=40, height=20);
 rv <- snpgdsCutTree(ibs.hc, col.list=cols, pch.list=15);
-snpgdsDrawTree(rv, main="Color by Cluster", leaflab="perpendicular", y.label=0.2);
+snpgdsDrawTree(rv, main="Color by Cluster", leaflab="perpendicular", yaxis.kinship=FALSE);
+abline(h = 0.032, lty = 2);
 legend("topleft", legend=levels(rv$samp.group), xpd=T, col=cols[1:nlevels(rv$samp.group)], pch=15, ncol=4, cex=1.2);
 dev.off()
 time_elapsed(start_time);
@@ -423,7 +424,7 @@ file_path = get_file_path(output_plots_dir, "ibs_region.pdf");
 pdf(file=file_path, width=40, height=20);
 race <- as.factor(population_code);
 rv2 <- snpgdsCutTree(ibs.hc, samp.group=race,col.list=cols, pch.list=15);
-snpgdsDrawTree(rv2, main="Color by Region", leaflab="perpendicular", y.label=0.2);
+snpgdsDrawTree(rv2, main="Color by Region", leaflab="perpendicular", yaxis.kinship=FALSE);
 legend("topleft", legend=levels(race), xpd=T, col=cols[1:nlevels(race)], pch=15, ncol=4, cex=1.2);
 dev.off()
 time_elapsed(start_time);
@@ -440,7 +441,7 @@ file_path = get_file_path(output_plots_dir, "missing_data.pdf");
 pdf(file=file_path, width=20, height=10);
 par(mar = c(8, 4, 4, 2));
 x <- barplot(miss96, las=2, col=cols, ylim=c(0, 3), cex.axis=0.8, space=0.8, ylab="Missingness (%)", xaxt="n");
-text(cex=0.6, x=x-0.25, y=-.05, name96, xpd=TRUE, srt=60, adj=1);
+text(cex=0.8, x=x-0.25, y=-.05, name96, xpd=TRUE, srt=60, adj=1);
 dev.off()
 time_elapsed(start_time);
 
@@ -475,11 +476,32 @@ num_colors = length(unique(affy_metadata_data_frame$mlg));
 palette = colorRampPalette(piratepal("basel"));
 ggplot() +
 geom_map(data=world_data, map=world_data, aes(x=long, y=lat, group=group, map_id=region), fill="white", colour="#7f7f7f") +
-coord_map(xlim=longitude_range_vector, ylim=latitude_range_vector) +
+coord_quickmap(xlim=longitude_range_vector, ylim=latitude_range_vector) +
 geom_point(data=affy_metadata_data_frame, aes(x=longitude, y=latitude, group=mlg, colour=mlg), alpha=.7, size=3) +
 scale_color_manual(values=palette(num_colors)) +
 theme(legend.position="bottom") +
 guides(color=guide_legend(nrow=8, byrow=F));
+
+# Sample MLG on a map for each region.
+for (i in unique(affy_metadata_data_frame$region)) {
+  m <- i;
+  num_colors_2 = length(unique(affy_metadata_data_frame$mlg[which(affy_metadata_data_frame$region == m)]));
+  max_latitude_region <- max(affy_metadata_data_frame$latitude[which(affy_metadata_data_frame$region == m)],na.rm=TRUE);
+  min_latitude_region <- min(affy_metadata_data_frame$latitude[which(affy_metadata_data_frame$region == m)], na.rm=TRUE);
+  latitude_range_vector_region <- c(min_latitude_region-0.5, max_latitude_region+0.5);
+  max_longitude_region <- max(affy_metadata_data_frame$longitude[which(affy_metadata_data_frame$region == m)], na.rm=TRUE);
+  min_longitude_region <- min(affy_metadata_data_frame$longitude[which(affy_metadata_data_frame$region == m)], na.rm=TRUE);
+  longitude_range_vector_region <- c(min_longitude_region-0.5, max_longitude_region+0.5);
+  print(ggplot() +
+    geom_map(data=world_data, map=world_data, aes(x=long, y=lat, group=group, map_id=region),
+             fill="grey", colour="#7f7f7f") +
+    coord_quickmap(xlim=longitude_range_vector_region, ylim=latitude_range_vector_region, clip = "on") +
+    geom_point(data=affy_metadata_data_frame[which(affy_metadata_data_frame$region == m),], aes(x=longitude, y=latitude,
+                                                  group=mlg, colour=mlg), alpha=.5, size=3) +
+    scale_color_manual(values=palette(num_colors_2)) +
+    theme(legend.position="bottom") + labs(title=paste("MLG assignments for", m)) +
+    guides(color=guide_legend(nrow=8, byrow=F)));
+}
 dev.off()
 time_elapsed(start_time);
 
@@ -498,12 +520,12 @@ if (!is.null(opt$output_nj_phylogeny_tree)) {
     pdf(file=file_path, width=40, height=80);
     # Organize branches by clade.
     nj_phylogeny_tree <- sample_alleles_vector %>%
-        aboot(dist=provesti.dist, sample=100, tree="nj", cutoff=50, quiet=TRUE) %>%
+        aboot(dist=provesti.dist, sample=100, tree="nj", cutoff=50, quiet=TRUE, showtree = FALSE) %>%
         ladderize();
     nj_phylogeny_tree$tip.label <- stag_db_report$user_specimen_id[match(nj_phylogeny_tree$tip.label, stag_db_report$affy_id)];
-    plot.phylo(nj_phylogeny_tree, tip.color=cols[sample_alleles_vector$pop], label.offset=0.0125, cex=0.3, font=2, lwd=4, align.tip.label=F, no.margin=T);
+    plot.phylo(nj_phylogeny_tree, tip.color=cols[sample_alleles_vector$pop], label.offset=0.0025, cex=0.6, font=2, lwd=4, align.tip.label=F, no.margin=T);
     # Add a scale bar showing 5% difference.
-    add.scale.bar(0, 0.95, length=0.05, cex=0.65, lwd=3);
+    add.scale.bar(0, 0.95, length=0.05, cex=0.65, lwd=2);
     nodelabels(nj_phylogeny_tree$node.label, cex=.5, adj=c(1.5, -0.1), frame="n", font=3, xpd=TRUE);
     legend("topright", legend=c(levels(sample_alleles_vector$pop)), text.col=cols, xpd=T, cex=0.8);
     dev.off()
@@ -543,7 +565,7 @@ par(mfrow=c(3, 2));
 col <- c("GREY", "#006DDB", "#24FF24", "#920000");
 # Generate a pie chart for each sample with genotypes.
 for (i in 1:ncol(translated_stag_db_report_matrix)) {
-    tmp_labels <- paste(labels, " (", round(translated_stag_db_report_matrix[,i], 1), "%)", sep="");
+    tmp_labels <- paste(c("missing data", "mixed", "reference", "alternative"), " (", round(translated_stag_db_report_matrix[,i], 1), "%)", sep="");
     main <- paste("Breakdown of SNP assignments for", translated_stag_db_report_data_table[1, i]);
     pie(translated_stag_db_report_matrix[,i], labels=tmp_labels, radius=0.90, col=col, main=main, cex.main=.85, cex=0.75);
 }
