@@ -441,10 +441,11 @@ def load_general_seed_data(migrate_engine):
                 bcoral_genet_id = ''
             else:
                 bcoral_genet_id = handle_column_value(items[2])
-            if len(items[3]) == 0:
-                bsym_genet_id = ''
-            else:
-                bsym_genet_id = handle_column_value(items[3])
+            # No longer inserted.
+            # if len(items[3]) == 0:
+            #     bsym_genet_id = ''
+            # else:
+            #     bsym_genet_id = handle_column_value(items[3])
             reef = handle_column_value(items[4])
             region = handle_column_value(items[5])
             try:
@@ -503,7 +504,8 @@ def load_general_seed_data(migrate_engine):
                 else:
                     public_after_date = convert_date_string_for_database(items[26])
             coral_mlg_clonal_id = handle_column_value(items[27])
-            symbio_mlg_clonal_id = handle_column_value(items[28])
+            # No longer used.
+            # symbio_mlg_clonal_id = handle_column_value(items[28])
             genetic_coral_species_call = handle_column_value(items[29])
             try:
                 percent_missing_data_coral = "%6f" % float(items[30])
@@ -735,7 +737,7 @@ def load_general_seed_data(migrate_engine):
                 allele_id = sql.null()
                 percent_missing_data_sym = DEFAULT_MISSING_NUMERIC_VALUE
                 percent_reference_sym = DEFAULT_MISSING_NUMERIC_VALUE
-                percent_alternative_coral = DEFAULT_MISSING_NUMERIC_VALUE
+                percent_alternative_sym = DEFAULT_MISSING_NUMERIC_VALUE
                 percent_heterozygous_sym = DEFAULT_MISSING_NUMERIC_VALUE
                 # id, create_time, update_time, affy_id, sample_id,
                 # allele_id, genotype_id, phenotype_id, experiment_id, colony_id,
