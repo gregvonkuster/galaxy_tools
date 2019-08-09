@@ -46,9 +46,9 @@ def copy_history_dataset_to_library(gi, library_id, dataset_id, outputfh):
 
 def copy_dataset_to_storage(src_path, dst_base_path, dataset_name, output_fh):
     # Copy a dataset via its file path to a storage directory on disk.
+    os.makedirs(dst_base_path)
     dst_path = os.path.join(dst_base_path, dataset_name)
-    os.makedirs(dst_path)
-    shutil.copy_file(src_path, dst_path)
+    shutil.copyfile(src_path, dst_path)
     outputfh.write("Copied %s to storage.\n" % dataset_name)
 
 
