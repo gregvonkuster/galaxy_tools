@@ -191,7 +191,7 @@ class StagDatabaseUpdater(object):
 
     def export_database(self):
         # Export the database to the configured storage location.
-        if not os.is_dir(self.db_storage_dir):
+        if not os.path.isdir(self.db_storage_dir):
             os.makedirs(self.db_storage_dir)
         db_storage_path = os.path.join(self.db_storage_dir, "exported_%s_db" % self.db_name)
         cmd = "pg_dump %s -f %s" % (self.db_name, db_storage_path)
