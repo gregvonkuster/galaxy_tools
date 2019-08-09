@@ -6,6 +6,7 @@
 # can be overridden when they are passed to executed scripts.
 
 ADMIN_API_KEY = 89erituieru83ihefi3838928358kefdk9
+ALL_GENOTYPED_SAMPLES_STORAGE_DIR = /tmp/all_genotyped_samples
 ALL_GENOTYPED_SAMPLES_DATASET_NAME = all_genotyped_samples.vcf
 ALL_GENOTYPED_SAMPLES_LIBRARY_NAME = All Genotyped Samples
 CORALSNP_WORKFLOW_NAME = CoralSNP

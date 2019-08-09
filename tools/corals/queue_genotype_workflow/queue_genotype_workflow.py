@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import argparse
+import os
+import shutil
 import string
 import sys
 import threading
@@ -23,7 +25,6 @@ parser.add_argument('--report', dest='report', help='Apt-probeset genotype repor
 parser.add_argument('--sample_attributes', dest='sample_attributes', help='Sample attributes tabular file')
 parser.add_argument('--snp-posteriors', dest='snp-posteriors', help='Apt-probeset genotype snp-posteriors file')
 parser.add_argument('--summary', dest='summary', help='Apt-probeset genotype summary file')
-parser.add_argument('--user_id', dest='user_id', help='Encoded Galaxy user id')
 args = parser.parse_args()
 
 
@@ -41,6 +42,14 @@ def copy_history_dataset_to_library(gi, library_id, dataset_id, outputfh):
     outputfh.write('\nCopying history dataset with id %s to data library with id %s.\n' % (str(dataset_id), str(library_id)))
     new_library_dataset_dict = gi.libraries.copy_from_dataset(library_id, dataset_id)
     return new_library_dataset_dict
+
+
+def copy_dataset_to_storage(src_path, dst_base_path, dataset_name, output_fh):
+    # Copy a dataset via its file path to a storage directory on disk.
+    dst_path = os.path.join(dst_base_path, dataset_name)
+    os.makedirs(dst_path)
+    shutil.copy_file(src_path, dst_path)
+    outputfh.write("Copied %s to storage.\n" % dataset_name)
 
 
 def delete_history_dataset(gi, history_id, dataset_id, outputfh, purge=False):
@@ -72,13 +81,13 @@ def get_config_settings(config_file, section='defaults'):
 
 def get_data_library_dict(gi, name, outputfh):
     # Use the Galaxy API to get the data library named name.
-    outputfh.write('\nSearching for data library named %s.\n' % name)
+    outputfh.write("\nSearching for data library named %s.\n" % name)
     # The following is not correctly filtering out deleted libraries.
     data_lib_dicts = gi.libraries.get_libraries(library_id=None, name=name, deleted=False)
     for data_lib_dict in data_lib_dicts:
         if data_lib_dict['name'] == name and data_lib_dict['deleted'] not in [True, 'true', 'True']:
-            outputfh.write('Found data library named %s.\n' % name)
-            outputfh.write('%s\n' % str(data_lib_dict))
+            outputfh.write("Found data library named %s.\n" % name)
+            outputfh.write("%s\n" % str(data_lib_dict))
             return data_lib_dict
     return None
 
@@ -90,12 +99,12 @@ def get_history_status(gi, history_id):
 def get_history_dataset_id_by_name(gi, history_id, dataset_name, outputfh):
     # Use the Galaxy API to get the bcftools merge dataset id
     # from the current history.
-    outputfh.write('\nSearching for history dataset named %s.\n' % str(dataset_name))
+    outputfh.write("\nSearching for history dataset named %s.\n" % str(dataset_name))
     history_dataset_dicts = get_history_datasets(gi, history_id)
     for name, hd_dict in history_dataset_dicts.items():
         name = name.lower()
         if name.startswith(dataset_name.lower()):
-            outputfh.write('Found dataset named %s.\n' % str(dataset_name))
+            outputfh.write("Found dataset named %s.\n" % str(dataset_name))
             return hd_dict['id']
     return None
 
@@ -113,16 +122,22 @@ def get_history_datasets(gi, history_id):
     return history_datasets
 
 
+def get_library_dataset_file_path(gi, library_id, dataset_id, outputfh):
+    dataset_dict = gi.libraries.show_dataset(library_id, dataset_id)
+    outputfh.write("\nReturning file path of library dataset.\n")
+    return dataset_dict.get('file_name', None)
+
+
 def get_library_dataset_id_by_name(gi, data_lib_id, dataset_name, outputfh):
     # Use the Galaxy API to get the all_genotyped_samples.vcf dataset id.
     # We're assuming it is in the root folder.
-    outputfh.write('\nSearching for library dataset named %s.\n' % str(dataset_name))
+    outputfh.write("\nSearching for library dataset named %s.\n" % str(dataset_name))
     lib_item_dicts = gi.libraries.show_library(data_lib_id, contents=True)
     for lib_item_dict in lib_item_dicts:
         if lib_item_dict['type'] == 'file':
             dataset_name = lib_item_dict['name'].lstrip('/').lower()
             if dataset_name.startswith(dataset_name):
-                outputfh.write('Found dataset named %s.\n' % str(dataset_name))
+                outputfh.write("Found dataset named %s.\n" % str(dataset_name))
                 return lib_item_dict['id']
     return None
 
@@ -132,7 +147,7 @@ def get_value_from_config(config_defaults, value):
 
 
 def get_workflow(gi, name, outputfh, galaxy_base_url=None, api_key=None):
-    outputfh.write('\nSearching for workflow named %s\n' % name)
+    outputfh.write("\nSearching for workflow named %s\n" % name)
     workflow_info_dicts = gi.workflows.get_workflows(name=name, published=True)
     if len(workflow_info_dicts) == 0:
         return None, None
@@ -140,14 +155,14 @@ def get_workflow(gi, name, outputfh, galaxy_base_url=None, api_key=None):
     workflow_id = wf_info_dict['id']
     # Get the complete workflow.
     workflow_dict = gi.workflows.show_workflow(workflow_id)
-    outputfh.write('Found workflow named %s.\n' % name)
+    outputfh.write("Found workflow named %s.\n" % name)
     return workflow_id, workflow_dict
 
 
 def get_workflow_input_datasets(gi, history_datasets, workflow_name, workflow_dict, outputfh):
     # Map the history datasets to the input datasets for the workflow.
     workflow_inputs = {}
-    outputfh.write('\nMapping datasets from history to workflow %s.\n' % workflow_name)
+    outputfh.write("\nMapping datasets from history to workflow %s.\n" % workflow_name)
     steps_dict = workflow_dict.get('steps', None)
     if steps_dict is not None:
         for step_index, step_dict in steps_dict.items():
@@ -194,20 +209,20 @@ def get_workflow_input_datasets(gi, history_datasets, workflow_name, workflow_di
                     input_hda_name_check = input_hda_name.lower()
                     if input_hda_name_check.find(annotation_check) >= 0:
                         workflow_inputs[step_index] = {'src': 'hda', 'id': input_hda_dict['id']}
-                        outputfh.write(' - Mapped dataset %s from history to workflow input dataset with annotation %s.\n' % (input_hda_name, annotation))
+                        outputfh.write(" - Mapped dataset %s from history to workflow input dataset with annotation %s.\n" % (input_hda_name, annotation))
                         break
     return workflow_inputs
 
 
 def start_workflow(gi, workflow_id, workflow_name, inputs, params, history_id, outputfh):
-    outputfh.write('\nExecuting workflow %s.\n' % workflow_name)
+    outputfh.write("\nExecuting workflow %s.\n" % workflow_name)
     workflow_invocation_dict = gi.workflows.invoke_workflow(workflow_id, inputs=inputs, params=params, history_id=history_id)
-    outputfh.write('Response from executing workflow %s:\n' % workflow_name)
-    outputfh.write('%s\n' % str(workflow_invocation_dict))
+    outputfh.write("Response from executing workflow %s:\n" % workflow_name)
+    outputfh.write("%s\n" % str(workflow_invocation_dict))
 
 
 def rename_library_dataset(gi, dataset_id, name, outputfh):
-    outputfh.write('\nRenaming library dataset with id %s to be named %s.\n' % (str(dataset_id), str(name)))
+    outputfh.write("\nRenaming library dataset with id %s to be named %s.\n" % (str(dataset_id), str(name)))
     library_dataset_dict = gi.libraries.update_library_dataset(dataset_id, name=name)
     return library_dataset_dict
 
@@ -215,7 +230,7 @@ def rename_library_dataset(gi, dataset_id, name, outputfh):
 def update_workflow_params(workflow_dict, dbkey, outputfh):
     parameter_updates = None
     name = workflow_dict['name']
-    outputfh.write('\nChecking for tool parameter updates for workflow %s using dbkey %s.\n' % (name, dbkey))
+    outputfh.write("\nChecking for tool parameter updates for workflow %s using dbkey %s.\n" % (name, dbkey))
     step_dicts = workflow_dict.get('steps', None)
     for step_id, step_dict in step_dicts.items():
         tool_id = step_dict['tool_id']
@@ -238,7 +253,7 @@ def update_workflow_params(workflow_dict, dbkey, outputfh):
                 reference_genome_source_cond_dict['locally_cached_item'] = dbkey
                 parameter_updates = {}
                 parameter_updates[step_id] = reference_genome_source_cond_dict
-                outputfh.write('Updated step id %s with the following entry:\n%s\n' % (step_id, str(reference_genome_source_cond_dict)))
+                outputfh.write("Updated step id %s with the following entry:\n%s\n" % (step_id, str(reference_genome_source_cond_dict)))
     return parameter_updates
 
 
@@ -250,6 +265,7 @@ galaxy_base_url = get_value_from_config(config_defaults, 'GALAXY_BASE_URL')
 gi = galaxy.GalaxyInstance(url=galaxy_base_url, key=user_api_key)
 ags_dataset_name = get_value_from_config(config_defaults, 'ALL_GENOTYPED_SAMPLES_DATASET_NAME')
 ags_library_name = get_value_from_config(config_defaults, 'ALL_GENOTYPED_SAMPLES_LIBRARY_NAME')
+ags_storage_dir = get_value_from_config(config_defaults, 'ALL_GENOTYPED_SAMPLES_STORAGE_DIR')
 coralsnp_workflow_name = get_value_from_config(config_defaults, 'CORALSNP_WORKFLOW_NAME')
 vam_workflow_name = get_value_from_config(config_defaults, 'VALIDATE_AFFY_METADATA_WORKFLOW_NAME')
 
@@ -355,6 +371,14 @@ try:
             # Rename the ldda to be all_genotyped_samples.vcf.
             new_ags_ldda_id = new_ags_dataset_dict['id']
             renamed_ags_dataset_dict = rename_library_dataset(admin_gi, new_ags_ldda_id, ags_dataset_name, outputfh)
+            # Get the full path of the all_genotyped_samples.vcf library dataset.
+            ags_ldda_file_path = get_library_dataset_file_path(gi, ags_library_id, ags_ldda_id, outputfh)
+            # Copy the all_genotyped_samples.vcf dataset to storage.  We
+            # will only keep a single copy of this file since this tool
+            # will end in an error before the CoralSNP workflow is started
+            # if the all_genotyped_samples.vcf file is not sync'd with the
+            # stag database.
+            copy_dataset_to_storage(ags_ldda_file_path, ags_storage_dir, ags_dataset_name, outputfh)
             # Delete the original all_genotyped_samples library dataset.
             deleted_dataset_dict = delete_library_dataset(admin_gi, ags_library_id, ags_ldda_id, outputfh)
             # To save disk space, delete the all_genotyped_samples hda

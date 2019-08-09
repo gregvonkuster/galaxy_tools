@@ -2,7 +2,6 @@
     <description></description>
     <command detect_errors="exit_code"><![CDATA[
 #set history_id = $__app__.security.encode_id($affy_metadata.history.id)
-#set user_id = $__app__.security.encode_id('__user_id__')
 python $__tool_directory__/queue_genotype_workflow.py
 --affy_metadata '$affy_metadata'
 --annot '$annot'
@@ -17,7 +16,6 @@ python $__tool_directory__/queue_genotype_workflow.py
 --sample_attributes '$sample_attributes'
 --snp-posteriors '$snp_posteriors'
 --summary '$summary'
---user_id $user_id
 --output '$output']]></command>
     <configfiles>
         <configfile name="get_user_api_key"><![CDATA[#from galaxy.managers import api_keys#${api_keys.ApiKeyManager( $__app__ ).get_or_create_api_key($__user__)} ]]></configfile>
