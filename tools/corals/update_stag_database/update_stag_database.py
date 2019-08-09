@@ -5,7 +5,11 @@ import datetime
 import dateutil.parser
 import os
 import psycopg2
+import string
+import subprocess
 import sys
+
+from six.moves import configparser
 
 from sqlalchemy import create_engine
 from sqlalchemy import MetaData
@@ -17,13 +21,38 @@ metadata = MetaData()
 DEFAULT_MISSING_NUMERIC_VALUE = -9.000000
 
 
-def split_line(line, sep="\t"):
-    # Remove R quote chars.
-    items = line.split(sep)
-    unquoted_items = []
-    for item in items:
-        unquoted_items.append(item.strip('"'))
-    return unquoted_items
+def check_execution_errors(rc, fstderr, fstdout):
+    if rc != 0:
+        fh = open(fstdout, 'rb')
+        out_msg = fh.read()
+        fh.close()
+        fh = open(fstderr, 'rb')
+        err_msg = fh.read()
+        fh.close()
+        msg = '%s\n%s\n' % (str(out_msg), str(err_msg))
+        sys.exit(msg)
+
+
+def get_config_settings(config_file, section='defaults'):
+    # Return a dictionary consisting of the key / value pairs
+    # of the defaults section of config_file.
+    d = {}
+    config_parser = configparser.ConfigParser()
+    config_parser.read(config_file)
+    for key, value in config_parser.items(section):
+        if section == 'defaults':
+            d[string.upper(key)] = value
+        else:
+            d[key] = value
+    return d
+
+
+def get_response_buffers():
+    fstderr = os.path.join(os.getcwd(), 'stderr.txt')
+    fherr = open(fstderr, 'wb')
+    fstdout = os.path.join(os.getcwd(), 'stdout.txt')
+    fhout = open(fstdout, 'wb')
+    return fstderr, fherr, fstdout, fhout
 
 
 def get_sql_param_val_str(column_val, default):
@@ -32,6 +61,10 @@ def get_sql_param_val_str(column_val, default):
     else:
         val = column_val
     return "= '%s'" % val
+
+
+def get_value_from_config(config_defaults, value):
+    return config_defaults.get(value, None)
 
 
 def get_year_from_now():
@@ -79,10 +112,29 @@ def handle_null(val):
     return val
 
 
+def run_command(cmd):
+    fstderr, fherr, fstdout, fhout = get_response_buffers()
+    proc = subprocess.Popen(args=cmd, stderr=fherr, stdout=fhout, shell=True)
+    rc = proc.wait()
+    # Check results.
+    fherr.close()
+    fhout.close()
+    check_execution_errors(rc, fstderr, fstdout)
+
+
 def set_to_null(val):
     if val in ["", "NA", "NULL"]:
         return True
     return False
+
+
+def split_line(line, sep="\t"):
+    # Remove R quote chars.
+    items = line.split(sep)
+    unquoted_items = []
+    for item in items:
+        unquoted_items.append(item.strip('"'))
+    return unquoted_items
 
 
 def string_as_bool(string):
@@ -98,6 +150,9 @@ class StagDatabaseUpdater(object):
         self.conn = None
         self.parse_args()
         self.year_from_now = get_year_from_now()
+        self.db_name = None
+        self.db_storage_dir = None
+        self.get_config_settings()
         self.outfh = open(self.args.output, "w")
         self.connect_db()
         self.engine = create_engine(self.args.database_connection_string)
@@ -133,6 +188,17 @@ class StagDatabaseUpdater(object):
 
     def flush(self):
         self.conn.commit()
+
+    def export_database(self):
+        # Export the database to the configured storage location.
+        db_storage_path = os.path.join(self.db_storage_dir, "exported_%s_db" % self.db_name)
+        cmd = "pg_dump %s -f %s" % (self.db_name, db_storage_path)
+        run_command(cmd)
+
+    def get_config_settings(self):
+        config_defaults = get_config_settings(self.args.config_file)
+        self.db_name = get_value_from_config(config_defaults, 'DB_NAME')
+        self.db_storage_dir = get_value_from_config(config_defaults, 'DB_STORAGE_DIR')
 
     def get_next_sample_id(self):
         cmd = "SELECT sample_id FROM sample ORDER by id DESC;"
@@ -559,12 +625,14 @@ class StagDatabaseUpdater(object):
 
     def parse_args(self):
         parser = argparse.ArgumentParser()
+        parser.add_argument('--config_file', dest='config_file', help='usd_config.ini'),
         parser.add_argument('--database_connection_string', dest='database_connection_string', help='Postgres database connection string'),
         parser.add_argument('--input_dir', dest='input_dir', help='Input datasets for database insertion')
         parser.add_argument('--output', dest='output', help='Output dataset'),
         self.args = parser.parse_args()
 
     def run(self):
+        self.export_database()
         input_dir = self.args.input_dir
         for file_name in os.listdir(input_dir):
             # Tables must be loaded in such a way that foreign keys
