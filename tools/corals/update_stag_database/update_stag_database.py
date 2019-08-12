@@ -508,7 +508,7 @@ class StagDatabaseUpdater(object):
                     latitude = DEFAULT_MISSING_NUMERIC_VALUE
                     longitude = DEFAULT_MISSING_NUMERIC_VALUE
                 # See if we need to add a row to the reef table.
-                cmd = "SELECT id FROM reef WHERE name = '%s' AND region = '%s' " % (name, region)
+                cmd = "SELECT id FROM reef WHERE name = $$%s$$ AND region = '%s' " % (name, region)
                 cmd += "AND latitude = %s AND longitude = %s " % (latitude, longitude)
                 cmd += "AND geographic_origin = '%s';" % geographic_origin
                 cur = self.conn.cursor()
