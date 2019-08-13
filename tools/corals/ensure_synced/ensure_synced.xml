@@ -1,0 +1,40 @@
+<tool id="ensure_synced" name="Ensure synchronized" version="1.0.0">
+    <description>analysis components</description>
+    <command detect_errors="exit_code"><![CDATA[
+#set affy_ids_from_file = 'affy_ids_from_file.txt'
+grep "#CHROM" $input > test.head &&
+tr '\t' '\n' < test.head > $affy_ids_from_file
+python '$__tool_directory__/ensure_synced.py'
+--database_connection_string '$__app__.config.corals_database_connection'
+--affy_ids_from_file '$affy_ids_from_file'
+--output '$output']]></command>
+    <inputs>
+        <param name="input" format="vcf" type="data" label="All genotyped samples file"/>
+    </inputs>
+    <outputs>
+        <data name="output" format="txt" label="${tool.name} (process log) on ${on_string}"/>
+    </outputs>
+    <tests>
+        <test>
+            <!--Testing this tool is a bit difficult at the current time.-->
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+Compares the set of Affymetrix id strings contained within a selected VCF file with the set of Affymetrix ids contained
+in the affy_id column of the sample table in the corals (stag) database for all samples not in a failed state.  If these
+sets are equivalent, the file and the database are considered to be in sync with each other.
+    </help>
+    <citations>
+        <citation type="bibtex">
+            @misc{None,
+            journal = {None},
+            author = {Baums I},
+            title = {Manuscript in preparation},
+            year = {None},
+            url = {http://baumslab.org}
+        </citation>
+    </citations>
+</tool>
+
