@@ -268,26 +268,42 @@ ags_dataset_name = get_value_from_config(config_defaults, 'ALL_GENOTYPED_SAMPLES
 ags_library_name = get_value_from_config(config_defaults, 'ALL_GENOTYPED_SAMPLES_LIBRARY_NAME')
 ags_storage_dir = get_value_from_config(config_defaults, 'ALL_GENOTYPED_SAMPLES_STORAGE_DIR')
 coralsnp_workflow_name = get_value_from_config(config_defaults, 'CORALSNP_WORKFLOW_NAME')
+es_workflow_name = get_value_from_config(config_defaults, 'ENSURE_SYNCED_WORKFLOW_NAME')
 vam_workflow_name = get_value_from_config(config_defaults, 'VALIDATE_AFFY_METADATA_WORKFLOW_NAME')
 
 affy_metadata_is_valid = False
 datasets_have_queued = False
 stag_database_updated = False
+synced = False
 lock = threading.Lock()
 lock.acquire(True)
 try:
     # Get the current history datasets.  At this point, the
     # history will ideally contain only the datasets to be
-    # used as inputs to the 2 workflows.
+    # used as inputs to the 3 workflows, EnsureSynced,
+    # ValidateAffyMetadata and CoralSNP.
     history_datasets = get_history_datasets(gi, args.history_id)
-    # Get the ValidateAffyMetadata workflow.
-    vam_workflow_id, vam_workflow_dict = get_workflow(gi, vam_workflow_name, outputfh)
-    outputfh.write("\nValidateAffyMetadata workflow id: %s\n" % str(vam_workflow_id))
+
+    # Get the All Genotyped Samples data library.
+    ags_data_library_dict = get_data_library_dict(gi, ags_library_name, outputfh)
+    ags_library_id = ags_data_library_dict['id']
+    # Get the public all_genotyped_samples.vcf library dataset id.
+    ags_ldda_id = get_library_dataset_id_by_name(gi, ags_library_id, ags_dataset_name, outputfh)
+
+    # Import the public all_genotyped_samples dataset from
+    # the data library to the current history.
+    history_datasets = add_library_dataset_to_history(gi, args.history_id, ags_ldda_id, history_datasets, outputfh)
+    outputfh.write("\nSleeping for 5 seconds...\n")
+    time.sleep(5)
+
+    # Get the EnsureSynced workflow
+    es_workflow_id, es_workflow_dict = get_workflow(gi, es_workflow_name, outputfh)
+    outputfh.write("\nEnsureSynced workflow id: %s\n" % str(es_workflow_id))
     # Map the history datasets to the input datasets for
-    # the ValidateAffyMetadata workflow.
-    vam_workflow_input_datasets = get_workflow_input_datasets(gi, history_datasets, vam_workflow_name, vam_workflow_dict, outputfh)
-    # Start the ValidateAffyMetadata workflow.
-    start_workflow(gi, vam_workflow_id, vam_workflow_name, vam_workflow_input_datasets, None, args.history_id, outputfh)
+    # the EnsureSynced workflow.
+    es_workflow_input_datasets = get_workflow_input_datasets(gi, history_datasets, es_workflow_name, es_workflow_dict, outputfh)
+    # Start the EnsureSynced workflow.
+    start_workflow(gi, es_workflow_id, es_workflow_name, es_workflow_input_datasets, None, args.history_id, outputfh)
     outputfh.write("\nSleeping for 15 seconds...\n")
     time.sleep(15)
     # Poll the history datasets, checking the statuses, and wait until
@@ -302,26 +318,50 @@ try:
         # the workflow has completed if only 1 dataset has this state.
         if sd_dict['running'] <= 1:
             if sd_dict['error'] == 0:
-                # The metadata is valid.
-                affy_metadata_is_valid = True
+                # The all_genotyped_samples.vcf file is
+                # in sync with the stag database.
+                synced = True
                 break
         outputfh.write("\nSleeping for 5 seconds...\n")
         time.sleep(5)
+
+    if synced:
+        # Get the ValidateAffyMetadata workflow.
+        vam_workflow_id, vam_workflow_dict = get_workflow(gi, vam_workflow_name, outputfh)
+        outputfh.write("\nValidateAffyMetadata workflow id: %s\n" % str(vam_workflow_id))
+        # Map the history datasets to the input datasets for
+        # the ValidateAffyMetadata workflow.
+        vam_workflow_input_datasets = get_workflow_input_datasets(gi, history_datasets, vam_workflow_name, vam_workflow_dict, outputfh)
+        # Start the ValidateAffyMetadata workflow.
+        start_workflow(gi, vam_workflow_id, vam_workflow_name, vam_workflow_input_datasets, None, args.history_id, outputfh)
+        outputfh.write("\nSleeping for 15 seconds...\n")
+        time.sleep(15)
+        # Poll the history datasets, checking the statuses, and wait until
+        # the workflow is finished.
+        while True:
+            history_status_dict = get_history_status(gi, args.history_id)
+            sd_dict = history_status_dict['state_details']
+            outputfh.write("\nsd_dict: %s\n" % str(sd_dict))
+            # The queue_genotype_workflow tool will continue to be in a
+            # "running" state while inside this for loop, so  we know that
+            # the workflow has completed if only 1 dataset has this state.
+            if sd_dict['running'] <= 1:
+                if sd_dict['error'] == 0:
+                    # The metadata is valid.
+                    affy_metadata_is_valid = True
+                    break
+            outputfh.write("\nSleeping for 5 seconds...\n")
+            time.sleep(5)
+    else:
+        outputfh.write("\nProcessing ended in error...\n")
+        outputfh.close()
+        lock.release()
+        sys.exit(1)
 
     if affy_metadata_is_valid:
         # Get the CoralSNP workflow.
         coralsnp_workflow_id, coralsnp_workflow_dict = get_workflow(gi, coralsnp_workflow_name, outputfh)
         outputfh.write("\nCoralSNP workflow id: %s\n" % str(coralsnp_workflow_id))
-        # Get the All Genotyped Samples data library.
-        ags_data_library_dict = get_data_library_dict(gi, ags_library_name, outputfh)
-        ags_library_id = ags_data_library_dict['id']
-        # Get the public all_genotyped_samples.vcf library dataset id.
-        ags_ldda_id = get_library_dataset_id_by_name(gi, ags_library_id, ags_dataset_name, outputfh)
-        # Import the public all_genotyped_samples dataset from
-        # the data library to the current history.
-        history_datasets = add_library_dataset_to_history(gi, args.history_id, ags_ldda_id, history_datasets, outputfh)
-        outputfh.write("\nSleeping for 5 seconds...\n")
-        time.sleep(5)
         # Map the history datasets to the input datasets for
         # the CoralSNP workflow.
         coralsnp_workflow_input_datasets = get_workflow_input_datasets(gi, history_datasets, coralsnp_workflow_name, coralsnp_workflow_dict, outputfh)
@@ -386,6 +426,11 @@ try:
             # in the current history to enable later purging by an admin.
             ags_hda_id = get_history_dataset_id_by_name(gi, args.history_id, "all_genotyped_samples", outputfh)
             delete_history_dataset(gi, args.history_id, ags_hda_id, outputfh)
+    else:
+        outputfh.write("\nProcessing ended in error...\n")
+        outputfh.close()
+        lock.release()
+        sys.exit(1)
 except Exception as e:
     outputfh.write("Exception preparing or executing either the ValidateAffyMetadata workflow or the CoralSNP workflow:\n%s\n" % str(e))
     outputfh.write("\nProcessing ended in error...\n")
