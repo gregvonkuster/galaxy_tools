@@ -22,7 +22,7 @@ awk -F'\t' -v OFS='\t' 'NR==0 {print ; next}{print (NR),$0}' samples.txt > '$out
 **What it does**
 
 Extracts information from a VCF file that contains Affymetrix identifiers and produces a file that contains
-a subset of the identifiers combined with additional data to generate the genotype populatiuon information
+a subset of the identifiers combined with additional data to generate the genotype population information
 for use as input to the Corals Multilocus Genotype tool.  This tool must be able to access the corals (stag)
 database.
     </help>
