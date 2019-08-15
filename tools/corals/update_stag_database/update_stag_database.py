@@ -170,12 +170,12 @@ class StagDatabaseUpdater(object):
 
     def connect_db(self):
         url = make_url(self.args.database_connection_string)
-        self.log('Connecting to database with URL: %s' % url)
+        self.log('Attempting to connect to the database...')
         args = url.translate_connect_args(username='user')
         args.update(url.query)
         assert url.get_dialect().name == 'postgresql', 'This script can only be used with PostgreSQL.'
         self.conn = psycopg2.connect(**args)
-        self.log("Successfully connected to the stag database...")
+        self.log("Successfully connected to the database...")
 
     def convert_date_string_for_database(self, date_string):
         # The value of date_string is %y/%m/%d with
