@@ -28,7 +28,8 @@ python '$__tool_directory__/update_stag_database.py'
 **What it does**
 
 Accepts a set of tabular datasets, one for each appropriate table in the corals (stag) database, and
-updates the table with the data.
+updates the table with the data.  The database must be Postgres, and this tool exports the database
+into a file stored in a specified directory on disk before the database is updated.
     </help>
     <citations>
         <citation type="bibtex">

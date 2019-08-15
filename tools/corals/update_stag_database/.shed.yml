@@ -1,10 +1,12 @@
 name: update_stag_database
 owner: greg
 description: |
-  Contains a tool that updates stag database tables.
+  Contains a tool that updates the corals (stag) database tables from a dataset collection.
 homepage_url: http://baumslab.org
 long_description: |
-  Contains a tool that updates stag database tables.
+  Contains a tool that updates the corals (stag) database tables from a dataset collection where each
+  item in the collection is a tabular file that will be parsed to insert rows into a table defined by
+  the name of the file.
 remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/corals/update_stag_database
 type: unrestricted
 categories:
