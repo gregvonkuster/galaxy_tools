@@ -1,0 +1,14 @@
+name: ensure_synced
+owner: greg
+description: |
+  Compares a list of Affymetrix ids from a vcf file with those in a database table for euqivalency.
+homepage_url: http://baumslab.org
+long_description: |
+  Compares the set of Affymetrix id strings contained within a selected VCF file with the set of Affymetrix
+  ids contained in the affy_id column of the sample table in the corals (stag) database for all samples not
+  in a failed state.  If these sets are equivalent, the file and the database are considered to be in sync
+  with each other.
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/corals/ensure_synced
+type: unrestricted
+categories:
+  - Micro-array Analysis
