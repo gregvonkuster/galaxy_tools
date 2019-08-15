@@ -56,18 +56,7 @@ Rscript '$__tool_directory__/coral_multilocus_genotype.R'
     </outputs>
     <tests>
         <test>
-            <param name="input_vcf" value="baitssnv.recode.vcf" ftype="vcf"/>
-            <param name="input_affy_metadata" value="affy_metadata.tabular" ftype="tabular"/>
-            <param name="input_pop_info" value="pop_info.txt" ftype="txt"/>
-            <output name="output_stag_db_report" file="output_stag_db_report.csv" ftype="csv"/>
-            <output_collection name="output_data_collection" type="list">
-                <element name="person.tabular" file="person.tabular" ftype="tabular" compare="contains"/>
-            </output_collection>
-            <output_collection name="output_plot_collection" type="list">
-                <element name="nj_phylogeny.pdf" file="nj_phylogeny.pdf" ftype="pdf" compare="contains"/>
-                <element name="missing_data.pdf" file="missing_data.pdf" ftype="pdf" compare="contains"/>
-                <element name="percent_breakdown.pdf" file="percent_breakdown.pdf" ftype="pdf" compare="contains"/>
-            </output_collection>
+            <!--Testing this tool is a bit difficult at the current time.-->
         </test>
     </tests>
     <help>
