@@ -1,7 +1,7 @@
 name: ensure_synced
 owner: greg
 description: |
-  Compares a list of Affymetrix ids from a vcf file with those in a database table for euqivalency.
+  Compares a list of Affymetrix ids from a vcf file with those in a database table for equivalency.
 homepage_url: http://baumslab.org
 long_description: |
   Compares the set of Affymetrix id strings contained within a selected VCF file with the set of Affymetrix
