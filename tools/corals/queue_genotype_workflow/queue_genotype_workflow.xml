@@ -45,12 +45,15 @@ python $__tool_directory__/queue_genotype_workflow.py
         <data name="output" label="${tool.name} execution log" format="txt" />
     </outputs>
     <tests>
+        <test>
+            <!--Testing this tool is a bit difficult at the current time.-->
+        </test>
     </tests>
     <help>
 **What it does**
 
-Uses the Galaxy API to execute the complete multilocus genotype analysis pipeline for corals or symbiants.
-This tool must be able to access the corals (stag) database
+Uses the Galaxy/Bioblend API to execute the complete multilocus genotype analysis pipeline for corals or symbiants.
+This tool must be able to access the corals (stag) database.
 
     </help>
     <citations>
