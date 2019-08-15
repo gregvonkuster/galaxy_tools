@@ -23,8 +23,8 @@ python $__tool_directory__/genotype_population_info.py
 Accepts a file that contains Affymetrix identifiers and a subset of the user specimen identifiers and
 regions for genotyping.  The corals (stag) database is queried to retrieve the user specimen identifiers
 and regions that are missing for each Affymetrix identifier, and a complete set of genotype population
-information is produced for use as input to the Corals Multilocus Genotype tool.  This tool must be able
-to access the stag database.
+information is produced for use as input to the Coral Multilocus Genotype tool.  This tool must be able
+to access the corals (stag) database.
     </help>
     <citations>
         <citation type="bibtex">
