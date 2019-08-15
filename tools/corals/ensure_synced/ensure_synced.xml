@@ -3,7 +3,7 @@
     <command detect_errors="exit_code"><![CDATA[
 #set affy_ids_from_file = 'affy_ids_from_file.txt'
 grep "#CHROM" $input > test.head &&
-tr '\t' '\n' < test.head > $affy_ids_from_file
+tr '\t' '\n' < test.head > $affy_ids_from_file &&
 python '$__tool_directory__/ensure_synced.py'
 --database_connection_string '$__app__.config.corals_database_connection'
 --affy_ids_from_file '$affy_ids_from_file'
