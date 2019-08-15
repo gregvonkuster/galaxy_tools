@@ -672,13 +672,9 @@ class StagDatabaseUpdater(object):
 
     def shutdown(self):
         self.log("Shutting down...")
-        self.conn.close()
-
-    def stop_err(self, msg):
-        sys.stderr.write(msg)
         self.outfh.flush()
         self.outfh.close()
-        sys.exit(1)
+        self.conn.close()
 
     def update(self, cmd, args):
         for i, arg in enumerate(args):
@@ -688,7 +684,11 @@ class StagDatabaseUpdater(object):
             cur.execute(cmd, tuple(args))
         except Exception as e:
             msg = "Caught exception executing SQL:\n%s\nException:\n%s\n" % (cmd.format(args), e)
-            self.stop_err(msg)
+            sys.stderr.write(msg)
+            self.outfh.flush()
+            self.outfh.close()
+            self.conn.close()
+            sys.exit(1)
         return cur
 
 
