@@ -8,6 +8,7 @@ import threading
 import time
 
 from bioblend import galaxy
+from datetime import datetime
 from six.moves import configparser
 
 parser = argparse.ArgumentParser()
@@ -45,10 +46,14 @@ def copy_history_dataset_to_library(gi, library_id, dataset_id, outputfh):
 
 
 def copy_dataset_to_storage(src_path, dst_base_path, dataset_name, output_fh):
-    # Copy a dataset via its file path to a storage directory on disk.
-    if not os.path.isdir(dst_base_path):
-        os.makedirs(dst_base_path)
-    dst_path = os.path.join(dst_base_path, dataset_name)
+    # Copy a dataset to a storage directory on disk.  Use the date
+    # to name the storage directory to enable storing a file per day
+    # (multiple runs per day will overwrite the existing file).
+    date_str = datetime.now().strftime("%Y_%m_%d")
+    dst_dir = os.path.join(dst_base_path, date_str)
+    if not os.path.isdir(dst_dir):
+        os.makedirs(dst_dir)
+    dst_path = os.path.join(dst_dir, dataset_name)
     shutil.copyfile(src_path, dst_path)
     outputfh.write("Copied %s to storage.\n" % dataset_name)
 
@@ -426,6 +431,11 @@ try:
             # in the current history to enable later purging by an admin.
             ags_hda_id = get_history_dataset_id_by_name(gi, args.history_id, "all_genotyped_samples", outputfh)
             delete_history_dataset(gi, args.history_id, ags_hda_id, outputfh)
+        else:
+            outputfh.write("\nProcessing ended in error...\n")
+            outputfh.close()
+            lock.release()
+            sys.exit(1)
     else:
         outputfh.write("\nProcessing ended in error...\n")
         outputfh.close()
