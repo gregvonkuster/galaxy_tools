@@ -19,6 +19,7 @@ parser.add_argument('--calls', dest='calls', help='Apt-probeset genotype calls f
 parser.add_argument('--confidences', dest='confidences', help='Apt-probeset genotype confidences file')
 parser.add_argument('--config_file', dest='config_file', help='qgw_config.ini')
 parser.add_argument('--dbkey', dest='dbkey', help='Reference genome dbkey')
+parser.add_argument('--delete_all_genotyped_samples', dest='delete_all_genotyped_samples', default=None, help='Boolean value to mark the all_genotyped_samples.vcf history item as deleted')
 parser.add_argument('--reference_genome', dest='reference_genome', help='Reference genome')
 parser.add_argument('--history_id', dest='history_id', help='Encoded id of current history')
 parser.add_argument('--output', dest='output', help='Output dataset')
@@ -427,10 +428,11 @@ try:
             copy_dataset_to_storage(ags_ldda_file_path, ags_storage_dir, ags_dataset_name, outputfh)
             # Delete the original all_genotyped_samples library dataset.
             deleted_dataset_dict = delete_library_dataset(admin_gi, ags_library_id, ags_ldda_id, outputfh)
-            # To save disk space, delete the all_genotyped_samples hda
-            # in the current history to enable later purging by an admin.
-            ags_hda_id = get_history_dataset_id_by_name(gi, args.history_id, "all_genotyped_samples", outputfh)
-            delete_history_dataset(gi, args.history_id, ags_hda_id, outputfh)
+            if str(args.delete_all_genotyped_samples) == "true":
+                # To save disk space, delete the all_genotyped_samples hda
+                # in the current history to enable later purging by an admin.
+                ags_hda_id = get_history_dataset_id_by_name(gi, args.history_id, "all_genotyped_samples", outputfh)
+                delete_history_dataset(gi, args.history_id, ags_hda_id, outputfh)
         else:
             outputfh.write("\nProcessing ended in error...\n")
             outputfh.close()

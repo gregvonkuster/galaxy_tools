@@ -12,6 +12,9 @@ python $__tool_directory__/queue_genotype_workflow.py
 --history_id $history_id
 --reference_genome '$locally_cached_item.fields.path'
 --dbkey '$locally_cached_item.fields.value'
+#if str($delete_all_genotyped_samples) == "true":
+    --delete_all_genotyped_samples true
+#end if
 --report '$report'
 --sample_attributes '$sample_attributes'
 --snp-posteriors '$snp_posteriors'
@@ -40,6 +43,7 @@ python $__tool_directory__/queue_genotype_workflow.py
                 <validator type="no_options" message="No cached Fasta genome references are available for the build associated with the selected probeset annotation file." />
             </options>
         </param>
+        <param name="delete_all_genotyped_samples" type="boolean" truevalue="true" falsevalue="" checked="True" label="Delete the all_genotyped_samples.vcf history item?" help="Select True to delete the item after copying it to the data library - select False to enable reproducibility"/>
     </inputs>
     <outputs>
         <data name="output" label="${tool.name} execution log" format="txt" />
