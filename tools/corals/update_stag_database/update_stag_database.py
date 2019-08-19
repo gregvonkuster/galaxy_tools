@@ -201,7 +201,12 @@ class StagDatabaseUpdater(object):
     def get_config_settings(self):
         config_defaults = get_config_settings(self.args.config_file)
         self.db_name = get_value_from_config(config_defaults, 'DB_NAME')
-        self.db_storage_dir = get_value_from_config(config_defaults, 'DB_STORAGE_DIR')
+        base_storage_dir = get_value_from_config(config_defaults, 'DB_STORAGE_DIR')
+        # Use the date to name the storage directory to
+        # enable storing a file per day (multiple runs
+        # per day will overwrite the existing file.
+        date_str = datetime.datetime.now().strftime("%Y_%m_%d")
+        self.db_storage_dir = os.path.join(base_storage_dir, date_str)
 
     def get_next_sample_id(self):
         cmd = "SELECT sample_id FROM sample ORDER by id DESC;"
