@@ -1,0 +1,244 @@
+uwsgi:
+  socket: 127.0.0.1:4002
+  #socket: /home/galaxy/galaxy/logs/uwsgi.sock
+  #chmod-socket: 660
+  manage-script-name: true
+  mount: /galaxy=galaxy.webapps.galaxy.buildapp:uwsgi_app()
+  #mount: /reports=galaxy.webapps.coralsnp_reports.buildapp:uwsgi_app()
+  #mount: /jobs=galaxy.webapps.reports.buildapp:uwsgi_app()
+  #module: galaxy.webapps.galaxy.buildapp:uwsgi_app()
+  virtualenv: .venv
+  pythonpath: lib
+  master: true
+  enable-threads: true
+  processes: 2
+#  mount: '/galaxy=galaxy.webapps.galaxy.buildapp:uwsgi_app()'
+
+#  http: 0.0.0.0:8080
+
+  threads: 10
+
+#  http-raw-body: True
+
+  offload-threads: 8
+  die-on-term: true
+  hook-master-start: unix_signal:2 gracefully_kill_them_all
+  hook-master-start: unix_signal:15 gracefully_kill_them_all
+#  module: galaxy.webapps.galaxy.buildapp:uwsgi_app()
+
+galaxy:
+
+  database_connection: postgresql://user:pass@localhost/galaxy
+
+  database_engine_option_pool_size: 50
+
+  database_engine_option_max_overflow: 300
+
+  database_engine_option_server_side_cursors: true
+
+  install_database_connection: postgresql://user:pass@localhost/galaxy_install
+
+  corals_database_connection: postgresql://user:pass@localhost/stag
+
+  file_path: /home/galaxy/galaxy/database/files/datasets
+
+  new_file_path: /home/galaxy/galaxy/database/files/tmp
+
+  tool_config_file: config/tool_conf.xml,config/shed_tool_conf.xml
+
+  check_migrate_tools: false
+
+  integrated_tool_panel_config: integrated_tool_panel.xml
+
+  tool_path: tools
+
+  tool_dependency_dir: /home/galaxy/td
+
+  dependency_resolvers_config_file: config/dependency_resolvers_conf.xml
+
+  conda_prefix: /home/galaxy/_conda
+
+  conda_exec: /home/galaxy/_conda/bin/conda
+
+  conda_debug: true
+
+  conda_ensure_channels: iuc,conda-forge,bioconda,defaults,gregvonkuster
+
+  conda_auto_install: true
+
+  conda_verbose_install_check: 'False'
+
+  conda_auto_init: true
+
+  conda_copy_dependencies: false
+
+  use_cached_dependency_manager: false
+
+  tool_dependency_cache_dir: /home/galaxy/td/_cache
+
+  tool_sheds_config_file: config/tool_sheds_conf.xml
+
+  watch_tools: 'False'
+
+  enable_tool_shed_check: false
+
+  manage_dependency_relationships: false
+
+  tool_data_table_config_path: config/tool_data_table_conf.xml
+
+  shed_tool_data_table_config: config/shed_tool_data_table_conf.xml
+
+  tool_data_path: tool-data
+
+  shed_tool_data_path: tool-data
+
+  builds_file_path: tool-data/shared/ucsc/builds.txt
+
+  len_file_path: tool-data/shared/ucsc/chrom
+
+  datatypes_config_file: config/datatypes_conf.xml
+
+  datatypes_disable_auto: false
+
+  visualization_plugins_directory: config/plugins/visualizations
+
+  webhooks_dir: config/plugins/webhooks
+
+  job_working_directory: /home/galaxy/jwd
+
+  template_cache_path: database/compiled_templates
+
+  check_job_script_integrity: true
+
+  default_job_shell: /bin/bash
+
+  collect_outputs_from: new_file_path,job_working_directory
+
+  display_servers: hgw1.cse.ucsc.edu,hgw2.cse.ucsc.edu,hgw3.cse.ucsc.edu,hgw4.cse.ucsc.edu,hgw5.cse.ucsc.edu,hgw6.cse.ucsc.edu,hgw7.cse.ucsc.edu,hgw8.cse.ucsc.edu,lowepub.cse.ucsc.edu
+
+  enable_old_display_applications: false
+
+  use_nglims: 'False'
+
+  nglims_config_file: tool-data/nglims.yaml
+
+  brand: CoralSNP
+
+  pretty_datetime_format: $locale (UTC)
+
+  galaxy_infrastructure_url: http://localhost:8080
+
+  galaxy_infrastructure_web_port: 8080
+
+  welcome_url: /static/welcome.html
+
+  wiki_url: https://wiki.galaxyproject.org/
+
+  support_url: https://wiki.galaxyproject.org/Support
+
+  citation_url: https://wiki.galaxyproject.org/CitingGalaxy
+
+  search_url: http://galaxyproject.org/search/usegalaxy/
+
+  screencasts_url: https://vimeo.com/galaxyproject
+
+  static_enabled: false
+
+  static_cache_time: 360
+
+  static_dir: static/
+
+  static_images_dir: static/images
+
+  static_favicon_dir: static/favicon.ico
+
+  static_scripts_dir: static/scripts/
+
+  static_style_dir: static/june_2007_style/blue
+
+  static_robots_txt: static/robots.txt
+
+  auto_configure_logging: true
+
+  log_level: DEBUG
+
+  database_engine_option_echo_pool: false
+
+  log_events: false
+
+  log_actions: false
+
+  sanitize_all_html: true
+
+  sanitize_whitelist_file: config/sanitize_whitelist.txt
+
+  serve_xss_vulnerable_mimetypes: false
+
+  debug: true
+
+  use_profile: false
+
+  use_interactive: false
+
+  library_import_dir: /home/galaxy/all_genotyped_samples
+
+  allow_path_paste: true
+
+  whoosh_index_dir: database/whoosh_indexes
+
+  id_secret: tHEbROWNmARMELATEDsTINKbUG
+
+  admin_users: greg@bx.psu.edu,coraladmin@psu.edu
+
+  require_login: true
+
+  show_welcome_with_login: true
+
+  allow_user_creation: true
+
+  allow_user_deletion: false
+
+  allow_user_impersonation: true
+
+  allow_user_dataset_purge: true
+
+  new_user_dataset_access_role_default_private: false
+
+  expose_user_name: true
+
+  expose_user_email: true
+
+  master_api_key: cLAUDEdEPAMPHILLISpLANTtRIBES
+
+  enable_tool_tags: true
+
+  enable_unique_workflow_defaults: true
+
+  expose_dataset_path: true
+
+  data_manager_config_file: config/data_manager_conf.xml
+
+  shed_data_manager_config_file: config/shed_data_manager_conf.xml
+
+  galaxy_data_manager_data_path: /home/galaxy/galaxy/tool-data
+
+  job_config_file: config/job_conf.xml
+
+  track_jobs_in_database: true
+
+  enable_job_recovery: true
+
+  retry_metadata_internally: true
+
+  max_metadata_value_size: 5242880
+
+  outputs_to_working_directory: true
+
+  cleanup_job: never
+
+  environment_setup_file: /home/galaxy/galaxy/database/files/env.sh
+
+  job_resource_params_file: config/job_resource_params_conf.xml
+
+  tool_filters: examples:restrict_to_admins
+

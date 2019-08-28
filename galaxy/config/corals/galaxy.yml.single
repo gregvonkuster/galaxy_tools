@@ -1,0 +1,126 @@
+uwsgi:
+
+  http: 0.0.0.0:8080
+
+  threads: 8
+
+  http-raw-body: True
+
+  offload-threads: 8
+
+  module: galaxy.webapps.galaxy.buildapp:uwsgi_app()
+
+galaxy:
+
+  database_connection: postgresql://user:pass@localhost/galaxy
+
+  install_database_connection: postgresql://user:pass@localhost/galaxy_install
+
+  corals_database_connection: postgresql://user:pass@localhost/stag
+
+  file_path: /home/galaxy/galaxy/database/files/datasets
+
+  new_file_path: /home/galaxy/galaxy/database/files/tmp
+
+  tool_config_file: config/tool_conf.xml,config/shed_tool_conf.xml
+
+  check_migrate_tools: false
+
+  integrated_tool_panel_config: integrated_tool_panel.xml
+
+  tool_path: tools
+
+  tool_dependency_dir: /home/galaxy/td
+
+  dependency_resolvers_config_file: config/dependency_resolvers_conf.xml
+
+  conda_prefix: /home/galaxy/_conda
+
+  conda_exec: /home/galaxy/_conda/bin/conda
+
+  conda_ensure_channels: iuc,conda-forge,bioconda,defaults,gregvonkuster
+
+  conda_auto_install: true
+
+  conda_auto_init: true
+
+  conda_copy_dependencies: false
+
+  use_cached_dependency_manager: false
+
+  tool_dependency_cache_dir: /home/galaxy/td/_cache
+
+  precache_dependencies: true
+
+  tool_sheds_config_file: config/tool_sheds_conf.xml
+
+  watch_tools: 'False'
+
+  enable_beta_mulled_containers: false
+
+  containers_resolvers_config_file: None
+
+  manage_dependency_relationships: false
+
+  tool_data_table_config_path: config/tool_data_table_conf.xml
+
+  shed_tool_data_table_config: config/shed_tool_data_table_conf.xml
+
+  tool_data_path: tool-data
+
+  shed_tool_data_path: tool-data
+
+  builds_file_path: tool-data/shared/ucsc/builds.txt
+
+  len_file_path: tool-data/shared/ucsc/chrom
+
+  datatypes_config_file: config/datatypes_conf.xml
+
+  datatypes_disable_auto: true
+
+  visualization_plugins_directory: config/plugins/visualizations
+
+  webhooks_dir: config/plugins/webhooks
+
+  job_working_directory: /home/galaxy/jwd
+
+  template_cache_path: database/compiled_templates
+
+  default_job_shell: /bin/bash
+
+  collect_outputs_from: new_file_path,job_working_directory
+
+  use_nglims: 'False'
+
+  nglims_config_file: tool-data/nglims.yaml
+
+  pretty_datetime_format: $locale (UTC)
+
+  galaxy_infrastructure_url: http://localhost:8080
+
+  galaxy_infrastructure_web_port: 8080
+
+  welcome_url: /static/welcome.html
+
+  logo_url: /
+
+  wiki_url: https://wiki.galaxyproject.org/
+
+  support_url: https://wiki.galaxyproject.org/Support
+
+  citation_url: https://wiki.galaxyproject.org/CitingGalaxy
+
+  search_url: http://galaxyproject.org/search/usegalaxy/
+
+  mailing_lists_url: https://wiki.galaxyproject.org/MailingLists
+
+  screencasts_url: https://vimeo.com/galaxyproject
+
+  terms_url: None
+
+  use_interactive: true
+
+  library_import_dir: /home/galaxy/all_genotyped_samples
+
+  admin_users: greg@bx.psu.edu,coraladmin@psu.edu
+
