@@ -160,9 +160,9 @@ corals_model.Sample.table = Table("sample", metadata,
     Column("public_after_date", DateTime, default=year_from_now),
     Column("percent_missing_data_coral", Numeric(15, 6)),
     Column("percent_missing_data_sym", Numeric(15, 6)),
-    Column("percent_reference_coral", Numeric(15, 6)),
+    Column("percent_acerv_coral", Numeric(15, 6)),
     Column("percent_reference_sym", Numeric(15, 6)),
-    Column("percent_alternative_coral", Numeric(15, 6)),
+    Column("percent_apalm_coral", Numeric(15, 6)),
     Column("percent_alternative_sym", Numeric(15, 6)),
     Column("percent_heterozygous_coral", Numeric(15, 6)),
     Column("percent_heterozygous_sym", Numeric(15, 6)),
@@ -244,6 +244,7 @@ mapper(corals_model.Sample, corals_model.Sample.table, properties=dict(
                        primaryjoin=(corals_model.Sample.table.c.collector_id == corals_model.Person.table.c.id))))
 
 mapper(corals_model.Taxonomy, corals_model.Taxonomy.table, properties=None)
+
 
 def init(url, engine_options={}, create_tables=False):
     """Connect mappings to the database"""

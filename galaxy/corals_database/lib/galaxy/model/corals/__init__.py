@@ -341,7 +341,7 @@ class Sample(Dictifiable):
                                     'fragment_id', 'taxonomy_id', 'collector_id', 'collection_date', 'user_specimen_id',
                                     'registry_id', 'depth', 'dna_extraction_method', 'dna_concentration', 'public',
                                     'public_after_date,' 'percent_missing_data_coral', 'percent_missing_data_sym',
-                                    'percent_reference_coral', 'percent_reference_sym', 'percent_alternative_coral',
+                                    'percent_acerv_coral', 'percent_reference_sym', 'percent_apalm_coral',
                                     'percent_alternative_sym', 'percent_heterozygous_coral', 'percent_heterozygous_sym',
                                     'field_call', 'bcoral_genet_id']
 
@@ -350,7 +350,7 @@ class Sample(Dictifiable):
                  fragment_id=None, taxonomy_id=None, collector_id=None, collection_date=None, user_specimen_id=None,
                  registry_id=None, depth=None, dna_extraction_method=None, dna_concentration=None, public=None,
                  public_after_date=None, percent_missing_data_coral=None, percent_missing_data_sym=None,
-                 percent_reference_coral=None, percent_reference_sym=None, percent_alternative_coral=None,
+                 percent_acerv_coral=None, percent_reference_sym=None, percent_apalm_coral=None,
                  percent_alternative_sym=None, percent_heterozygous_coral=None, percent_heterozygous_sym=None,
                  field_call=None, bcoral_genet_id=None):
         self.create_time = create_time
@@ -379,9 +379,9 @@ class Sample(Dictifiable):
         self.public_after_date = public_after_date
         self.percent_missing_data_coral = percent_missing_data_coral
         self.percent_missing_data_sym = percent_missing_data_sym
-        self.percent_reference_coral = percent_reference_coral
+        self.percent_acerv_coral = percent_acerv_coral
         self.percent_reference_sym = percent_reference_sym
-        self.percent_alternative_coral = percent_alternative_coral
+        self.percent_apalm_coral = percent_apalm_coral
         self.percent_alternative_sym = percent_alternative_sym
         self.percent_heterozygous_coral = percent_heterozygous_coral
         self.percent_heterozygous_sym = percent_heterozygous_sym

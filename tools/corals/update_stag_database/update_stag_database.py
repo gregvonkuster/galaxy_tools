@@ -537,7 +537,7 @@ class StagDatabaseUpdater(object):
         # Columns in the sample file are:
         # affy_id colony_location collection_date user_specimen_id registry_id
         # depth dna_extraction_method dna_concentration public public_after_date
-        # percent_missing_data_coral percent_missing_data_sym percent_reference_coral percent_reference_sym percent_alternative_coral
+        # percent_missing_data_coral percent_missing_data_sym percent_acerv_coral percent_reference_sym percent_apalm_coral
         # percent_alternative_sym percent_heterozygous_coral percent_heterozygous_sym field_call, bcoral_genet_id
         sample_table_inserts = 0
         with open(file_path) as fh:
@@ -575,9 +575,9 @@ class StagDatabaseUpdater(object):
                         public_after_date = items[9]
                 percent_missing_data_coral = handle_column_value(items[10], get_sql_param=False)
                 percent_missing_data_sym = handle_column_value(items[11], get_sql_param=False)
-                percent_reference_coral = handle_column_value(items[12], get_sql_param=False)
+                percent_acerv_coral = handle_column_value(items[12], get_sql_param=False)
                 percent_reference_sym = handle_column_value(items[13], get_sql_param=False)
-                percent_alternative_coral = handle_column_value(items[14], get_sql_param=False)
+                percent_apalm_coral = handle_column_value(items[14], get_sql_param=False)
                 percent_alternative_sym = handle_column_value(items[15], get_sql_param=False)
                 percent_heterozygous_coral = handle_column_value(items[16], get_sql_param=False)
                 percent_heterozygous_sym = handle_column_value(items[17], get_sql_param=False)
@@ -591,8 +591,8 @@ class StagDatabaseUpdater(object):
                         experiment_id, colony_id, colony_location, taxonomy_id, collector_id,
                         collection_date, user_specimen_id, registry_id, depth,
                         dna_extraction_method, dna_concentration, public, public_after_date,
-                        percent_missing_data_coral, percent_missing_data_sym, percent_reference_coral,
-                        percent_reference_sym, percent_alternative_coral, percent_alternative_sym,
+                        percent_missing_data_coral, percent_missing_data_sym, percent_acerv_coral,
+                        percent_reference_sym, percent_apalm_coral, percent_alternative_sym,
                         percent_heterozygous_coral, percent_heterozygous_sym, field_call, bcoral_genet_id]
                 cur = self.update(cmd, args)
                 self.flush()

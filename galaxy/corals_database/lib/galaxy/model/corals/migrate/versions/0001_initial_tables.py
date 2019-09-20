@@ -187,9 +187,9 @@ Sample_table = Table("sample", metadata,
                      Column("public_after_date", DateTime, default=year_from_now),
                      Column("percent_missing_data_coral", Numeric(15, 6)),
                      Column("percent_missing_data_sym", Numeric(15, 6)),
-                     Column("percent_reference_coral", Numeric(15, 6)),
+                     Column("percent_acerv_coral", Numeric(15, 6)),
                      Column("percent_reference_sym", Numeric(15, 6)),
-                     Column("percent_alternative_coral", Numeric(15, 6)),
+                     Column("percent_apalm_coral", Numeric(15, 6)),
                      Column("percent_alternative_sym", Numeric(15, 6)),
                      Column("percent_heterozygous_coral", Numeric(15, 6)),
                      Column("percent_heterozygous_sym", Numeric(15, 6)),
@@ -404,7 +404,7 @@ def load_general_seed_data(migrate_engine):
     # [15]mortality [16]tle [17]spawning [18]collector_last_name [19]collector_first_name
     # [20]organization [21]collection_date [22]email [23]seq_facility [24]array_version
     # [25]public [26]public_after_date [27]coral_mlg_clonal_id [28]symbio_mlg_clonal_id [29]genetic_coral_species_call
-    # [30]percent_missing_data_coral [31]percent_heterozygous_coral [32]percent_reference_coral [33]percent_alternative_coral [34]affy_id
+    # [30]percent_missing_data_coral [31]percent_heterozygous_coral [32]percent_acerv_coral [33]percent_apalm_coral [34]affy_id
     # [35]coral_mlg_rep_sample_id [36]genus_name [37]species [38]sperm_motility [39]healing_time
     # [40]dna_extraction_method [41]dna_concentration [42]registry_id
 
@@ -516,13 +516,13 @@ def load_general_seed_data(migrate_engine):
             except Exception:
                 percent_heterozygous_coral = DEFAULT_MISSING_NUMERIC_VALUE
             try:
-                percent_reference_coral = "%6f" % float(items[32])
+                percent_acerv_coral = "%6f" % float(items[32])
             except Exception:
-                percent_reference_coral = DEFAULT_MISSING_NUMERIC_VALUE
+                percent_acerv_coral = DEFAULT_MISSING_NUMERIC_VALUE
             try:
-                percent_alternative_coral = "%6f" % float(items[33])
+                percent_apalm_coral = "%6f" % float(items[33])
             except Exception:
-                percent_alternative_coral = DEFAULT_MISSING_NUMERIC_VALUE
+                percent_apalm_coral = DEFAULT_MISSING_NUMERIC_VALUE
             affy_id = items[34]
             if len(items[35]) == 0:
                 coral_mlg_rep_sample_id = ''
@@ -750,8 +750,8 @@ def load_general_seed_data(migrate_engine):
                     # collection_date
                     cmd += "'%s', "
                 # user_specimen_id, registry_id, depth, dna_extraction_method, dna_concentration,
-                # public, public_after_date, percent_missing_data_coral, percent_missing_data_sym, percent_reference_coral,
-                # percent_reference_sym, percent_alternative_coral, percent_alternative_sym, percent_heterozygous_coral, percent_heterozygous_sym,
+                # public, public_after_date, percent_missing_data_coral, percent_missing_data_sym, percent_acerv_coral,
+                # percent_reference_sym, percent_apalm_coral, percent_alternative_sym, percent_heterozygous_coral, percent_heterozygous_sym,
                 # field_call, bcoral_genet_id
                 cmd += "'%s', '%s', %s, '%s', %s, %s, '%s', %s, '%s', %s, '%s', '%s', '%s', %s, '%s', '%s', '%s')"
                 cmd = cmd % (nextval(migrate_engine, table),
@@ -777,9 +777,9 @@ def load_general_seed_data(migrate_engine):
                              public_after_date,
                              percent_missing_data_coral,
                              percent_missing_data_sym,
-                             percent_reference_coral,
+                             percent_acerv_coral,
                              percent_reference_sym,
-                             percent_alternative_coral,
+                             percent_apalm_coral,
                              percent_alternative_sym,
                              percent_heterozygous_coral,
                              percent_heterozygous_sym,

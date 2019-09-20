@@ -200,9 +200,9 @@ reference_alleles_data_table  <- setDT(reference_alleles_data_frame, keep.rownam
 # Rename the rn column.
 setnames(reference_alleles_data_table, c("rn"), c("affy_id"));
 # Rename the reference_alleles column.
-setnames(reference_alleles_data_table, c("reference_alleles"), c("percent_reference_coral"));
+setnames(reference_alleles_data_table, c("reference_alleles"), c("percent_acerv_coral"));
 # Round data to two digits.
-reference_alleles_data_table$percent_reference_coral <- round(reference_alleles_data_table$percent_reference_coral, digits=2);
+reference_alleles_data_table$percent_acerv_coral <- round(reference_alleles_data_table$percent_acerv_coral, digits=2);
 time_elapsed(start_time);
 
 # Alternative alleles
@@ -218,9 +218,9 @@ alternative_alleles_data_table <- setDT(alternative_alleles_data_frame, keep.row
 # Rename the rn column.
 setnames(alternative_alleles_data_table, c("rn"), c("affy_id"));
 # Rename the alternative_alleles column.
-setnames(alternative_alleles_data_table, c("alternative_alleles"), c("percent_alternative_coral"));
+setnames(alternative_alleles_data_table, c("alternative_alleles"), c("percent_apalm_coral"));
 # Round data to two digits.
-alternative_alleles_data_table$percent_alternative_coral <- round(alternative_alleles_data_table$percent_alternative_coral, digits=2);
+alternative_alleles_data_table$percent_apalm_coral <- round(alternative_alleles_data_table$percent_apalm_coral, digits=2);
 time_elapsed(start_time);
 
 # The mlg_ids_data_table looks like this:
@@ -305,15 +305,15 @@ stag_db_report <- specimen_id_field_call_data_table %>%
         select("affy_id", "percent_heterozygous_coral"),
         by="affy_id") %>%
     left_join(reference_alleles_data_table %>%
-        select("affy_id", "percent_reference_coral"),
+        select("affy_id", "percent_acerv_coral"),
         by="affy_id") %>%
     left_join(alternative_alleles_data_table %>%
-        select("affy_id", "percent_alternative_coral"),
+        select("affy_id", "percent_apalm_coral"),
         by="affy_id") %>%
     mutate(db_match = ifelse(is.na(db_match), "failed", db_match))%>%
     mutate(coral_mlg_clonal_id = ifelse(is.na(coral_mlg_clonal_id), "failed", coral_mlg_clonal_id)) %>%
-    mutate(genetic_coral_species_call = ifelse(percent_alternative_coral >= 40 & percent_alternative_coral <= 44.99, "A.palmata","other")) %>%
-    mutate(genetic_coral_species_call = ifelse(percent_alternative_coral >= 45 & percent_alternative_coral <= 51, "A.cervicornis", genetic_coral_species_call)) %>%
+    mutate(genetic_coral_species_call = ifelse(percent_apalm_coral >= 40 & percent_apalm_coral <= 44.99, "A.palmata","other")) %>%
+    mutate(genetic_coral_species_call = ifelse(percent_apalm_coral >= 45 & percent_apalm_coral <= 51, "A.cervicornis", genetic_coral_species_call)) %>%
     mutate(genetic_coral_species_call = ifelse(percent_heterozygous_coral > 40, "A.prolifera", genetic_coral_species_call)) %>%
     ungroup() %>%
     select(-group,-db_record);
@@ -595,12 +595,12 @@ start_time <- time_start("Building data frames for insertion into database table
 # NA                NA          PRO100175_PSU175_SAX_b02 P9SR10074     HG0227
 # affy_id         percent_missing_data_coral percent_heterozygous_coral
 # a550962-436.CEL 1.06                       19.10
-# percent_reference_coral percent_alternative_coral
+# percent_acerv_coral percent_apalm_coral
 # 40.10459                39.73396
 sample_prep_data_frame <- affy_metadata_data_frame %>%
     left_join(stag_db_report %>%
         select("user_specimen_id", "affy_id", "percent_missing_data_coral", "percent_heterozygous_coral",
-               "percent_reference_coral", "percent_alternative_coral"),
+               "percent_acerv_coral", "percent_apalm_coral"),
         by='user_specimen_id');
 # Get the number of rows for all data frames.
 num_rows <- nrow(sample_prep_data_frame);
@@ -614,7 +614,7 @@ colnames(sample_prep_data_frame) <- c("user_specimen_id", "field_call", "bcoral_
                                       "public_after_date", "sperm_motility", "healing_time", "dna_extraction_method",
                                       "dna_concentration", "registry_id", "result_folder_name", "plate_barcode",
                                       "mlg", "affy_id", "percent_missing_data_coral", "percent_heterozygous_coral",
-                                      "percent_reference_coral", "percent_alternative_coral");
+                                      "percent_acerv_coral", "percent_apalm_coral");
 
 # Output the data frame for updating the alleles table.
 # Subset to only the new plate data.
@@ -780,8 +780,8 @@ sample_table_data_frame <- data.frame(matrix(ncol=20, nrow=num_rows));
 colnames(sample_table_data_frame) <- c("affy_id", "colony_location", "collection_date", "user_specimen_id",
                                        "registry_id", "depth", "dna_extraction_method", "dna_concentration",
                                        "public", "public_after_date", "percent_missing_data_coral",
-                                       "percent_missing_data_sym", "percent_reference_coral",
-                                       "percent_reference_sym", "percent_alternative_coral",
+                                       "percent_missing_data_sym", "percent_acerv_coral",
+                                       "percent_reference_sym", "percent_apalm_coral",
                                        "percent_alternative_sym", "percent_heterozygous_coral",
                                        "percent_heterozygous_sym", "field_call", "bcoral_genet_id");
 for (i in 1:num_rows) {
@@ -797,9 +797,9 @@ for (i in 1:num_rows) {
     sample_table_data_frame$public_after_date[i] <- sample_prep_data_frame$public_after_date[i];
     sample_table_data_frame$percent_missing_data_coral[i] <- sample_prep_data_frame$percent_missing_data_coral[i];
     sample_table_data_frame$percent_missing_data_sym[i] <- DEFAULT_MISSING_NUMERIC_VALUE;
-    sample_table_data_frame$percent_reference_coral[i] <- sample_prep_data_frame$percent_reference_coral[i];
+    sample_table_data_frame$percent_acerv_coral[i] <- sample_prep_data_frame$percent_acerv_coral[i];
     sample_table_data_frame$percent_reference_sym[i] <- DEFAULT_MISSING_NUMERIC_VALUE;
-    sample_table_data_frame$percent_alternative_coral[i] <- sample_prep_data_frame$percent_alternative_coral[i];
+    sample_table_data_frame$percent_apalm_coral[i] <- sample_prep_data_frame$percent_apalm_coral[i];
     sample_table_data_frame$percent_alternative_sym[i] <- DEFAULT_MISSING_NUMERIC_VALUE;
     sample_table_data_frame$percent_heterozygous_coral[i] <- sample_prep_data_frame$percent_heterozygous_coral[i];
     sample_table_data_frame$percent_heterozygous_sym[i] <- DEFAULT_MISSING_NUMERIC_VALUE;
