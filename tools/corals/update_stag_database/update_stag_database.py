@@ -296,7 +296,7 @@ class StagDatabaseUpdater(object):
                 else:
                     latitude = DEFAULT_MISSING_NUMERIC_VALUE
                     longitude = DEFAULT_MISSING_NUMERIC_VALUE
-                depth = handle_column_value(items[2], get_sql_param=False, default=-9)
+                depth = handle_column_value(items[2], get_sql_param=False, default=-9.0)
                 reef_id = self.reef_ids[id_index]
                 # See if we need to add a row to the table.
                 cmd = "SELECT id FROM colony WHERE latitude = %s " % latitude
@@ -562,7 +562,7 @@ class StagDatabaseUpdater(object):
                 user_specimen_id = items[3]
                 affy_id = handle_column_value(items[0], get_sql_param=False, default="%s_%s" % (sample_id, user_specimen_id))
                 registry_id = handle_column_value(items[4], get_sql_param=False, default=-9)
-                depth = handle_column_value(items[5], get_sql_param=False, default=-9)
+                depth = handle_column_value(items[5], get_sql_param=False, default=-9.0)
                 dna_extraction_method = handle_column_value(items[6], get_sql_param=False)
                 dna_concentration = handle_column_value(items[7], get_sql_param=False)
                 public = items[8]

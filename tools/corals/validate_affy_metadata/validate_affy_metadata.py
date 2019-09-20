@@ -63,14 +63,6 @@ def validate_email(line_no, email, accumulated_msgs):
     return accumulated_msgs
 
 
-def validate_integer(line_no, integer_string, column, accumulated_msgs):
-    try:
-        integer_string.isdigit()
-        return accumulated_msgs
-    except Exception:
-        return add_error_msg(accumulated_msgs, "Line %d contains an incorrect integer value (%s) for column %s." % (line_no, integer_string, column))
-
-
 accumulated_msgs = ""
 # Parse the input file, skipping the header, and validating
 # that each data line consists of 31 comma-separated items.
@@ -116,9 +108,9 @@ with open(args.input, "r") as ih:
         # Optional.
         colony_location = items[9]
         depth = items[10]
-        # If depth has a value, then it must be integer.
+        # If depth has a value, then it must be a decimal.
         if len(depth) > 0:
-            accumulated_msgs = validate_integer(line_no, depth, "depth", accumulated_msgs)
+            accumulated_msgs = validate_decimal(line_no, depth, "depth", accumulated_msgs)
         # Optional.
         disease_resist = items[11]
         # Optional.

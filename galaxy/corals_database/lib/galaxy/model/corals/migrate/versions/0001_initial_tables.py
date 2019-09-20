@@ -72,7 +72,7 @@ Colony_table = Table("colony", metadata,
                      Column("update_time", DateTime, default=now, onupdate=now),
                      Column("latitude", Numeric(15, 6)),
                      Column("longitude", Numeric(15, 6)),
-                     Column("depth", Integer),
+                     Column("depth", Numeric(15, 6)),
                      Column("reef_id", Integer, ForeignKey("reef.id"), index=True))
 
 
@@ -180,7 +180,7 @@ Sample_table = Table("sample", metadata,
                      Column("collection_date", DateTime),
                      Column("user_specimen_id", TrimmedString(255)),
                      Column("registry_id", TrimmedString(255)),
-                     Column("depth", Integer),
+                     Column("depth", Numeric(15, 6)),
                      Column("dna_extraction_method", TrimmedString(255)),
                      Column("dna_concentration", Numeric(10, 6)),
                      Column("public", Boolean),
@@ -470,9 +470,9 @@ def load_general_seed_data(migrate_engine):
             else:
                 colony_location = items[9]
             try:
-                depth = int(items[12])
+                depth = "%6f" % float(items[12])
             except Exception:
-                depth = 0
+                depth = -9.0
             disease_resist = items[13]
             bleach_resist = items[14]
             mortality = items[15]
