@@ -1,0 +1,78 @@
+<tool id="export_all_sample_data" name="Export all sample data" version="1.0.0">
+    <description>from the stag database</description>
+    <command detect_errors="exit_code"><![CDATA[
+python '$__tool_directory__/export_all_sample_data.py'
+--database_connection_string '$__app__.config.corals_database_connection'
+--output '$output']]></command>
+    <inputs>
+    </inputs>
+    <outputs>
+        <data name="output" format="tabular" label="${tool.name}"/>
+    </outputs>
+    <tests>
+        <test>
+            <!--Testing this tool is a bit difficult at the current time.-->
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+Generates a tabular dataset of all samples and associated metadata in the stag database.
+
+-----
+
+**Output Columns**
+
+ * Affymetrix ID
+ * Sample ID
+ * User Specimen ID
+ * Field Call
+ * Sample Depth
+ * Percent Missing Data Coral
+ * Percent Heterozygous Coral
+ * Percent Acerv Coral
+ * Percent Apalm Coral
+ * Bcoral Genet ID
+ * Registry ID
+ * DNA Extraction Method
+ * DNA Concentration
+ * Colony Location
+ * Colony Latitude
+ * Colony Longitude
+ * Colony Depth
+ * Reef Name
+ * Region
+ * Reef Latitude
+ * Reef Longitude
+ * GPS Coordinates Associated With
+ * Coral MLG Clonal ID
+ * Coral MLG Rep Sample ID
+ * Genetic Coral Species Call
+ * Spawning
+ * Sperm Motility
+ * TLE
+ * Disease Resist
+ * Bleach Resist
+ * Mortality
+ * Healing Time
+ * Sequencing Facility
+ * Array Version
+ * Plate Barcode
+ * Collector Last Name
+ * First Name
+ * Organization
+ * Email
+ * Collection Date
+    </help>
+    <citations>
+        <citation type="bibtex">
+            @misc{None,
+            journal = {None},
+            author = {Baums I},
+            title = {Manuscript in preparation},
+            year = {None},
+            url = {http://baumslab.org}
+        </citation>
+    </citations>
+</tool>
+

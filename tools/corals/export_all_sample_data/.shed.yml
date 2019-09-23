@@ -1,0 +1,11 @@
+name: export_all_sample_data
+owner: greg
+description: |
+  Generates a tabular dataset of all samples and associated metadata in the stag database.
+homepage_url: http://baumslab.org
+long_description: |
+  Generates a tabular dataset of all samples and associated metadata in the stag database.
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/corals/export_all_sample_data
+type: unrestricted
+categories:
+  - Micro-array Analysis
