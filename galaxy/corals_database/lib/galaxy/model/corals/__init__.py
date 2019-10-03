@@ -216,13 +216,13 @@ class ProbeAnnotation(Dictifiable):
                                     'strand', 'flank', 'allele_a', 'allele_b', 'allele_frequencies',
                                     'annotation_notes', 'allele_count', 'ordered_alleles', 'chrtype', 'custchr',
                                     'custid', 'custpos', 'organism', 'pconvert', 'recommendation',
-                                    'refstr', 'snppriority']
+                                    'refstr', 'snppriority', 'genotype_probe', 'fixed_status', 'acerv_allele']
 
     def __init__(self, probe_set_id=None, affy_snp_id=None, chr_id=None, start=None,
                  strand=None, flank=None, allele_a=None, allele_b=None, allele_frequencies=None,
                  annotation_notes=None, allele_count=None, ordered_alleles=None, chrtype=None, custchr=None,
                  custid=None, custpos=None, organism=None, pconvert=None, recommendation=None,
-                 refstr=None, snppriority=None):
+                 refstr=None, snppriority=None, genotype_probe=None, fixed_status=None, acerv_allele=None):
         self.probe_set_id = probe_set_id
         self.affy_snp_id = affy_snp_id
         self.chr_id = chr_id
@@ -244,6 +244,9 @@ class ProbeAnnotation(Dictifiable):
         self.recommendation = recommendation
         self.refstr = refstr
         self.snppriority = snppriority
+        self.genotype_probe = genotype_probe
+        self.fixed_status = fixed_status
+        self.acerv_allele = acerv_allele
 
     def as_dict(self, value_mapper=None):
         return self.to_dict(view='element', value_mapper=value_mapper)

@@ -124,7 +124,10 @@ corals_model.ProbeAnnotation.table = Table("probe_annotation", metadata,
     Column("pconvert", TrimmedString(255)),
     Column("recommendation", TrimmedString(255)),
     Column("refstr", TrimmedString(255)),
-    Column("snppriority", TrimmedString(255)))
+    Column("snppriority", TrimmedString(255)),
+    Column("genotype_probe", TrimmedString(255)),
+    Column("fixed_status", TrimmedString(255)),
+    Column("acerv_allele", TrimmedString(255)))
 
 corals_model.Reef.table = Table("reef", metadata,
     Column("id", Integer, primary_key=True),

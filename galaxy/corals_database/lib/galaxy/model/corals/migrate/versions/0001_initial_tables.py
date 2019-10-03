@@ -149,7 +149,11 @@ ProbeAnnotation_table = Table("probe_annotation", metadata,
                               Column("pconvert", TrimmedString(255)),
                               Column("recommendation", TrimmedString(255)),
                               Column("refstr", TrimmedString(255)),
-                              Column("snppriority", TrimmedString(255)))
+                              Column("snppriority", TrimmedString(255)),
+                              Column("genotype_probe", TrimmedString(255)),
+                              Column("fixed_status", TrimmedString(255)),
+                              Column("acerv_allele", TrimmedString(255)))
+
 
 
 Reef_table = Table("reef", metadata,
@@ -298,8 +302,9 @@ def load_probe_annotation_table(migrate_engine):
     # probeset_id, affy_snp_id, chr_id, start, strand,
     # flank, allele_a, allele_b, allele_frequencies, annotation_notes, allele_count,
     # ordered_alleles, chrtype, custchr, custid, custpos,
-    # organism, pconvert, recommendation, refstr, snppriority
-    base_cmd = "INSERT INTO probe_annotation VALUES (%s, %s, %s, '%s', '%s', %s, %s, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')"
+    # organism, pconvert, recommendation, refstr, snppriority,
+    # genotype_probe, fixed_status, acerv_allele
+    base_cmd = "INSERT INTO probe_annotation VALUES (%s, %s, %s, '%s', '%s', %s, %s, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')"
 
     with open(PROBE_ANNOTATION_DATA_FILE, "r") as fh:
         for i, line in enumerate(fh):
@@ -329,6 +334,9 @@ def load_probe_annotation_table(migrate_engine):
             recommendation = items[37]
             refstr = items[38]
             snppriority = items[39]
+            genotype_probe = items[40]
+            fixed_status = items[41]
+            acerv_allele = items[42]
             cmd = base_cmd % (nextval(migrate_engine, 'probe_annotation'),
                               localtimestamp(migrate_engine),
                               localtimestamp(migrate_engine),
@@ -352,7 +360,10 @@ def load_probe_annotation_table(migrate_engine):
                               pconvert,
                               recommendation,
                               refstr,
-                              snppriority)
+                              snppriority,
+                              genotype_probe,
+                              fixed_status,
+                              acerv_allele)
             migrate_engine.execute(cmd)
     print("Inserted %d rows into the probe_annotation table." % i)
 
