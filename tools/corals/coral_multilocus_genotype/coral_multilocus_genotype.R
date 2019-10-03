@@ -139,6 +139,8 @@ conn <- get_database_connection(opt$database_connection_string);
 sample_table <- tbl(conn, "sample");
 # Import the genotype table.
 genotype_table <- tbl(conn, "genotype");
+# Import the probe_annotation table.
+probe_annotation_table <- tbl(conn, "probe_annotation");
 # Select columns from the sample table and the
 # genotype table joined by genotype_id.
 sample_table_columns <- sample_table %>% select(user_specimen_id, affy_id, bcoral_genet_id, genotype_id);
@@ -149,7 +151,7 @@ smlg <- sample_table_columns %>%
 # Name the columns.
 smlg_data_frame <- as.data.frame(smlg);
 colnames(smlg_data_frame) <- c("user_specimen_id", "affy_id", "bcoral_genet_id", "genotype_id",
-		                       "coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "genetic_coral_species_call");
+		               "coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "genetic_coral_species_call");
 # Missing GT in samples submitted.
 start_time <- time_start("Discovering missing GT in samples");
 gt <- extract.gt(vcf, element="GT", as.numeric=FALSE);
@@ -169,10 +171,33 @@ setnames(missing_gt_data_table, c("missing_gt"), c("percent_missing_data_coral")
 missing_gt_data_table$percent_missing_data_coral <- round(missing_gt_data_table$percent_missing_data_coral, digits=2);
 time_elapsed(start_time);
 
-# Heterozygous alleles.
+# Subset genotypes for the fixed SNPs by probe id.
+# Select columns from the probe_annotation table.
+probe_annotation_table_columns <- probe_annotation_table %>% select(probe_set_id, custid, fixed_status, acerv_allele);
+# Convert to data frame.
+fixed_snp_data_frame <- as.data.frame(probe_annotation_table_columns);
+# Name the columns.
+colnames(fixed_snp_data_frame) <- c("probe_set_id", "custid", "fixed_status", "acerv_allele");
+# Filter unwanted rows.
+fixed_snp_data_frame <- subset(fixed_snp_data_frame, fixed_snp_data_frame$fixed_status=="keep");
+gt_fixed <- gt[rownames(gt) %in% fixed_snp_data_frame$probe_set_id, ];
+
+# Missing GT in fixed SNPs.
+missing_gt_fixed <- apply(gt_fixed, MARGIN=2, function(x){ sum(is.na(x))});
+missing_gt_fixed <- (missing_gt_fixed / nrow(gt_fixed)) * 100;
+missing_gt_fixed_data_frame <- data.frame(missing_gt_fixed);
+missing_gt_fixed_data_table <-setDT(missing_gt_fixed_data_frame, keep.rownames=TRUE)[];
+# Rename the rn column.
+setnames(missing_gt_fixed_data_table, c("rn"), c("affy_id"));
+# Rename the missing_gt column.
+setnames(missing_gt_fixed_data_table, c("missing_gt_fixed"), c("percent_missing_data_fixed"));
+# Round data to two digits.
+missing_gt_fixed_data_table$percent_missing_data_fixed <- round(missing_gt_fixed_data_table$percent_missing_data_fixed, digits=2);
+
+# Heterozygous alleles for fixed SNPs.
 start_time <- time_start("Discovering heterozygous alleles");
-heterozygous_alleles <- apply(gt, MARGIN=2, function(x) {sum(lengths(regmatches(x, gregexpr("0/1", x))))});
-heterozygous_alleles <- (heterozygous_alleles / nrow(vcf)) * 100;
+heterozygous_alleles <- apply(gt_fixed, MARGIN=2, function(x) {sum(lengths(regmatches(x, gregexpr("0/1", x))))});
+heterozygous_alleles <- (heterozygous_alleles / nrow(gt_fixed)) * 100;
 heterozygous_alleles_data_frame <- data.frame(heterozygous_alleles);
 # The heterozygous_alleles_data_table looks like this:
 # rn                                 heterozygous_alleles
@@ -187,40 +212,56 @@ setnames(heterozygous_alleles_data_table, c("heterozygous_alleles"), c("percent_
 heterozygous_alleles_data_table$percent_heterozygous_coral <- round(heterozygous_alleles_data_table$percent_heterozygous_coral, digits=2);
 time_elapsed(start_time);
 
-# Reference alleles.
+# Create list of Acerv reference and alternative probes.
+rAC <- subset(fixed_snp_data_frame, fixed_snp_data_frame$acerv_allele=="reference");
+aAC <- subset(fixed_snp_data_frame, fixed_snp_data_frame$acerv_allele=="alternative");
+
+# Subset probes for the reference and alternative SNPs in Acerv.
+ref_ac <- gt[rownames(gt_fixed) %in% rAC$probe,];
+alt_ac <- gt[rownames(gt_fixed) %in% aAC$probe,];
+
+# Reference alleles for each species.
+reference_alleles_ac <- apply(ref_ac, MARGIN=2, function(x) {sum(lengths(regmatches(x, gregexpr("0/0", x))))});
+reference_alleles_ap <- apply(alt_ac, MARGIN=2, function(x) {sum(lengths(regmatches(x, gregexpr("0/0", x))))});
+
+# Alternative alleles for each species.
+alternative_alleles_ac <- apply(alt_ac, MARGIN=2, function(x) {sum(lengths(regmatches(x, gregexpr("1/1", x))))});
+alternative_alleles_ap <- apply(ref_ac, MARGIN=2, function(x) {sum(lengths(regmatches(x, gregexpr("1/1", x))))});
+
+# Apalm alleles.
 start_time <- time_start("Discovering reference alleles");
-reference_alleles <- apply(gt, MARGIN=2, function(x) {sum(lengths(regmatches(x, gregexpr("0/0", x))))});
-reference_alleles <- (reference_alleles / nrow(vcf)) * 100;
-reference_alleles_data_frame <- data.frame(reference_alleles);
+ap_sum <- rowSums(cbind(reference_alleles_ap,alternative_alleles_ap));
+ap_alleles <- (ap_sum / nrow(gt_fixed)) * 100;
+ap_alleles_data_frame <- data.frame(ap_alleles);
 # The reference_alleles_data_table looks like this:
 # rn                                 reference_alleles
 # a100000-4368120-060520-256_I07.CEL 11.60642
 # a100000-4368120-060520-256_K07.CEL 11.45918
-reference_alleles_data_table  <- setDT(reference_alleles_data_frame, keep.rownames=TRUE)[];
+ap_alleles_data_table <- setDT(ap_alleles_data_frame, keep.rownames=TRUE)[];
 # Rename the rn column.
-setnames(reference_alleles_data_table, c("rn"), c("affy_id"));
+setnames(ap_alleles_data_table, c("rn"), c("affy_id"));
 # Rename the reference_alleles column.
-setnames(reference_alleles_data_table, c("reference_alleles"), c("percent_acerv_coral"));
+setnames(ap_alleles_data_table, c("ap_alleles"), c("percent_apalm_coral"));
 # Round data to two digits.
-reference_alleles_data_table$percent_acerv_coral <- round(reference_alleles_data_table$percent_acerv_coral, digits=2);
+ap_alleles_data_table$percent_apalm_coral <- round(ap_alleles_data_table$percent_apalm_coral, digits=2);
 time_elapsed(start_time);
 
-# Alternative alleles
+# Acerv alleles.
 start_time <- time_start("Discovering alternative alleles");
-alternative_alleles <- apply(gt, MARGIN=2, function(x) {sum(lengths(regmatches(x, gregexpr("1/1", x))))});
-alternative_alleles <- (alternative_alleles / nrow(vcf)) * 100;
-alternative_alleles_data_frame <- data.frame(alternative_alleles);
+ac_sum <- rowSums(cbind(reference_alleles_ac,alternative_alleles_ac));
+ac_alleles <- (ac_sum  / nrow(gt)) * 100;
+ac_alleles_data_frame <- data.frame(ac_alleles);
 # The alternative_alleles_data_table looks like this:
 # rn                                 alternative_alleles
 # a100000-4368120-060520-256_I07.CEL 14.38363
 # a100000-4368120-060520-256_K07.CEL 14.08916
-alternative_alleles_data_table <- setDT(alternative_alleles_data_frame, keep.rownames=TRUE)[];
+ac_alleles_data_table <- setDT(ac_alleles_data_frame, keep.rownames=TRUE)[];
 # Rename the rn column.
-setnames(alternative_alleles_data_table, c("rn"), c("affy_id"));
+setnames(ac_alleles_data_table, c("rn"), c("affy_id"));
 # Rename the alternative_alleles column.
-setnames(alternative_alleles_data_table, c("alternative_alleles"), c("percent_apalm_coral"));
+setnames(ac_alleles_data_table, c("ac_alleles"), c("percent_acerv_coral"));
 # Round data to two digits.
-alternative_alleles_data_table$percent_apalm_coral <- round(alternative_alleles_data_table$percent_apalm_coral, digits=2);
+ac_alleles_data_table$percent_acerv_coral <- round(ac_alleles_data_table$percent_acerv_coral, digits=2);
 time_elapsed(start_time);
 
 # The mlg_ids_data_table looks like this:
@@ -301,19 +342,22 @@ stag_db_report <- specimen_id_field_call_data_table %>%
     left_join(missing_gt_data_table %>%
         select("affy_id", "percent_missing_data_coral"),
         by="affy_id") %>%
+    left_join(missing_gt_fixed_data_table %>%
+                  select("affy_id", "percent_missing_data_fixed"),
+                by="affy_id") %>%
     left_join(heterozygous_alleles_data_table %>%
         select("affy_id", "percent_heterozygous_coral"),
         by="affy_id") %>%
-    left_join(reference_alleles_data_table %>%
+    left_join(ac_alleles_data_table %>%
         select("affy_id", "percent_acerv_coral"),
         by="affy_id") %>%
-    left_join(alternative_alleles_data_table %>%
+    left_join(ap_alleles_data_table %>%
         select("affy_id", "percent_apalm_coral"),
         by="affy_id") %>%
     mutate(db_match = ifelse(is.na(db_match), "failed", db_match))%>%
     mutate(coral_mlg_clonal_id = ifelse(is.na(coral_mlg_clonal_id), "failed", coral_mlg_clonal_id)) %>%
-    mutate(genetic_coral_species_call = ifelse(percent_apalm_coral >= 40 & percent_apalm_coral <= 44.99, "A.palmata","other")) %>%
-    mutate(genetic_coral_species_call = ifelse(percent_apalm_coral >= 45 & percent_apalm_coral <= 51, "A.cervicornis", genetic_coral_species_call)) %>%
+    mutate(genetic_coral_species_call = ifelse(percent_apalm_coral >= 85 & percent_acerv_coral <= 10, "A.palmata","other")) %>%
+    mutate(genetic_coral_species_call = ifelse(percent_acerv_coral >= 85 & percent_apalm_coral <= 10, "A.cervicornis", genetic_coral_species_call)) %>%
     mutate(genetic_coral_species_call = ifelse(percent_heterozygous_coral > 40, "A.prolifera", genetic_coral_species_call)) %>%
     ungroup() %>%
     select(-group,-db_record);
@@ -486,7 +530,7 @@ guides(color=guide_legend(nrow=8, byrow=F));
 for (i in unique(affy_metadata_data_frame$region)) {
   m <- i;
   num_colors_2 = length(unique(affy_metadata_data_frame$mlg[which(affy_metadata_data_frame$region == m)]));
-  max_latitude_region <- max(affy_metadata_data_frame$latitude[which(affy_metadata_data_frame$region == m)],na.rm=TRUE);
+  max_latitude_region <- max(affy_metadata_data_frame$latitude[which(affy_metadata_data_frame$region == m)], na.rm=TRUE);
   min_latitude_region <- min(affy_metadata_data_frame$latitude[which(affy_metadata_data_frame$region == m)], na.rm=TRUE);
   latitude_range_vector_region <- c(min_latitude_region-0.5, max_latitude_region+0.5);
   max_longitude_region <- max(affy_metadata_data_frame$longitude[which(affy_metadata_data_frame$region == m)], na.rm=TRUE);
@@ -537,7 +581,7 @@ if (!is.null(opt$output_nj_phylogeny_tree)) {
 # stag_db_report for the charts (user_specimen_id names
 # will be used to label each chart).
 start_time <- time_start("Creating percent_breakdown.pdf");
-stag_db_report_data_table <- stag_db_report[c(-2, -3, -4)];
+stag_db_report_data_table <- stag_db_report[c(-2, -3, -4,-5,-6)];
 # Remove NA and NaN values.
 stag_db_report_data_table <- na.omit(stag_db_report_data_table);
 # Translate to N (i.e., number of samples with a genotype)
@@ -552,20 +596,16 @@ mode(translated_stag_db_report_matrix) <- "numeric";
 # Remove NA and NaN values that may have been introduced
 # by coercion.
 translated_stag_db_report_matrix <- na.omit(translated_stag_db_report_matrix);
-tsdbrm_row_means <- rowMeans(translated_stag_db_report_matrix, na.rm=TRUE);
+translated_stag_db_report_matrix<-translated_stag_db_report_matrix[-c(1),];
+#tsdbrm_row_means <- rowMeans(translated_stag_db_report_matrix, na.rm=TRUE);
 dev.new(width=10, height=7);
 file_path = get_file_path(output_plots_dir, "percent_breakdown.pdf");
 pdf(file=file_path, width=10, height=7);
-# Average pie of all samples.
-labels <- paste(c("missing data", "mixed", "reference", "alternative"), " (", round(tsdbrm_row_means, 1), "%)", sep="");
-col <- c("GREY", "#006DDB", "#24FF24", "#920000");
-main <- "Average breakdown of SNP assignments across all samples";
-pie(tsdbrm_row_means, labels=labels, radius=0.60, col=col, main=main, cex.main=.75);
 par(mfrow=c(3, 2));
-col <- c("GREY", "#006DDB", "#24FF24", "#920000");
+col <- c("#A6A6A6","#FFA626","#EB0ACF", "#80FF00" );
 # Generate a pie chart for each sample with genotypes.
 for (i in 1:ncol(translated_stag_db_report_matrix)) {
-    tmp_labels <- paste(c("missing data", "mixed", "reference", "alternative"), " (", round(translated_stag_db_report_matrix[,i], 1), "%)", sep="");
+    tmp_labels <- paste(c("no call", "heterozygous", "A. cervicornis", "A. palmata"), " (", round(translated_stag_db_report_matrix[,i], 1), "%)", sep="");
     main <- paste("Breakdown of SNP assignments for", translated_stag_db_report_data_table[1, i]);
     pie(translated_stag_db_report_matrix[,i], labels=tmp_labels, radius=0.90, col=col, main=main, cex.main=.85, cex=0.75);
 }
@@ -814,7 +854,7 @@ write_data_frame(output_data_dir, "sample.tabular", sample_table_data_frame);
 # A.palmata                  a550962-4368120-060520-500_A05.CEL Acropora   palmata
 taxonomy_table_data_frame <- stag_db_report %>%
     select(genetic_coral_species_call, affy_id) %>%
-    mutate(genus_name = ifelse(genetic_coral_species_call == genetic_coral_species_call[grep("^A.*", genetic_coral_species_call)], "Acropora", "other")) %>%
+    mutate(genus_name = ifelse(grepl("^A.*", genetic_coral_species_call), "Acropora",ifelse(!is.na(genetic_coral_species_call), "other", NA))) %>%
     mutate(species_name = ifelse(genetic_coral_species_call == "A.palmata", "palmata", "other")) %>%
     mutate(species_name = ifelse(genetic_coral_species_call == "A.cervicornis", "cervicornis", species_name)) %>%
     mutate(species_name = ifelse(genetic_coral_species_call == "A.prolifera", "prolifera", species_name));
