@@ -579,7 +579,7 @@ if (!is.null(opt$output_nj_phylogeny_tree)) {
 # stag_db_report for the charts (user_specimen_id names
 # will be used to label each chart).
 start_time <- time_start("Creating percent_breakdown.pdf");
-stag_db_report_data_table <- stag_db_report[c(-2, -3, -4,-5,-6)];
+stag_db_report_data_table <- stag_db_report[c(-2, -3, -4, -5)];
 # Remove NA and NaN values.
 stag_db_report_data_table <- na.omit(stag_db_report_data_table);
 # Translate to N (i.e., number of samples with a genotype)
