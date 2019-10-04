@@ -186,7 +186,7 @@ gt_fixed <- gt[rownames(gt) %in% fixed_snp_data_frame$probe_set_id, ];
 missing_gt_fixed <- apply(gt_fixed, MARGIN=2, function(x){ sum(is.na(x))});
 missing_gt_fixed <- (missing_gt_fixed / nrow(gt_fixed)) * 100;
 missing_gt_fixed_data_frame <- data.frame(missing_gt_fixed);
-missing_gt_fixed_data_table <-setDT(missing_gt_fixed_data_frame, keep.rownames=TRUE)[];
+missing_gt_fixed_data_table <- setDT(missing_gt_fixed_data_frame, keep.rownames=TRUE)[];
 # Rename the rn column.
 setnames(missing_gt_fixed_data_table, c("rn"), c("affy_id"));
 # Rename the missing_gt column.
@@ -217,8 +217,8 @@ rAC <- subset(fixed_snp_data_frame, fixed_snp_data_frame$acerv_allele=="referenc
 aAC <- subset(fixed_snp_data_frame, fixed_snp_data_frame$acerv_allele=="alternative");
 
 # Subset probes for the reference and alternative SNPs in Acerv.
-ref_ac <- gt[rownames(gt_fixed) %in% rAC$probe,];
-alt_ac <- gt[rownames(gt_fixed) %in% aAC$probe,];
+ref_ac <- gt_fixed[rownames(gt_fixed) %in% rAC$probe,];
+alt_ac <- gt_fixed[rownames(gt_fixed) %in% aAC$probe,];
 
 # Reference alleles for each species.
 reference_alleles_ac <- apply(ref_ac, MARGIN=2, function(x) {sum(lengths(regmatches(x, gregexpr("0/0", x))))});
@@ -249,7 +249,7 @@ time_elapsed(start_time);
 # Acerv alleles.
 start_time <- time_start("Discovering alternative alleles");
 ac_sum <- rowSums(cbind(reference_alleles_ac,alternative_alleles_ac));
-ac_alleles <- (ac_sum  / nrow(gt)) * 100;
+ac_alleles <- (ac_sum  / nrow(gt_fixed)) * 100;
 ac_alleles_data_frame <- data.frame(ac_alleles);
 # The alternative_alleles_data_table looks like this:
 # rn                                 alternative_alleles
@@ -343,8 +343,8 @@ stag_db_report <- specimen_id_field_call_data_table %>%
         select("affy_id", "percent_missing_data_coral"),
         by="affy_id") %>%
     left_join(missing_gt_fixed_data_table %>%
-                  select("affy_id", "percent_missing_data_fixed"),
-                by="affy_id") %>%
+        select("affy_id", "percent_missing_data_fixed"),
+        by="affy_id") %>%
     left_join(heterozygous_alleles_data_table %>%
         select("affy_id", "percent_heterozygous_coral"),
         by="affy_id") %>%
@@ -356,11 +356,11 @@ stag_db_report <- specimen_id_field_call_data_table %>%
         by="affy_id") %>%
     mutate(db_match = ifelse(is.na(db_match), "failed", db_match))%>%
     mutate(coral_mlg_clonal_id = ifelse(is.na(coral_mlg_clonal_id), "failed", coral_mlg_clonal_id)) %>%
-    mutate(genetic_coral_species_call = ifelse(percent_apalm_coral >= 85 & percent_acerv_coral <= 10, "A.palmata","other")) %>%
+    mutate(genetic_coral_species_call = ifelse(percent_apalm_coral >= 85 & percent_acerv_coral <= 10, "A.palmata", "other")) %>%
     mutate(genetic_coral_species_call = ifelse(percent_acerv_coral >= 85 & percent_apalm_coral <= 10, "A.cervicornis", genetic_coral_species_call)) %>%
     mutate(genetic_coral_species_call = ifelse(percent_heterozygous_coral > 40, "A.prolifera", genetic_coral_species_call)) %>%
     ungroup() %>%
-    select(-group,-db_record);
+    select(-group, -db_record);
 time_elapsed(start_time);
 
 start_time <- time_start("Writing csv output");
@@ -369,7 +369,7 @@ time_elapsed(start_time);
 
 # Representative clone for genotype table.
 start_time <- time_start("Creating representative clone for genotype table");
-no_dup_genotypes_genind <- clonecorrect(genind_clone, strata = ~pop.genind_obj.);
+no_dup_genotypes_genind <- clonecorrect(genind_clone, strata=~pop.genind_obj.);
 id_rep <- mlg.id(no_dup_genotypes_genind);
 id_data_table <- data.table(id_rep, keep.rownames=TRUE);
 # Rename the id_rep column.
@@ -380,13 +380,11 @@ time_elapsed(start_time);
 # Create vector indicating number of individuals desired from
 # affy_id column of stag_db_report data table.
 i <- ifelse(is.na(stag_db_report[3]), "", stag_db_report[[3]]);
-i <- i[!apply(i== "", 1, all),];
+i <- i[!apply(i== "", 1, all), ];
 
 # Subset VCF to the user samples.
 start_time <- time_start("Subsetting vcf to the user samples");
-l <- length(i)+1;
-#n <- ncol(vcf@gt);
-#s <- n - l;
+l <- length(i) + 1;
 svcf <- vcf[, 1:l];
 write.vcf(svcf, "subset.vcf.gz");
 vcf.fn <- "subset.vcf.gz";
@@ -410,7 +408,7 @@ setnames(gds_data_table, c("gds_array"), c("affy_id"));
 affy_id_region_list <- population_info_data_table[c(2,3,4)];
 gds_data_table_join <- gds_data_table %>%
     left_join(affy_id_region_list %>%
-        select("affy_id", "user_specimen_id","region"),
+        select("affy_id", "user_specimen_id", "region"),
         by='affy_id')%>%
         drop_na();
 samp.annot <- data.frame(pop.group=c(gds_data_table_join$region));
@@ -434,7 +432,7 @@ time_elapsed(start_time);
 # Cluster analysis on the genome-wide IBS pairwise distance matrix.
 start_time <- time_start("Clustering the genome-wide IBS pairwise distance matrix");
 set.seed(100);
-par(cex=0.6, cex.lab=1, cex.axis=1.5,cex.main=2);
+par(cex=0.6, cex.lab=1, cex.axis=1.5, cex.main=2);
 ibs.hc <- snpgdsHCluster(ibs);
 time_elapsed(start_time);
 
@@ -455,7 +453,7 @@ file_path = get_file_path(output_plots_dir, "ibs_default.pdf");
 pdf(file=file_path, width=40, height=20);
 rv <- snpgdsCutTree(ibs.hc, col.list=cols, pch.list=15);
 snpgdsDrawTree(rv, main="Color by Cluster", leaflab="perpendicular", yaxis.kinship=FALSE);
-abline(h = 0.032, lty = 2);
+abline(h=0.032, lty=2);
 legend("topleft", legend=levels(rv$samp.group), xpd=T, col=cols[1:nlevels(rv$samp.group)], pch=15, ncol=4, cex=1.2);
 dev.off()
 time_elapsed(start_time);
@@ -467,7 +465,7 @@ dev.new(width=40, height=20);
 file_path = get_file_path(output_plots_dir, "ibs_region.pdf");
 pdf(file=file_path, width=40, height=20);
 race <- as.factor(population_code);
-rv2 <- snpgdsCutTree(ibs.hc, samp.group=race,col.list=cols, pch.list=15);
+rv2 <- snpgdsCutTree(ibs.hc, samp.group=race, col.list=cols, pch.list=15);
 snpgdsDrawTree(rv2, main="Color by Region", leaflab="perpendicular", yaxis.kinship=FALSE);
 legend("topleft", legend=levels(race), xpd=T, col=cols[1:nlevels(race)], pch=15, ncol=4, cex=1.2);
 dev.off()
@@ -528,23 +526,23 @@ guides(color=guide_legend(nrow=8, byrow=F));
 
 # Sample MLG on a map for each region.
 for (i in unique(affy_metadata_data_frame$region)) {
-  m <- i;
-  num_colors_2 = length(unique(affy_metadata_data_frame$mlg[which(affy_metadata_data_frame$region == m)]));
-  max_latitude_region <- max(affy_metadata_data_frame$latitude[which(affy_metadata_data_frame$region == m)], na.rm=TRUE);
-  min_latitude_region <- min(affy_metadata_data_frame$latitude[which(affy_metadata_data_frame$region == m)], na.rm=TRUE);
-  latitude_range_vector_region <- c(min_latitude_region-0.5, max_latitude_region+0.5);
-  max_longitude_region <- max(affy_metadata_data_frame$longitude[which(affy_metadata_data_frame$region == m)], na.rm=TRUE);
-  min_longitude_region <- min(affy_metadata_data_frame$longitude[which(affy_metadata_data_frame$region == m)], na.rm=TRUE);
-  longitude_range_vector_region <- c(min_longitude_region-0.5, max_longitude_region+0.5);
-  print(ggplot() +
-    geom_map(data=world_data, map=world_data, aes(x=long, y=lat, group=group, map_id=region),
-             fill="grey", colour="#7f7f7f") +
-    coord_quickmap(xlim=longitude_range_vector_region, ylim=latitude_range_vector_region, clip = "on") +
-    geom_point(data=affy_metadata_data_frame[which(affy_metadata_data_frame$region == m),], aes(x=longitude, y=latitude,
-                                                  group=mlg, colour=mlg), alpha=.5, size=3) +
-    scale_color_manual(values=palette(num_colors_2)) +
-    theme(legend.position="bottom") + labs(title=paste("MLG assignments for", m)) +
-    guides(color=guide_legend(nrow=8, byrow=F)));
+    m <- i;
+    num_colors_2 = length(unique(affy_metadata_data_frame$mlg[which(affy_metadata_data_frame$region == m)]));
+    max_latitude_region <- max(affy_metadata_data_frame$latitude[which(affy_metadata_data_frame$region == m)], na.rm=TRUE);
+    min_latitude_region <- min(affy_metadata_data_frame$latitude[which(affy_metadata_data_frame$region == m)], na.rm=TRUE);
+    latitude_range_vector_region <- c(min_latitude_region-0.5, max_latitude_region+0.5);
+    max_longitude_region <- max(affy_metadata_data_frame$longitude[which(affy_metadata_data_frame$region == m)], na.rm=TRUE);
+    min_longitude_region <- min(affy_metadata_data_frame$longitude[which(affy_metadata_data_frame$region == m)], na.rm=TRUE);
+    longitude_range_vector_region <- c(min_longitude_region-0.5, max_longitude_region+0.5);
+    print(ggplot() +
+        geom_map(data=world_data, map=world_data, aes(x=long, y=lat, group=group, map_id=region),
+                 fill="grey", colour="#7f7f7f") +
+        coord_quickmap(xlim=longitude_range_vector_region, ylim=latitude_range_vector_region, clip = "on") +
+        geom_point(data=affy_metadata_data_frame[which(affy_metadata_data_frame$region == m),],
+                   aes(x=longitude, y=latitude, group=mlg, colour=mlg), alpha=.5, size=3) +
+        scale_color_manual(values=palette(num_colors_2)) +
+        theme(legend.position="bottom") + labs(title=paste("MLG assignments for", m)) +
+        guides(color=guide_legend(nrow=8, byrow=F)));
 }
 dev.off()
 time_elapsed(start_time);
