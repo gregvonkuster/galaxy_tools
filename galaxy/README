@@ -1,0 +1,65 @@
+The directories here contain file that enable additional Postgres
+databases to complement the Galaxy database.  These databases are
+used by separate, unrelated applications (CoralSNP and PlantTribes)
+in order to function.  The following information can be used by a
+system administrator to configure a local Galaxy environment to
+support one of these applications.
+
+CoralSNP Application
+====================
+
+~/config
+    - job_conf.xml - an example configuration file for using slurm
+                     as the local job runner with 8 processes
+    /corals 
+        - coralsnp_reports.yml - an example coralsnp_reports.yml
+                                 file
+        - etc/nginx/galaxy.conf - and example nginx configuration
+                                  file for serving Galaxy via
+                                  nginx
+        - galaxy.yml.multi - an example configuration file for
+                             serving Galaxy with multiple web
+                             front-end processes and multipl job
+                             runner processes
+        - galaxy.yml.single - an example configuration file for
+                              serving Galaxy in single-user mode
+    - slurm.conf - and exampl configuration file for serving Galaxy
+                   with the slurm jpb runner
+
+~/corals_database - serves https://coralsnp.science.psu.edu/galaxy
+    /galaxy_integration
+        /version_1909 - core Galaxy version 19.09 code files altered
+                        to support the complementary CoralSNP model.
+                        These files are located in subdirectories 
+                        relative to the local Galaxy installation
+                        root directory.  Simply copy each file to it's
+                        respective location (e.g., ~/lib/galaxy/config)
+                        relative to the Galaxy installation root.
+    /lib - core CoralSNP code files that must be placed in the 
+           subdirectores relative to the Galaxy installation root.
+    /stag_database_seed_data - seed data files used to initially
+                               populate the stag database during
+                               initial setup.
+
+
+~/coralsnp_reports - serves https://coralsnp.science.psu.edu/reports
+                     core CoralSNP code files that must be placed in
+                     the cubdirectories relative to the Galaxy
+                     installation root.
+
+
+~/lib - example (optional) job rules file to include selection of
+        number of processors to use on specified tool forms.
+
+
+
+PlantTribes Application
+=======================
+
+~/lib - example (optional) job rules file to include selection of
+        number of processors to use on specified tool forms.
+
+~/plant_tribes_database - core Galaxy code files to support the
+                          complementary plant_tribes model.
+
+
