@@ -251,48 +251,51 @@ mortality.adult = function(temperature) {
 }
 
 mortality.egg = function(temperature, adj=0) {
-    # If no input from adjustment, default
-    # value is 0 (data from Nielsen, 2008).
-    T.mortality = c(15, 17, 20, 25, 27, 30, 33, 35);
-    egg.mortality = c(50, 2, 1, 0, 0, 0, 5, 100);
-    # Calculates slopes and intercepts for lines.
-    slopes = NULL;
-    intercepts = NULL;
-    for (i in 1:length(T.mortality)) {
-        slopes[i] = (egg.mortality[i+1] - egg.mortality[i]) / (T.mortality[i+1] - T.mortality[i]);
-        intercepts[i] = -slopes[i] * T.mortality[i] + egg.mortality[i];
-    }
-    # Calculates mortality based on temperature.
-    mortality.probability = NULL;
-    for (j in 1:length(temperature)) {
-        mortality.probability[j] = if(temperature[j] <= T.mortality[2]) {
-                           temperature[j] * slopes[1] + intercepts[1];
-                       } else if (temperature[j] > T.mortality[2] && temperature[j] <= T.mortality[3]) {
-                           temperature[j] * slopes[2] + intercepts[2];
-                       } else if (temperature[j] > T.mortality[3] && temperature[j] <= T.mortality[4]) {
-                           temperature[j] * slopes[3] + intercepts[3];
-                       } else if (temperature[j] > T.mortality[4] && temperature[j] <= T.mortality[5]) {
-                           temperature[j] * slopes[4] + intercepts[4];
-                       } else if (temperature[j] > T.mortality[5] && temperature[j] <= T.mortality[6]) {
-                           temperature[j] * slopes[5] + intercepts[5];
-                       } else if (temperature[j] > T.mortality[6] && temperature[j] <= T.mortality[7]) {
-                           temperature[j] * slopes[6] + intercepts[6];
-                       } else if (temperature[j] > T.mortality[7]) {
-                           temperature[j] * slopes[7] + intercepts[7];
-                       }
-        # If mortality > 100, make it equal to 100.
+    if (adj == 0) {
+        # If no input from adjustment, default
+        # value is 0 (data from Nielsen, 2008).
+        T.mortality = c(15, 17, 20, 25, 27, 30, 33, 35);
+        egg.mortality = c(50, 2, 1, 0, 0, 0, 5, 100);
+        # Calculates slopes and intercepts for lines.
+        slopes = NULL;
+        intercepts = NULL;
+        for (i in 1:length(T.mortality)) {
+            slopes[i] = (egg.mortality[i+1] - egg.mortality[i]) / (T.mortality[i+1] - T.mortality[i]);
+            intercepts[i] = -slopes[i] * T.mortality[i] + egg.mortality[i];
+        }
+        # Calculates mortality based on temperature.
+        mortality.probability = NULL;
+        for (j in 1:length(temperature)) {
+            mortality.probability[j] = if(temperature[j] <= T.mortality[2]) {
+                                           temperature[j] * slopes[1] + intercepts[1];
+                                       } else if (temperature[j] > T.mortality[2] && temperature[j] <= T.mortality[3]) {
+                                           temperature[j] * slopes[2] + intercepts[2];
+                                       } else if (temperature[j] > T.mortality[3] && temperature[j] <= T.mortality[4]) {
+                                           temperature[j] * slopes[3] + intercepts[3];
+                                       } else if (temperature[j] > T.mortality[4] && temperature[j] <= T.mortality[5]) {
+                                           temperature[j] * slopes[4] + intercepts[4];
+                                       } else if (temperature[j] > T.mortality[5] && temperature[j] <= T.mortality[6]) {
+                                           temperature[j] * slopes[5] + intercepts[5];
+                                       } else if (temperature[j] > T.mortality[6] && temperature[j] <= T.mortality[7]) {
+                                           temperature[j] * slopes[6] + intercepts[6];
+                                       } else if (temperature[j] > T.mortality[7]) {
+                                           temperature[j] * slopes[7] + intercepts[7];
+                                       }
+            # If mortality > 100, make it equal to 100.
+            mortality.probability[mortality.probability>100] = 100;
+            # If mortality <0, make equal to 0.
+            mortality.probability[mortality.probability<0] = 0;
+        }
+    } else {
+        # Make mortality adjustments based on adj parameter.
+        mortality.probability = (100 - mortality.probability) * adj + mortality.probability;
+        # if mortality > 100, make it equal to 100.
         mortality.probability[mortality.probability>100] = 100;
         # If mortality <0, make equal to 0.
         mortality.probability[mortality.probability<0] = 0;
+        # Change percent to proportion.
+        mortality.probability = mortality.probability / 100;
     }
-    # Make mortality adjustments based on adj parameter.
-    mortality.probability = (100 - mortality.probability) * adj + mortality.probability;
-    # if mortality > 100, make it equal to 100.
-    mortality.probability[mortality.probability>100] = 100;
-    # If mortality <0, make equal to 0.
-    mortality.probability[mortality.probability<0] = 0;
-    # Change percent to proportion.
-    mortality.probability = mortality.probability / 100;
     return(mortality.probability)
 }
 
