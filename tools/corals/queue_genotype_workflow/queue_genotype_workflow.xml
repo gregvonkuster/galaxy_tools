@@ -55,6 +55,18 @@ python $__tool_directory__/queue_genotype_workflow.py
 Uses the Galaxy/Bioblend API to execute the complete multilocus genotype analysis pipeline for corals or symbiants.
 This tool must be able to access the corals (stag) database.
 
+**Required options**
+
+ * **Affymetrix 96 well plate metadata file** - a tabular file created by the user to describe their samples - it can be exported from Excel using this example as a template: http://baumslab.org/documents/SNPChip/STAG_Metadata_Template_v3.xlsm
+ * **Sample attributes file** - the Sample Attributes tabular file created by the Affymetrix sequencer for the plate
+ * **Probeset annotation file** - the annotation CSV file created by the Affymetrix sequencer for the plate
+ * **Apt-probeset genotype summary file** - the summary CSV file created by the Affymetrix sequencer for the plate
+ * **Apt-probeset genotype snp-posteriors file** - the snp-posteriors CSV file created by the Affymetrix sequencer for the plate
+ * **Apt-probeset genotype report file** - the report CSV file created by the Affymetrix sequencer for the plate
+ * **Apt-probeset genotype confidences file** - the confidences CSV file created by the Affymetrix sequencer for the plate
+ * **Apt-probeset genotype calls file** - the calls CSV file created by the Affymetrix sequencer for the plate
+ * **Fasta reference sequence** - selected fasta reference dataset for the samples
+
     </help>
     <citations>
         <citation type="bibtex">
