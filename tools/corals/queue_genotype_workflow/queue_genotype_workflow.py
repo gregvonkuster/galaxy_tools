@@ -107,7 +107,7 @@ def get_history_dataset_id_by_name(gi, history_id, dataset_name, outputfh):
     # from the current history.
     outputfh.write("\nSearching for history dataset named %s.\n" % str(dataset_name))
     history_dataset_dicts = get_history_datasets(gi, history_id)
-    for name, hd_dict in history_dataset_dicts.items():
+    for name, hd_dict in list(history_dataset_dicts.items()):
         name = name.lower()
         if name.startswith(dataset_name.lower()):
             outputfh.write("Found dataset named %s.\n" % str(dataset_name))
@@ -171,7 +171,7 @@ def get_workflow_input_datasets(gi, history_datasets, workflow_name, workflow_di
     outputfh.write("\nMapping datasets from history to workflow %s.\n" % workflow_name)
     steps_dict = workflow_dict.get('steps', None)
     if steps_dict is not None:
-        for step_index, step_dict in steps_dict.items():
+        for step_index, step_dict in list(steps_dict.items()):
             # Dicts that define dataset inputs for a workflow
             # look like this.
             # "0": {
@@ -211,7 +211,7 @@ def get_workflow_input_datasets(gi, history_datasets, workflow_name, workflow_di
                 annotation_check = annotation.lower()
                 # inputs is a list and workflow input datasets
                 # have no inputs.
-                for input_hda_name, input_hda_dict in history_datasets.items():
+                for input_hda_name, input_hda_dict in list(history_datasets.items()):
                     input_hda_name_check = input_hda_name.lower()
                     if input_hda_name_check.find(annotation_check) >= 0:
                         workflow_inputs[step_index] = {'src': 'hda', 'id': input_hda_dict['id']}
@@ -238,7 +238,7 @@ def update_workflow_params(workflow_dict, dbkey, outputfh):
     name = workflow_dict['name']
     outputfh.write("\nChecking for tool parameter updates for workflow %s using dbkey %s.\n" % (name, dbkey))
     step_dicts = workflow_dict.get('steps', None)
-    for step_id, step_dict in step_dicts.items():
+    for step_id, step_dict in list(step_dicts.items()):
         tool_id = step_dict['tool_id']
         if tool_id is None:
             continue
