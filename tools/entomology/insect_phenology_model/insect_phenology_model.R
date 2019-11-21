@@ -293,7 +293,6 @@ mortality.egg = function(temperature, adj=0) {
     mortality.probability[mortality.probability<0] = 0;
     # Change percent to proportion.
     mortality.probability = mortality.probability / 100;
-}
     return(mortality.probability)
 }
 
