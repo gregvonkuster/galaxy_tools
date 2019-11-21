@@ -286,7 +286,7 @@ mortality.egg = function(temperature, adj=0) {
         mortality.probability[mortality.probability<0] = 0;
     }
     # Make mortality adjustments based on adj parameter.
-    mortality.probability = (100 - mortality.probability) * adj + mortality.probability;
+    mortality.probability = (100 - mortality.probability) * (1+adj) + mortality.probability;
     # if mortality > 100, make it equal to 100.
     mortality.probability[mortality.probability>100] = 100;
     # If mortality <0, make equal to 0.
