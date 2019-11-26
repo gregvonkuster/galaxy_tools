@@ -52,7 +52,7 @@ python $__tool_directory__/queue_genotype_workflow.py
     <help>
 **What it does**
 
-Uses the Galaxy/Bioblend API to execute the complete multilocus genotype analysis pipeline for corals or symbiants.
+Uses the Galaxy/Bioblend API to execute the complete multilocus genotype analysis pipeline for corals or symbionts.
 This tool must be able to access the corals (stag) database.
 
 **Required options**
