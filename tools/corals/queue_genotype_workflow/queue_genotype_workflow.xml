@@ -16,6 +16,9 @@ python $__tool_directory__/queue_genotype_workflow.py
 --sample_attributes '$sample_attributes'
 --snp-posteriors '$snp_posteriors'
 --summary '$summary'
+#if str($output_nj_phylogeny_tree) == "yes":
+    --output_nj_phylogeny_tree '$output_nj_phylogeny_tree'
+#end if
 --output '$output']]></command>
     <configfiles>
         <configfile name="get_user_api_key"><![CDATA[#from galaxy.managers import api_keys#${api_keys.ApiKeyManager( $__app__ ).get_or_create_api_key($__user__)} ]]></configfile>
@@ -39,6 +42,10 @@ python $__tool_directory__/queue_genotype_workflow.py
                 <filter type="sort_by" column="1"/>
                 <validator type="no_options" message="No cached Fasta genome references are available for the build associated with the selected probeset annotation file." />
             </options>
+        </param>
+        <param name="output_nj_phylogeny_tree" type="select" display="radio" label="Plot neighbor-joining phylogeny tree in Corals Multilocus Genotype outputs?" help="This may significantly extend the tool execution time">
+            <option value="yes">Yes</option>
+            <option value="no" selected="true">No</option>
         </param>
     </inputs>
     <outputs>

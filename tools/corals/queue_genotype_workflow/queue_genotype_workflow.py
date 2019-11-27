@@ -22,6 +22,7 @@ parser.add_argument('--dbkey', dest='dbkey', help='Reference genome dbkey')
 parser.add_argument('--reference_genome', dest='reference_genome', help='Reference genome')
 parser.add_argument('--history_id', dest='history_id', help='Encoded id of current history')
 parser.add_argument('--output', dest='output', help='Output dataset')
+parser.add_argument('--output_nj_phylogeny_tree', dest='output_nj_phylogeny_tree', help='Flag to plot neighbor-joining phylogeny tree')
 parser.add_argument('--report', dest='report', help='Apt-probeset genotype report file')
 parser.add_argument('--sample_attributes', dest='sample_attributes', help='Sample attributes tabular file')
 parser.add_argument('--snp-posteriors', dest='snp-posteriors', help='Apt-probeset genotype snp-posteriors file')
@@ -233,7 +234,7 @@ def rename_library_dataset(gi, dataset_id, name, outputfh):
     return library_dataset_dict
 
 
-def update_workflow_params(workflow_dict, dbkey, outputfh):
+def update_workflow_params(workflow_dict, dbkey, output_nj_phylogeny_tree, outputfh):
     parameter_updates = None
     name = workflow_dict['name']
     outputfh.write("\nChecking for tool parameter updates for workflow %s using dbkey %s.\n" % (name, dbkey))
@@ -257,9 +258,17 @@ def update_workflow_params(workflow_dict, dbkey, outputfh):
             workflow_db_key = reference_genome_source_cond_dict['locally_cached_item']
             if dbkey != workflow_db_key:
                 reference_genome_source_cond_dict['locally_cached_item'] = dbkey
-                parameter_updates = {}
+                if parameter_updates is None:
+                    parameter_updates = {}
                 parameter_updates[step_id] = reference_genome_source_cond_dict
                 outputfh.write("Updated step id %s with the following entry:\n%s\n" % (step_id, str(reference_genome_source_cond_dict)))
+        if tool_id.find('coral_multilocus_genotype') > 0 and output_nj_phylogeny_tree == 'yes':
+            # Reset the default value 'no' of output_nj_phylogeny_tree to 'yes'.
+            if parameter_updates is None:
+                parameter_updates = {}
+            output_nj_phylogeny_tree_dict = {'output_nj_phylogeny_tree' : 'yes'}
+            parameter_updates[step_id] = output_nj_phylogeny_tree_dict
+            outputfh.write("Updated step id %s with the following entry:\n%s\n" % (step_id, str(output_nj_phylogeny_tree_dict)))
     return parameter_updates
 
 
@@ -372,7 +381,7 @@ try:
         coralsnp_workflow_input_datasets = get_workflow_input_datasets(gi, history_datasets, coralsnp_workflow_name, coralsnp_workflow_dict, outputfh)
         outputfh.write("\nCoralSNP workflow input datasets: %s\n" % str(coralsnp_workflow_input_datasets))
         # Get the CoralSNP workflow params that could be updated.
-        coralsnp_params = update_workflow_params(coralsnp_workflow_dict, args.dbkey, outputfh)
+        coralsnp_params = update_workflow_params(coralsnp_workflow_dict, args.dbkey, args.output_nj_phylogeny_tree, outputfh)
         outputfh.write("\nCoralSNP params: %s\n" % str(coralsnp_params))
         # Start the CoralSNP workflow.
         start_workflow(gi, coralsnp_workflow_id, coralsnp_workflow_name, coralsnp_workflow_input_datasets, coralsnp_params, args.history_id, outputfh)
