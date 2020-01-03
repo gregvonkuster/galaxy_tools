@@ -9,12 +9,12 @@ The Galaxy CoralSNP environment enables streamlined analysis of the coral SNPchi
 
 The process is straightforward.  Each of the following steps will be discussed in detail in the following sections.
 
- - A sample metadata file is created by the user from an Excel spreadsheet template for their samples to be analyzed.  A row is entered into the spreadsheet for each sample, and when finished, the spreadsheet is exported from Excel and saved to disk as a tab-delimeted file.  Naming the file is critical - the word *"metadata"* must be contained within the file name on disk.
+ - A sample metadata file is created by the user from an Excel spreadsheet template for their samples to be analyzed.  A row is entered into the spreadsheet for each sample, and when finished, the spreadsheet is exported from Excel and saved to disk as a tab-delimeted file.
  - The user logs into the [CoralSNP Galaxy](https://coralsnp.science.psu.edu/galaxy) environment and creates a new, empty history, ideally naming it in a way that associates it with the run being analyzed.
- - The user uploads their sample metadata file (named something like *"affy_metadata.tabular"*) along with the necessary raw Affymetrix data files for the run being analyzed into the Galaxy CoralSNP environment using the *"Upload file"* tool within the *"Get Data"* section of the Galaxy tool panel.
+ - The user uploads their sample metadata file (named something like *"plate2_metadata.tabular"*) along with the necessary raw Affymetrix data files for the run being analyzed into the Galaxy CoralSNP environment using the *"Upload file"* tool within the *"Get Data"* section of the Galaxy tool panel.
  - The user selects the *"Queue genotype workflow"* tool from the *"Genotype Workflow"* section of the Galaxy tool panel, selects the appropriate files as inputs, and executes the tool.  The tool executes the entire analysis for the samples and the user can view the results in the Galaxy history when the analysis is finished.
 
-## Creating the Sample Metadata File
+## Create the Sample Metadata File
 
 The metadata file for the run describes the samples being analyzed by providing important information about them.  The Baums' Lab website provides an [Excel spreadsheet template](http://baumslab.org/documents/SNPChip/STAG_Metadata_Template_v3.xlsm) that can be downloaded and used for each sample run.  Some of the data is optional.
 
@@ -52,15 +52,24 @@ The metadata file for the run describes the samples being analyzed by providing 
  - **plate_barcode** (optional)
 
 
-It is crucial that the information in this sample metadata file is correct since the analysis pipeline will store portions of it for use in future analyses.  The Excel spreadsheet doesn't validate the information, so care must be taken when entering the data.  Information about all previous runs is available in the [COralSNP Reports](https://coralsnp.science.psu.edu/reports).  Users should browse this information before creating their sample metadata file to help ensure that the information is correct.  For example, the collector's name, organization and email, reef name, region, etc should exactly match those entered for previous samples if taken by the same collector, from the same reef, etc.
+It is crucial that the information in this sample metadata file is correct since the analysis pipeline will store portions of it for use in future analyses.  The Excel spreadsheet doesn't validate the information, so care must be taken when entering the data.
 
-## Upload Data to Galaxy CoralSNP for Analysis
+Information about all previous runs is available in the [COralSNP Reports](https://coralsnp.science.psu.edu/reports).  Users should browse this information before creating their sample metadata file to help ensure that the information is correct.  For example, the collector's name, organization and email, reef name, region, etc should exactly match those entered for previous samples if taken by the same collector, from the same reef, etc.
+
+When the Excel spreadsheet is complete. export the information (tab-separated) into a disk file.  Naming the file is critical - the word *"metadata"* must be contained within the file name on disk.  For example, if analyzing Plate 2 data, the file could be named *"plate2_metadata.tabular"*, but any file name tha tincludes the string *"metadata*" is fine (e.g., *"affy_metadata.tabular"*).
+
+## Upload the Sample Data to Galaxy CoralSNP for Analysis
 
 You'll have to create an account upon your initial visit to the [CoralSNP Galaxy](https://coralsnp.science.psu.edu/galaxy) environment.  Information about registering and logging into the test or main public Galaxy environemnts is available [here](https://galaxyproject.org/support/account), and can be used for learning how to register a new account in the CoralSNP environment for users that have not yet done so.  If loggin in for the first time, a new, empty history will be created for you.  If you are logging into an existing account, you should create a new, empty history for the samples being analyzed.  Name the history in a way that associates it with your current samples.
 
-You can now upload your data for analysis.  A general tutorial for uplaoding data to Galaxy is avaialble [here](https://training.galaxyproject.org/training-material/topics/galaxy-data-manipulation/tutorials/get-data/slides.html#1).  Here is a view of the Galaxy upload form that shows all of the files for Plate 2 of the samples.
+You can now upload your data for analysis.  A general tutorial for uplaoding data to Galaxy is avaialble [here](https://training.galaxyproject.org/training-material/topics/galaxy-data-manipulation/tutorials/get-data/slides.html#1).
+
+Here is a view of the Galaxy upload form that shows all of the files for what was called *"Plate 2"* of the samples.  Notice that the data type (e.g., *"tabular"*. *"csv"*, *"txt"*, etc) has been selected for each file.  Although not required (Galaxy will auto-detect file formats), this is ideal since it will descrease the time needed to upload all of the data files.  Also notice the names of the files.  With the exception of the *"affy_metadata.tabular"* file which is named by the user, all of the file names are produced by the Affymetrix sequencing process.  All of these file names are important as we'll discover shortly.
 
 ![Raw Affymetrix sample data and samples metadata file for Plate 2](upload_data.png)
 
+## Execute the *"Queue genotype workflow"* Tool
+
+![Specify appropritate inputs](queue_genotype_workflow.png)
 
 
