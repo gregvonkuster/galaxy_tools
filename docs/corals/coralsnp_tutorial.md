@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This document provides information for using the [CoralSNP Galaxy environment](https://coralsnp.science.psu.edu/galaxy)
+This document provides information for using the [Galaxy CoralSNP environment](https://coralsnp.science.psu.edu/galaxy)
 which is based on the [Galaxy workbench](https://galaxyproject.org/).  A general understanding of Galaxy is required, so please spend some time with the [introductory tutorials](https://training.galaxyproject.org/training-material/topics/introduction) if you are not yet familiar with Galaxy.
 
 The Galaxy CoralSNP environment enables streamlined analysis of the coral SNPchip available from Fisher Scientific to ultimately provide the user with a genet id, converted raw genotyped data, sample relatedness and hybrid status.
@@ -10,7 +10,7 @@ The Galaxy CoralSNP environment enables streamlined analysis of the coral SNPchi
 The process is straightforward.  Each of the following steps will be discussed in detail in the following sections.
 
  - A sample metadata file is created by the user from an Excel spreadsheet template for their samples to be analyzed.  A row is entered into the spreadsheet for each sample, and when finished, the spreadsheet is exported from Excel and saved to disk as a tab-delimeted file.
- - The user logs into the [CoralSNP Galaxy](https://coralsnp.science.psu.edu/galaxy) environment and creates a new, empty history, ideally naming it in a way that associates it with the run being analyzed.
+ - The user logs into the [Galaxy CoralSNP](https://coralsnp.science.psu.edu/galaxy) environment and creates a new, empty history, ideally naming it in a way that associates it with the run being analyzed.
  - The user uploads their sample metadata file (named something like *"plate2_metadata.tabular"*) along with the necessary raw Affymetrix data files for the run being analyzed into the Galaxy CoralSNP environment using the *"Upload file"* tool within the *"Get Data"* section of the Galaxy tool panel.
  - The user selects the *"Queue genotype workflow"* tool from the *"Genotype Workflow"* section of the Galaxy tool panel, selects the appropriate files as inputs, and executes the tool.  The tool executes the entire analysis for the samples and the user can view the results in the Galaxy history when the analysis is finished.
 
@@ -60,7 +60,7 @@ When the Excel spreadsheet is complete. export the information (tab-separated) i
 
 ## Upload the Sample Data to Galaxy CoralSNP for Analysis
 
-You'll have to create an account upon your initial visit to the [CoralSNP Galaxy](https://coralsnp.science.psu.edu/galaxy) environment.  Information about registering and logging into the test or main public Galaxy environemnts is available [here](https://galaxyproject.org/support/account), and can be used for learning how to register a new account in the CoralSNP environment for users that have not yet done so.  If loggin in for the first time, a new, empty history will be created for you.  If you are logging into an existing account, you should create a new, empty history for the samples being analyzed.  Name the history in a way that associates it with your current samples.
+You'll have to create an account upon your initial visit to the [Galaxy CoralSNP](https://coralsnp.science.psu.edu/galaxy) environment.  Information about registering and logging into the test or main public Galaxy environemnts is available [here](https://galaxyproject.org/support/account), and can be used for learning how to register a new account in the CoralSNP environment for users that have not yet done so.  If loggin in for the first time, a new, empty history will be created for you.  If you are logging into an existing account, you should create a new, empty history for the samples being analyzed.  Name the history in a way that associates it with your current samples.
 
 You can now upload your data for analysis.  A general tutorial for uplaoding data to Galaxy is avaialble [here](https://training.galaxyproject.org/training-material/topics/galaxy-data-manipulation/tutorials/get-data/slides.html#1).
 
@@ -68,8 +68,12 @@ Here is a view of the Galaxy upload form that shows all of the files for what wa
 
 ![Raw Affymetrix sample data and samples metadata file for Plate 2](upload_data.png)
 
-## Execute the *"Queue genotype workflow"* Tool
+When all of the files have been chosen and the data formats specified, clicking the *"Start"* button will begin ghe upload.
+
+## The *"Queue genotype workflow"* Tool
+
+After uploading the files, select the *"Queue genotype workflow"* tool from the *"Genotype Workflow"* section of the Galaxy CoralSNP tool panel.  Here is a view of the tool form and the Galaxy history containing the uploaded files.  Notice that the Galaxy history contains only the uploaded files.  This is essential in order to ensure a successful analysis.
 
 ![Specify appropritate inputs](queue_genotype_workflow.png)
 
-
+We mentioned previously that the names of the files are important, and the tool form demonstrates this.  Notice the help text below each inptu selection (e.g., *"The word 'metadata' must be in the file name."*).  Executing this tool invokes the entire analysis pipeline, and a complex set processes and components are hidden to simplify the process from the user's perspective.
