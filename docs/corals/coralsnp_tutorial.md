@@ -72,7 +72,7 @@ Here is a view of the Galaxy upload form that shows all of the files for what wa
 
 When all of the files have been chosen and the data formats specified, clicking the *"Start"* button will initiate the upload.
 
-## The *"Queue genotype workflow"* Tool
+## The Galaxy CoralSNP *"Queue genotype workflow"* Tool
 
 After uploading the files, select the *"Queue genotype workflow"* tool from the *"Genotype Workflow"* section of the Galaxy CoralSNP tool panel.  Here is a view of the tool form and the Galaxy history containing the uploaded Plate 2 sample files.  Notice that the Galaxy history contains only the uploaded files, and that all items are in the *"ok"* (i.e., *"green"*) state as discussed previously.  This is essential in order to ensure a successful analysis.
 
@@ -80,4 +80,7 @@ After uploading the files, select the *"Queue genotype workflow"* tool from the 
 
 We mentioned previously that the names of the files are important, and the tool form demonstrates this.  Notice the help text below each input selection (e.g., *"The word 'metadata' must be in the file name."*).
 
-Executing this tool invokes the entire analysis pipeline which consists of a complex set processes and components.
+Executing this tool invokes the entire analysis pipeline consisting of a complex set processes and components, including 3 separate [Galaxy workflows](https://galaxyproject.org/learn/advanced-workflow/).  The tool shields the complexity of the analysis from the user, and performs its function via the [Galaxy API](https://bioblend.readthedocs.io/en/latest/api_docs/galaxy/all.html).  Here is a view of the Galaxy history soon after the tool is executed.  
+
+![Queue genotype workflow tool execution](qgw_tool_execution.png)
+
