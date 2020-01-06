@@ -80,7 +80,25 @@ After uploading the files, select the *"Queue genotype workflow"* tool from the 
 
 We mentioned previously that the names of the files are important, and the tool form demonstrates this.  Notice the help text below each input selection (e.g., *"The word 'metadata' must be in the file name."*).
 
-Executing this tool invokes the entire analysis pipeline consisting of a complex set processes and components, including 3 separate [Galaxy workflows](https://galaxyproject.org/learn/advanced-workflow/).  The tool shields the complexity of the analysis from the user, and performs its function via the [Galaxy API](https://bioblend.readthedocs.io/en/latest/api_docs/galaxy/all.html).  Here is a view of the Galaxy history soon after the tool is executed.  
+Executing this tool invokes the entire analysis pipeline consisting of a complex set processes and components, including 3 separate [Galaxy workflows](https://galaxyproject.org/learn/advanced-workflow/); *"EnsureSynced"*, *"ValidateAffyMetadata"* and *"CoralSNP"*.  The tool shields the complexity of the CoralSNP analysis from the user, and performs its function via the [Galaxy API](https://bioblend.readthedocs.io/en/latest/api_docs/galaxy/all.html).
+
+Here is a view of the Galaxy history soon after the tool is executed.  Notice all of the items in the *"queued"* (i.e., *"grey"*) state - these are jobs associated with tools in the pipeline that are queued for execution.
 
 ![Queue genotype workflow tool execution](qgw_tool_execution.png)
+
+Executing the *"Queue genotype workflow"* tool initiates the following tasks.
+
+ - The current history is insepected, and the file names of all items are collected
+ - The *"All Genotyped Samples"* [Galaxy data library](https://galaxyproject.org/data-libraries/) is located
+ - The public *"all_genotyped_samples.vcf"* Galaxy data library dataset is located and imported into the current Galaxy history
+ - The *"EnsureSynced"* Galaxy workflow is located, the appropropriate history items are specified as tool inputs, and the workflow is executed
+ - The results of the *"EnsureSynced"* workflow are inspected for errors and if any exist, the analysis is terminated
+ - The *"ValidateAffyMetadata"* workflow is located, the appropriate history items are specified as tool inputs, and the workflow is executed
+ - The results of the *"ValidateAffyMetadata"* wofkflow are inspected for errors and if any exist, the analysis is terminated
+ - The *"CoralSNP"* workflow is located, the appropriate history items are specified as tool inputs, and the workflow is executed
+ - The results of the *"CoralSNP"* workflow are inspected for errors and if any exist, the analysis is terminated
+ - The *"stag"* database is updated with information gathered from the analysis results
+ - The *"all_genotyped_samples.vcf"* Galaxy data library dataset is updated with information gathered from the analysis results
+
+![CoralSNP workflow](coralsnp_workflow.png)
 
