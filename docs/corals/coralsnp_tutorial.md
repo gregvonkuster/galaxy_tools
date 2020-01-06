@@ -89,16 +89,39 @@ Here is a view of the Galaxy history soon after the tool is executed.  Notice al
 Executing the *"Queue genotype workflow"* tool initiates the following tasks.
 
  - The current history is insepected, and the file names of all items are collected
- - The *"All Genotyped Samples"* [Galaxy data library](https://galaxyproject.org/data-libraries/) is located
- - The public *"all_genotyped_samples.vcf"* Galaxy data library dataset is located and imported into the current Galaxy history
+ - The public *"all_genotyped_samples.vcf"* [Galaxy data library](https://galaxyproject.org/data-libraries/) dataset is located and imported into the current Galaxy history
  - The *"EnsureSynced"* Galaxy workflow is located, the appropropriate history items are specified as tool inputs, and the workflow is executed
  - The results of the *"EnsureSynced"* workflow are inspected for errors and if any exist, the analysis is terminated
  - The *"ValidateAffyMetadata"* workflow is located, the appropriate history items are specified as tool inputs, and the workflow is executed
  - The results of the *"ValidateAffyMetadata"* wofkflow are inspected for errors and if any exist, the analysis is terminated
  - The *"CoralSNP"* workflow is located, the appropriate history items are specified as tool inputs, and the workflow is executed
- - The results of the *"CoralSNP"* workflow are inspected for errors and if any exist, the analysis is terminated
- - The *"stag"* database is updated with information gathered from the analysis results
+ - The *"stag"* Postgres database is updated with information gathered from the analysis results as the final step of the CoralSNP workflow
+ - The results of the *"CoralSNP"* wofkflow are inspected for errors and if any exist, the analysis is terminated
  - The *"all_genotyped_samples.vcf"* Galaxy data library dataset is updated with information gathered from the analysis results
 
+It is imperative that the previously genotyped samples contained within the *"all_genotyped_samples.vcf"* dataset are synchronized with the previously genotypes sample records contained within the *"stag"* database.  The *"EnsureSynced"* workflow performs this task, ensuring that the data contained within these two components is in sync before allowing the analysis to proceed.
+
+To ensure recovery when necessary, the *"stag"* database is exported into a backup text file, and a copy of the *"all_genotyped_samples.vcf"* file is stored before updates occur.  Since both of these components are updated, multiple simultaneous enalyses cannot be performed.  The *"Queue genotype workflow"* tool handles this requirement by ensuring that multiple simultaneous executions are handled serially.  This is done by polling the status of the first execution (by later executions) until it has completed.  Additional simultaneous executions are queued in the order in which they were submitted.  If an analysis ends in an error state with either the *"all_genotyped_samples.vcf"* datasetr or the *"stag"* database updated so that they are no longer in sync, the backup copy of the appropriate component can be used to replace the problematic on in preparation for the next analysis run.
+
+Here is a view of the CoralSNP workflow, the heart of the Galaxy CoralSNP analysis.
+
 ![CoralSNP workflow](coralsnp_workflow.png)
+
+As discussed above, the workflow is initialted by the *"Queue genotype workflow"* tool via the Galaxy API.  The workflow consists of the following tools, all of which can be installe dinto a local Galaxy environment from the [Galaxy Tool Shed](https://toolshed.g2.bx.psu.edu/).
+
+ - *"Affy2vcf"* - converts Affymetrix genotype calls and intensity file to VCF format
+ - *"bcftools sort"* - sorts BCF files
+ - *"bcftools merge"* - merges BCF files
+ - *"Extract Affymetrix ids for Genotyping"* - extracts information from a VCF file that contains Affymetrix identifiers and produces a file that contains a subset of the identifiers combined with additional data to generate the genotype population information for use as input to the *"coral_multilocus_genotype"* tool
+ - *"Coral Multilocus Genotype"* - renders the unique combination of alleles for two or more loci for each individual
+ - *"Update Stag Database"* - updates the *"stag"* database tables from a dataset collection where each item in the collection is a tabular file that will be parsed to insert rows into the a table defined by the name of the file
+
+The *"Coral Myltilocus Genotype"* tool produces the following outputs.
+
+ - *"table data"* - a collection of tabular datasets used to update the *"stag"* database, these can generally be ignored
+ - *"plots"* - a collection of PDF datasets that prvide visualizations of the analysis, an example of the *"percent_breakdown.pdf"* is shown below
+ - *"stag db report"* - a tabular dataset consisting of important information about the samples
+ - *"process log"* - the tool execution log, this can be inspected in case of errors to help discover causes and how to correct them
+
+![Multilocus Genotype tool results](multilocus_genotype_results.png)
 
