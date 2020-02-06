@@ -23,12 +23,12 @@ def get_time_stamp():
 
 
 class GetSnps:
-    def __init__(self, vcf_files, reference, excel_filter_file, gbk_file, filter_finder,
+    def __init__(self, vcf_files, reference, excel_grouper_file, gbk_file, filter_finder,
                  no_filters, all_isolates, ac, mq_val, n_threshold, qual_threshold, output_log):
         self.ac = ac
         self.all_isolates = all_isolates
         # Filter based on the contents of an Excel file.
-        self.excel_filter_file = excel_filter_file
+        self.excel_grouper_file = excel_grouper_file
         self.filter_finder = filter_finder
         # Use Genbank file
         self.gbk_file = gbk_file
@@ -64,61 +64,63 @@ class GetSnps:
             if record_position in all_positions:
                 if alt == "None":
                     sample_dict.update({record_position: "-"})
-                # Not sure this is the best place to capture MQM average
-                # may be faster after parsimony SNPs are decided, but
-                # then it will require opening the files again.
-                # On rare occassions MQM gets called "NaN", thus passing
-                # a string when a number is expected when calculating average.
-                mq_val = self.get_mq_val(record.INFO, filename)
-                if alt != "None" and str(mq_val.lower()) not in ["nan", "na", "inf"]:
-                    sample_map_qualities.update({record_position: mq_val})
-                # Add parameters here to change what each vcf represents.
-                # SNP is represented in table, now how will the vcf represent
-                # the called position # str(record.ALT[0]) != "None", which
-                # means a deletion as ALT # not record.FILTER, or rather passed.
-                len_alt = len(alt)
-                if alt != "None" and len_alt == 1:
-                    qual_val = self.get_qual_val(record.QUAL)
-                    ac = record.INFO['AC'][0]
-                    if ac == 2 and qual_val > self.n_threshold:
-                        sample_dict.update({record_position: str(record.ALT[0])})
-                    elif ac == 1 and qual_val > self.n_threshold:
-                        ref_alt = str(record.ALT[0]) + str(record.REF[0])
-                        if ref_alt == "AG":
-                            sample_dict.update({record_position: "R"})
-                        elif ref_alt == "CT":
-                            sample_dict.update({record_position: "Y"})
-                        elif ref_alt == "GC":
-                            sample_dict.update({record_position: "S"})
-                        elif ref_alt == "AT":
-                            sample_dict.update({record_position: "W"})
-                        elif ref_alt == "GT":
-                            sample_dict.update({record_position: "K"})
-                        elif ref_alt == "AC":
-                            sample_dict.update({record_position: "M"})
-                        elif ref_alt == "GA":
-                            sample_dict.update({record_position: "R"})
-                        elif ref_alt == "TC":
-                            sample_dict.update({record_position: "Y"})
-                        elif ref_alt == "CG":
-                            sample_dict.update({record_position: "S"})
-                        elif ref_alt == "TA":
-                            sample_dict.update({record_position: "W"})
-                        elif ref_alt == "TG":
-                            sample_dict.update({record_position: "K"})
-                        elif ref_alt == "CA":
-                            sample_dict.update({record_position: "M"})
-                        else:
+                else:
+                    # Not sure this is the best place to capture MQM average
+                    # may be faster after parsimony SNPs are decided, but
+                    # then it will require opening the files again.
+                    # On rare occassions MQM gets called "NaN", thus passing
+                    # a string when a number is expected when calculating average.
+                    mq_val = self.get_mq_val(record.INFO, filename)
+                    if str(mq_val.lower()) not in ["nan", "na", "inf"]:
+                        sample_map_qualities.update({record_position: mq_val})
+                    # Add parameters here to change what each vcf represents.
+                    # SNP is represented in table, now how will the vcf represent
+                    # the called position alt != "None", which means a deletion
+                    # as alt is not record.FILTER, or rather passed.
+                    len_alt = len(alt)
+                    if len_alt == 1:
+                        qual_val = self.get_qual_val(record.QUAL)
+                        ac = record.INFO['AC'][0]
+                        ref = str(record.REF[0])
+                        if ac == 2 and qual_val > self.n_threshold:
+                            sample_dict.update({record_position: alt})
+                        elif ac == 1 and qual_val > self.n_threshold:
+                            alt_ref = alt + ref
+                            if alt_ref == "AG":
+                                sample_dict.update({record_position: "R"})
+                            elif alt_ref == "CT":
+                                sample_dict.update({record_position: "Y"})
+                            elif alt_ref == "GC":
+                                sample_dict.update({record_position: "S"})
+                            elif alt_ref == "AT":
+                                sample_dict.update({record_position: "W"})
+                            elif alt_ref == "GT":
+                                sample_dict.update({record_position: "K"})
+                            elif alt_ref == "AC":
+                                sample_dict.update({record_position: "M"})
+                            elif alt_ref == "GA":
+                                sample_dict.update({record_position: "R"})
+                            elif alt_ref == "TC":
+                                sample_dict.update({record_position: "Y"})
+                            elif alt_ref == "CG":
+                                sample_dict.update({record_position: "S"})
+                            elif alt_ref == "TA":
+                                sample_dict.update({record_position: "W"})
+                            elif alt_ref == "TG":
+                                sample_dict.update({record_position: "K"})
+                            elif alt_ref == "CA":
+                                sample_dict.update({record_position: "M"})
+                            else:
+                                sample_dict.update({record_position: "N"})
+                            # Poor calls
+                        elif qual_val <= 50:
+                            sample_dict.update({record_position: ref})
+                        elif qual_val <= self.n_threshold:
                             sample_dict.update({record_position: "N"})
-                        # Poor calls
-                    elif qual_val <= 50:
-                        sample_dict.update({record_position: record.REF[0]})
-                    elif qual_val <= self.n_threshold:
-                        sample_dict.update({record_position: "N"})
-                    else:
-                        # Insurance -- Will still report on a possible
-                        # SNP even if missed with above statement
-                        sample_dict.update({record_position: str(record.REF[0])})
+                        else:
+                            # Insurance -- Will still report on a possible
+                            # SNP even if missed with above statement
+                            sample_dict.update({record_position: ref})
         # Merge dictionaries and order
         merge_dict = {}
         # abs_pos:REF
@@ -181,13 +183,13 @@ class GetSnps:
         self.olfh.write("\n%s - Started gather_and_filter\n" % get_time_stamp())
         # self.olfh.write("\nIn gather_and_filter, prefilter_df: %s\n" % str(prefilter_df))
         # self.olfh.write("\nIn gather_and_filter, group: %s\n" % str(group))
-        if self.excel_filter_file is None or self.no_filters:
+        if self.excel_grouper_file is None or self.no_filters:
             filtered_all_df = prefilter_df
             sheet_names = None
-        elif self.excel_filter_file:
+        elif self.excel_grouper_file:
             # The value of group is not None.
             # Filter positions to be removed from all.
-            xl = pandas.ExcelFile(self.excel_filter_file)
+            xl = pandas.ExcelFile(self.excel_grouper_file)
             sheet_names = xl.sheet_names
             # Use the first column to filter "all" postions
             exclusion_list_all = self.get_position_list(sheet_names, 0)
@@ -256,7 +258,7 @@ class GetSnps:
         # self.olfh.write("\nIn get_position_list, group: %s\n" % str(group))
         exclusion_list = []
         try:
-            filter_to_all = pandas.read_excel(self.excel_filter_file, header=1, usecols=[group])
+            filter_to_all = pandas.read_excel(self.excel_grouper_file, header=1, usecols=[group])
             for value in filter_to_all.values:
                 value = str(value[0])
                 if "-" not in value.split(":")[-1]:
@@ -287,7 +289,7 @@ class GetSnps:
             # Process Excel filter file.
             self.self.olfh.write(f'\nFinding filters...\n')
             # TODO: fix this...
-            # filter_finder = Filter_Finder(self.excel_filter_file)
+            # filter_finder = Filter_Finder(self.excel_grouper_file)
             # filter_finder.filter_finder()
         all_positions = {}
         df_list = []
@@ -336,9 +338,9 @@ class GetSnps:
     def group_vcfs(self):
         self.olfh.write("\n%s - Started group_vcfs\n" % get_time_stamp())
         group_names = []
-        xl = pandas.ExcelFile(self.excel_filter_file)
+        xl = pandas.ExcelFile(self.excel_grouper_file)
         sheet_names = xl.sheet_names
-        ws = pandas.read_excel(self.excel_filter_file, sheet_name=sheet_names[0])
+        ws = pandas.read_excel(self.excel_grouper_file, sheet_name=sheet_names[0])
         defining_snps = ws.iloc[0]
         # self.olfh.write("\nIn group_vcfs, defining_snps: %s\n" % str(defining_snps))
         defsnp_iterator = iter(defining_snps.iteritems())
@@ -404,7 +406,7 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('-ai', '--all_isolates', action='store_true', dest='all_isolates', required=False, default=False, help='Create table with all isolates')
 parser.add_argument('-ff', '--filter_finder', action='store_true', dest='filter_finder', required=False, default=False, help='Write possible positions to filter to text file')
-parser.add_argument('-ef', '--excel_filter_file', action='store', dest='excel_filter_file', required=False, default=None, help='Optional Excel filter file')
+parser.add_argument('-ef', '--excel_grouper_file', action='store', dest='excel_grouper_file', required=False, default=None, help='Optional Excel filter file')
 parser.add_argument('-gf', '--gbk_file', action='store', dest='gbk_file', required=False, default=None, help='Optional gbk file')
 parser.add_argument('-nf', '--no_filters', action='store_true', dest='no_filters', default=False, help='Run without applying filters')
 parser.add_argument('-of', '--output_fasta', action='store', dest='output_fasta', required=False, default=None, help='Single output SNPs alignment fasta file if not Excel filtering')
@@ -422,15 +424,15 @@ n_threshold = 50
 qual_threshold = 150
 vcf_files = [args.zero_coverage_vcf_input]
 
-snp_finder = GetSnps(vcf_files, args.reference, args.excel_filter_file, args.gbk_file, args.filter_finder, args.no_filters,
+snp_finder = GetSnps(vcf_files, args.reference, args.excel_grouper_file, args.gbk_file, args.filter_finder, args.no_filters,
                      args.all_isolates, ac, mq_val, n_threshold, qual_threshold, args.output_log)
 
-if args.excel_filter_file is not None:
+if args.excel_grouper_file is not None:
     # Parse the Excel file to detemine groups for filtering.
     samples_groups_dict = snp_finder.group_vcfs()
     for group in snp_finder.groups:
         snp_finder.get_snps(group=group)
-if args.all_isolates or args.subset or args.excel_filter_file is None:
+if args.all_isolates or args.subset or args.excel_grouper_file is None:
     snp_finder.get_snps(output_file=args.output_fasta)
 
 snp_finder.olfh.write("\nTime finished: %s\n\n" % get_time_stamp())

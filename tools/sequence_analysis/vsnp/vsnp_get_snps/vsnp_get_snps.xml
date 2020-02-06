@@ -15,8 +15,8 @@ python '$__tool_directory__/vsnp_get_snps.py'
 #else:
     --reference '$reference_cond.reference'
 #end if
-#if str($excel_filter_cond.excel_filter) == "yes":
-    --excel_filter_file '$excel_filter_cond.excel_filter_file'
+#if str($excel_grouper_cond.excel_grouper) == "yes":
+    --excel_grouper_file '$excel_grouper_cond.excel_grouper_file'
 #else:
     --output_fasta '$output_fasta'
 #end if
@@ -58,13 +58,13 @@ python '$__tool_directory__/vsnp_get_snps.py'
                 </param>
             </when>
         </conditional>
-        <conditional name="excel_filter_cond">
-            <param name="excel_filter" type="select" label="Use Excel filter?">
+        <conditional name="excel_grouper_cond">
+            <param name="excel_grouper" type="select" label="Use Excel filter?">
                 <option value="no" selected="true">No</option>
                 <option value="yes">Yes</option>
             </param>
             <when value="yes">
-                <param name="excel_filter_file" type="data" format="xlsx" optional="true" label="Excel filter file"/>
+                <param name="excel_grouper_file" type="data" format="xlsx" optional="true" label="Excel file for grouping"/>
             </when>
             <when value="no"/>
         </conditional>
@@ -85,11 +85,11 @@ python '$__tool_directory__/vsnp_get_snps.py'
     </inputs>
     <outputs>
         <data name="output_fasta" format="fasta" label="${tool.name} (quality parsimonious SNPs) on ${on_string}">
-            <filter>excel_filter_cond['excel_filter'] == 'no'</filter>
+            <filter>excel_grouper_cond['excel_grouper'] == 'no'</filter>
         </data>
         <collection name="snps" type="list" label="${tool.name} (quality parsimonious SNPs) on ${on_string}">
             <discover_datasets pattern="__name__" directory="snps" format="fasta" />
-            <filter>excel_filter_cond['excel_filter'] == 'yes'</filter>
+            <filter>excel_grouper_cond['excel_grouper'] == 'yes'</filter>
         </collection>
         <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}"/>
     </outputs>
