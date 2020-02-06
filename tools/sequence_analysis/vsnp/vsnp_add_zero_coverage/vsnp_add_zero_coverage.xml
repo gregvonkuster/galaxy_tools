@@ -1,0 +1,65 @@
+<tool id="vsnp_add_zero_coverage" name="vSNP: add zero coverage" version="1.0.0">
+    <description></description>
+    <requirements>
+        <requirement type="package" version="1.76">biopython</requirement>
+        <requirement type="package" version="1.16.5">numpy</requirement>
+        <requirement type="package" version="0.24.2">pandas</requirement>
+        <requirement type="package" version="0.15.4">pysam</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+python '$__tool_directory__/vsnp_add_zero_coverage.py'
+--bam_input '$bam_input.file_name'
+--vcf_input '$vcf_input.file_name'
+--output_metrics '$output_metrics'
+--output_vcf '$output_vcf'
+#if str($reference_cond.reference_source) == "cached"
+    --reference '$reference_cond.reference.fields.path'
+#else:
+    --reference '$reference_cond.reference'
+#end if
+
+]]></command>
+    <inputs>
+        <param name="bam_input" type="data" format="bam" label="BAM file">
+            <validator type="unspecified_build" />
+        </param>
+        <param name="vcf_input" type="data" format="vcf" label="VCF file">
+            <validator type="unspecified_build" />
+        </param>
+        <conditional name="reference_cond">
+            <param name="reference_source" type="select" label="Choose the source for the reference genome">
+                <option value="cached">locally cached</option>
+                <option value="history">from history</option>
+            </param>
+            <when value="cached">
+                <param name="reference" type="select" label="Using reference genome">
+		    <options from_data_table="fasta_indexes"/>
+                    <validator type="no_options" message="A built-in reference genome is not available for the build associated with the selected BAM input file"/>
+                </param>
+            </when>
+            <when value="history">
+                <param name="reference" type="data" format="fasta" label="Using reference genome">
+                    <validator type="no_options" message="The current history does not include a fasta dataset with the build associated with the selected BAM input file"/>
+                </param>
+            </when>
+        </conditional>
+    </inputs>
+    <outputs>
+        <data name="output_vcf" format="vcf"  label="${tool.name} (filtered vcf) on ${on_string}"/>
+        <data name="output_metrics" format="txt"  label="${tool.name} (metrics) on ${on_string}"/>
+    </outputs>
+    <tests>
+        <test>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+Adds zero coverage to a BAM dataset.
+    </help>
+    <citations>
+        <citation>
+        </citation>
+    </citations>
+</tool>
+

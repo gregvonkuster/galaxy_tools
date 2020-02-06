@@ -1,0 +1,11 @@
+name: vsnp_add_zero_coverage
+owner: greg
+description: |
+  Contains a tool that adds zero coverage to a vcf file to prepare it for processing by the vsnp_get_snps tool.
+homepage_url: https://github.com/USDA-VS/vSNP
+long_description: |
+  Contains a tool that adds zero coverage to a vcf file to prepare it for processing by the vsnp_get_snps tool.
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/sequence_analysis/vsnp/vsnp_add_zero_coverage
+type: unrestricted
+categories:
+  - Sequence Analysis
