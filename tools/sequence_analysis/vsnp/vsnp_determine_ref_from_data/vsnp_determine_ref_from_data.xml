@@ -1,0 +1,56 @@
+<tool id="vsnp_determine_ref_from_data" name="vSNP: determine reference" version="1.0.0">
+    <description>from input data</description>
+    <requirements>
+        <requirement type="package" version="1.76">biopython</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+python '$__tool_directory__/vsnp_determine_ref_from_data.py'
+#if str($read_type_cond.read_type) == "single":
+    --read1 '$read1.file_name'
+    #if $read1.is_of_type('fastqsanger.gz'):
+        --gzipped 'true'
+    #end if
+#else:
+    --read1 '$read1.file_name'
+    --read2 '$read2.file_name'
+    #if $read1.is_of_type('fastqsanger.gz') and $read2.is_of_type('fastqsanger.gz'):
+        --gzipped 'true'
+    #end if
+#end if
+--tool_data_path '$__app__.config.tool_data_path'
+--output_ref '$output_ref'
+--output_metrics '$output_metrics'
+]]></command>
+    <inputs>
+    <conditional name="read_type_cond">
+        <param name="read_type" type="select" label="Choose the read type">
+            <option value="single" selected="true">Single</option>
+            <option value="paired">Paired</option>
+        </param>
+        <when value="single">
+            <param name="read1" type="data" format="fastqsanger.gz,fastqsanger" label="Read1 fastq file"/>
+        </when>
+        <when value="paired">
+            <param name="read1" type="data" format="fastqsanger.gz,fastqsanger" label="Read1 fastq file"/>
+            <param name="read2" type="data" format="fastqsanger.gz,fastqsanger" label="Read2 fastq file"/>
+        </when>
+    </conditional>
+    </inputs>
+    <outputs>
+        <data name="output_ref" format="fasta"  label="${tool.name} (reference) on ${on_string}"/>
+        <data name="output_metrics" format="txt"  label="${tool.name} (metrics) on ${on_string}"/>
+    </outputs>
+    <tests>
+        <test>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+    </help>
+    <citations>
+        <citation>
+        </citation>
+    </citations>
+</tool>
+
