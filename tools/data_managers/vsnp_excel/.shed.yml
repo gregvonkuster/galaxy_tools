@@ -1,0 +1,10 @@
+name: data_manager_vsnp_excel
+owner: greg
+description: Data manager to download vSNP analysis Excel file
+homepage_url: https://github.com/USDA-VS/vSNP
+long_description: |
+  vSNP generates annotated SNP tables, this data manager installs the vSNP Excel file.
+remote_repository_url: "https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/data_managers/vsnp_excel"
+type: unrestricted
+categories:
+- Data Managers
