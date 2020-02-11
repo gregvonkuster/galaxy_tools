@@ -1,0 +1,65 @@
+<tool id="vsnp_statistics" name="vSNP: statistics" version="1.0.0">
+    <description></description>
+    <requirements>
+        <requirement type="package" version="0.5.1">humanize</requirement>
+        <requirement type="package" version="1.16.5">numpy</requirement>
+        <requirement type="package" version="0.24.2">pandas</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+#import re
+#set read1_identifier = re.sub('[^\s\w\-]', '_', str($read1.element_identifier))
+#set read2_identifier = re.sub('[^\s\w\-]', '_', str($read2.element_identifier))
+#if str($read_type_cond.read_type) == "single":
+    ln -s '${read1}' '${read1_identifier}' &&
+#else:
+    ln -s '${read1}' '${read1_identifier}' &&
+    ln -s '${read2}' '${read2_identifier}' &&
+#end if
+python '$__tool_directory__/vsnp_statistics.py'
+#if str($read_type_cond.read_type) == "single":
+    --read1 '${read1_identifier}'
+    #if $read1.is_of_type('fastqsanger.gz'):
+        --gzipped 'true'
+    #end if
+#else:
+    --read1 '${read1_identifier}'
+    --read2 '${read2_identifier}'
+    #if $read1.is_of_type('fastqsanger.gz') and $read2.is_of_type('fastqsanger.gz'):
+        --gzipped 'true'
+    #end if
+#end if
+--output '$output'
+]]></command>
+    <inputs>
+    <conditional name="read_type_cond">
+        <param name="read_type" type="select" label="Choose the read type">
+            <option value="single" selected="true">Single</option>
+            <option value="paired">Paired</option>
+        </param>
+        <when value="single">
+            <param name="read1" type="data" format="fastqsanger.gz,fastqsanger" label="Read1 fastq file"/>
+        </when>
+        <when value="paired">
+            <param name="read1" type="data" format="fastqsanger.gz,fastqsanger" label="Read1 fastq file"/>
+            <param name="read2" type="data" format="fastqsanger.gz,fastqsanger" label="Read2 fastq file"/>
+        </when>
+    </conditional>
+    </inputs>
+    <outputs>
+        <data name="output" format="tabular"  label="${tool.name} on ${on_string}"/>
+    </outputs>
+    <tests>
+        <test>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+Calculates vSNP statistics for fastqsanger VCF files.
+    </help>
+    <citations>
+        <citation>
+        </citation>
+    </citations>
+</tool>
+
