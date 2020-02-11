@@ -7,9 +7,14 @@
         <requirement type="package" version="0.15.4">pysam</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
+#import re
+#set bam_input_identifier = re.sub('[^\s\w\-]', '_', str($bam_input.element_identifier))
+#set vcf_input_identifier = re.sub('[^\s\w\-]', '_', str($vcf_input.element_identifier))
+ln -s '${bam_input}' '${bam_input_identifier}' &&
+ln -s '${vcf_input}' '${vcf_input_identifier}' &&
 python '$__tool_directory__/vsnp_add_zero_coverage.py'
---bam_input '$bam_input.file_name'
---vcf_input '$vcf_input.file_name'
+--bam_input '${bam_input_identifier}'
+--vcf_input '${vcf_input_identifier}'
 --output_metrics '$output_metrics'
 --output_vcf '$output_vcf'
 #if str($reference_cond.reference_source) == "cached"
@@ -17,7 +22,6 @@ python '$__tool_directory__/vsnp_add_zero_coverage.py'
 #else:
     --reference '$reference_cond.reference'
 #end if
-
 ]]></command>
     <inputs>
         <param name="bam_input" type="data" format="bam" label="BAM file">
@@ -46,7 +50,7 @@ python '$__tool_directory__/vsnp_add_zero_coverage.py'
     </inputs>
     <outputs>
         <data name="output_vcf" format="vcf"  label="${tool.name} (filtered vcf) on ${on_string}"/>
-        <data name="output_metrics" format="txt"  label="${tool.name} (metrics) on ${on_string}"/>
+        <data name="output_metrics" format="tabular"  label="${tool.name} (metrics) on ${on_string}"/>
     </outputs>
     <tests>
         <test>
