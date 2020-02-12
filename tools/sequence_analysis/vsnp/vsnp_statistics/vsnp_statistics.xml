@@ -28,6 +28,8 @@ python '$__tool_directory__/vsnp_statistics.py'
         --gzipped 'true'
     #end if
 #end if
+--samtools_idxstats '$samtools_idxstats'
+--vsnp_azc '$vsnp_azc'
 --output '$output'
 ]]></command>
     <inputs>
@@ -44,6 +46,8 @@ python '$__tool_directory__/vsnp_statistics.py'
             <param name="read2" type="data" format="fastqsanger.gz,fastqsanger" label="Read2 fastq file"/>
         </when>
     </conditional>
+    <param name="samtools_idxstats" type="data" format="tabular" label="Samtools idxstats output"/>
+    <param name="vsnp_azc" type="data" format="tabular" label="vSNP add zero coverage (metrics) output"/>
     </inputs>
     <outputs>
         <data name="output" format="tabular"  label="${tool.name} on ${on_string}"/>
