@@ -33,7 +33,7 @@ def nice_size(size):
     return '??? bytes'
 
 
-def output_read_stats(gzipped, fastq_file, ofh, sampling_number=10000, output_sample=False):
+def output_read_stats(gzipped, fastq_file, ofh, sampling_number=10000, output_sample=False, genome=None):
     # Output a 2-column file where column 1 is
     # the labels and column 2 is the values.
     if output_sample:
@@ -49,8 +49,7 @@ def output_read_stats(gzipped, fastq_file, ofh, sampling_number=10000, output_sa
             sample = ""
         # Sample
         ofh.write("Sample%s%s\n" % (SEP, sample))
-        # TODO: handle reference instead of setting to n/a.
-        ofh.write("Reference%s%s\n" % (SEP, "n/a"))
+        ofh.write("Reference%s%s\n" % (SEP, genome))
         read = "Read1"
     else:
         read = "Read2"
@@ -92,6 +91,7 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('-r1', '--read1', action='store', dest='read1', help='Required: single read')
 parser.add_argument('-r2', '--read2', action='store', dest='read2', required=False, default=None, help='Optional: paired read')
+parser.add_argument('-rg', '--genome', action='store', dest='genome', help='Reference genome name or dbkey')
 parser.add_argument('-gz', '--gzipped', action='store', dest='gzipped', help='Input files are gzipped')
 parser.add_argument('-si', '--samtools_idxstats', action='store', dest='samtools_idxstats', help='Output of samtools_idxstats')
 parser.add_argument('-of', '--output', action='store', dest='output', help='Output statisticsfile')
@@ -102,12 +102,13 @@ args = parser.parse_args()
 total_reads = 0
 
 with open(args.output, "w") as ofh:
-    total_reads += output_read_stats(args.gzipped, args.read1, ofh, output_sample=True)
+    total_reads += output_read_stats(args.gzipped, args.read1, ofh, output_sample=True, genome=args.genome)
     if args.read2 is not None:
         total_reads += output_read_stats(args.gzipped, args.read2, ofh)
     # Total Reads
     ofh.write("Total Reads%s%d\n" % (SEP, total_reads))
     with open(args.samtools_idxstats, "r") as ifh:
+        unmapped_reads = 0
         for i, line in enumerate(ifh):
             items = line.split("\t")
             if i == 0:
@@ -115,7 +116,13 @@ with open(args.output, "w") as ofh:
                 ofh.write("All Mapped Reads%s%s\n" % (SEP, items[2]))
             elif i == 1:
                 # * 0 0 82774
-                ofh.write("Unmapped Reads%s%s\n" % (SEP, items[3]))
+                unmapped_reads = int(items[3])
+                ofh.write("Unmapped Reads%s%d\n" % (SEP, unmapped_reads))
+        percent_str = "Unmapped Reads Percentage of Total"
+        if unmapped_reads > 0:
+            ofh.write("%s%s%s\n" % (percent_str, SEP, f'{unmapped_reads/total_reads:0.1%}'))
+        else:
+            ofh.write("%s%s0\n" % (percent_str, SEP))
     with open(args.vsnp_azc, "r") as ifh:
         for i, line in enumerate(ifh):
             if i == 0:
@@ -129,5 +136,3 @@ with open(args.output, "w") as ofh:
             elif i == 2:
                 # VCFfilter 611
                 ofh.write("Good SNP Count%s%s\n" % (SEP, items[1]))
-            # TODO: handle Unmapped Assembled Contigs which requires
-            # Abyss tool execution (see line ~196 in vsnp_alignment_vcf.py).
