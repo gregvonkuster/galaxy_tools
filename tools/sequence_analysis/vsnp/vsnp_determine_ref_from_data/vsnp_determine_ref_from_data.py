@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-__version__ = "2.0.0"
-
 import argparse
 import gzip
 import os
@@ -221,7 +219,7 @@ class GetReference:
     def get_seq_counts(self, value, gzipped):
         count = 0
         for fastq in self.fastq_list:
-            if gzipped:
+            if gzipped is not None:
                 with gzip.open(fastq, 'r') as fh:
                     for title, seq, qual in FastqGeneralIterator(fh):
                         count += seq.count(value)
@@ -239,7 +237,7 @@ if __name__ == "__main__":
     parser.add_argument('-df', '--dnaprint_fields', action='append', dest='dnaprint_fields', nargs=3, help="List of bwa-mem index fields")
     parser.add_argument('-r1', '--read1', action='store', dest='read1', required=True, help='Required: single read')
     parser.add_argument('-r2', '--read2', action='store', dest='read2', required=False, default=None, help='Optional: paired read')
-    parser.add_argument('-gz', '--gzipped', action='store_true', dest='gzipped', required=False, default=False, help='Input files are gzipped')
+    parser.add_argument('-gz', '--gzipped', action='store', dest='gzipped', required=False, default=None, help='Input files are gzipped')
     parser.add_argument('-ol', '--output_ref_value', action='store', dest='output_ref_value', help='Output reference file')
     parser.add_argument('-om', '--output_metrics', action='store', dest='output_metrics', help='Output metrics file')
 
