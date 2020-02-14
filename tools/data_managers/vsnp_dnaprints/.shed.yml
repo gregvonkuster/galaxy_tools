@@ -1,0 +1,10 @@
+name: data_manager_vsnp_dnaprints
+owner: greg
+description: Data manager to download vSNP analysis DNAprints file
+homepage_url: https://github.com/USDA-VS/vSNP
+long_description: |
+  vSNP generates annotated SNP tables, this data manager installs the vSNP DNAprints file.
+remote_repository_url: "https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/data_managers/vsnp_dnaprints"
+type: unrestricted
+categories:
+- Data Managers
