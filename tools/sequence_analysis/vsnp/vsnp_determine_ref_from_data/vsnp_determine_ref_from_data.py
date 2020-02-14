@@ -139,7 +139,7 @@ class GetReference:
         para["101"] = "NC_002944"
         return para
 
-    def output_ref_and_metrics(self, tool_data_path, output_ref, output_metrics, gzipped):
+    def output_ref_and_metrics(self, tool_data_path, output_ref_value, output_metrics, gzipped):
         count_summary = {}
 
         for v1 in self.oligo_dict.values():
@@ -214,7 +214,7 @@ class GetReference:
             fh.write("\nGroup: %s, dbkey: %s\n" % (group, dbkey))
         reference_path = os.path.join(tool_data_path, dbkey, 'seq', '%s.fa' % dbkey)
         if os.path.isfile(reference_path):
-            shutil.copy(reference_path, output_ref)
+            shutil.copy(reference_path, output_ref_value)
         else:
             sys.exit("Reference not determined")
 
@@ -222,11 +222,11 @@ class GetReference:
         count = 0
         for fastq in self.fastq_list:
             if gzipped:
-                with gzip.open(fastq, 'rt') as fh:
+                with gzip.open(fastq, 'r') as fh:
                     for title, seq, qual in FastqGeneralIterator(fh):
                         count += seq.count(value)
             else:
-                with open(fastq, 'rt') as fh:
+                with open(fastq, 'r') as fh:
                     for title, seq, qual in FastqGeneralIterator(fh):
                         count += seq.count(value)
         return(value, count)
@@ -236,15 +236,16 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
+    parser.add_argument('-df', '--dnaprint_fields', action='append', dest='dnaprint_fields', nargs=3, help="List of bwa-mem index fields")
     parser.add_argument('-r1', '--read1', action='store', dest='read1', required=True, help='Required: single read')
     parser.add_argument('-r2', '--read2', action='store', dest='read2', required=False, default=None, help='Optional: paired read')
-    parser.add_argument('-gz', '--gzipped', action='store', dest='gzipped', required=False, default=None, help='Input files are gzipped')
-    parser.add_argument('-ol', '--output_ref', action='store', dest='output_ref', help='Output reference file')
+    parser.add_argument('-gz', '--gzipped', action='store_true', dest='gzipped', required=False, default=False, help='Input files are gzipped')
+    parser.add_argument('-ol', '--output_ref_value', action='store', dest='output_ref_value', help='Output reference file')
     parser.add_argument('-om', '--output_metrics', action='store', dest='output_metrics', help='Output metrics file')
-    parser.add_argument('-td', '--tool_data_path', action='store', dest='tool_data_path', help='Location of cached genomes')
 
     args = parser.parse_args()
+    print("\nargs:\n%s\n" % str(args))
+    sys.exit(0)
 
-    gzipped = args.gzipped is not None
     reference = GetReference(args.read1, args.read2)
-    reference.output_ref_and_metrics(args.tool_data_path, args.output_ref, args.output_metrics, gzipped)
+    reference.output_ref_and_metrics(args.tool_data_path, args.output_ref_value, args.output_metrics, args.gzipped)

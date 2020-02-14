@@ -4,6 +4,7 @@
         <requirement type="package" version="1.76">biopython</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
+#set $dnaprint_fields = $__app__.tool_data_tables['vsnp_dnaprints'].get_fields()
 python '$__tool_directory__/vsnp_determine_ref_from_data.py'
 #if str($read_type_cond.read_type) == "single":
     --read1 '$read1.file_name'
@@ -17,8 +18,10 @@ python '$__tool_directory__/vsnp_determine_ref_from_data.py'
         --gzipped 'true'
     #end if
 #end if
---tool_data_path '$__app__.config.tool_data_path'
---output_ref '$output_ref'
+#for $i in $dnaprint_fields:
+    --dnaprint_fields '${i[0]}' '${i[1]}' '${i[2]}'
+#end for
+--output_ref_value '$output_ref_value'
 --output_metrics '$output_metrics'
 ]]></command>
     <inputs>
@@ -37,7 +40,7 @@ python '$__tool_directory__/vsnp_determine_ref_from_data.py'
     </conditional>
     </inputs>
     <outputs>
-        <data name="output_ref" format="fasta"  label="${tool.name} (reference) on ${on_string}"/>
+        <data name="output_ref_value" format="fasta"  label="${tool.name} (reference) on ${on_string}"/>
         <data name="output_metrics" format="txt"  label="${tool.name} (metrics) on ${on_string}"/>
     </outputs>
     <tests>
