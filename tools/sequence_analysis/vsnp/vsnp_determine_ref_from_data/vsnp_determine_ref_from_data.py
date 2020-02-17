@@ -3,247 +3,204 @@
 import argparse
 import gzip
 import os
-import re
-import shutil
-import sys
+import yaml
 from collections import OrderedDict
 from Bio.SeqIO.QualityIO import FastqGeneralIterator
 
 
-class GetReference:
+def get_dbkey(dnaprints_dict, key, s):
+    # dnaprints_dict looks something like this:
+    # {'brucella': {'NC_002945v4': ['11001110', '11011110', '11001100']}
+    # {'bovis': {'NC_006895': ['11111110', '00010010', '01111011']}}
+    d = dnaprints_dict.get(key, {})
+    for data_table_value, v_list in d.items():
+        if s in v_list:
+            return data_table_value
+    return ""
 
-    def __init__(self, read1, read2):
-        self.fastq_list = []
-        for read in [read1, read2]:
-            if read is not None:
-                self.fastq_list.append(read)
-        if read2 is not None:
-            self.paired = True
+
+def get_dnaprints_dict(dnaprint_fields):
+    # A dndprint_fields entry looks something liek this.
+    # [['AF2122', '/galaxy/tool-data/vsnp/AF2122/dnaprints/NC_002945v4.yml']]
+    dnaprints_dict = {}
+    for item in dnaprint_fields:
+        # Here item is a 2-element list of data
+        # table components, # value and path.
+        value = item[0]
+        path = item[1].strip()
+        with open(path, "r") as fh:
+            # The format of all dnaprints yaml
+            # files is something like this:
+            # brucella:
+            #  - 0111111111111111
+            print_dict = yaml.safe_load(fh)
+        for print_dict_k, print_dict_v in print_dict.items():
+            dnaprints_v_dict = dnaprints_dict.get(print_dict_k, {})
+            if len(dnaprints_v_dict) > 0:
+                # dnaprints_dict already contains k (e.g., 'brucella',
+                # and dnaprints_v_dict will be a dictionary # that
+                # looks something like this:
+                # {'NC_002945v4': ['11001110', '11011110', '11001100']}
+                value_list = dnaprints_v_dict.get(value, [])
+                value_list = value_list + print_dict_v
+                dnaprints_v_dict[value] = value_list
+            else:
+                # dnaprints_v_dict is an empty dictionary.
+                dnaprints_v_dict[value] = print_dict_v
+            dnaprints_dict[print_dict_k] = dnaprints_v_dict
+    # dnaprints_dict looks something like this:
+    # {'brucella': {'NC_002945v4': ['11001110', '11011110', '11001100']}
+    # {'bovis': {'NC_006895': ['11111110', '00010010', '01111011']}}
+    return dnaprints_dict
+
+
+def get_group_and_dbkey(dnaprints_dict, brucella_string, brucella_sum, bovis_string, bovis_sum, para_string, para_sum):
+    try:
+        # Yaml dictionary values are lists of ints.
+        brucella_int = int(brucella_string)
+        bovis_int = int(bovis_string)
+        para_int = int(para_string)
+    except Exception:
+        brucella_int = brucella_string
+        bovis_int = bovis_string
+        para_int = para_string
+    if brucella_sum > 3:
+        group = "Brucella"
+        dbkey = get_dbkey(dnaprints_dict, "brucella", brucella_int)
+    elif bovis_sum > 3:
+        group = "TB"
+        dbkey = get_dbkey(dnaprints_dict, "bovis", bovis_int)
+    elif para_sum >= 1:
+        group = "paraTB"
+        dbkey = get_dbkey(dnaprints_dict, "para", para_int)
+    else:
+        group = ""
+        dbkey = ""
+    return group, dbkey
+
+
+def get_oligo_dict():
+    oligo_dict = {}
+    oligo_dict["01_ab1"] = "AATTGTCGGATAGCCTGGCGATAACGACGC"
+    oligo_dict["02_ab3"] = "CACACGCGGGCCGGAACTGCCGCAAATGAC"
+    oligo_dict["03_ab5"] = "GCTGAAGCGGCAGACCGGCAGAACGAATAT"
+    oligo_dict["04_mel"] = "TGTCGCGCGTCAAGCGGCGTGAAATCTCTG"
+    oligo_dict["05_suis1"] = "TGCGTTGCCGTGAAGCTTAATTCGGCTGAT"
+    oligo_dict["06_suis2"] = "GGCAATCATGCGCAGGGCTTTGCATTCGTC"
+    oligo_dict["07_suis3"] = "CAAGGCAGATGCACATAATCCGGCGACCCG"
+    oligo_dict["08_ceti1"] = "GTGAATATAGGGTGAATTGATCTTCAGCCG"
+    oligo_dict["09_ceti2"] = "TTACAAGCAGGCCTATGAGCGCGGCGTGAA"
+    oligo_dict["10_canis4"] = "CTGCTACATAAAGCACCCGGCGACCGAGTT"
+    oligo_dict["11_canis"] = "ATCGTTTTGCGGCATATCGCTGACCACAGC"
+    oligo_dict["12_ovis"] = "CACTCAATCTTCTCTACGGGCGTGGTATCC"
+    oligo_dict["13_ether2"] = "CGAAATCGTGGTGAAGGACGGGACCGAACC"
+    oligo_dict["14_63B1"] = "CCTGTTTAAAAGAATCGTCGGAACCGCTCT"
+    oligo_dict["15_16M0"] = "TCCCGCCGCCATGCCGCCGAAAGTCGCCGT"
+    oligo_dict["16_mel1b"] = "TCTGTCCAAACCCCGTGACCGAACAATAGA"
+    oligo_dict["17_tb157"] = "CTCTTCGTATACCGTTCCGTCGTCACCATGGTCCT"
+    oligo_dict["18_tb7"] = "TCACGCAGCCAACGATATTCGTGTACCGCGACGGT"
+    oligo_dict["19_tbbov"] = "CTGGGCGACCCGGCCGACCTGCACACCGCGCATCA"
+    oligo_dict["20_tb5"] = "CCGTGGTGGCGTATCGGGCCCCTGGATCGCGCCCT"
+    oligo_dict["21_tb2"] = "ATGTCTGCGTAAAGAAGTTCCATGTCCGGGAAGTA"
+    oligo_dict["22_tb3"] = "GAAGACCTTGATGCCGATCTGGGTGTCGATCTTGA"
+    oligo_dict["23_tb4"] = "CGGTGTTGAAGGGTCCCCCGTTCCAGAAGCCGGTG"
+    oligo_dict["24_tb6"] = "ACGGTGATTCGGGTGGTCGACACCGATGGTTCAGA"
+    oligo_dict["25_para"] = "CCTTTCTTGAAGGGTGTTCG"
+    oligo_dict["26_para_sheep"] = "CGTGGTGGCGACGGCGGCGGGCCTGTCTAT"
+    oligo_dict["27_para_cattle"] = "TCTCCTCGGTCGGTGATTCGGGGGCGCGGT"
+    return oligo_dict
+
+
+def get_seq_counts(value, fastq_list, gzipped):
+    count = 0
+    for fastq in fastq_list:
+        if gzipped is not None:
+            with gzip.open(fastq, 'rt') as fh:
+                for title, seq, qual in FastqGeneralIterator(fh):
+                    count += seq.count(value)
         else:
-            self.paired = False
-        self.sample_name = re.sub('[_.].*', '', os.path.basename(read1))
-        # TODO: move these dicts to external yaml or tabular files.
-        self.bovis_dict = self.get_bovis_dict()
-        self.brucella_dict = self.get_brucella_dict()
-        self.oligo_dict = self.get_oligo_dict()
-        self.para_dict = self.get_para_dict()
+            with open(fastq, 'r') as fh:
+                for title, seq, qual in FastqGeneralIterator(fh):
+                    count += seq.count(value)
+    return(value, count)
 
-    def get_bovis_dict(self):
-        bovis = {}
-        # Mycobacterium tuberculosis H37Rv tb1
-        bovis["11101111"] = "NC_000962"
-        bovis["11101101"] = "NC_000962"
-        # Mycobacterium tuberculosis H37Rv tb2
-        bovis["01100111"] = "NC_000962"
-        # Mycobacterium tuberculosis H37Rv tb3
-        bovis["01101011"] = "NC_000962"
-        bovis["11101011"] = "NC_000962"
-        # Mycobacterium tuberculosis H37Rv tb4a
-        bovis["01101111"] = "NC_000962"
-        # Mycobacterium tuberculosis H37Rv tb4b
-        bovis["01101101"] = "NC_000962"
-        bovis["11101101"] = "NC_000962"
-        bovis["01101111"] = "NC_000962"
-        # Mycobacterium tuberculosis H37Rv tb5
-        bovis["11111111"] = "NC_000962"
-        # Mycobacterium tuberculosis H37Rv tb6
-        bovis["11001111"] = "NC_000962"
-        # Mycobacterium tuberculosis H37Rv tb7
-        bovis["10101110"] = "NC_000962"
-        # Mycobacterium bovis AF2122/97
-        bovis["11001110"] = "AF2122"
-        bovis["11011110"] = "AF2122"
-        bovis["11001100"] = "AF2122"
-        return bovis
 
-    def get_brucella_dict(self):
-        brucella = {}
-        # Unexpected findings
-        brucella["1111111111111111"] = "odd"
-        # Brucella abortus bv. 1 str. 9-941
-        brucella["0111111111111111"] = "NC_006932"
-        brucella["1101111111111111"] = "NC_006932"
-        # Brucella abortus strain BER
-        brucella["1011111111111111"] = "NZ_CP007682"
-        # Brucella melitensis bv. 1 str. 16M
-        brucella["1110111111111101"] = "NC_003317"
-        brucella["0000010101101101"] = "NC_003317"
-        # Brucella melitensis BwIM_SOM_36b
-        brucella["1110111111111100"] = "NZ_CP018508"
-        brucella["0000010101101100"] = "NZ_CP018508"
-        # Brucella melitensis ATCC 23457
-        brucella["1110111111111011"] = "NC_012441"
-        brucella["0000010101101001"] = "NC_012441"
-        brucella["0100010101101001"] = "NC_012441"
-        brucella["1110011111101011"] = "NC_012441"
-        # Brucella melitensis bv. 3 str. Ether
-        brucella["1110111111110111"] = "NZ_CP007760"
-        brucella["1110011111100111"] = "NZ_CP007760"
-        # Brucella suis 1330
-        brucella["1111011111111111"] = "NC_017251"
-        # Brucella suis ATCC 23445
-        brucella["1111101111111111"] = "NC_010169"
-        # Brucella suis bv. 3 str. 686
-        brucella["1111110111111101"] = "NZ_CP007719"
-        # FIXME: what is the NCBI ID?
-        brucella["1111111011111111"] = "Brucella_ceti1"
-        brucella["1111111001111111"] = "Brucella_ceti1"
-        # Brucella ceti TE10759-12
-        brucella["1111111101111111"] = "NC_022905"
-        # FIXME: what is the NCBI ID?
-        brucella["1111111110111101"] = "Brucella_suis4"
-        # Brucella canis ATCC 23365
-        brucella["1111111110011101"] = "NC_010103"
-        # Brucella ovis ATCC 25840
-        brucella["1111111111101111"] = "NC_009505"
-        return brucella
+def get_species_counts(fastq_list, gzipped):
+    count_summary = {}
+    oligo_dict = get_oligo_dict()
+    for v1 in oligo_dict.values():
+        returned_value, count = get_seq_counts(v1, fastq_list, gzipped)
+        for key, v2 in oligo_dict.items():
+            if returned_value == v2:
+                count_summary.update({key: count})
+    count_list = []
+    for v in count_summary.values():
+        count_list.append(v)
+    brucella_sum = sum(count_list[:16])
+    bovis_sum = sum(count_list[16:24])
+    para_sum = sum(count_list[24:])
+    return count_summary, count_list, brucella_sum, bovis_sum, para_sum
 
-    def get_oligo_dict(self):
-        oligo = {}
-        oligo["01_ab1"] = "AATTGTCGGATAGCCTGGCGATAACGACGC"
-        oligo["02_ab3"] = "CACACGCGGGCCGGAACTGCCGCAAATGAC"
-        oligo["03_ab5"] = "GCTGAAGCGGCAGACCGGCAGAACGAATAT"
-        oligo["04_mel"] = "TGTCGCGCGTCAAGCGGCGTGAAATCTCTG"
-        oligo["05_suis1"] = "TGCGTTGCCGTGAAGCTTAATTCGGCTGAT"
-        oligo["06_suis2"] = "GGCAATCATGCGCAGGGCTTTGCATTCGTC"
-        oligo["07_suis3"] = "CAAGGCAGATGCACATAATCCGGCGACCCG"
-        oligo["08_ceti1"] = "GTGAATATAGGGTGAATTGATCTTCAGCCG"
-        oligo["09_ceti2"] = "TTACAAGCAGGCCTATGAGCGCGGCGTGAA"
-        oligo["10_canis4"] = "CTGCTACATAAAGCACCCGGCGACCGAGTT"
-        oligo["11_canis"] = "ATCGTTTTGCGGCATATCGCTGACCACAGC"
-        oligo["12_ovis"] = "CACTCAATCTTCTCTACGGGCGTGGTATCC"
-        oligo["13_ether2"] = "CGAAATCGTGGTGAAGGACGGGACCGAACC"
-        oligo["14_63B1"] = "CCTGTTTAAAAGAATCGTCGGAACCGCTCT"
-        oligo["15_16M0"] = "TCCCGCCGCCATGCCGCCGAAAGTCGCCGT"
-        oligo["16_mel1b"] = "TCTGTCCAAACCCCGTGACCGAACAATAGA"
-        oligo["17_tb157"] = "CTCTTCGTATACCGTTCCGTCGTCACCATGGTCCT"
-        oligo["18_tb7"] = "TCACGCAGCCAACGATATTCGTGTACCGCGACGGT"
-        oligo["19_tbbov"] = "CTGGGCGACCCGGCCGACCTGCACACCGCGCATCA"
-        oligo["20_tb5"] = "CCGTGGTGGCGTATCGGGCCCCTGGATCGCGCCCT"
-        oligo["21_tb2"] = "ATGTCTGCGTAAAGAAGTTCCATGTCCGGGAAGTA"
-        oligo["22_tb3"] = "GAAGACCTTGATGCCGATCTGGGTGTCGATCTTGA"
-        oligo["23_tb4"] = "CGGTGTTGAAGGGTCCCCCGTTCCAGAAGCCGGTG"
-        oligo["24_tb6"] = "ACGGTGATTCGGGTGGTCGACACCGATGGTTCAGA"
-        oligo["25_para"] = "CCTTTCTTGAAGGGTGTTCG"
-        oligo["26_para_sheep"] = "CGTGGTGGCGACGGCGGCGGGCCTGTCTAT"
-        oligo["27_para_cattle"] = "TCTCCTCGGTCGGTGATTCGGGGGCGCGGT"
-        return oligo
 
-    def get_para_dict(self):
-        para = {}
-        # Mycobacterium avium subsp. paratuberculosis strain Telford
-        para["110"] = "CP033688"
-        # Mycobacterium avium subsp. paratuberculosis K-10
-        para["101"] = "NC_002944"
-        return para
-
-    def output_ref_and_metrics(self, tool_data_path, output_ref_value, output_metrics, gzipped):
-        count_summary = {}
-
-        for v1 in self.oligo_dict.values():
-            returned_value, count = self.get_seq_counts(v1, gzipped)
-            for key, v2 in self.oligo_dict.items():
-                if returned_value == v2:
-                    count_summary.update({key: count})
-                    # FIXME: can this be moved out of the loop?
-                    count_summary = OrderedDict(sorted(count_summary.items()))
-
-        count_list = []
-        for v in count_summary.values():
-            count_list.append(v)
-        brucella_sum = sum(count_list[:16])
-        bovis_sum = sum(count_list[16:24])
-        para_sum = sum(count_list[24:])
-
-        # Binary dictionary
-        binary_dictionary = {}
-        for k, v in count_summary.items():
-            if v > 1:
-                binary_dictionary.update({k: 1})
-            else:
-                binary_dictionary.update({k: 0})
-        binary_dictionary = OrderedDict(sorted(binary_dictionary.items()))
-
-        binary_list = []
-        for v in binary_dictionary.values():
-            binary_list.append(v)
-
-        brucella_binary = binary_list[:16]
-        brucella_string = ''.join(str(e) for e in brucella_binary)
-
-        bovis_binary = binary_list[16:24]
-        bovis_string = ''.join(str(e) for e in bovis_binary)
-
-        para_binary = binary_list[24:]
-        para_string = ''.join(str(e) for e in para_binary)
-
-        with open(output_metrics, "w") as fh:
-            fh.write("Brucella counts: ")
-            for i in count_list[:16]:
-                fh.write("%d," % i)
-            fh.write("\nTB counts: ")
-            for i in count_list[16:24]:
-                fh.write("%d," % i)
-            fh.write("\nPara counts: ")
-            for i in count_list[24:]:
-                fh.write("%d," % i)
-
-            if brucella_sum > 3:
-                group = "Brucella"
-                if brucella_string in self.brucella_dict:
-                    dbkey = self.brucella_dict[brucella_string]
-                else:
-                    dbkey = ""
-            elif bovis_sum > 3:
-                group = "TB"
-                if bovis_string in self.bovis_dict:
-                    dbkey = self.bovis_dict[bovis_string]
-                else:
-                    dbkey = ""
-            elif para_sum >= 1:
-                group = "paraTB"
-                if para_string in self.para_dict:
-                    dbkey = self.para_dict[para_string]
-                else:
-                    dbkey = ""
-            else:
-                group = ""
-                dbkey = ""
-            fh.write("\nGroup: %s, dbkey: %s\n" % (group, dbkey))
-        reference_path = os.path.join(tool_data_path, dbkey, 'seq', '%s.fa' % dbkey)
-        if os.path.isfile(reference_path):
-            shutil.copy(reference_path, output_ref_value)
+def get_species_strings(count_summary):
+    binary_dictionary = {}
+    for k, v in count_summary.items():
+        if v > 1:
+            binary_dictionary.update({k: 1})
         else:
-            sys.exit("Reference not determined")
-
-    def get_seq_counts(self, value, gzipped):
-        count = 0
-        for fastq in self.fastq_list:
-            if gzipped is not None:
-                with gzip.open(fastq, 'r') as fh:
-                    for title, seq, qual in FastqGeneralIterator(fh):
-                        count += seq.count(value)
-            else:
-                with open(fastq, 'r') as fh:
-                    for title, seq, qual in FastqGeneralIterator(fh):
-                        count += seq.count(value)
-        return(value, count)
+            binary_dictionary.update({k: 0})
+    binary_dictionary = OrderedDict(sorted(binary_dictionary.items()))
+    binary_list = []
+    for v in binary_dictionary.values():
+        binary_list.append(v)
+    brucella_binary = binary_list[:16]
+    brucella_string = ''.join(str(e) for e in brucella_binary)
+    bovis_binary = binary_list[16:24]
+    bovis_string = ''.join(str(e) for e in bovis_binary)
+    para_binary = binary_list[24:]
+    para_string = ''.join(str(e) for e in para_binary)
+    return brucella_string, bovis_string, para_string
 
 
-if __name__ == "__main__":
+parser = argparse.ArgumentParser()
 
-    parser = argparse.ArgumentParser()
+parser.add_argument('--dnaprint_fields', action='append', dest='dnaprint_fields', nargs=2, help="List of dnaprints data table value, name and path fields")
+parser.add_argument('--read1', action='store', dest='read1', required=True, help='Required: single read')
+parser.add_argument('--read2', action='store', dest='read2', required=False, default=None, help='Optional: paired read')
+parser.add_argument('--gzipped', action='store', dest='gzipped', required=False, default=None, help='Input files are gzipped')
+parser.add_argument('--output_dbkey', action='store', dest='output_dbkey', help='Output reference file')
+parser.add_argument('--output_metrics', action='store', dest='output_metrics', help='Output metrics file')
 
-    parser.add_argument('-df', '--dnaprint_fields', action='append', dest='dnaprint_fields', nargs=3, help="List of bwa-mem index fields")
-    parser.add_argument('-r1', '--read1', action='store', dest='read1', required=True, help='Required: single read')
-    parser.add_argument('-r2', '--read2', action='store', dest='read2', required=False, default=None, help='Optional: paired read')
-    parser.add_argument('-gz', '--gzipped', action='store', dest='gzipped', required=False, default=None, help='Input files are gzipped')
-    parser.add_argument('-ol', '--output_ref_value', action='store', dest='output_ref_value', help='Output reference file')
-    parser.add_argument('-om', '--output_metrics', action='store', dest='output_metrics', help='Output metrics file')
+args = parser.parse_args()
 
-    args = parser.parse_args()
-    print("\nargs:\n%s\n" % str(args))
-    sys.exit(0)
+fastq_list = [args.read1]
+if args.read2 is not None:
+    fastq_list.append(args.read2)
 
-    reference = GetReference(args.read1, args.read2)
-    reference.output_ref_and_metrics(args.tool_data_path, args.output_ref_value, args.output_metrics, args.gzipped)
+# The value of dnaprint_fields  is a list of lists, where each list is
+# the [value, name, path] components of the vsnp_dnaprints data table.
+# The data_manager_vsnp_dnaprints tool assigns the dbkey column from the
+# all_fasta data table to the value column in the vsnp_dnaprints data
+# table to ensure a proper mapping for discovering the dbkey.
+dnaprints_dict = get_dnaprints_dict(args.dnaprint_fields)
+count_summary, count_list, brucella_sum, bovis_sum, para_sum = get_species_counts(fastq_list, args.gzipped)
+brucella_string, bovis_string, para_string = get_species_strings(count_summary)
+group, dbkey = get_group_and_dbkey(dnaprints_dict, brucella_string, brucella_sum, bovis_string, bovis_sum, para_string, para_sum)
+
+# Output the dbkey.
+with open(args.output_dbkey, "w") as fh:
+    fh.write("%s" % dbkey)
+# Output metrics.
+with open(args.output_metrics, "w") as fh:
+    fh.write("Sample: %s\n" % os.path.basename(args.read1).split('_')[0])
+    fh.write("Brucella counts: ")
+    for i in count_list[:16]:
+        fh.write("%d," % i)
+    fh.write("\nTB counts: ")
+    for i in count_list[16:24]:
+        fh.write("%d," % i)
+    fh.write("\nPara counts: ")
+    for i in count_list[24:]:
+        fh.write("%d," % i)
+    fh.write("\nGroup: %s" % group)
+    fh.write("\ndbkey: %s\n" % dbkey)
