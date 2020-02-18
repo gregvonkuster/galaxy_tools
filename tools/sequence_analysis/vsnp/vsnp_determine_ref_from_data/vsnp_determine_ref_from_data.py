@@ -28,12 +28,12 @@ def get_dnaprints_dict(dnaprint_fields):
         # table components, # value and path.
         value = item[0]
         path = item[1].strip()
-        with open(path, "r") as fh:
+        with open(path, "rt") as fh:
             # The format of all dnaprints yaml
             # files is something like this:
             # brucella:
             #  - 0111111111111111
-            print_dict = yaml.safe_load(fh)
+            print_dict = yaml.load(fh, Loader=yaml.Loader)
         for print_dict_k, print_dict_v in print_dict.items():
             dnaprints_v_dict = dnaprints_dict.get(print_dict_k, {})
             if len(dnaprints_v_dict) > 0:
@@ -55,24 +55,15 @@ def get_dnaprints_dict(dnaprint_fields):
 
 
 def get_group_and_dbkey(dnaprints_dict, brucella_string, brucella_sum, bovis_string, bovis_sum, para_string, para_sum):
-    try:
-        # Yaml dictionary values are lists of ints.
-        brucella_int = int(brucella_string)
-        bovis_int = int(bovis_string)
-        para_int = int(para_string)
-    except Exception:
-        brucella_int = brucella_string
-        bovis_int = bovis_string
-        para_int = para_string
     if brucella_sum > 3:
         group = "Brucella"
-        dbkey = get_dbkey(dnaprints_dict, "brucella", brucella_int)
+        dbkey = get_dbkey(dnaprints_dict, "brucella", brucella_string)
     elif bovis_sum > 3:
         group = "TB"
-        dbkey = get_dbkey(dnaprints_dict, "bovis", bovis_int)
+        dbkey = get_dbkey(dnaprints_dict, "bovis", bovis_string)
     elif para_sum >= 1:
         group = "paraTB"
-        dbkey = get_dbkey(dnaprints_dict, "para", para_int)
+        dbkey = get_dbkey(dnaprints_dict, "para", para_string)
     else:
         group = ""
         dbkey = ""
