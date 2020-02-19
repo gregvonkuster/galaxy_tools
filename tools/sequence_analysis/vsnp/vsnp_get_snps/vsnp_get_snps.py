@@ -71,7 +71,7 @@ class GetSnps:
                     # On rare occassions MQM gets called "NaN", thus passing
                     # a string when a number is expected when calculating average.
                     mq_val = self.get_mq_val(record.INFO, filename)
-                    if str(mq_val.lower()) not in ["nan", "na", "inf"]:
+                    if str(mq_val).lower() not in ["nan", "na", "inf"]:
                         sample_map_qualities.update({record_position: mq_val})
                     # Add parameters here to change what each vcf represents.
                     # SNP is represented in table, now how will the vcf represent

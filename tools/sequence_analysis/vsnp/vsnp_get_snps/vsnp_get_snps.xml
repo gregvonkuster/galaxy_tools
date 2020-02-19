@@ -26,11 +26,12 @@ python '$__tool_directory__/vsnp_get_snps.py'
     --output_fasta '$output_fasta'
 #end if
 #if str($gbk_cond.gbk_param) == "yes":
-    #set gbk_source = $gbk_cond.gbk_source_cond.gbk_source
+    #set gbk_source_cond = $gbk_cond.gbk_source_cond
+    #set gbk_source = $gbk_source_cond.gbk_source
     #if str($gbk_source) == "cached":
-        --gbk_file '$gbk_cond.gbk_file.fields.path'
+        --gbk_file '$gbk_source_cond.gbk_file.fields.path'
     #else:
-        --gbk_file '$gbk_cond.gbk_file'
+        --gbk_file '$gbk_source_cond.gbk_file'
     #end if
 #end if
 #if str($all_isolates) == "TRUE":
