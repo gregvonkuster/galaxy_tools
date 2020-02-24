@@ -173,7 +173,7 @@ class GetSnps:
                         if ac == 1 and len_ref == 1 and qual_val > self.qual_threshold and mq_val > self.mq_val:
                             found_positions_mix.update({absolute_positon: record.REF})
                 return filename, found_positions, found_positions_mix
-            except (ZeroDivisionError, ValueError, UnboundLocalError, TypeError) as e:
+            except (ZeroDivisionError, ValueError, UnboundLocalError, TypeError):
                 return filename, {'': ''}, {'': ''}
         except (SyntaxError, AttributeError) as e:
             self.olfh.write("\nException thrown by vcf.Reader attempting to read file %s: %s\n" % (filename, str(e)))
@@ -221,7 +221,7 @@ class GetSnps:
                 mq_val = record_info['MQM'][0]
                 self.vcf_file_creator = FREEBAYES
                 return mq_val
-            except Exception as e:
+            except Exception:
                 try:
                     # GATK VCF MQ values are decimal
                     mq_val = record_info['MQ']
@@ -300,7 +300,7 @@ class GetSnps:
                 # self.olfh.write("\nIn get_snps, found_positions_mix: %s\n" % str(found_positions_mix))
                 all_positions.update(found_positions)
                 # self.olfh.write("\nIn get_snps, all_positions: %s\n" % str(all_positions))
-            except TypeError as e:
+            except TypeError:
                 pass
         # Order before adding to file to match
         # with ordering of individual samples.
@@ -404,16 +404,18 @@ class GetSnps:
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('-ai', '--all_isolates', action='store_true', dest='all_isolates', required=False, default=False, help='Create table with all isolates')
-parser.add_argument('-ff', '--filter_finder', action='store_true', dest='filter_finder', required=False, default=False, help='Write possible positions to filter to text file')
-parser.add_argument('-ef', '--excel_grouper_file', action='store', dest='excel_grouper_file', required=False, default=None, help='Optional Excel filter file')
-parser.add_argument('-gf', '--gbk_file', action='store', dest='gbk_file', required=False, default=None, help='Optional gbk file')
-parser.add_argument('-nf', '--no_filters', action='store_true', dest='no_filters', default=False, help='Run without applying filters')
-parser.add_argument('-of', '--output_fasta', action='store', dest='output_fasta', required=False, default=None, help='Single output SNPs alignment fasta file if not Excel filtering')
-parser.add_argument('-ol', '--output_log', action='store', dest='output_log', help='Output log file')
-parser.add_argument('-rf', '--reference', action='store', dest='reference', help='Reference file')
-parser.add_argument('-ss', '--subset', action='store_true', dest='subset', required=False, default=False, help='Create trees with a subset of sample that represent the whole')
-parser.add_argument('-zc', '--zero_coverage_vcf_input', action='store', dest='zero_coverage_vcf_input', help='Input zero coverage vcf file')
+parser.add_argument('--all_isolates', action='store_true', dest='all_isolates', required=False, default=False, help='Create table with all isolates')
+parser.add_argument('--filter_finder', action='store_true', dest='filter_finder', required=False, default=False, help='Write possible positions to filter to text file')
+parser.add_argument('--excel_grouper_file', action='store', dest='excel_grouper_file', required=False, default=None, help='Optional Excel filter file')
+parser.add_argument('--gbk_file', action='store', dest='gbk_file', required=False, default=None, help='Optional gbk file')
+parser.add_argument('--no_filters', action='store_true', dest='no_filters', default=False, help='Run without applying filters')
+parser.add_argument('--output_fasta', action='store', dest='output_fasta', required=False, default=None, help='Single output SNPs alignment fasta file if not Excel filtering')
+parser.add_argument('--output_log', action='store', dest='output_log', help='Output log file')
+parser.add_argument('--reference', action='store', dest='reference', help='Reference file')
+parser.add_argument('--subset', action='store_true', dest='subset', required=False, default=False, help='Create trees with a subset of sample that represent the whole')
+parser.add_argument('--input_vcf_collection', dest='input_vcf_collection', action='append', nargs=1, help='Collection of VCF files')
+parser.add_argument('--input_zc_vcf', action='store', dest='input_zc_vcf', required=False, default=None, help='Single zero coverage VCF file')
+parser.add_argument('--input_zc_vcf_collection', dest='input_zc_vcf_collection', action='append', nargs=1, required=False, default=None, help='Collection of zero coverage VCF files')
 
 args = parser.parse_args()
 
@@ -422,8 +424,17 @@ ac = 2
 mq_val = 56
 n_threshold = 50
 qual_threshold = 150
-vcf_files = [args.zero_coverage_vcf_input]
-
+# Build the list of vcf files.
+vcf_files = []
+for file_path in args.input_vcf_collection:
+    vcf_files.append(file_path)
+if args.input_zc_vcf is not None:
+    # The current run is a single zero coverage VCF file.
+    vcf_files.append(args.input_zc_vcf)
+else:
+    # The current run is a collection of zero coverage VCF files.
+    for file_path in args.input_zc_vcf_collection:
+        vcf_files.append(file_path)
 snp_finder = GetSnps(vcf_files, args.reference, args.excel_grouper_file, args.gbk_file, args.filter_finder, args.no_filters,
                      args.all_isolates, ac, mq_val, n_threshold, qual_threshold, args.output_log)
 

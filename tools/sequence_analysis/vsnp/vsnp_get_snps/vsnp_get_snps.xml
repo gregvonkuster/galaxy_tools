@@ -7,9 +7,19 @@
         <requirement type="package" version="1.2.0">xlrd</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
+#set input_zc_vcf_type = $input_zc_vcf_type_cond.input_zc_vcf_type
 mkdir -p snps &&
 python '$__tool_directory__/vsnp_get_snps.py'
---zero_coverage_vcf_input '$zero_coverage_vcf_input.file_name'
+#if $input_zc_vcf_type == "single":
+    --input_zc_vcf '$input_zc_vcf.file_name'
+#else:
+    #for $i in $input_zc_vcf_type_cond.input_zc_vcf_collection:
+        --input_zc_vcf_collection '${i}'
+    #end for
+#end if
+#for $i in $input_vcf_collection:
+    --input_vcf_collection '${i}'
+#end for
 #if str($reference_cond.reference_source) == "cached"
     --reference '$reference_cond.reference.fields.path'
 #else:
@@ -49,9 +59,23 @@ python '$__tool_directory__/vsnp_get_snps.py'
 --output_log '$output_log'
 ]]></command>
     <inputs>
-        <param name="zero_coverage_vcf_input" type="data" format="vcf" label="Zero coverage VCF file">
-            <validator type="unspecified_build" />
-        </param>
+        <conditional name="input_zc_vcf_type_cond">
+            <param name="input_zc_vcf_type" type="select" label="Choose the type for the zero coverage VCF files to be analyzed">
+                <option value="single" selected="true">A single zero coverage VCF file</option>
+                <option value="collection">A collection of zero coverage VCF files</option>
+            </param>
+            <when value="single">
+                <param name="input_zc_vcf" type="data" format="vcf" label="Zero coverage VCF file">
+                    <validator type="unspecified_build"/>
+                </param>
+            </when>
+            <when value="collection">
+                <param name="input_zc_vcf_collection" format="vcf" type="data_collection" collection_type="list" label="Collection of zero coverage VCF files">
+                    <validator type="unspecified_build"/>
+                </param>
+            </when>
+        </conditional>
+        <param name="input_vcf_collection" format="vcf" type="data_collection" collection_type="list" label="Collection of VCF files against which to analyze the zero coverages VCF file(s)"/>
         <conditional name="reference_cond">
             <param name="reference_source" type="select" label="Choose the source for the reference genome">
                 <option value="cached">locally cached</option>
