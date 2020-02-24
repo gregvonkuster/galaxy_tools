@@ -14,8 +14,9 @@ from datetime import datetime
 
 # from filter_finder import Filter_Finder
 
-FREEBAYES = "freebayes"
-GATK = "gatk"
+INPUT_VCF_DIR = 'input_vcf_dir'
+INPUT_ZC_VCF_DIR = 'input_zc_vcf_dir'
+OUTPUT_DIR = 'output_dir'
 
 
 def get_time_stamp():
@@ -43,7 +44,6 @@ class GetSnps:
         self.qual_threshold = qual_threshold
         # A collection of zero coverage filtered vcf.
         self.vcf_files = vcf_files
-        self.vcf_file_creator = None
         self.olfh.write("Time started: %s\n" % str(get_time_stamp()))
         self.olfh.write("Number VCF inputs: %d\n" % len(self.vcf_files))
         self.olfh.write("Reference: %s\n" % str(reference))
@@ -53,15 +53,21 @@ class GetSnps:
         # Find the SNPs in a vcf file to produce a Data Frame.
         # Also produce a dictionary containing sample map qualities.
         self.olfh.write("\n%s - Started decide_snps\n" % get_time_stamp())
-        all_positions = self.all_positions
         sample_map_qualities = {}
+        # Eliminate the path.
         file_name_base = os.path.basename(filename)
+        # Eliminate the extension.
+        file_name_base = os.path.splitext(file_name_base)[0]
+        self.olfh.write("\nfile_name_base: %s\n" % str(file_name_base))
         vcf_reader = vcf.Reader(open(filename, 'r'))
         sample_dict = {}
         for record in vcf_reader:
+            # self.olfh.write("\nrecord: %s\n" % str(record))
             alt = str(record.ALT[0])
+            # self.olfh.write("\nalt: %s\n" % str(alt))
             record_position = "%s:%s" % (str(record.CHROM), str(record.POS))
-            if record_position in all_positions:
+            # self.olfh.write("\nrecord_position: %s\n" % str(record_position))
+            if record_position in self.all_positions:
                 if alt == "None":
                     sample_dict.update({record_position: "-"})
                 else:
@@ -71,6 +77,7 @@ class GetSnps:
                     # On rare occassions MQM gets called "NaN", thus passing
                     # a string when a number is expected when calculating average.
                     mq_val = self.get_mq_val(record.INFO, filename)
+                    # self.olfh.write("\nmq_val: %s\n" % str(mq_val))
                     if str(mq_val).lower() not in ["nan", "na", "inf"]:
                         sample_map_qualities.update({record_position: mq_val})
                     # Add parameters here to change what each vcf represents.
@@ -78,10 +85,14 @@ class GetSnps:
                     # the called position alt != "None", which means a deletion
                     # as alt is not record.FILTER, or rather passed.
                     len_alt = len(alt)
+                    # self.olfh.write("\nlen_alt: %s\n" % str(len_alt))
                     if len_alt == 1:
                         qual_val = self.get_qual_val(record.QUAL)
+                        # self.olfh.write("\nqual_val: %s\n" % str(qual_val))
                         ac = record.INFO['AC'][0]
+                        # self.olfh.write("\nac: %s\n" % str(ac))
                         ref = str(record.REF[0])
+                        # self.olfh.write("\nref: %s\n" % str(ref))
                         if ac == 2 and qual_val > self.n_threshold:
                             sample_dict.update({record_position: alt})
                         elif ac == 1 and qual_val > self.n_threshold:
@@ -124,9 +135,10 @@ class GetSnps:
         # Merge dictionaries and order
         merge_dict = {}
         # abs_pos:REF
-        merge_dict.update(all_positions)
-        # abs_pos:ALT replacing all_positions, because keys must be unique
+        merge_dict.update(self.all_positions)
+        # abs_pos:ALT replacing self.all_positions, because keys must be unique
         merge_dict.update(sample_dict)
+        # self.olfh.write("\nmerge_dict: %s\n" % str(merge_dict))
         sample_df = pandas.DataFrame(merge_dict, index=[file_name_base])
         # self.olfh.write("\nIn decide_snps, sample_df: %s\n" % str(sample_df))
         return sample_df, file_name_base, sample_map_qualities
@@ -139,7 +151,7 @@ class GetSnps:
         if group is None:
             snps_file = output_file
         else:
-            snps_file = os.path.join("snps", "%s_parsimonious_snps.fasta" % group)
+            snps_file = os.path.join(OUTPUT_DIR, "%s_parsimonious_snps.fasta" % group)
         test_duplicates = []
         with open(snps_file, 'w') as fh:
             for index, row in parsimonious_df.iterrows():
@@ -160,18 +172,29 @@ class GetSnps:
             try:
                 for record in vcf_reader:
                     qual_val = self.get_qual_val(record.QUAL)
+                    # self.olfh.write("\nqual_val: %s\n" % str(qual_val))
                     chrom = record.CHROM
+                    # self.olfh.write("\nchrom: %s\n" % str(chrom))
                     position = record.POS
-                    absolute_positon = str(chrom) + ":" + str(position)
+                    # self.olfh.write("\nposition: %s\n" % str(position))
+                    absolute_position = "%s:%s" % (str(chrom), str(position))
+                    # self.olfh.write("\nabsolute_position: %s\n" % str(absolute_position))
                     alt = str(record.ALT[0])
+                    # self.olfh.write("\nalt: %s\n" % str(alt))
                     if alt != "None":
                         mq_val = self.get_mq_val(record.INFO, filename)
+                        # self.olfh.write("\nmq_val: %s\n" % str(mq_val))
                         ac = record.INFO['AC'][0]
+                        # self.olfh.write("\nac: %s\n" % str(ac))
                         len_ref = len(record.REF)
+                        # self.olfh.write("\nlen_ref: %s\n" % str(len_ref))
                         if ac == self.ac and len_ref == 1 and qual_val > self.qual_threshold and mq_val > self.mq_val:
-                            found_positions.update({absolute_positon: record.REF})
+                            found_positions.update({absolute_position: record.REF})
                         if ac == 1 and len_ref == 1 and qual_val > self.qual_threshold and mq_val > self.mq_val:
-                            found_positions_mix.update({absolute_positon: record.REF})
+                            found_positions_mix.update({absolute_position: record.REF})
+                # self.olfh.write("\nfilename: %s\n" % str(filename))
+                # self.olfh.write("\nfound_positions: %s\n" % str(found_positions))
+                # self.olfh.write("\nfound_positions_mix: %s\n" % str(found_positions_mix))
                 return filename, found_positions, found_positions_mix
             except (ZeroDivisionError, ValueError, UnboundLocalError, TypeError):
                 return filename, {'': ''}, {'': ''}
@@ -212,37 +235,30 @@ class GetSnps:
             self.olfh.write("%s\n" % msg)
 
     def get_mq_val(self, record_info, filename):
+        # self.olfh.write("\n%s - Started get_mq_val\n" % get_time_stamp())
         # Get the MQ (gatk) or MQM (freebayes) value from the record.INFO
-        # component of the vcf file.  Supported file creators are gatk
-        # and freebayes.
-        if self.vcf_file_creator is None:
+        # component of the vcf file.
+        try:
+            # self.olfh.write("\nrecord_info['MQM']: %s\n" % str(record_info['MQM']))
+            # self.olfh.write("\ntype(record_info['MQM']): %s\n" % type(record_info['MQM']))
+            mq_val = record_info['MQM']
+            return self.return_val(mq_val)
+        except Exception:
             try:
-                # Freebayes VCF MQM values are a list.
-                mq_val = record_info['MQM'][0]
-                self.vcf_file_creator = FREEBAYES
-                return mq_val
+                # self.olfh.write("\nrecord_info['MQ']: %s\n" % str(record_info['MQ']))
+                # self.olfh.write("\ntype(record_info['MQ']): %s\n" % type(record_info['MQ']))
+                mq_val = record_info['MQ']
+                return self.return_val(mq_val)
             except Exception:
-                try:
-                    # GATK VCF MQ values are decimal
-                    mq_val = record_info['MQ']
-                    self.vcf_file_creator = GATK
-                    return mq_val
-                except Exception:
-                    msg = "Invalid or unsupported vcf header %s in file: %s\n" % (str(record_info), filename)
-                    sys.exit(msg)
-        elif self.vcf_file_creator == FREEBAYES:
-            # Freebayes VCF MQM values are a list.
-            return record_info['MQM'][0]
-        elif self.vcf_file_creator == GATK:
-            # GATK VCF MQ values are decimal
-            return record_info['MQ']
+                msg = "Invalid or unsupported vcf header %s in file: %s\n" % (str(record_info), filename)
+                sys.exit(msg)
 
     def get_parsimonious_pos(self, filtered_all_df):
         self.olfh.write("\n%s - Started get_parsimonious_pos\n" % get_time_stamp())
         # self.olfh.write("\nIn get_parsimonious_pos, filtered_all_df: %s\n" % str(filtered_all_df))
-        ref_series = filtered_all_df.loc['reference_seq']
-        # In all_vcf reference_seq needs to be removed.
-        filtered_all_df = filtered_all_df.drop(['reference_seq'])
+        ref_series = filtered_all_df.loc['root']
+        # In all_vcf root needs to be removed.
+        filtered_all_df = filtered_all_df.drop(['root'])
         parsimony = filtered_all_df.loc[:, (filtered_all_df != filtered_all_df.iloc[0]).any()]
         parsimony_positions = list(parsimony)
         # self.olfh.write("\nIn get_parsimonious_pos, parsimony_positions: %s\n" % str(parsimony_positions))
@@ -293,20 +309,19 @@ class GetSnps:
             # filter_finder.filter_finder()
         all_positions = {}
         df_list = []
+        self.olfh.write("self.vcf_files: %s\n" % str(self.vcf_files))
         for filename in self.vcf_files:
-            try:
-                filename, found_positions, found_positions_mix = self.find_initial_positions(filename)
-                # self.olfh.write("\nIn get_snps, filename: %s\n" % str(filename))
-                # self.olfh.write("\nIn get_snps, found_positions_mix: %s\n" % str(found_positions_mix))
-                all_positions.update(found_positions)
-                # self.olfh.write("\nIn get_snps, all_positions: %s\n" % str(all_positions))
-            except TypeError:
-                pass
+            # self.olfh.write("filename: %s\n" % str(filename))
+            filename2, found_positions, found_positions_mix = self.find_initial_positions(filename)
+            # self.olfh.write("\nIn get_snps, filename2: %s\n" % str(filename2))
+            # self.olfh.write("\nIn get_snps, found_positions_mix: %s\n" % str(found_positions_mix))
+            all_positions.update(found_positions)
+            # self.olfh.write("\nIn get_snps, all_positions: %s\n" % str(all_positions))
         # Order before adding to file to match
         # with ordering of individual samples.
         # all_positions is abs_pos:REF
         self.all_positions = OrderedDict(sorted(all_positions.items()))
-        ref_positions_df = pandas.DataFrame(self.all_positions, index=['reference_seq'])
+        ref_positions_df = pandas.DataFrame(self.all_positions, index=['root'])
         all_map_qualities = {}
         for filename in self.vcf_files:
             # self.olfh.write("\nIn get_snps, filename: %s\n" % str(filename))
@@ -382,12 +397,21 @@ class GetSnps:
                 else:
                     # samples_groups_dict[filename] = ['<font color="red">No defining SNP</font>']
                     samples_groups_dict[filename] = []
-            except TypeError:
-                message = f'In group_vcfs, File TypeError'
+            except TypeError as e:
+                message = 'In group_vcfs, exception: %s' % str(e)
                 self.olfh.write(f'{message}: {filename}\n')
                 samples_groups_dict[filename] = []
-        self.olfh.write("\nSamples Groups Dictionary:\n%s\n" % str(samples_groups_dict))
+        # self.olfh.write("\nSamples Groups Dictionary:\n%s\n" % str(samples_groups_dict))
         return samples_groups_dict
+
+    def return_val(self, val):
+        # self.olfh.write("\nIn return_val, val: %s" % str(val))
+        # self.olfh.write("\nIn return_val, type(val): %s" % type(val))
+        if isinstance(val, list):
+            # self.olfh.write("\nIn return_val, returning: %s" % str(val[0]))
+            return val[0]
+        # self.olfh.write("\nIn return_val, returning: %s" % str(val))
+        return val
 
     def tree_to_svg(self, tree_file, svg_file):
         # Convert a phylogenetic tree to an svg output.
@@ -404,18 +428,15 @@ class GetSnps:
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--all_isolates', action='store_true', dest='all_isolates', required=False, default=False, help='Create table with all isolates')
-parser.add_argument('--filter_finder', action='store_true', dest='filter_finder', required=False, default=False, help='Write possible positions to filter to text file')
-parser.add_argument('--excel_grouper_file', action='store', dest='excel_grouper_file', required=False, default=None, help='Optional Excel filter file')
-parser.add_argument('--gbk_file', action='store', dest='gbk_file', required=False, default=None, help='Optional gbk file')
-parser.add_argument('--no_filters', action='store_true', dest='no_filters', default=False, help='Run without applying filters')
-parser.add_argument('--output_fasta', action='store', dest='output_fasta', required=False, default=None, help='Single output SNPs alignment fasta file if not Excel filtering')
-parser.add_argument('--output_log', action='store', dest='output_log', help='Output log file')
-parser.add_argument('--reference', action='store', dest='reference', help='Reference file')
-parser.add_argument('--subset', action='store_true', dest='subset', required=False, default=False, help='Create trees with a subset of sample that represent the whole')
-parser.add_argument('--input_vcf_collection', dest='input_vcf_collection', action='append', nargs=1, help='Collection of VCF files')
-parser.add_argument('--input_zc_vcf', action='store', dest='input_zc_vcf', required=False, default=None, help='Single zero coverage VCF file')
-parser.add_argument('--input_zc_vcf_collection', dest='input_zc_vcf_collection', action='append', nargs=1, required=False, default=None, help='Collection of zero coverage VCF files')
+parser.add_argument('--all_isolates', action='store_true', dest='all_isolates', required=False, default=False, help='Create table with all isolates'),
+parser.add_argument('--filter_finder', action='store_true', dest='filter_finder', required=False, default=False, help='Write possible positions to filter to text file'),
+parser.add_argument('--excel_grouper_file', action='store', dest='excel_grouper_file', required=False, default=None, help='Optional Excel filter file'),
+parser.add_argument('--gbk_file', action='store', dest='gbk_file', required=False, default=None, help='Optional gbk file'),
+parser.add_argument('--no_filters', action='store_true', dest='no_filters', default=False, help='Run without applying filters'),
+parser.add_argument('--output_fasta', action='store', dest='output_fasta', required=False, default=None, help='Single output SNPs alignment fasta file if not Excel filtering'),
+parser.add_argument('--output_log', action='store', dest='output_log', help='Output log file'),
+parser.add_argument('--reference', action='store', dest='reference', help='Reference file'),
+parser.add_argument('--subset', action='store_true', dest='subset', required=False, default=False, help='Create trees with a subset of sample that represent the whole'),
 
 args = parser.parse_args()
 
@@ -424,17 +445,17 @@ ac = 2
 mq_val = 56
 n_threshold = 50
 qual_threshold = 150
-# Build the list of vcf files.
+# Build the list of vcf files against which
+# the current run will be analyzed.  This set
+# of files will be in a directory named input_vcf_dir.
 vcf_files = []
-for file_path in args.input_vcf_collection:
+for file_name in os.listdir(INPUT_VCF_DIR):
+    file_path = os.path.abspath(os.path.join(INPUT_VCF_DIR, file_name))
     vcf_files.append(file_path)
-if args.input_zc_vcf is not None:
-    # The current run is a single zero coverage VCF file.
-    vcf_files.append(args.input_zc_vcf)
-else:
-    # The current run is a collection of zero coverage VCF files.
-    for file_path in args.input_zc_vcf_collection:
-        vcf_files.append(file_path)
+# Add the zero coverage vcf files from the current run.
+for file_name in os.listdir(INPUT_ZC_VCF_DIR):
+    file_path = os.path.abspath(os.path.join(INPUT_ZC_VCF_DIR, file_name))
+    vcf_files.append(file_path)
 snp_finder = GetSnps(vcf_files, args.reference, args.excel_grouper_file, args.gbk_file, args.filter_finder, args.no_filters,
                      args.all_isolates, ac, mq_val, n_threshold, qual_threshold, args.output_log)
 
