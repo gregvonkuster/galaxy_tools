@@ -12,10 +12,12 @@
 #set input_zc_vcf_dir = 'input_zc_vcf_dir'
 #set input_zc_vcf_type = $input_zc_vcf_type_cond.input_zc_vcf_type
 #set input_zc_vcf_type = $input_zc_vcf_type_cond.input_zc_vcf_type
-#set output_dir = 'output_dir'
+#set output_json_snps_dir = 'output_json_snps_dir'
+#set output_snps_dir = 'output_snps_dir'
 mkdir -p $input_vcf_dir &&
 mkdir -p $input_zc_vcf_dir &&
-mkdir -p $output_dir &&
+mkdir -p $output_json_snps_dir &&
+mkdir -p $output_snps_dir &&
 #for $i in $input_vcf_collection:
     #set filename = $i.file_name
     #set name = $i.name
@@ -40,7 +42,7 @@ python '$__tool_directory__/vsnp_get_snps.py'
 #if str($excel_grouper_cond.excel_grouper) == "yes":
     #set excel_grouper_source = $excel_grouper_cond.excel_grouper_source_cond.excel_grouper_source
     #if str($excel_grouper_source) == "cached":
-    --excel_grouper_file '$excel_grouper_cond.excel_grouper_source_cond.excel_grouper_file.fields.path'
+        --excel_grouper_file '$excel_grouper_cond.excel_grouper_source_cond.excel_grouper_file.fields.path'
     #else:
         --excel_grouper_file '$excel_grouper_cond.excel_grouper_source_cond.excel_grouper_file'
     #end if
@@ -68,6 +70,8 @@ python '$__tool_directory__/vsnp_get_snps.py'
 #if str($subset) == "TRUE":
     --subset '$subset'
 #end if
+--output_json_avg_mq '$output_json_avg_mq'
+--output_json_snps '$output_json_snps'
 --output_log '$output_log'
 ]]></command>
     <inputs>
@@ -163,13 +167,21 @@ python '$__tool_directory__/vsnp_get_snps.py'
         <param argument="subset" type="boolean" checked="false" truevalue="TRUE" falsevalue="FALSE" label="Create trees with a subset of samples that represent the whole"/>
     </inputs>
     <outputs>
-        <data name="output_fasta" format="fasta" label="${tool.name} (quality parsimonious SNPs) on ${on_string}">
-            <filter>excel_grouper_cond['excel_grouper'] == 'no'</filter>
-        </data>
-        <collection name="snps" type="list" label="${tool.name} (quality parsimonious SNPs) on ${on_string}">
-            <discover_datasets pattern="__name__" directory="output_dir" format="fasta" />
+        <collection name="snps" type="list" label="${tool.name} (SNPs) on ${on_string}">
+            <discover_datasets pattern="__name__" directory="output_snps_dir" format="fasta" />
             <filter>excel_grouper_cond['excel_grouper'] == 'yes'</filter>
         </collection>
+        <data name="output_fasta" format="fasta" label="${tool.name} (SNPs) on ${on_string}">
+            <filter>excel_grouper_cond['excel_grouper'] == 'no'</filter>
+        </data>
+        <collection name="json_snps" type="list" label="${tool.name} (SNPs as json) on ${on_string}">
+            <discover_datasets pattern="__name__" directory="output_json_snps_dir" format="json" />
+            <filter>excel_grouper_cond['excel_grouper'] == 'yes'</filter>
+        </collection>
+        <data name="output_json_snps" format="json" label="${tool.name} (SNPs as json) on ${on_string}">
+            <filter>excel_grouper_cond['excel_grouper'] == 'no'</filter>
+        </data>
+        <data name="output_json_avg_mq" format="json" label="${tool.name} (avg mq as json) on ${on_string}"/>
         <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}"/>
     </outputs>
     <tests>
