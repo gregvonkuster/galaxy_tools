@@ -8,7 +8,6 @@ import pandas
 import sys
 import time
 import vcf
-from Bio import Phylo
 from collections import OrderedDict
 from datetime import datetime
 
@@ -142,7 +141,7 @@ class GetSnps:
         if group is None:
             snps_file = output_fasta
         else:
-            snps_file = os.path.join(OUTPUT_SNPS_DIR, "%s_parsimonious_snps.fasta" % group)
+            snps_file = os.path.join(OUTPUT_SNPS_DIR, "%s_snps.fasta" % group)
         test_duplicates = []
         with open(snps_file, 'w') as fh:
             for index, row in parsimonious_df.iterrows():
@@ -356,19 +355,6 @@ class GetSnps:
         if isinstance(val, list):
             return val[0]
         return val
-
-    def tree_to_svg(self, tree_file, svg_file):
-        # Convert a phylogenetic tree to an svg output.
-        self.olfh.write("\n%s - Started tree_to_svg\n" % get_time_stamp())
-
-        def get_label(leaf):
-            return leaf.name
-
-        tree = Phylo.read(tree_file, 'newick')
-        tree.ladderize()
-        Phylo.draw(tree, label_func=get_label, do_show=False)
-        # pylab.axis('off')
-        # pylab.savefig(svg_file, format='svg', bbox_inches='tight', dpi=500)
 
 
 parser = argparse.ArgumentParser()

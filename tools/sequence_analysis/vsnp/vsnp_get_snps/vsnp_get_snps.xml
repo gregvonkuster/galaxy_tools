@@ -1,7 +1,6 @@
 <tool id="vsnp_get_snps" name="vSNP: get snps" version="1.0.0">
     <description></description>
     <requirements>
-        <requirement type="package" version="1.76">biopython</requirement>
         <requirement type="package" version="0.24.2">pandas</requirement>
         <requirement type="package" version="0.6.8">pyvcf</requirement>
         <requirement type="package" version="1.2.0">xlrd</requirement>
@@ -48,6 +47,7 @@ python '$__tool_directory__/vsnp_get_snps.py'
     #end if
 #else:
     --output_fasta '$output_fasta'
+    --output_json_snps '$output_json_snps'
 #end if
 #if str($gbk_cond.gbk_param) == "yes":
     #set gbk_source_cond = $gbk_cond.gbk_source_cond
@@ -71,7 +71,6 @@ python '$__tool_directory__/vsnp_get_snps.py'
     --subset '$subset'
 #end if
 --output_json_avg_mq '$output_json_avg_mq'
---output_json_snps '$output_json_snps'
 --output_log '$output_log'
 ]]></command>
     <inputs>
