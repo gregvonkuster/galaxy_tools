@@ -7,6 +7,7 @@
     <command detect_errors="exit_code"><![CDATA[
 #set output_excel_dir = 'output_excel_dir'
 #set input_type = $input_type_cond.input_type
+mkdir $output_excel_dir &&
 #if $input_type == "collection":
     #set input_newick_dir = 'input_newick_dir'
     #set input_json_dir = 'input_json_dir'
@@ -25,8 +26,6 @@ python '$__tool_directory__/vsnp_build_tables.py'
 #if $input_type == "single":
     --input_snps_json '$input_snps_json'
     --input_newick '$input_newick'
-    --output_cascade_excel '$output_cascade_excel'
-    --output_sort_excel '$output_sort_excel'
 #end if:
 --input_avg_mq_json '$input_avg_mq_json'
 ]]></command>
@@ -58,14 +57,7 @@ python '$__tool_directory__/vsnp_build_tables.py'
     <outputs>
         <collection name="excel" type="list">
             <discover_datasets pattern="__name__" directory="output_excel_dir" format="xlsx" />
-            <filter>input_type_cond['input_type'] == 'collection'</filter>
         </collection>
-        <data name="output_cascade_excel" format="xlsx"  label="${tool.name} (cascade table) on ${on_string}">
-            <filter>input_type_cond['input_type'] == 'single'</filter>
-        </data>
-        <data name="output_sort_excel" format="xlsx"  label="${tool.name} (sort table) on ${on_string}">
-            <filter>input_type_cond['input_type'] == 'single'</filter>
-        </data>
     </outputs>
     <tests>
         <test>

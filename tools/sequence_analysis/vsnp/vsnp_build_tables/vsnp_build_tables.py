@@ -5,13 +5,19 @@ import os
 import pandas
 import pandas.io.formats.excel
 import re
-import shutil
 
 INPUT_JSON_DIR = 'input_json_dir'
 INPUT_NEWICK_DIR = 'input_newick_dir'
+# Maximum columns allowed in a LibreOffice
+# spreadsheet is 1024.  Excel allows for
+# 16,384 columns, but we'll set the lower
+# number as the maximum since Galaxy is
+# mostly run on Linux.
+MAXCOLS = 1023
+OUTPUT_EXCEL_DIR = 'output_excel_dir'
 
 
-def excel_formatter(json_df, excel_file_name, group, gbk=None, file_path=None):
+def excel_formatter(json_df, excel_file_name, group, gbk=None):
     pandas.io.formats.excel.header_style = None
     table_df = pandas.read_json(json_df, orient='split')
     # TODO: add support for a genbank file.
@@ -62,15 +68,14 @@ def excel_formatter(json_df, excel_file_name, group, gbk=None, file_path=None):
     # Set last row.
     ws.set_row(rows, 400, format_annotation)
     writer.save()
-    if file_path is not None:
-        # We have a single output file, not a collection,
-        # so move the Excel file to the output file_path.
-        # This trick is necessary since the xlsxwriter
-        # barfs on files with a .dat extension.
-        shutil.move(excel_file_name, file_path)
 
 
-def output_excel(df, type_str, group, count=None, file_path=None):
+def output_cascade_table(cascade_order, mqdf, group):
+    cascade_order_mq = pandas.concat([cascade_order, mqdf], join='inner')
+    output_table(cascade_order_mq, "cascade", group)
+
+
+def output_excel(df, type_str, group, count=None):
     # Output the temporary json file that
     # is used by the excel_formatter.
     if count is None:
@@ -78,17 +83,50 @@ def output_excel(df, type_str, group, count=None, file_path=None):
     else:
         json_file_name = "%s_%s_order_mq_%d.json" % (group, type_str, count)
     df.to_json(json_file_name, orient='split')
-    if file_path is None:
-        # Grouping took place upstream, so we
-        # have inputs that are collections.
-        if count is None:
-            excel_file_name = "%s_%s_table.xlsx" % (group, type_str)
-        else:
-            excel_file_name = "%s_%s_table_%d.xlsx" % (group, type_str, count)
+    # Grouping took place upstream, so we
+    # have inputs that are collections.
+    if count is None:
+        excel_file_name = os.path.join(OUTPUT_EXCEL_DIR, "%s_%s_table.xlsx" % (group, type_str))
     else:
-        excel_file_name = 'output.xlsx'
+        excel_file_name = os.path.join(OUTPUT_EXCEL_DIR, "%s_%s_table_%d.xlsx" % (group, type_str, count))
     # Output the Excel file.
-    excel_formatter(json_file_name, excel_file_name, group, gbk=None, file_path=file_path)
+    excel_formatter(json_file_name, excel_file_name, group, gbk=None)
+
+
+def output_sort_table(cascade_order, mqdf, group):
+    sort_df = cascade_order.T
+    sort_df['abs_value'] = sort_df.index
+    sort_df[['chrom', 'pos']] = sort_df['abs_value'].str.split(':', expand=True)
+    sort_df = sort_df.drop(['abs_value', 'chrom'], axis=1)
+    sort_df.pos = sort_df.pos.astype(int)
+    sort_df = sort_df.sort_values(by=['pos'])
+    sort_df = sort_df.drop(['pos'], axis=1)
+    sort_df = sort_df.T
+    sort_order_mq = pandas.concat([sort_df, mqdf], join='inner')
+    output_table(sort_order_mq, "sort", group)
+
+
+def output_table(df, type_str, group):
+    count = 0
+    chunk_start = 0
+    chunk_end = 0
+    column_count = df.shape[1]
+    if column_count >= MAXCOLS:
+        # Here the number of columns is greater than
+        # the maximum allowed by Excel, so multiple
+        # outputs will be produced.
+        while column_count >= MAXCOLS:
+            count += 1
+            chunk_end += MAXCOLS
+            df_of_type = df.iloc[:, chunk_start:chunk_end]
+            output_excel(df_of_type, type_str, group, count=count)
+            chunk_start += MAXCOLS
+            column_count -= MAXCOLS
+        count += 1
+        df_of_type = df.iloc[:, chunk_start:]
+        output_excel(df_of_type, type_str, group, count=count)
+    else:
+        output_excel(df, type_str, group)
 
 
 parser = argparse.ArgumentParser()
@@ -96,8 +134,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--input_avg_mq_json', action='store', dest='input_avg_mq_json', help='Average MQ json file')
 parser.add_argument('--input_newick', action='store', dest='input_newick', required=False, default=None, help='Newick file')
 parser.add_argument('--input_snps_json', action='store', dest='input_snps_json', required=False, default=None, help='SNPs json file')
-parser.add_argument('--output_cascade_excel', action='store', dest='output_cascade_excel', required=False, default=None, help='Single output cascade table Excel file if inputs are not collections')
-parser.add_argument('--output_sort_excel', action='store', dest='output_sort_excel', required=False, default=None, help='Single output sort table Excel file if inputs are not collections')
 
 args = parser.parse_args()
 
@@ -181,57 +217,7 @@ for i, newick_file in enumerate(newick_files):
     tree_order = tree_order.T
     # Remove snp_per_column and snp_from_top rows.
     cascade_order = tree_order[:-2]
-    # Cascading table.
-    cascade_order_mq = pandas.concat([cascade_order, mqdf], join='inner')
-    # Max columns allowed in tables.
-    max_size = 10000
-    count = 0
-    chunk_start = 0
-    chunck_end = 0
-    column_count = cascade_order_mq.shape[1]
-    if column_count > max_size:
-        while column_count > max_size:
-            count += 1
-            chunck_end += max_size
-            df = cascade_order_mq.iloc[:, chunk_start:chunck_end]
-            print("Calling output_excel from line 201...\n")
-            output_excel(df, "cascade", group, count=count, file_path=None)
-            chunk_start += max_size
-            column_count -= max_size
-        count += 1
-        df = cascade_order_mq.iloc[:, chunk_start:]
-        print("Calling output_excel from line 207...\n")
-        output_excel(df, "cascade", group, count=count, file_path=args.output_cascade_excel)
-    else:
-        print("Calling output_excel from line 210...\n")
-        output_excel(cascade_order_mq, "cascade", group, file_path=args.output_cascade_excel)
-    # Sorted position table.
-    sort_df = cascade_order.T
-    sort_df['abs_value'] = sort_df.index
-    sort_df[['chrom', 'pos']] = sort_df['abs_value'].str.split(':', expand=True)
-    sort_df = sort_df.drop(['abs_value', 'chrom'], axis=1)
-    sort_df.pos = sort_df.pos.astype(int)
-    sort_df = sort_df.sort_values(by=['pos'])
-    sort_df = sort_df.drop(['pos'], axis=1)
-    sort_df = sort_df.T
-    sort_order_mq = pandas.concat([sort_df, mqdf], join='inner')
-    count = 0
-    chunk_start = 0
-    chunck_end = 0
-    column_count = sort_order_mq.shape[1]
-    if column_count > max_size:
-        while column_count > max_size:
-            count += 1
-            chunck_end += max_size
-            df = sort_order_mq.iloc[:, chunk_start:chunck_end]
-            print("Calling output_excel from line 231...\n")
-            output_excel(df, "sort", group, count=count, file_path=None)
-            chunk_start += max_size
-            column_count -= max_size
-        count += 1
-        df = sort_order_mq.iloc[:, chunk_start:]
-        print("Calling output_excel from line 237...\n")
-        output_excel(df, "sort", group, count=count, file_path=args.output_sort_excel)
-    else:
-        print("Calling output_excel from line 241...\n")
-        output_excel(sort_order_mq, "sort", group, file_path=args.output_sort_excel)
+    # Output the cascade table.
+    output_cascade_table(cascade_order, mqdf, group)
+    # Output the sorted table.
+    output_sort_table(cascade_order, mqdf, group)
