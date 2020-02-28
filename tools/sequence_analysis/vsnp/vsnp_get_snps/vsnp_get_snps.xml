@@ -34,27 +34,45 @@ mkdir -p $output_snps_dir &&
         ln -s $filename $input_zc_vcf_dir/$name &&
     #end for
 #end if
-python '$__tool_directory__/vsnp_get_snps.py'
---reference '$reference'
 #if str($excel_grouper_cond.excel_grouper) == "yes":
     #set excel_grouper_source = $excel_grouper_cond.excel_grouper_source_cond.excel_grouper_source
     #if str($excel_grouper_source) == "cached":
-        --excel_grouper_file '$excel_grouper_cond.excel_grouper_source_cond.excel_grouper_file.fields.path'
-    #else:
-        --excel_grouper_file '$excel_grouper_cond.excel_grouper_source_cond.excel_grouper_file'
+        #set excel_fields = $__app__.tool_data_tables['vsnp_excel'].get_fields()
+        #for $i in $excel_fields:
+            #if str($i[0]) == $reference:
+                #set excel_file = $i[2]
+                #break
+            #end if
+        #end for
     #end if
 #else:
-    --output_fasta '$output_fasta'
-    --output_json_snps '$output_json_snps'
+    #set excel_file = $excel_grouper_cond.excel_grouper_source_cond.excel_grouper_file
 #end if
 #if str($gbk_cond.gbk_param) == "yes":
     #set gbk_source_cond = $gbk_cond.gbk_source_cond
     #set gbk_source = $gbk_source_cond.gbk_source
     #if str($gbk_source) == "cached":
-        --gbk_file '$gbk_source_cond.gbk_file.fields.path'
-    #else:
-        --gbk_file '$gbk_source_cond.gbk_file'
+        #set gbk_fields = $__app__.tool_data_tables['vsnp_genbank'].get_fields()
+        #for $i in $gbk_fields:
+            #if str($i[0]) == $reference:
+                #set genbank_file = $i[2]
+                #break
+            #end if
+        #end for
     #end if
+#else:
+    #set genbank_file = $gbk_cond.gbk_source_cond.gbk_file
+#end if
+python '$__tool_directory__/vsnp_get_snps.py'
+--reference '$reference'
+#if str($excel_grouper_cond.excel_grouper) == "yes":
+    --excel_grouper_file '$excel_file'
+#else:
+    --output_fasta '$output_fasta'
+    --output_json_snps '$output_json_snps'
+#end if
+#if str($gbk_cond.gbk_param) == "yes":
+    --gbk_file '$genbank_file'
 #end if
 #if str($all_isolates) == "TRUE":
     --all_isolates '$all_isolates'
@@ -101,18 +119,12 @@ python '$__tool_directory__/vsnp_get_snps.py'
                         <option value="history">from history</option>
                     </param>
                     <when value="cached">
-                        <param name="excel_grouper_file" type="select" label="Excel file">
-                            <options from_data_table="vsnp_excel">
-                                <filter type="data_meta" column="value" key="dbkey" ref="input_vcf_collection"/>
-                            </options>
-                            <validator type="no_options" message="A cached Excel file is not available for the build associated with the selected collection of VCF files against which to analyze the zero coverage VCF files"/>
+                        <param name="excel_grouper_file" type="select" label="Excel file" help="Selection will be overridden if it does not match the dbkeys associated with the collection of VCF files being analyzed">
+                            <options from_data_table="vsnp_excel"/>
                         </param>
                     </when>
                     <when value="history">
-                        <param name="excel_grouper_file" type="data" format="xlsx" label="Excel file">
-                            <filter type="data_meta" column="value" key="dbkey" ref="input_vcf_collection"/>
-                            <validator type="no_options" message="The current history does not include a xslx dataset for the build associated with the selected collection of VCF files against which to analyze the zero coverage VCF files"/>
-                        </param>
+                        <param name="excel_grouper_file" type="data" format="xlsx" label="Excel file"/>
                     </when>
                 </conditional>
             </when>
@@ -130,18 +142,12 @@ python '$__tool_directory__/vsnp_get_snps.py'
                         <option value="history">from history</option>
                     </param>
                     <when value="cached">
-                        <param name="gbk_file" type="select" label="Genbank file">
-                            <options from_data_table="vsnp_genbank">
-                                <filter type="data_meta" column="value" key="dbkey" ref="input_vcf_collection"/>
-                            </options>
-                            <validator type="no_options" message="A cached Genbank file is not available for the build associated with the selected collection of VCF files against which to analyze the zero coverage VCF files"/>
+                        <param name="gbk_file" type="select" label="Genbank file" help="Selection will be overrid    den if it does not match the dbkeys associated with the collection of VCF files being analyzed">
+                            <options from_data_table="vsnp_genbank"/>
                         </param>
                     </when>
                     <when value="history">
-                        <param name="gbk_file" type="data" format="genbank" label="Genbank file">
-                            <filter type="data_meta" column="value" key="dbkey" ref="input_vcf_collection"/>
-                            <validator type="no_options" message="The current history does not include a 'genbank' dataset for the build associated with the selected collection of VCF files against which to analyze the zero coverage VCF files"/>
-                        </param>
+                        <param name="gbk_file" type="data" format="genbank" label="Genbank file"/>
                     </when>
                 </conditional>
             </when>
