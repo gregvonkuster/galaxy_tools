@@ -1,6 +1,7 @@
 <tool id="vsnp_build_tables" name="vSNP: build tables" version="1.0.0">
     <description></description>
     <requirements>
+        <requirement type="package" version="1.76">biopython</requirement>
         <requirement type="package" version="0.24.2">pandas</requirement>
         <requirement type="package" version="1.2.8">xlsxwriter</requirement>
     </requirements>
@@ -28,6 +29,15 @@ python '$__tool_directory__/vsnp_build_tables.py'
     --input_newick '$input_newick'
 #end if:
 --input_avg_mq_json '$input_avg_mq_json'
+#if str($gbk_cond.gbk_param) == "yes":
+    #set gbk_source_cond = $gbk_cond.gbk_source_cond
+    #set gbk_source = $gbk_source_cond.gbk_source
+    #if str($gbk_source) == "cached":
+        --gbk_file '$gbk_source_cond.gbk_file.fields.path'
+    #else:
+        --gbk_file '$gbk_source_cond.gbk_file'
+    #end if
+#end if
 ]]></command>
     <inputs>
         <conditional name="input_type_cond">
@@ -53,6 +63,34 @@ python '$__tool_directory__/vsnp_build_tables.py'
             </when>
         </conditional>
         <param name="input_avg_mq_json" type="data" format="json" label="Average MQ json file"/>
+        <conditional name="gbk_cond">
+            <param name="gbk_param" type="select" label="Use Genbank file?">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="yes">
+                <conditional name="gbk_source_cond">
+                    <param name="gbk_source" type="select" label="Choose the source for the Genbank file">
+                        <option value="cached">locally cached</option>
+                        <option value="history">from history</option>
+                    </param>
+                    <when value="cached">
+                        <param name="gbk_file" type="select" label="Genbank file">
+                            <options from_data_table="vsnp_genbank">
+                                <filter type="data_meta" column="0" key="dbkey" ref="input_avg_mq_json"/>
+                            </options>
+                            <validator type="no_options" message="A cached Genbank file is not available for the build associated with the selected average MQ json file"/>
+                        </param>
+                    </when>
+                    <when value="history">
+                        <param name="gbk_file" type="data" format="genbank" label="Genbank file">
+                            <validator type="no_options" message="The current history does not include a 'genbank' dataset for the build associated with the selected average MQ json file"/>
+                        </param>
+                    </when>
+                </conditional>
+            </when>
+            <when value="no"/>
+        </conditional>
     </inputs>
     <outputs>
         <collection name="excel" type="list">

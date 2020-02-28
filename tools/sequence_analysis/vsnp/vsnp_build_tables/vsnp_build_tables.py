@@ -5,6 +5,7 @@ import os
 import pandas
 import pandas.io.formats.excel
 import re
+from Bio import SeqIO
 
 INPUT_JSON_DIR = 'input_json_dir'
 INPUT_NEWICK_DIR = 'input_newick_dir'
@@ -17,13 +18,77 @@ MAXCOLS = 1023
 OUTPUT_EXCEL_DIR = 'output_excel_dir'
 
 
-def excel_formatter(json_df, excel_file_name, group, gbk=None):
+def annotate_table(table_df, group, gbk_file):
+    gbk_dict = SeqIO.to_dict(SeqIO.parse(gbk_file, "genbank"))
+    annotation_dict = {}
+    tmp_file = "%s_temp.csv" % group
+    # Create a file of chromosomes and features.
+    with open(tmp_file, "w+") as fh:
+        for chromosome in gbk_dict.keys():
+            for feature in gbk_dict[chromosome].features:
+                if "CDS" in feature.type or "rRNA" in feature.type:
+                    product = None
+                    locus = None
+                    gene = None
+                    try:
+                        product = feature.qualifiers['product'][0]
+                    except KeyError:
+                        pass
+                    try:
+                        locus = feature.qualifiers['locus_tag'][0]
+                    except KeyError:
+                        pass
+                    try:
+                        gene = feature.qualifiers['gene'][0]
+                    except KeyError:
+                        pass
+                    fh.write("%s\t%d\t%d\t%s\t%s\t%s\n" % (chromosome, int(feature.location.start), int(feature.location.end), locus, product, gene))
+        # Read the chromosomes and features file into a data frame.
+        df = pandas.read_csv(tmp_file, sep='\t', names=["chrom", "start", "stop", "locus", "product", "gene"])
+        # Process the data.
+        df = df.sort_values(['start', 'gene'], ascending=[True, False])
+        df = df.drop_duplicates('start')
+        pro = df.reset_index(drop=True)
+        pro.index = pandas.IntervalIndex.from_arrays(pro['start'], pro['stop'], closed='both')
+        annotation_dict[chromosome] = pro
+    for gbk_chrome, pro in annotation_dict.items():
+        ref_pos = list(table_df)
+        ref_series = pandas.Series(ref_pos)
+        ref_df = pandas.DataFrame(ref_series.str.split(':', expand=True).values, columns=['reference', 'position'])
+        all_ref = ref_df[ref_df['reference'] == gbk_chrome]
+        positions = all_ref.position.to_frame()
+        # Create an annotation file.
+        annotation_file = "%s_annotations.csv" % group
+        with open(annotation_file, 'a') as fh:
+            for index, row in positions.iterrows():
+                pos = row.position
+                try:
+                    aaa = pro.iloc[pro.index.get_loc(int(pos))][['chrom', 'locus', 'product', 'gene']]
+                    try:
+                        chrom, name, locus, tag = aaa.values[0]
+                        fh.write("{%s}:{%s}\t{%s}, {%s}, {%s}\n" % (chrom, pos, locus, tag, name))
+                    except ValueError:
+                        # If only one annotation for the entire
+                        # chromosome (e.g., flu) then having [0] fails
+                        chrom, name, locus, tag = aaa.values
+                        fh.write("{%s}:{%s}\t{%s}, {%s}, {%s}\n" % (chrom, pos, locus, tag, name))
+                except KeyError:
+                    fh.write("{%s}:{%s}\tNo annotated product\n" % (gbk_chrome, pos))
+    # Read the annotation file into a data frame.
+    annotations_df = pandas.read_csv(annotation_file, sep='\t', header=None, names=['index', 'annotations'], index_col='index')
+    # Process the data.
+    table_df_transposed = table_df.T
+    table_df_transposed.index = table_df_transposed.index.rename('index')
+    table_df_transposed = table_df_transposed.merge(annotations_df, left_index=True, right_index=True)
+    table_df = table_df_transposed.T
+    return table_df
+
+
+def excel_formatter(json_df, excel_file_name, group, gbk_file):
     pandas.io.formats.excel.header_style = None
     table_df = pandas.read_json(json_df, orient='split')
-    # TODO: add support for a genbank file.
-    if gbk:
-        # table_df = annotate_table(table_df, group, gbk)
-        pass
+    if gbk_file is not None:
+        table_df = annotate_table(table_df, group, gbk_file)
     else:
         table_df = table_df.append(pandas.Series(name='no annotations'))
     writer = pandas.ExcelWriter(excel_file_name, engine='xlsxwriter')
@@ -70,12 +135,12 @@ def excel_formatter(json_df, excel_file_name, group, gbk=None):
     writer.save()
 
 
-def output_cascade_table(cascade_order, mqdf, group):
+def output_cascade_table(cascade_order, mqdf, group, gbk_file):
     cascade_order_mq = pandas.concat([cascade_order, mqdf], join='inner')
-    output_table(cascade_order_mq, "cascade", group)
+    output_table(cascade_order_mq, "cascade", group, gbk_file)
 
 
-def output_excel(df, type_str, group, count=None):
+def output_excel(df, type_str, group, gbk_file, count=None):
     # Output the temporary json file that
     # is used by the excel_formatter.
     if count is None:
@@ -90,10 +155,10 @@ def output_excel(df, type_str, group, count=None):
     else:
         excel_file_name = os.path.join(OUTPUT_EXCEL_DIR, "%s_%s_table_%d.xlsx" % (group, type_str, count))
     # Output the Excel file.
-    excel_formatter(json_file_name, excel_file_name, group, gbk=None)
+    excel_formatter(json_file_name, excel_file_name, group, gbk_file)
 
 
-def output_sort_table(cascade_order, mqdf, group):
+def output_sort_table(cascade_order, mqdf, group, gbk_file):
     sort_df = cascade_order.T
     sort_df['abs_value'] = sort_df.index
     sort_df[['chrom', 'pos']] = sort_df['abs_value'].str.split(':', expand=True)
@@ -103,10 +168,10 @@ def output_sort_table(cascade_order, mqdf, group):
     sort_df = sort_df.drop(['pos'], axis=1)
     sort_df = sort_df.T
     sort_order_mq = pandas.concat([sort_df, mqdf], join='inner')
-    output_table(sort_order_mq, "sort", group)
+    output_table(sort_order_mq, "sort", group, gbk_file)
 
 
-def output_table(df, type_str, group):
+def output_table(df, type_str, group, gbk_file):
     count = 0
     chunk_start = 0
     chunk_end = 0
@@ -119,14 +184,14 @@ def output_table(df, type_str, group):
             count += 1
             chunk_end += MAXCOLS
             df_of_type = df.iloc[:, chunk_start:chunk_end]
-            output_excel(df_of_type, type_str, group, count=count)
+            output_excel(df_of_type, type_str, group, gbk_file, count=count)
             chunk_start += MAXCOLS
             column_count -= MAXCOLS
         count += 1
         df_of_type = df.iloc[:, chunk_start:]
-        output_excel(df_of_type, type_str, group, count=count)
+        output_excel(df_of_type, type_str, group, gbk_file, count=count)
     else:
-        output_excel(df, type_str, group)
+        output_excel(df, type_str, group, gbk_file)
 
 
 parser = argparse.ArgumentParser()
@@ -134,6 +199,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--input_avg_mq_json', action='store', dest='input_avg_mq_json', help='Average MQ json file')
 parser.add_argument('--input_newick', action='store', dest='input_newick', required=False, default=None, help='Newick file')
 parser.add_argument('--input_snps_json', action='store', dest='input_snps_json', required=False, default=None, help='SNPs json file')
+parser.add_argument('--gbk_file', action='store', dest='gbk_file', required=False, default=None, help='Optional gbk file'),
 
 args = parser.parse_args()
 
@@ -218,6 +284,6 @@ for i, newick_file in enumerate(newick_files):
     # Remove snp_per_column and snp_from_top rows.
     cascade_order = tree_order[:-2]
     # Output the cascade table.
-    output_cascade_table(cascade_order, mqdf, group)
+    output_cascade_table(cascade_order, mqdf, group, args.gbk_file)
     # Output the sorted table.
-    output_sort_table(cascade_order, mqdf, group)
+    output_sort_table(cascade_order, mqdf, group, args.gbk_file)
