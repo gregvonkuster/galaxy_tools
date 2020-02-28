@@ -33,7 +33,7 @@ def nice_size(size):
     return '??? bytes'
 
 
-def output_read_stats(gzipped, fastq_file, ofh, sampling_number=10000, output_sample=False, genome=None):
+def output_read_stats(gzipped, fastq_file, ofh, sampling_number=10000, output_sample=False, dbkey=None):
     # Output a 2-column file where column 1 is
     # the labels and column 2 is the values.
     if output_sample:
@@ -49,7 +49,7 @@ def output_read_stats(gzipped, fastq_file, ofh, sampling_number=10000, output_sa
             sample = ""
         # Sample
         ofh.write("Sample%s%s\n" % (SEP, sample))
-        ofh.write("Reference%s%s\n" % (SEP, genome))
+        ofh.write("Reference%s%s\n" % (SEP, dbkey))
         read = "Read1"
     else:
         read = "Read2"
@@ -89,20 +89,20 @@ def output_read_stats(gzipped, fastq_file, ofh, sampling_number=10000, output_sa
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('-r1', '--read1', action='store', dest='read1', help='Required: single read')
-parser.add_argument('-r2', '--read2', action='store', dest='read2', required=False, default=None, help='Optional: paired read')
-parser.add_argument('-rg', '--genome', action='store', dest='genome', help='Reference genome name or dbkey')
-parser.add_argument('-gz', '--gzipped', action='store', dest='gzipped', help='Input files are gzipped')
-parser.add_argument('-si', '--samtools_idxstats', action='store', dest='samtools_idxstats', help='Output of samtools_idxstats')
-parser.add_argument('-of', '--output', action='store', dest='output', help='Output statisticsfile')
-parser.add_argument('-va', '--vsnp_azc', action='store', dest='vsnp_azc', help='Output of vsnp_add_zero_coverage')
+parser.add_argument('--read1', action='store', dest='read1', help='Required: single read')
+parser.add_argument('--read2', action='store', dest='read2', required=False, default=None, help='Optional: paired read')
+parser.add_argument('--dbkey', action='store', dest='dbkey', help='Reference dbkey')
+parser.add_argument('--gzipped', action='store', dest='gzipped', help='Input files are gzipped')
+parser.add_argument('--samtools_idxstats', action='store', dest='samtools_idxstats', help='Output of samtools_idxstats')
+parser.add_argument('--output', action='store', dest='output', help='Output statisticsfile')
+parser.add_argument('--vsnp_azc', action='store', dest='vsnp_azc', help='Output of vsnp_add_zero_coverage')
 
 args = parser.parse_args()
 
 total_reads = 0
 
 with open(args.output, "w") as ofh:
-    total_reads += output_read_stats(args.gzipped, args.read1, ofh, output_sample=True, genome=args.genome)
+    total_reads += output_read_stats(args.gzipped, args.read1, ofh, output_sample=True, dbkey=args.dbkey)
     if args.read2 is not None:
         total_reads += output_read_stats(args.gzipped, args.read2, ofh)
     # Total Reads
