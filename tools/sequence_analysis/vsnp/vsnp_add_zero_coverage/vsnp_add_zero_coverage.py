@@ -14,11 +14,11 @@ BODYFILE = "v_annotated_body.csv"
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('-bi', '--bam_input', action='store', dest='bam_input', help='Input BAM file')
-parser.add_argument('-fv', '--vcf_input', action='store', dest='vcf_input', help='Input VCF file with poor positions removed')
-parser.add_argument('-om', '--output_metrics', action='store', dest='output_metrics', help='Output metrics text file')
-parser.add_argument('-ov', '--output_vcf', action='store', dest='output_vcf', help='Output VCF file')
-parser.add_argument('-rf', '--reference', action='store', dest='reference', help='Reference dataset')
+parser.add_argument('--bam_input', action='store', dest='bam_input', help='Input BAM file')
+parser.add_argument('--vcf_input', action='store', dest='vcf_input', help='Input VCF file with poor positions removed')
+parser.add_argument('--output_metrics', action='store', dest='output_metrics', help='Output metrics text file')
+parser.add_argument('--output_vcf', action='store', dest='output_vcf', help='Output VCF file')
+parser.add_argument('--reference', action='store', dest='reference', help='Reference dataset')
 
 args = parser.parse_args()
 
