@@ -59,6 +59,12 @@ python '$__tool_directory__/vsnp_statistics.py'
     </outputs>
     <tests>
         <test>
+            <param name="read_type" value="paired"/>
+            <param name="read1" value="13-1941-6_S4_L001_R1_600000.fastq.gz" ftype="fastqsanger.gz" dbkey="89"/>
+            <param name="read2" value="13-1941-6_S4_L001_R2_600000.fastq.gz" ftype="fastqsanger.gz" dbkey="89"/>
+            <param name="samtools_idxstats" value="samtools_idxstats.tabular" ftype="tabular" dbkey="89"/>
+            <param name="vsnp_azc" value="add_zc_metrics.tabular" ftype="tabular" dbkey="89"/>
+            <output name="output" file="vsnp_statistics.tabular" ftype="tabular" compare="contains"/>
         </test>
     </tests>
     <help>
@@ -67,7 +73,7 @@ python '$__tool_directory__/vsnp_statistics.py'
 Calculates vSNP statistics for fastqsanger VCF files.
     </help>
     <citations>
-        <citation>
+        <citation type="doi">
         </citation>
     </citations>
 </tool>
