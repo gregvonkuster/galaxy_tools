@@ -47,8 +47,12 @@ python '$__tool_directory__/vsnp_statistics.py'
                 <param name="read2" type="data" format="fastqsanger.gz,fastqsanger" label="Read2 fastq file"/>
             </when>
         </conditional>
-        <param name="samtools_idxstats" type="data" format="tabular" label="Samtools idxstats file"/>
-        <param name="vsnp_azc" type="data" format="tabular" label="vSNP zero coverage file"/>
+        <param name="samtools_idxstats" type="data" format="tabular" label="Samtools idxstats file">
+            <validator type="unspecified_build"/>
+        </param>
+        <param name="vsnp_azc" type="data" format="tabular" label="vSNP zero coverage file">
+            <validator type="unspecified_build"/>
+        </param>
     </inputs>
     <outputs>
         <data name="output" format="tabular"  label="${tool.name} on ${on_string}"/>

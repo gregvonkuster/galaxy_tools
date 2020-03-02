@@ -106,7 +106,9 @@ python '$__tool_directory__/vsnp_get_snps.py'
                 </param>
             </when>
         </conditional>
-        <param name="input_vcf_collection" format="vcf" type="data_collection" collection_type="list" label="Collection of VCF files against which to analyze the zero coverages VCF file(s)"/>
+        <param name="input_vcf_collection" format="vcf" type="data_collection" collection_type="list" label="Collection of VCF files against which to analyze the zero coverages VCF file(s)">
+            <validator type="unspecified_build"/>
+        </param>
         <conditional name="excel_grouper_cond">
             <param name="excel_grouper" type="select" label="Use Excel file for grouping and filtering?">
                 <option value="no" selected="true">No</option>
@@ -121,10 +123,13 @@ python '$__tool_directory__/vsnp_get_snps.py'
                     <when value="cached">
                         <param name="excel_grouper_file" type="select" label="Excel file" help="Selection will be overridden if it does not match the dbkeys associated with the collection of VCF files being analyzed">
                             <options from_data_table="vsnp_excel"/>
+                            <validator type="no_options" message="No built-in Excel filters are available"/>
                         </param>
                     </when>
                     <when value="history">
-                        <param name="excel_grouper_file" type="data" format="xlsx" label="Excel file"/>
+                        <param name="excel_grouper_file" type="data" format="xlsx" label="Excel file">
+                            <validator type="no_options" message="The current history does not include an xlsx dataset"/>
+                        </param>
                     </when>
                 </conditional>
             </when>
@@ -142,12 +147,15 @@ python '$__tool_directory__/vsnp_get_snps.py'
                         <option value="history">from history</option>
                     </param>
                     <when value="cached">
-                        <param name="gbk_file" type="select" label="Genbank file" help="Selection will be overrid    den if it does not match the dbkeys associated with the collection of VCF files being analyzed">
+                        <param name="gbk_file" type="select" label="Genbank file" help="Selection will be overridden if it does not match the dbkeys associated with the collection of VCF files being analyzed">
                             <options from_data_table="vsnp_genbank"/>
+                            <validator type="no_options" message="No built-in Genbank files are available"/>
                         </param>
                     </when>
                     <when value="history">
-                        <param name="gbk_file" type="data" format="genbank" label="Genbank file"/>
+                        <param name="gbk_file" type="data" format="genbank" label="Genbank file">
+                            <validator type="no_options" message="The current history does not include a genbank dataset"/>
+                        </param>
                     </when>
                 </conditional>
             </when>
