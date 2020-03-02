@@ -123,12 +123,12 @@ python '$__tool_directory__/vsnp_get_snps.py'
                     <when value="cached">
                         <param name="excel_grouper_file" type="select" label="Excel file" help="Selection will be overridden if it does not match the dbkeys associated with the collection of VCF files being analyzed">
                             <options from_data_table="vsnp_excel"/>
-                            <validator type="no_options" message="No built-in Excel filters are available"/>
+                            <validator type="no_options" message="No built-in Excel grouping and filtering datasets are available"/>
                         </param>
                     </when>
                     <when value="history">
                         <param name="excel_grouper_file" type="data" format="xlsx" label="Excel file">
-                            <validator type="no_options" message="The current history does not include an xlsx dataset"/>
+                            <validator type="no_options" message="The current history does not include an xlsx dataset that can be used for grouping and filtering"/>
                         </param>
                     </when>
                 </conditional>
@@ -161,10 +161,12 @@ python '$__tool_directory__/vsnp_get_snps.py'
             </when>
             <when value="no"/>
         </conditional>
+        <!-- TODO: handle the following when we hear back from Tod
         <param argument="all_isolates" type="boolean" checked="false" truevalue="TRUE" falsevalue="FALSE" label="Create table with all isolates"/>
         <param argument="filter_finder" type="boolean" checked="false" truevalue="TRUE" falsevalue="FALSE" label="Ouput potential positions to filter"/>
         <param argument="no_filters" type="boolean" checked="false" truevalue="TRUE" falsevalue="FALSE" label="Don't apply and filters"/>
         <param argument="subset" type="boolean" checked="false" truevalue="TRUE" falsevalue="FALSE" label="Create trees with a subset of samples that represent the whole"/>
+        -->
     </inputs>
     <outputs>
         <collection name="snps" type="list" label="${tool.name} (SNPs) on ${on_string}">

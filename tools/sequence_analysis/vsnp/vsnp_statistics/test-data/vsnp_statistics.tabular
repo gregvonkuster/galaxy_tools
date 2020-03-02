@@ -1,21 +1,21 @@
 Sample	13-1941-6
 Reference	89
 Read1 File	13-1941-6_S4_L001_R1_600000_fastq_gz
-Read1 File Size	23.2 MB
-Read1 Total Reads	150000
-Read1 Mean Read Length	
-Read1 Mean Read Quality	
-Read1 Reads Passing Q30	
+Read1 File Size	5.1 KB
+Read1 Total Reads	25
+Read1 Mean Read Length	230.6
+Read1 Mean Read Quality	30.8
+Read1 Reads Passing Q30	60.0%
 Read2 File	13-1941-6_S4_L001_R2_600000_fastq_gz
-Read2 File Size	29.1 MB
-Read2 Total Reads	150000
-Read2 Mean Read Length	
-Read2 Mean Read Quality	
-Read2 Reads Passing Q30	
-Total Reads	300000
-All Mapped Reads	213570
-Unmapped Reads	82774
-Unmapped Reads Percentage of Total	27.6%
+Read2 File Size	5.6 KB
+Read2 Total Reads	25
+Read2 Mean Read Length	239.7
+Read2 Mean Read Quality	22.2
+Read2 Reads Passing Q30	4.0%
+Total Reads	50
+All Mapped Reads	45
+Unmapped Reads	5
+Unmapped Reads Percentage of Total	10.0%
 Average Depth of Coverage	10.338671
 Reference with Coverage	98.74%
 
