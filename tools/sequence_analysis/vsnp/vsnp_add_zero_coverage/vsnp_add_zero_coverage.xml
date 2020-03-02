@@ -32,7 +32,7 @@ python '$__tool_directory__/vsnp_add_zero_coverage.py'
         </param>
         <conditional name="reference_cond">
             <param name="reference_source" type="select" label="Choose the source for the reference genome">
-                <option value="cached">locally cached</option>
+                <option value="cached" selected="true">locally cached</option>
                 <option value="history">from history</option>
             </param>
             <when value="cached">
@@ -56,6 +56,12 @@ python '$__tool_directory__/vsnp_add_zero_coverage.py'
     </outputs>
     <tests>
         <test>
+            <param name="bam_input" value="bam_input.bam" ftype="bam" dbkey="89"/>
+            <param name="vcf_input" value="vcf_input.vcf" ftype="vcf" dbkey="89"/>
+            <param name="reference_source" value="history"/>
+            <param name="reference" value="NC_002945v4.fasta" ftype="fasta"/>
+            <param name="output_vcf" value="output_vcf.vcf" ftype="vcf" compare="contains"/>
+            <output name="output_metrics" file="output_metrics.tabular" ftype="tabular" compare="contains"/>
         </test>
     </tests>
     <help>
@@ -64,7 +70,7 @@ python '$__tool_directory__/vsnp_add_zero_coverage.py'
 Adds zero coverage to a BAM dataset.
     </help>
     <citations>
-        <citation>
+        <citation type="doi">
         </citation>
     </citations>
 </tool>
