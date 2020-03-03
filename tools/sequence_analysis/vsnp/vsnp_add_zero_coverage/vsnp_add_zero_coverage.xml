@@ -37,9 +37,8 @@ python '$__tool_directory__/vsnp_add_zero_coverage.py'
             </param>
             <when value="cached">
                 <param name="reference" type="select" label="Using reference genome">
-                    <options from_data_table="fasta_indexes">
-                        <filter type="data_meta" ref="bam_input" key="dbkey" column="1"/>
-                    </options>
+                    <options from_data_table="fasta_indexes"/>
+                    <!-- No <filter> tag here! -->
                     <validator type="no_options" message="A built-in reference genome is not available for the build associated with the selected BAM file"/>
                 </param>
             </when>
