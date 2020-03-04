@@ -44,9 +44,9 @@ mkdir -p $output_snps_dir &&
                 #break
             #end if
         #end for
+    #else:
+        #set excel_file = $excel_grouper_cond.excel_grouper_source_cond.excel_grouper_file
     #end if
-#else:
-    #set excel_file = $excel_grouper_cond.excel_grouper_source_cond.excel_grouper_file
 #end if
 #if str($gbk_cond.gbk_param) == "yes":
     #set gbk_source_cond = $gbk_cond.gbk_source_cond
@@ -59,9 +59,9 @@ mkdir -p $output_snps_dir &&
                 #break
             #end if
         #end for
+    #else:
+        #set genbank_file = $gbk_cond.gbk_source_cond.gbk_file
     #end if
-#else:
-    #set genbank_file = $gbk_cond.gbk_source_cond.gbk_file
 #end if
 python '$__tool_directory__/vsnp_get_snps.py'
 --reference '$reference'
@@ -73,18 +73,6 @@ python '$__tool_directory__/vsnp_get_snps.py'
 #end if
 #if str($gbk_cond.gbk_param) == "yes":
     --gbk_file '$genbank_file'
-#end if
-#if str($all_isolates) == "TRUE":
-    --all_isolates '$all_isolates'
-#end if
-#if str($filter_finder) == "TRUE":
-    --filter_finder '$filter_finder'
-#end if
-#if str($no_filters) == "TRUE":
-    --no_filters '$no_filters'
-#end if
-#if str($subset) == "TRUE":
-    --subset '$subset'
 #end if
 --output_json_avg_mq '$output_json_avg_mq'
 --output_log '$output_log'
@@ -111,8 +99,8 @@ python '$__tool_directory__/vsnp_get_snps.py'
         </param>
         <conditional name="excel_grouper_cond">
             <param name="excel_grouper" type="select" label="Use Excel file for grouping and filtering?">
-                <option value="no" selected="true">No</option>
-                <option value="yes">Yes</option>
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
             </param>
             <when value="yes">
                 <conditional name="excel_grouper_source_cond">
@@ -137,8 +125,8 @@ python '$__tool_directory__/vsnp_get_snps.py'
         </conditional>
         <conditional name="gbk_cond">
             <param name="gbk_param" type="select" label="Use Genbank file?">
-                <option value="no" selected="true">No</option>
-                <option value="yes">Yes</option>
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
             </param>
             <when value="yes">
                 <conditional name="gbk_source_cond">
@@ -161,12 +149,6 @@ python '$__tool_directory__/vsnp_get_snps.py'
             </when>
             <when value="no"/>
         </conditional>
-        <!-- TODO: handle the following when we hear back from Tod
-        <param argument="all_isolates" type="boolean" checked="false" truevalue="TRUE" falsevalue="FALSE" label="Create table with all isolates"/>
-        <param argument="filter_finder" type="boolean" checked="false" truevalue="TRUE" falsevalue="FALSE" label="Ouput potential positions to filter"/>
-        <param argument="no_filters" type="boolean" checked="false" truevalue="TRUE" falsevalue="FALSE" label="Don't apply and filters"/>
-        <param argument="subset" type="boolean" checked="false" truevalue="TRUE" falsevalue="FALSE" label="Create trees with a subset of samples that represent the whole"/>
-        -->
     </inputs>
     <outputs>
         <collection name="snps" type="list" label="${tool.name} (SNPs) on ${on_string}">
@@ -188,6 +170,19 @@ python '$__tool_directory__/vsnp_get_snps.py'
     </outputs>
     <tests>
         <test>
+            <param name="input_zc_vcf" value="input_zc_vcf.vcf" ftype="vcf" dbkey="89"/>
+            <param name="input_vcf_collection">
+                <collection type="list">
+                    <element name="SRR8073662_zc.vcf" value="SRR8073662_zc.vcf" dbkey="89"/>
+                    <element name="SRR1792272_zc.vcf" value="SRR1792272_zc.vcf" dbkey="89"/>
+                </collection>
+            </param>
+            <param name="excel_grouper" value="no"/>
+            <param name="gbk_param" value="no"/>
+            <output name="output_fasta" file="output_fasta.fasta" ftype="fasta" compare="contains"/>
+            <output name="output_json_snps" file="output_json_snps.json" ftype="json" compare="contains"/>
+            <output name="output_json_avg_mq" file="output_json_avg_mq.json" ftype="json" compare="contains"/>
+            <output name="output_log" file="output_log.txt" ftype="txt" compare="contains"/>
         </test>
     </tests>
     <help>

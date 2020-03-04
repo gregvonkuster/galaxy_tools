@@ -1,0 +1,14 @@
+Time started:
+Number VCF inputs: 3
+Reference: 89
+All isolates: False
+Started get_snps
+Started find_initial_positions
+Started decide_snps
+file: SRR1792272_zc
+file: SRR8073662_zc
+file: input_zc_vcf_vcf
+Started gather_and_filter
+Started get_parsimonious_df
+Started df_to_fasta
+Time finished:
