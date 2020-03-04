@@ -70,8 +70,8 @@ python '$__tool_directory__/vsnp_build_tables.py'
         </param>
         <conditional name="gbk_cond">
             <param name="gbk_param" type="select" label="Use Genbank file?">
-                <option value="no" selected="true">No</option>
-                <option value="yes">Yes</option>
+                <option value="yes" selected="true">yes</option>
+                <option value="no">No</option>
             </param>
             <when value="yes">
                 <conditional name="gbk_source_cond">
