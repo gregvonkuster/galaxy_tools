@@ -108,8 +108,8 @@ python '$__tool_directory__/vsnp_build_tables.py'
             <param name="input_newick" value="input_newick.newick" ftype="newick" dbkey="89"/>
             <param name="input_avg_mq_json" value="input_avg_mq_json.json" ftype="json" dbkey="89"/>
             <output_collection name="excel" type="list">
-                <element name="dataset_cascade_table.xlsx" file="dataset_cascade_table.xlsx" ftype="xlsx" compare="sim_size"/>
-                <element name="dataset_sort_table.xlsx" file="dataset_sort_table.xlsx" ftype="xlsx" compare="sim_size"/>
+                <element name="cascade_table.xlsx" file="cascade_table.xlsx" ftype="xlsx" compare="sim_size"/>
+                <element name="sort_table.xlsx" file="sort_table.xlsx" ftype="xlsx" compare="sim_size"/>
             </output_collection>
         </test>
         <test>

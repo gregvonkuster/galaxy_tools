@@ -84,9 +84,9 @@ def annotate_table(table_df, group, gbk_file):
     return table_df
 
 
-def excel_formatter(json_df, excel_file_name, group, gbk_file):
+def excel_formatter(json_file_name, excel_file_name, group, gbk_file):
     pandas.io.formats.excel.header_style = None
-    table_df = pandas.read_json(json_df, orient='split')
+    table_df = pandas.read_json(json_file_name, orient='split')
     if gbk_file is not None:
         table_df = annotate_table(table_df, group, gbk_file)
     else:
@@ -144,16 +144,20 @@ def output_excel(df, type_str, group, gbk_file, count=None):
     # Output the temporary json file that
     # is used by the excel_formatter.
     if count is None:
-        json_file_name = "%s_%s_order_mq.json" % (group, type_str)
+        if group is None:
+            json_file_name = "%s_order_mq.json" % type_str
+            excel_file_name = os.path.join(OUTPUT_EXCEL_DIR, "%s_table.xlsx" % type_str)
+        else:
+            json_file_name = "%s_%s_order_mq.json" % (group, type_str)
+            excel_file_name = os.path.join(OUTPUT_EXCEL_DIR, "%s_%s_table.xlsx" % (group, type_str))
     else:
-        json_file_name = "%s_%s_order_mq_%d.json" % (group, type_str, count)
+        if group is None:
+            json_file_name = "%s_order_mq_%d.json" % (type_str, count)
+            excel_file_name = os.path.join(OUTPUT_EXCEL_DIR, "%s_table_%d.xlsx" % (type_str, count))
+        else:
+            json_file_name = "%s_%s_order_mq_%d.json" % (group, type_str, count)
+            excel_file_name = os.path.join(OUTPUT_EXCEL_DIR, "%s_%s_table_%d.xlsx" % (group, type_str, count))
     df.to_json(json_file_name, orient='split')
-    # Grouping took place upstream, so we
-    # have inputs that are collections.
-    if count is None:
-        excel_file_name = os.path.join(OUTPUT_EXCEL_DIR, "%s_%s_table.xlsx" % (group, type_str))
-    else:
-        excel_file_name = os.path.join(OUTPUT_EXCEL_DIR, "%s_%s_table_%d.xlsx" % (group, type_str, count))
     # Output the Excel file.
     excel_formatter(json_file_name, excel_file_name, group, gbk_file)
 
@@ -172,6 +176,13 @@ def output_sort_table(cascade_order, mqdf, group, gbk_file):
 
 
 def output_table(df, type_str, group, gbk_file):
+    if group == "dataset":
+        # Inputs are single files, not collections,
+        # so input file names are not useful for naming
+        # output files.
+        group_str = None
+    else:
+        group_str = group
     count = 0
     chunk_start = 0
     chunk_end = 0
@@ -184,14 +195,14 @@ def output_table(df, type_str, group, gbk_file):
             count += 1
             chunk_end += MAXCOLS
             df_of_type = df.iloc[:, chunk_start:chunk_end]
-            output_excel(df_of_type, type_str, group, gbk_file, count=count)
+            output_excel(df_of_type, type_str, group_str, gbk_file, count=count)
             chunk_start += MAXCOLS
             column_count -= MAXCOLS
         count += 1
         df_of_type = df.iloc[:, chunk_start:]
-        output_excel(df_of_type, type_str, group, gbk_file, count=count)
+        output_excel(df_of_type, type_str, group_str, gbk_file, count=count)
     else:
-        output_excel(df, type_str, group, gbk_file)
+        output_excel(df, type_str, group_str, gbk_file)
 
 
 parser = argparse.ArgumentParser()
