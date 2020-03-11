@@ -247,9 +247,16 @@ class GetSnps:
             filtered_all_df = prefilter_df.drop(columns=exclusion_list, errors='ignore')
             json_snps_file = os.path.join(OUTPUT_JSON_SNPS_DIR, "%s_snps.json" % group_dir)
         parsimonious_df = self.get_parsimonious_df(filtered_all_df)
-        parsimonious_df.to_json(json_snps_file, orient='split')
         self.df_to_fasta(parsimonious_df, group_dir, output_fasta)
         samples_number, columns = parsimonious_df.shape
+        if columns > 0:
+            parsimonious_df.to_json(json_snps_file, orient='split')
+        else:
+            # Create an empty file so that we have a correct
+            # mapping or output json and fasta SNPs files,
+            # but the empty file can be filtered for downstream
+            # tools.
+            os.mknod(json_snps_file)
         if samples_number < 4:
             msg = "Too few samples to build tree"
             if group_dir is not None:
