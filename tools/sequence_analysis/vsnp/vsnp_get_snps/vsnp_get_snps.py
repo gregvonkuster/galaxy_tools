@@ -180,7 +180,7 @@ class GetSnps:
         # Generate SNP alignment file from the parsimonious_df
         # data frame.  If using an excel filter, group will not
         # be None, but output_fasta will be None.
-        self.olfh.write("\n%s - Started df_to_fasta\n" % get_time_stamp())
+        # self.olfh.write("\n%s - Started df_to_fasta\n" % get_time_stamp())
         if group is None:
             snps_file = output_fasta
         else:
@@ -197,7 +197,7 @@ class GetSnps:
 
     def find_initial_positions(self, filename):
         # Find SNP positions in a vcf file.
-        self.olfh.write("\n%s - Started find_initial_positions\n" % get_time_stamp())
+        # self.olfh.write("\n%s - Started find_initial_positions\n" % get_time_stamp())
         found_positions = {}
         found_positions_mix = {}
         try:
@@ -253,9 +253,7 @@ class GetSnps:
             parsimonious_df.to_json(json_snps_file, orient='split')
         else:
             # Create an empty file so that we have a correct
-            # mapping or output json and fasta SNPs files,
-            # but the empty file can be filtered for downstream
-            # tools.
+            # mapping or output json and fasta SNPs files.
             os.mknod(json_snps_file)
         if samples_number < 4:
             msg = "Too few samples to build tree"
@@ -281,9 +279,12 @@ class GetSnps:
         # Get the parsimonious SNPs data frame
         # from a data frame of filtered SNPs.
         self.olfh.write("\n%s - Started get_parsimonious_df\n" % get_time_stamp())
-        ref_series = filtered_all_df.loc['root']
-        # In all_vcf root needs to be removed.
-        filtered_all_df = filtered_all_df.drop(['root'])
+        try:
+            ref_series = filtered_all_df.loc['root']
+            # In all_vcf root needs to be removed.
+            filtered_all_df = filtered_all_df.drop(['root'])
+        except KeyError:
+            pass
         parsimony = filtered_all_df.loc[:, (filtered_all_df != filtered_all_df.iloc[0]).any()]
         parsimony_positions = list(parsimony)
         parse_df = filtered_all_df[parsimony_positions]
@@ -330,10 +331,10 @@ class GetSnps:
         self.olfh.write("\n%s - Started get_snps\n" % get_time_stamp())
         if self.filter_finder:
             # Process Excel filter file.
+            self.self.olfh.write("\nFinding filters...\n")
             # TODO: fix this...
             # filter_finder = Filter_Finder(self.excel_grouper_file)
             # filter_finder.filter_finder()
-            pass
         all_positions = {}
         df_list = []
         vcf_files = glob.glob(f'{group_dir}/*.vcf')
