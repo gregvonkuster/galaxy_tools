@@ -21,27 +21,24 @@ OUTPUT_EXCEL_DIR = 'output_excel_dir'
 def annotate_table(table_df, group, gbk_file):
     gbk_dict = SeqIO.to_dict(SeqIO.parse(gbk_file, "genbank"))
     annotation_dict = {}
-    tmp_file = "%s_temp.csv" % group
     # Create a file of chromosomes and features.
-    with open(tmp_file, "w+") as fh:
-        for chromosome in gbk_dict.keys():
+    for chromosome in list(gbk_dict.keys()):
+        tmp_file = "%s_temp.csv" % group
+        with open(tmp_file, 'w') as fh:
             for feature in gbk_dict[chromosome].features:
                 if "CDS" in feature.type or "rRNA" in feature.type:
-                    product = None
-                    locus = None
-                    gene = None
                     try:
                         product = feature.qualifiers['product'][0]
                     except KeyError:
-                        pass
+                        product = None
                     try:
                         locus = feature.qualifiers['locus_tag'][0]
                     except KeyError:
-                        pass
+                        locus = None
                     try:
                         gene = feature.qualifiers['gene'][0]
                     except KeyError:
-                        pass
+                        gene = None
                     fh.write("%s\t%d\t%d\t%s\t%s\t%s\n" % (chromosome, int(feature.location.start), int(feature.location.end), locus, product, gene))
         # Read the chromosomes and features file into a data frame.
         df = pandas.read_csv(tmp_file, sep='\t', names=["chrom", "start", "stop", "locus", "product", "gene"])
@@ -59,21 +56,24 @@ def annotate_table(table_df, group, gbk_file):
         positions = all_ref.position.to_frame()
         # Create an annotation file.
         annotation_file = "%s_annotations.csv" % group
-        with open(annotation_file, 'a') as fh:
-            for index, row in positions.iterrows():
-                pos = row.position
+        fh = open(annotation_file, "a")
+        for index, row in positions.iterrows():
+            pos = row.position
+            try:
+                aaa = pro.iloc[pro.index.get_loc(int(pos))][['chrom', 'locus', 'product', 'gene']]
                 try:
-                    aaa = pro.iloc[pro.index.get_loc(int(pos))][['chrom', 'locus', 'product', 'gene']]
-                    try:
-                        chrom, name, locus, tag = aaa.values[0]
-                        fh.write("{%s}:{%s}\t{%s}, {%s}, {%s}\n" % (chrom, pos, locus, tag, name))
-                    except ValueError:
-                        # If only one annotation for the entire
-                        # chromosome (e.g., flu) then having [0] fails
-                        chrom, name, locus, tag = aaa.values
-                        fh.write("{%s}:{%s}\t{%s}, {%s}, {%s}\n" % (chrom, pos, locus, tag, name))
-                except KeyError:
-                    fh.write("{%s}:{%s}\tNo annotated product\n" % (gbk_chrome, pos))
+                    chrom, name, locus, tag = aaa.values[0]
+                    print("{}:{}\t{}, {}, {}".format(chrom, pos, locus, tag, name), file=fh)
+                except ValueError as e:
+                    print("Exception thrown setting chrom, name, locus, tag from aaa.values: %s, %s" % (str(aaa.values[0]), str(e)))
+                    # If only one annotation for the entire
+                    # chromosome (e.g., flu) then having [0] fails
+                    chrom, name, locus, tag = aaa.values
+                    print("{}:{}\t{}, {}, {}".format(chrom, pos, locus, tag, name), file=fh)
+            except KeyError as e:
+                print("KeyError exception thrown setting value of aaa: %s" % str(e))
+                print("{}:{}\tNo annotated product" .format(gbk_chrome, pos), file=fh)
+        fh.close()
     # Read the annotation file into a data frame.
     annotations_df = pandas.read_csv(annotation_file, sep='\t', header=None, names=['index', 'annotations'], index_col='index')
     # Process the data.
@@ -127,8 +127,8 @@ def excel_formatter(json_file_name, excel_file_name, group, gbk_file):
     ws.conditional_format(2, 1, rows - 2, cols, {'type': 'text', 'criteria': 'containing', 'value': '-', 'format': format_n})
     format_rotation = writer_book.add_format({})
     format_rotation.set_rotation(90)
-    for columnnum, columnname in enumerate(list(table_df.columns)):
-        ws.write(0, columnnum + 1, columnname, format_rotation)
+    for column_num, column_name in enumerate(list(table_df.columns)):
+        ws.write(0, column_num + 1, column_name, format_rotation)
     format_annotation = writer_book.add_format({'font_color': '#0A028C', 'rotation': '-90', 'align': 'top'})
     # Set last row.
     ws.set_row(rows, 400, format_annotation)
@@ -254,7 +254,7 @@ for i, newick_file in enumerate(newick_files):
             line = re.sub('[)(]', '', line)
             line = re.sub('[0-9].*\.[0-9].*\n', '', line)
             line = re.sub('root\n', '', line)
-    sample_order = line.split('\n')
+    sample_order = sorted(line.split('\n'))
     sample_order = list(filter(None, sample_order))
     sample_order.insert(0, 'root')
     tree_order = snps_df.loc[sample_order]

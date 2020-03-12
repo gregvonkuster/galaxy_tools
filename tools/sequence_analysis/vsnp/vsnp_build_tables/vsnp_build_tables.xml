@@ -44,9 +44,9 @@ python '$__tool_directory__/vsnp_build_tables.py'
 ]]></command>
     <inputs>
         <conditional name="input_type_cond">
-            <param name="input_type" type="select" label="Choose the type for the SNPs json and parsimony tree files to be analyzed">
+            <param name="input_type" type="select" label="Choose the type for the SNPs json and best-scoring ML tree files to be analyzed">
                 <option value="single" selected="true">Single files</option>
-                <option value="collection">Collections of files</option>
+                <option value="collection">Collection of files</option>
             </param>
             <when value="single">
                 <param name="input_snps_json" type="data" format="json" label="SNPs json file">
@@ -60,7 +60,7 @@ python '$__tool_directory__/vsnp_build_tables.py'
                 <param name="input_snps_json_collection" format="json" type="data_collection" collection_type="list" label="Collection of SNPs json files">
                     <validator type="unspecified_build"/>
                 </param>
-                <param name="input_newick_collection" format="newick" type="data_collection" collection_type="list" label="Collection of parsimony tree files">
+                <param name="input_newick_collection" format="newick" type="data_collection" collection_type="list" label="Collection of best-scoring ML tree files">
                     <validator type="unspecified_build"/>
                 </param>
             </when>
