@@ -221,26 +221,27 @@ mqdf = mqdf.T
 # The assumption here is that the list of files
 # in both INPUT_NEWICK_DIR and INPUT_JSON_DIR are
 # named such that they are properly matched if
-# the directories contain more than 1 file.
+# the directories contain more than 1 file (i.e.,
+# hopefully the newick file names and json file names
+# will be something like Mbovis-01D6_* so they can be
+# sorted and properly associated with each other).
 if args.input_newick is not None:
     newick_files = [args.input_newick]
 else:
     newick_files = []
-    for file_name in os.listdir(INPUT_NEWICK_DIR):
+    for file_name in sorted(os.listdir(INPUT_NEWICK_DIR)):
         file_path = os.path.abspath(os.path.join(INPUT_NEWICK_DIR, file_name))
         newick_files.append(file_path)
 if args.input_snps_json is not None:
     json_files = [args.input_snps_json]
 else:
     json_files = []
-    for file_name in os.listdir(INPUT_JSON_DIR):
+    for file_name in sorted(os.listdir(INPUT_JSON_DIR)):
         file_path = os.path.abspath(os.path.join(INPUT_JSON_DIR, file_name))
         json_files.append(file_path)
 
 for i, newick_file in enumerate(newick_files):
     json_file = json_files[i]
-    # Hopefully the newick file name will be something like
-    # Mbovis-01D6_snps.fasta so the group is meaningful.
     newick_file_name_base = os.path.basename(newick_file)
     # Eliminate the extension.
     newick_file_name_base = os.path.splitext(newick_file_name_base)[0]
