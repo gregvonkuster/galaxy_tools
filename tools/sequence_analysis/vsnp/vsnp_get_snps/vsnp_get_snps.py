@@ -27,7 +27,7 @@ def get_time_stamp():
 class GetSnps:
 
     def __init__(self, vcf_files, reference, excel_grouper_file, gbk_file, filter_finder,
-                 no_filters, all_isolates, ac, mq_val, n_threshold, qual_threshold, output_log):
+                 no_filters, all_isolates, ac, mq_val, n_threshold, qual_threshold, output_summary):
         self.ac = ac
         self.all_isolates = all_isolates
         self.all_positions = None
@@ -42,19 +42,17 @@ class GetSnps:
         self.mq_val = mq_val
         self.n_threshold = n_threshold
         self.no_filters = no_filters
-        # Output process log file handle.
-        self.olfh = open(output_log, "w")
+        self.olfh = None
         self.qual_threshold = qual_threshold
-        # A collection of zero coverage filtered vcf.
-        self.olfh.write("Time started: %s\n" % str(get_time_stamp()))
-        self.olfh.write("Number VCF inputs: %d\n" % len(vcf_files))
-        self.olfh.write("Reference: %s\n" % str(reference))
-        self.olfh.write("All isolates: %s\n" % str(all_isolates))
+        self.reference = reference
+        self.start_time = get_time_stamp()
+        self.timer_start = datetime.now()
+        self.vcf_files = vcf_files
+        self.initiate_summary(output_summary)
 
     def bin_input_files(self, filename, samples_groups_dict, defining_snps, inverted_defining_snps, found_positions, found_positions_mix):
-        self.olfh.write("\n%s - Started bin_input_files\n" % get_time_stamp())
         sample_groups_list = []
-        table_name = os.path.basename(filename)
+        table_name = self.get_base_file_name(filename)
         try:
             defining_snp = False
             # Absolute positions in set union of two lists.
@@ -63,7 +61,8 @@ class GetSnps:
                 sample_groups_list.append(group)
                 self.check_add_group(group)
                 if len(list(defining_snps.keys() & found_positions_mix.keys())) > 0:
-                    table_name = f'{os.path.basename(filename)} <font color="red">[[MIXED]]</font>'
+                    table_name = self.get_base_file_name(filename)
+                    table_name = '%s<font color="red">[[MIXED]]</font>' % table_name
                 self.copy_file(filename, group)
                 defining_snp = True
             if not set(inverted_defining_snps.keys()).intersection(found_positions.keys() | found_positions_mix.keys()):
@@ -78,7 +77,7 @@ class GetSnps:
             else:
                 samples_groups_dict[table_name] = ['<font color="red">No defining SNP</font>']
         except TypeError as e:
-            msg = "\nException thrown processing file %s to generate  samples_groups_dict: %s\n" % (filename, str(e))
+            msg = "<br/>Error processing file %s to generate samples_groups_dict: %s<br/>" % (filename, str(e))
             self.olfh.write(msg)
             samples_groups_dict[table_name] = [msg]
         return samples_groups_dict
@@ -95,13 +94,9 @@ class GetSnps:
     def decide_snps(self, filename):
         # Find the SNPs in a vcf file to produce a pandas data
         # frame and a dictionary containing sample map qualities.
-        self.olfh.write("\n%s - Started decide_snps\n" % get_time_stamp())
         sample_map_qualities = {}
         # Eliminate the path.
-        file_name_base = os.path.basename(filename)
-        # Eliminate the extension.
-        file_name_base = os.path.splitext(file_name_base)[0]
-        self.olfh.write("\nfile: %s\n" % str(file_name_base))
+        file_name_base = self.get_base_file_name(filename)
         vcf_reader = vcf.Reader(open(filename, 'r'))
         sample_dict = {}
         for record in vcf_reader:
@@ -180,7 +175,6 @@ class GetSnps:
         # Generate SNP alignment file from the parsimonious_df
         # data frame.  If using an excel filter, group will not
         # be None, but output_fasta will be None.
-        # self.olfh.write("\n%s - Started df_to_fasta\n" % get_time_stamp())
         if group is None:
             snps_file = output_fasta
         else:
@@ -197,7 +191,6 @@ class GetSnps:
 
     def find_initial_positions(self, filename):
         # Find SNP positions in a vcf file.
-        # self.olfh.write("\n%s - Started find_initial_positions\n" % get_time_stamp())
         found_positions = {}
         found_positions_mix = {}
         try:
@@ -219,17 +212,16 @@ class GetSnps:
                             found_positions_mix.update({absolute_position: record.REF})
                 return found_positions, found_positions_mix
             except (ZeroDivisionError, ValueError, UnboundLocalError, TypeError) as e:
-                self.olfh.write("\nException thrown parsing record in file %s: %s\n" % (filename, str(e)))
+                self.olfh.write("<br/>Error parsing record in file %s: %s<br/>" % (filename, str(e)))
                 return {'': ''}, {'': ''}
         except (SyntaxError, AttributeError) as e:
-            self.olfh.write("\nException thrown by vcf.Reader attempting to read file %s: %s\n" % (filename, str(e)))
+            self.olfh.write("<br/>Error attempting to read file %s: %s<br/>" % (filename, str(e)))
             return {'': ''}, {'': ''}
 
     def gather_and_filter(self, prefilter_df, group_dir, output_fasta, output_json_snps):
         # Group a data frame of SNPs.  If an excel file
         # is not used, group_dir will be None and output_fasta
         # and output_json_snps will not be None, and vice versa.
-        self.olfh.write("\n%s - Started gather_and_filter\n" % get_time_stamp())
         if self.excel_grouper_file is None or self.no_filters:
             filtered_all_df = prefilter_df
             sheet_names = None
@@ -245,21 +237,22 @@ class GetSnps:
             exclusion_list = exclusion_list_all + exclusion_list_group
             # Filters for all applied.
             filtered_all_df = prefilter_df.drop(columns=exclusion_list, errors='ignore')
-            json_snps_file = os.path.join(OUTPUT_JSON_SNPS_DIR, "%s_snps.json" % group_dir)
+            json_snps_file = os.path.join(OUTPUT_JSON_SNPS_DIR, "%s.json" % group_dir)
         parsimonious_df = self.get_parsimonious_df(filtered_all_df)
-        self.df_to_fasta(parsimonious_df, group_dir, output_fasta)
         samples_number, columns = parsimonious_df.shape
-        if columns > 0:
+        if samples_number >= 4:
+            self.df_to_fasta(parsimonious_df, group_dir, output_fasta)
             parsimonious_df.to_json(json_snps_file, orient='split')
         else:
-            # Create an empty file so that we have a correct
-            # mapping or output json and fasta SNPs files.
-            os.mknod(json_snps_file)
-        if samples_number < 4:
-            msg = "Too few samples to build tree"
+            msg = "<br/>Too few samples to build tree"
             if group_dir is not None:
                 msg = "%s for group: %s" % (msg, group_dir)
-            self.olfh.write("%s\n" % msg)
+            self.olfh.write("%s<br/>\n" % msg)
+
+    def get_base_file_name(self, file_path):
+        file_name_base = os.path.basename(file_path)
+        # Eliminate the extension.
+        return os.path.splitext(file_name_base)[0]
 
     def get_mq_val(self, record_info, filename):
         # Get the MQ (gatk) or MQM (freebayes) value
@@ -278,7 +271,6 @@ class GetSnps:
     def get_parsimonious_df(self, filtered_all_df):
         # Get the parsimonious SNPs data frame
         # from a data frame of filtered SNPs.
-        self.olfh.write("\n%s - Started get_parsimonious_df\n" % get_time_stamp())
         try:
             ref_series = filtered_all_df.loc['root']
             # In all_vcf root needs to be removed.
@@ -295,7 +287,6 @@ class GetSnps:
 
     def get_position_list(self, sheet_names, group):
         # Get a list of positions defined by an excel file.
-        self.olfh.write("\n%s - Started get_position_list\n" % get_time_stamp())
         exclusion_list = []
         try:
             filter_to_all = pandas.read_excel(self.excel_grouper_file, header=1, usecols=[group])
@@ -316,25 +307,15 @@ class GetSnps:
             exclusion_list = []
             return exclusion_list
 
-    def val_as_int(self, val):
-        # Handle integer value conversion.
-        try:
-            return int(val)
-        except TypeError:
-            # val is likely None here.
-            return 0
-
     def get_snps(self, group_dir, output_json_avg_mq, output_json_snps=None, output_fasta=None):
         # Parse all vcf files to accumulate SNPs into a
         # data frame.  If group is None, output_fasta will
         # not be None and vice versa.
-        self.olfh.write("\n%s - Started get_snps\n" % get_time_stamp())
         if self.filter_finder:
-            # Process Excel filter file.
-            self.self.olfh.write("\nFinding filters...\n")
-            # TODO: fix this...
+            # TODO: add suopport for filter_finder when needed.
             # filter_finder = Filter_Finder(self.excel_grouper_file)
             # filter_finder.filter_finder()
+            pass
         all_positions = {}
         df_list = []
         vcf_files = glob.glob(f'{group_dir}/*.vcf')
@@ -343,7 +324,7 @@ class GetSnps:
                 found_positions, found_positions_mix = self.find_initial_positions(vcf_file)
                 all_positions.update(found_positions)
             except Exception as e:
-                self.olfh.wirte("Exception thrown updating the all_positions dictionary when processing file %s:\n%s\n" % (vcf_file, str(e)))
+                self.olfh.wirte("Error updating the all_positions dictionary when processing file %s:\n%s\n" % (vcf_file, str(e)))
         # Order before adding to file to match
         # with ordering of individual samples.
         # all_positions is abs_pos:REF
@@ -368,7 +349,6 @@ class GetSnps:
     def group_vcfs(self, vcf_files):
         # Parse an excel file to produce a
         # grouping dictionary for filtering SNPs.
-        self.olfh.write("\n%s - Started group_vcfs\n" % get_time_stamp())
         xl = pandas.ExcelFile(self.excel_grouper_file)
         sheet_names = xl.sheet_names
         ws = pandas.read_excel(self.excel_grouper_file, sheet_name=sheet_names[0])
@@ -386,13 +366,42 @@ class GetSnps:
         for vcf_file in vcf_files:
             found_positions, found_positions_mix = self.find_initial_positions(vcf_file)
             samples_groups_dict = self.bin_input_files(vcf_file, samples_groups_dict, defining_snps, inverted_defining_snps, found_positions, found_positions_mix)
-        return samples_groups_dict
+        # Output summary grouping table.
+        self.olfh.write('<br/>')
+        self.olfh.write('<b>Groupings with %d listed:</b><br/>\n' % len(samples_groups_dict))
+        self.olfh.write('<table  cellpadding="5" cellspaging="5" border="1">\n')
+        for key, value in samples_groups_dict.items():
+            self.olfh.write('<tr align="left"><th>Sample Name</th>\n')
+            self.olfh.write('<td>%s</td>' % key)
+            for group in value:
+                self.olfh.write('<td>%s</td>\n' % group)
+            self.olfh.write('</tr>\n')
+        self.olfh.write('</table><br/>\n')
+
+    def initiate_summary(self, output_summary):
+        # Output summary file handle.
+        self.olfh = open(output_summary, "w")
+        self.olfh.write('<html>\n')
+        self.olfh.write('<head></head>\n')
+        self.olfh.write('<body style=\"font-size:12px;">')
+        self.olfh.write("<b>Time started:</b> %s<br/>" % str(get_time_stamp()))
+        self.olfh.write("<b>Number of VCF inputs:</b> %d<br/>" % len(self.vcf_files))
+        self.olfh.write("<b>Reference:</b> %s<br/>" % str(self.reference))
+        self.olfh.write("<b>All isolates:</b> %s<br/>" % str(self.all_isolates))
 
     def return_val(self, val, index=0):
         # Handle element and single-element list values.
         if isinstance(val, list):
             return val[index]
         return val
+
+    def val_as_int(self, val):
+        # Handle integer value conversion.
+        try:
+            return int(val)
+        except TypeError:
+            # val is likely None here.
+            return 0
 
 
 parser = argparse.ArgumentParser()
@@ -405,7 +414,7 @@ parser.add_argument('--no_filters', action='store_true', dest='no_filters', defa
 parser.add_argument('--output_fasta', action='store', dest='output_fasta', required=False, default=None, help='Single output SNPs alignment fasta file if not Excel filtering'),
 parser.add_argument('--output_json_avg_mq', action='store', dest='output_json_avg_mq', help='Single output average mq json file if not Excel filtering'),
 parser.add_argument('--output_json_snps', action='store', dest='output_json_snps', required=False, default=None, help='Single output parsimonious SNPs json file if not Excel filtering'),
-parser.add_argument('--output_log', action='store', dest='output_log', help='Output log file'),
+parser.add_argument('--output_summary', action='store', dest='output_summary', help='Output summary html file'),
 parser.add_argument('--reference', action='store', dest='reference', help='Reference file'),
 parser.add_argument('--subset', action='store_true', dest='subset', required=False, default=False, help='Create trees with a subset of sample that represent the whole'),
 
@@ -423,16 +432,17 @@ for file_name in os.listdir(INPUT_VCF_DIR):
     file_path = os.path.abspath(os.path.join(INPUT_VCF_DIR, file_name))
     vcf_files.append(file_path)
 snp_finder = GetSnps(vcf_files, args.reference, args.excel_grouper_file, args.gbk_file, args.filter_finder, args.no_filters,
-                     args.all_isolates, ac, mq_val, n_threshold, qual_threshold, args.output_log)
-
+                     args.all_isolates, ac, mq_val, n_threshold, qual_threshold, args.output_summary)
 if args.excel_grouper_file is not None:
     # Parse the Excel file to detemine groups for filtering.
-    samples_groups_dict = snp_finder.group_vcfs(vcf_files)
-    # TODO: add html_summary call here...
+    snp_finder.group_vcfs(vcf_files)
     group_dirs = [d for d in os.listdir(os.getcwd()) if os.path.isdir(d) and d in snp_finder.groups]
     for group_dir in group_dirs:
         snp_finder.get_snps(group_dir, args.output_json_avg_mq, output_json_snps=None, output_fasta=None)
 if args.all_isolates or args.subset or args.excel_grouper_file is None:
     snp_finder.get_snps(INPUT_VCF_DIR, args.output_json_avg_mq, output_json_snps=args.output_json_snps, output_fasta=args.output_fasta)
-snp_finder.olfh.write("\nTime finished: %s\n\n" % get_time_stamp())
+snp_finder.olfh.write("<br/><b>Time finished:</b> %s<br/>\n" % get_time_stamp())
+total_run_time = datetime.now() - snp_finder.timer_start
+snp_finder.olfh.write("<br/><b>Total run time:</b> %s<br/>\n" % str(total_run_time))
+snp_finder.olfh.write('</body>\n</html>\n')
 snp_finder.olfh.close()

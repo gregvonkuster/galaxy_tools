@@ -73,7 +73,7 @@ python '$__tool_directory__/vsnp_get_snps.py'
     --gbk_file '$genbank_file'
 #end if
 --output_json_avg_mq '$output_json_avg_mq'
---output_log '$output_log'
+--output_summary '$output_summary'
 ]]></command>
     <inputs>
         <conditional name="input_zc_vcf_type_cond">
@@ -164,7 +164,7 @@ python '$__tool_directory__/vsnp_get_snps.py'
             <filter>excel_grouper_cond['excel_grouper'] == 'no'</filter>
         </data>
         <data name="output_json_avg_mq" format="json" label="${tool.name} (avg mq as json) on ${on_string}"/>
-        <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}"/>
+        <data name="output_summary" format="html" label="${tool.name} (summary) on ${on_string}"/>
     </outputs>
     <tests>
         <test>
@@ -180,7 +180,7 @@ python '$__tool_directory__/vsnp_get_snps.py'
             <output name="output_fasta" file="output_fasta.fasta" ftype="fasta" compare="contains"/>
             <output name="output_json_snps" file="output_json_snps.json" ftype="json" compare="contains"/>
             <output name="output_json_avg_mq" file="output_json_avg_mq.json" ftype="json" compare="contains"/>
-            <output name="output_log" file="output_log.txt" ftype="txt" compare="contains"/>
+            <output name="output_summary" file="output_summary.html" ftype="html" compare="contains"/>
         </test>
     </tests>
     <help>
