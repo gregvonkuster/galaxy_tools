@@ -14,7 +14,7 @@ INPUT_NEWICK_DIR = 'input_newick_dir'
 # 16,384 columns, but we'll set the lower
 # number as the maximum since Galaxy is
 # mostly run on Linux.
-MAXCOLS = 1023
+MAXCOLS = 10000
 OUTPUT_EXCEL_DIR = 'output_excel_dir'
 
 
@@ -48,7 +48,7 @@ def annotate_table(table_df, group, gbk_file):
         pro = df.reset_index(drop=True)
         pro.index = pandas.IntervalIndex.from_arrays(pro['start'], pro['stop'], closed='both')
         annotation_dict[chromosome] = pro
-    for gbk_chrome, pro in annotation_dict.items():
+    for gbk_chrome, pro in list(annotation_dict.items()):
         ref_pos = list(table_df)
         ref_series = pandas.Series(ref_pos)
         ref_df = pandas.DataFrame(ref_series.str.split(':', expand=True).values, columns=['reference', 'position'])
@@ -56,26 +56,27 @@ def annotate_table(table_df, group, gbk_file):
         positions = all_ref.position.to_frame()
         # Create an annotation file.
         annotation_file = "%s_annotations.csv" % group
-        fh = open(annotation_file, "a")
-        for index, row in positions.iterrows():
-            pos = row.position
-            try:
-                aaa = pro.iloc[pro.index.get_loc(int(pos))][['chrom', 'locus', 'product', 'gene']]
+        with open(annotation_file, "a") as fh:
+            for index, row in positions.iterrows():
+                pos = row.position
                 try:
-                    chrom, name, locus, tag = aaa.values[0]
-                    print("{}:{}\t{}, {}, {}".format(chrom, pos, locus, tag, name), file=fh)
-                except ValueError as e:
-                    print("Exception thrown setting chrom, name, locus, tag from aaa.values: %s, %s" % (str(aaa.values[0]), str(e)))
-                    # If only one annotation for the entire
-                    # chromosome (e.g., flu) then having [0] fails
-                    chrom, name, locus, tag = aaa.values
-                    print("{}:{}\t{}, {}, {}".format(chrom, pos, locus, tag, name), file=fh)
-            except KeyError as e:
-                print("KeyError exception thrown setting value of aaa: %s" % str(e))
-                print("{}:{}\tNo annotated product" .format(gbk_chrome, pos), file=fh)
-        fh.close()
+                    aaa = pro.iloc[pro.index.get_loc(int(pos))][['chrom', 'locus', 'product', 'gene']]
+                    try:
+                        chrom, name, locus, tag = aaa.values[0]
+                        print("{}:{}\t{}, {}, {}".format(chrom, pos, locus, tag, name), file=fh)
+                    except ValueError:
+                        # If only one annotation for the entire
+                        # chromosome (e.g., flu) then having [0] fails
+                        chrom, name, locus, tag = aaa.values
+                        print("{}:{}\t{}, {}, {}".format(chrom, pos, locus, tag, name), file=fh)
+                except KeyError:
+                    print("{}:{}\tNo annotated product".format(gbk_chrome, pos), file=fh)
     # Read the annotation file into a data frame.
     annotations_df = pandas.read_csv(annotation_file, sep='\t', header=None, names=['index', 'annotations'], index_col='index')
+    # Remove the annotation_file from disk since both
+    # cascade and sort tables are built using the file,
+    # and it is opened for writing in append mode.
+    os.remove(annotation_file)
     # Process the data.
     table_df_transposed = table_df.T
     table_df_transposed.index = table_df_transposed.index.rename('index')
@@ -254,8 +255,8 @@ for i, newick_file in enumerate(newick_files):
             line = re.sub('[)(]', '', line)
             line = re.sub('[0-9].*\.[0-9].*\n', '', line)
             line = re.sub('root\n', '', line)
-    sample_order = sorted(line.split('\n'))
-    sample_order = list(filter(None, sample_order))
+    sample_order = line.split('\n')
+    sample_order = list([_f for _f in sample_order if _f])
     sample_order.insert(0, 'root')
     tree_order = snps_df.loc[sample_order]
     # Count number of SNPs in each column.
