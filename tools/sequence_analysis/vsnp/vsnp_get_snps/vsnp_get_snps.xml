@@ -69,6 +69,9 @@ python '$__tool_directory__/vsnp_get_snps.py'
 --reference '$reference'
 #if str($excel_grouper_cond.excel_grouper) == "yes":
     --excel_grouper_file '$excel_file'
+    #if str($excel_grouper_cond.all_isolates) == "Yes":
+        --all_isolates '$excel_grouper_cond.all_isolates'
+    #end if
 #else:
     --output_fasta '$output_fasta'
     --output_json_snps '$output_json_snps'
@@ -122,6 +125,10 @@ python '$__tool_directory__/vsnp_get_snps.py'
                         </param>
                     </when>
                 </conditional>
+                <param name="all_isolates" type="select" display="radio" label="Create table with all isolates?">
+                    <option value="No" selected="true">No</option>
+                    <option value="Yes">Yes</option>
+                </param>
             </when>
             <when value="no"/>
         </conditional>
