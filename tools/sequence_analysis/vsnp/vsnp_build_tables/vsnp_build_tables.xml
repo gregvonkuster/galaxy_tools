@@ -2,7 +2,7 @@
     <description></description>
     <requirements>
         <requirement type="package" version="1.76">biopython</requirement>
-        <requirement type="package" version="0.24.2">pandas</requirement>
+        <requirement type="package" version="0.25.3">pandas</requirement>
         <requirement type="package" version="1.2.8">xlsxwriter</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
