@@ -69,15 +69,12 @@ python '$__tool_directory__/vsnp_get_snps.py'
 --reference '$reference'
 #if str($excel_grouper_cond.excel_grouper) == "yes":
     --excel_grouper_file '$excel_file'
-    #if str($excel_grouper_cond.all_isolates) == "Yes":
-        --all_isolates '$excel_grouper_cond.all_isolates'
-    #end if
-#else:
-    --output_fasta '$output_fasta'
-    --output_json_snps '$output_json_snps'
 #end if
 #if str($gbk_cond.gbk_param) == "yes":
     --gbk_file '$genbank_file'
+#end if
+#if str($all_isolates) == "Yes":
+    --all_isolates '$all_isolates'
 #end if
 --output_json_avg_mq '$output_json_avg_mq'
 --output_summary '$output_summary'
@@ -125,10 +122,6 @@ python '$__tool_directory__/vsnp_get_snps.py'
                         </param>
                     </when>
                 </conditional>
-                <param name="all_isolates" type="select" display="radio" label="Create table with all isolates?">
-                    <option value="No" selected="true">No</option>
-                    <option value="Yes">Yes</option>
-                </param>
             </when>
             <when value="no"/>
         </conditional>
@@ -158,22 +151,18 @@ python '$__tool_directory__/vsnp_get_snps.py'
             </when>
             <when value="no"/>
         </conditional>
+        <param name="all_isolates" type="select" display="radio" label="Create table with all isolates?">
+            <option value="No" selected="true">No</option>
+            <option value="Yes">Yes</option>
+        </param>
     </inputs>
     <outputs>
         <collection name="snps" type="list" label="${tool.name} (SNPs) on ${on_string}">
             <discover_datasets pattern="__name__" directory="output_snps_dir" format="fasta" />
-            <filter>excel_grouper_cond['excel_grouper'] == 'yes'</filter>
         </collection>
-        <data name="output_fasta" format="fasta" label="${tool.name} (SNPs) on ${on_string}">
-            <filter>excel_grouper_cond['excel_grouper'] == 'no'</filter>
-        </data>
         <collection name="json_snps" type="list" label="${tool.name} (SNPs as json) on ${on_string}">
             <discover_datasets pattern="__name__" directory="output_json_snps_dir" format="json" />
-            <filter>excel_grouper_cond['excel_grouper'] == 'yes'</filter>
         </collection>
-        <data name="output_json_snps" format="json" label="${tool.name} (SNPs as json) on ${on_string}">
-            <filter>excel_grouper_cond['excel_grouper'] == 'no'</filter>
-        </data>
         <data name="output_json_avg_mq" format="json" label="${tool.name} (avg mq as json) on ${on_string}"/>
         <data name="output_summary" format="html" label="${tool.name} (summary) on ${on_string}"/>
     </outputs>
@@ -188,8 +177,6 @@ python '$__tool_directory__/vsnp_get_snps.py'
             </param>
             <param name="excel_grouper" value="no"/>
             <param name="gbk_param" value="no"/>
-            <output name="output_fasta" file="output_fasta.fasta" ftype="fasta" compare="contains"/>
-            <output name="output_json_snps" file="output_json_snps.json" ftype="json" compare="contains"/>
             <output name="output_json_avg_mq" file="output_json_avg_mq.json" ftype="json" compare="contains"/>
             <output name="output_summary" file="output_summary.html" ftype="html" compare="contains"/>
         </test>

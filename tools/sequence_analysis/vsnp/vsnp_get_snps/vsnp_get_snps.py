@@ -23,6 +23,18 @@ def get_time_stamp():
     return datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H-%M-%S')
 
 
+def setup_all_vcfs(vcf_files, vcf_dirs):
+    # Create the all_vcfs directory and link
+    # all input vcf files into it for processing.
+    os.makedirs(ALL_VCFS_DIR)
+    vcf_dirs.append(ALL_VCFS_DIR)
+    for vcf_file in vcf_files:
+        file_name_base = os.path.basename(vcf_file)
+        dst_file = os.path.join(ALL_VCFS_DIR, file_name_base)
+        os.symlink(vcf_file, dst_file)
+    return vcf_dirs
+
+
 class GetSnps:
 
     def __init__(self, vcf_files, reference, excel_grouper_file, gbk_file,
@@ -168,14 +180,10 @@ class GetSnps:
         sample_df = pandas.DataFrame(merge_dict, index=[file_name_base])
         return sample_df, file_name_base, sample_map_qualities
 
-    def df_to_fasta(self, parsimonious_df, group, output_fasta):
+    def df_to_fasta(self, parsimonious_df, group):
         # Generate SNP alignment file from the parsimonious_df
-        # data frame.  If using an Excel filter, group will not
-        # be None, but output_fasta will be None.
-        if output_fasta is None and group is not None:
-            snps_file = os.path.join(OUTPUT_SNPS_DIR, "%s.fasta" % group)
-        else:
-            snps_file = output_fasta
+        # data frame.
+        snps_file = os.path.join(OUTPUT_SNPS_DIR, "%s.fasta" % group)
         test_duplicates = []
         with open(snps_file, 'w') as fh:
             for index, row in parsimonious_df.iterrows():
@@ -215,17 +223,12 @@ class GetSnps:
             self.olfh.write("<br/>Error attempting to read file %s: %s<br/>" % (filename, str(e)))
             return {'': ''}, {'': ''}
 
-    def gather_and_filter(self, prefilter_df, group_dir, output_fasta, output_json_snps):
-        # Group a data frame of SNPs.  If an Excel file
-        # is not used and all_isolates is "yes", group_dir
-        # will be None and output_fasta and output_json_snps
-        # will not be None, and vice versa.
+    def gather_and_filter(self, prefilter_df, group_dir):
+        # Group a data frame of SNPs.
         if self.excel_grouper_file is None:
             filtered_all_df = prefilter_df
             sheet_names = None
-            json_snps_file = output_json_snps
-        elif self.excel_grouper_file is not None:
-            # The value of group_dir is not None.
+        else:
             # Filter positions to be removed from all.
             xl = pandas.ExcelFile(self.excel_grouper_file)
             sheet_names = xl.sheet_names
@@ -235,11 +238,11 @@ class GetSnps:
             exclusion_list = exclusion_list_all + exclusion_list_group
             # Filters for all applied.
             filtered_all_df = prefilter_df.drop(columns=exclusion_list, errors='ignore')
-            json_snps_file = os.path.join(OUTPUT_JSON_SNPS_DIR, "%s.json" % group_dir)
+        json_snps_file = os.path.join(OUTPUT_JSON_SNPS_DIR, "%s.json" % group_dir)
         parsimonious_df = self.get_parsimonious_df(filtered_all_df)
         samples_number, columns = parsimonious_df.shape
         if samples_number >= 4:
-            self.df_to_fasta(parsimonious_df, group_dir, output_fasta)
+            self.df_to_fasta(parsimonious_df, group_dir)
             parsimonious_df.to_json(json_snps_file, orient='split')
         else:
             msg = "<br/>Too few samples to build tree"
@@ -305,10 +308,9 @@ class GetSnps:
             exclusion_list = []
             return exclusion_list
 
-    def get_snps(self, group_dir, output_json_avg_mq, output_json_snps=None, output_fasta=None):
+    def get_snps(self, group_dir, output_json_avg_mq):
         # Parse all vcf files to accumulate SNPs into a
-        # data frame.  If group is None, output_fasta will
-        # not be None and vice versa.
+        # data frame.
         all_positions = {}
         df_list = []
         vcf_files = glob.glob(f'{group_dir}/*')
@@ -337,7 +339,7 @@ class GetSnps:
         all_mq_df = pandas.DataFrame.from_dict(all_map_qualities)
         mq_averages = all_mq_df.mean(axis=1).astype(int)
         mq_averages.to_json(output_json_avg_mq, orient='split')
-        self.gather_and_filter(prefilter_df, group_dir, output_fasta, output_json_snps)
+        self.gather_and_filter(prefilter_df, group_dir)
 
     def group_vcfs(self, vcf_files):
         # Parse an excel file to produce a
@@ -402,9 +404,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--all_isolates', action='store', dest='all_isolates', required=False, default="No", help='Create table with all isolates'),
 parser.add_argument('--excel_grouper_file', action='store', dest='excel_grouper_file', required=False, default=None, help='Optional Excel filter file'),
 parser.add_argument('--gbk_file', action='store', dest='gbk_file', required=False, default=None, help='Optional gbk file'),
-parser.add_argument('--output_fasta', action='store', dest='output_fasta', required=False, default=None, help='Single output SNPs alignment fasta file if not Excel filtering'),
 parser.add_argument('--output_json_avg_mq', action='store', dest='output_json_avg_mq', help='Single output average mq json file if not Excel filtering'),
-parser.add_argument('--output_json_snps', action='store', dest='output_json_snps', required=False, default=None, help='Single output parsimonious SNPs json file if not Excel filtering'),
 parser.add_argument('--output_summary', action='store', dest='output_summary', help='Output summary html file'),
 parser.add_argument('--reference', action='store', dest='reference', help='Reference file'),
 
@@ -426,15 +426,12 @@ snp_finder = GetSnps(vcf_files, args.reference, args.excel_grouper_file, args.gb
 # Initialize the set of directories containiing vcf files for analysis.
 vcf_dirs = []
 if args.excel_grouper_file is None:
-    snp_finder.get_snps(INPUT_VCF_DIR, args.output_json_avg_mq, output_json_snps=args.output_json_snps, output_fasta=args.output_fasta)
+    vcf_dirs = setup_all_vcfs(vcf_files, vcf_dirs)
+    for vcf_dir in vcf_dirs:
+        snp_finder.get_snps(vcf_dir, args.output_json_avg_mq)
 else:
     if args.all_isolates.lower() == "yes":
-        # Create the all_vcfs directory and copy
-        # all input vcf filesi into it for processing.
-        os.makedirs(ALL_VCFS_DIR)
-        for vcf_file in vcf_files:
-            shutil.copy(vcf_file, ALL_VCFS_DIR)
-        vcf_dirs.append(ALL_VCFS_DIR)
+        vcf_dirs = setup_all_vcfs(vcf_files, vcf_dirs)
     # Parse the Excel file to detemine groups for filtering.
     snp_finder.group_vcfs(vcf_files)
     # Append the list of group directories created by
@@ -443,7 +440,7 @@ else:
     group_dirs = [d for d in os.listdir(os.getcwd()) if os.path.isdir(d) and d in snp_finder.groups]
     vcf_dirs.extend(group_dirs)
     for vcf_dir in vcf_dirs:
-        snp_finder.get_snps(vcf_dir, args.output_json_avg_mq, output_json_snps=None, output_fasta=None)
+        snp_finder.get_snps(vcf_dir, args.output_json_avg_mq)
 # Finish summary log.
 snp_finder.olfh.write("<br/><b>Time finished:</b> %s<br/>\n" % get_time_stamp())
 total_run_time = datetime.now() - snp_finder.timer_start
