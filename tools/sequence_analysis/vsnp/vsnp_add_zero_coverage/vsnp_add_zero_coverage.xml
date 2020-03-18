@@ -23,7 +23,6 @@ mkdir -p $output_metrics_dir &&
     #set file_name = $bam_input.file_name
     #set file_name_base = $os.path.basename($file_name)
     ln -s $file_name $input_bam_dir/$file_name_base &&
-
     #set vcf_input = $input_type_cond.vcf_input
     #set file_name = $vcf_input.file_name
     #set file_name_base = $os.path.basename($file_name)
