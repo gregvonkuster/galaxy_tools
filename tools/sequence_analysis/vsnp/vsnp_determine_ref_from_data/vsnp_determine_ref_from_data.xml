@@ -62,7 +62,13 @@ python '$__tool_directory__/vsnp_determine_ref_from_data.py'
 
     </help>
     <citations>
-        <citation>
+        <citation type="bibtex">
+            @misc{None,
+            journal = {None},
+            author = {1. Stuber T},
+            title = {Manuscript in preparation},
+            year = {None},
+            url = {https://github.com/USDA-VS/vSNP},}
         </citation>
     </citations>
 </tool>

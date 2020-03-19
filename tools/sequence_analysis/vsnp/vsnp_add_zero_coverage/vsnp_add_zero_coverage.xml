@@ -124,7 +124,13 @@ python '$__tool_directory__/vsnp_add_zero_coverage.py'
 Adds zero coverage to a BAM dataset.
     </help>
     <citations>
-        <citation type="doi">
+        <citation type="bibtex">
+            @misc{None,
+            journal = {None},
+            author = {1. Stuber T},
+            title = {Manuscript in preparation},
+            year = {None},
+            url = {https://github.com/USDA-VS/vSNP},}
         </citation>
     </citations>
 </tool>

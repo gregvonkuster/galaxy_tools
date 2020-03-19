@@ -131,7 +131,13 @@ python '$__tool_directory__/vsnp_statistics.py'
 Calculates vSNP statistics for fastqsanger VCF files.
     </help>
     <citations>
-        <citation type="doi">
+        <citation type="bibtex">
+            @misc{None,
+            journal = {None},
+            author = {1. Stuber T},
+            title = {Manuscript in preparation},
+            year = {None},
+            url = {https://github.com/USDA-VS/vSNP},}
         </citation>
     </citations>
 </tool>

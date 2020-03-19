@@ -183,7 +183,13 @@ python '$__tool_directory__/vsnp_get_snps.py'
 Collects quality parsimonious SNPs from VCF files and produces a collection of alignment files in FASTA format.
     </help>
     <citations>
-        <citation>
+        <citation type="bibtex">
+            @misc{None,
+            journal = {None},
+            author = {1. Stuber T},
+            title = {Manuscript in preparation},
+            year = {None},
+            url = {https://github.com/USDA-VS/vSNP},}
         </citation>
     </citations>
 </tool>

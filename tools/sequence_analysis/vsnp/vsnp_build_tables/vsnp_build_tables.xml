@@ -147,7 +147,13 @@ python '$__tool_directory__/vsnp_build_tables.py'
 Produces Excel spreadsheets from vSNP get SNPs outputs.
     </help>
     <citations>
-        <citation type="doi">
+        <citation type="bibtex">
+            @misc{None,
+            journal = {None},
+            author = {1. Stuber T},
+            title = {Manuscript in preparation},
+            year = {None},
+            url = {https://github.com/USDA-VS/vSNP},}
         </citation>
     </citations>
 </tool>
