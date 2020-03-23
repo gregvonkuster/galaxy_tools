@@ -9,9 +9,11 @@
 #import os
 #set input_vcf_dir = 'input_vcf_dir'
 #set input_zc_vcf_type = $input_zc_vcf_type_cond.input_zc_vcf_type
+#set output_json_avg_mq_dir = 'output_json_avg_mq_dir'
 #set output_json_snps_dir = 'output_json_snps_dir'
 #set output_snps_dir = 'output_snps_dir'
 mkdir -p $input_vcf_dir &&
+mkdir -p $output_json_avg_mq_dir &&
 mkdir -p $output_json_snps_dir &&
 mkdir -p $output_snps_dir &&
 #set reference = '?'
@@ -72,7 +74,6 @@ python '$__tool_directory__/vsnp_get_snps.py'
 #if str($all_isolates) == "Yes":
     --all_isolates '$all_isolates'
 #end if
---output_json_avg_mq '$output_json_avg_mq'
 --output_summary '$output_summary'
 ]]></command>
     <inputs>
@@ -156,10 +157,12 @@ python '$__tool_directory__/vsnp_get_snps.py'
         <collection name="snps" type="list" label="${tool.name} (SNPs) on ${on_string}">
             <discover_datasets pattern="__name__" directory="output_snps_dir" format="fasta" />
         </collection>
+        <collection name="json_avg_mq" type="list" label="${tool.name} (average MQ) on ${on_string}">
+            <discover_datasets pattern="__name__" directory="output_json_avg_mq_dir" format="json" />
+        </collection>
         <collection name="json_snps" type="list" label="${tool.name} (SNPs as json) on ${on_string}">
             <discover_datasets pattern="__name__" directory="output_json_snps_dir" format="json" />
         </collection>
-        <data name="output_json_avg_mq" format="json" label="${tool.name} (avg mq as json) on ${on_string}"/>
         <data name="output_summary" format="html" label="${tool.name} (summary) on ${on_string}"/>
     </outputs>
     <tests>

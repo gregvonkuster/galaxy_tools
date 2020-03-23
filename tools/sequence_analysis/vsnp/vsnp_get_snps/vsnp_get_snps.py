@@ -3,7 +3,6 @@
 # Collect quality parsimonious SNPs from vcf files and output alignment files in fasta format.
 
 import argparse
-import glob
 import os
 import pandas
 import shutil
@@ -15,6 +14,7 @@ from datetime import datetime
 
 ALL_VCFS_DIR = 'all_vcf'
 INPUT_VCF_DIR = 'input_vcf_dir'
+OUTPUT_JSON_AVG_MQ_DIR = 'output_json_avg_mq_dir'
 OUTPUT_JSON_SNPS_DIR = 'output_json_snps_dir'
 OUTPUT_SNPS_DIR = 'output_snps_dir'
 
@@ -101,6 +101,7 @@ class GetSnps:
         shutil.copy(filename, dir)
 
     def decide_snps(self, filename):
+        positions_dict = self.all_positions
         # Find the SNPs in a vcf file to produce a pandas data
         # frame and a dictionary containing sample map qualities.
         sample_map_qualities = {}
@@ -111,7 +112,7 @@ class GetSnps:
         for record in vcf_reader:
             alt = str(record.ALT[0])
             record_position = "%s:%s" % (str(record.CHROM), str(record.POS))
-            if record_position in self.all_positions:
+            if record_position in positions_dict:
                 if alt == "None":
                     sample_dict.update({record_position: "-"})
                 else:
@@ -121,7 +122,7 @@ class GetSnps:
                     # On rare occassions MQM gets called "NaN", thus passing
                     # a string when a number is expected when calculating average.
                     mq_val = self.get_mq_val(record.INFO, filename)
-                    if str(mq_val).lower() not in ["nan", "na", "inf"]:
+                    if str(mq_val).lower() not in ["nan"]:
                         sample_map_qualities.update({record_position: mq_val})
                     # Add parameters here to change what each vcf represents.
                     # SNP is represented in table, now how will the vcf represent
@@ -135,7 +136,7 @@ class GetSnps:
                         if ac == 2 and qual_val > self.n_threshold:
                             sample_dict.update({record_position: alt})
                         elif ac == 1 and qual_val > self.n_threshold:
-                            alt_ref = alt + ref
+                            alt_ref = "%s%s" % (alt, ref)
                             if alt_ref == "AG":
                                 sample_dict.update({record_position: "R"})
                             elif alt_ref == "CT":
@@ -164,17 +165,19 @@ class GetSnps:
                                 sample_dict.update({record_position: "N"})
                             # Poor calls
                         elif qual_val <= 50:
-                            sample_dict.update({record_position: ref})
+                            # Do not coerce record.REF[0] to a string!
+                            sample_dict.update({record_position: record.REF[0]})
                         elif qual_val <= self.n_threshold:
                             sample_dict.update({record_position: "N"})
                         else:
                             # Insurance -- Will still report on a possible
                             # SNP even if missed with above statement
-                            sample_dict.update({record_position: ref})
+                            # Do not coerce record.REF[0] to a string!
+                            sample_dict.update({record_position: record.REF[0]})
         # Merge dictionaries and order
         merge_dict = {}
         # abs_pos:REF
-        merge_dict.update(self.all_positions)
+        merge_dict.update(positions_dict)
         # abs_pos:ALT replacing all_positions, because keys must be unique
         merge_dict.update(sample_dict)
         sample_df = pandas.DataFrame(merge_dict, index=[file_name_base])
@@ -189,10 +192,10 @@ class GetSnps:
             for index, row in parsimonious_df.iterrows():
                 test_duplicates.append(row.name)
                 if test_duplicates.count(row.name) < 2:
-                    fh.write(">%s\n" % row.name)
+                    print(f'>{row.name}', file=fh)
                     for pos in row:
-                        fh.write("%s" % str(pos))
-                    fh.write("\n")
+                        print(pos, end='', file=fh)
+                    print("", file=fh)
 
     def find_initial_positions(self, filename):
         # Find SNP positions in a vcf file.
@@ -308,26 +311,29 @@ class GetSnps:
             exclusion_list = []
             return exclusion_list
 
-    def get_snps(self, group_dir, output_json_avg_mq):
+    def get_snps(self, group_dir):
         # Parse all vcf files to accumulate SNPs into a
         # data frame.
-        all_positions = {}
-        df_list = []
-        vcf_files = glob.glob(f'{group_dir}/*')
-        for vcf_file in vcf_files:
+        positions_dict = {}
+        group_files = []
+        for file_name in os.listdir(os.path.abspath(group_dir)):
+            file_path = os.path.abspath(os.path.join(group_dir, file_name))
+            group_files.append(file_path)
+        for file_name in group_files:
             try:
-                found_positions, found_positions_mix = self.find_initial_positions(vcf_file)
-                all_positions.update(found_positions)
+                found_positions, found_positions_mix = self.find_initial_positions(file_name)
+                positions_dict.update(found_positions)
             except Exception as e:
-                self.olfh.wirte("Error updating the all_positions dictionary when processing file %s:\n%s\n" % (vcf_file, str(e)))
+                self.olfh.write("Error updating the positions_dict dictionary when processing file %s:\n%s\n" % (file_name, str(e)))
         # Order before adding to file to match
         # with ordering of individual samples.
         # all_positions is abs_pos:REF
-        self.all_positions = OrderedDict(sorted(all_positions.items()))
+        self.all_positions = OrderedDict(sorted(positions_dict.items()))
         ref_positions_df = pandas.DataFrame(self.all_positions, index=['root'])
         all_map_qualities = {}
-        for vcf_file in vcf_files:
-            sample_df, file_name_base, sample_map_qualities = self.decide_snps(vcf_file)
+        df_list = []
+        for file_name in group_files:
+            sample_df, file_name_base, sample_map_qualities = self.decide_snps(file_name)
             df_list.append(sample_df)
             all_map_qualities.update({file_name_base: sample_map_qualities})
         all_sample_df = pandas.concat(df_list)
@@ -338,7 +344,8 @@ class GetSnps:
         prefilter_df = pandas.concat([ref_positions_df, all_sample_df], join='inner')
         all_mq_df = pandas.DataFrame.from_dict(all_map_qualities)
         mq_averages = all_mq_df.mean(axis=1).astype(int)
-        mq_averages.to_json(output_json_avg_mq, orient='split')
+        json_avg_mq_file = os.path.join(OUTPUT_JSON_AVG_MQ_DIR, "%s.json" % group_dir)
+        mq_averages.to_json(json_avg_mq_file, orient='split')
         self.gather_and_filter(prefilter_df, group_dir)
 
     def group_vcfs(self, vcf_files):
@@ -404,7 +411,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--all_isolates', action='store', dest='all_isolates', required=False, default="No", help='Create table with all isolates'),
 parser.add_argument('--excel_grouper_file', action='store', dest='excel_grouper_file', required=False, default=None, help='Optional Excel filter file'),
 parser.add_argument('--gbk_file', action='store', dest='gbk_file', required=False, default=None, help='Optional gbk file'),
-parser.add_argument('--output_json_avg_mq', action='store', dest='output_json_avg_mq', help='Single output average mq json file if not Excel filtering'),
 parser.add_argument('--output_summary', action='store', dest='output_summary', help='Output summary html file'),
 parser.add_argument('--reference', action='store', dest='reference', help='Reference file'),
 
@@ -428,7 +434,7 @@ vcf_dirs = []
 if args.excel_grouper_file is None:
     vcf_dirs = setup_all_vcfs(vcf_files, vcf_dirs)
     for vcf_dir in vcf_dirs:
-        snp_finder.get_snps(vcf_dir, args.output_json_avg_mq)
+        snp_finder.get_snps(vcf_dir)
 else:
     if args.all_isolates.lower() == "yes":
         vcf_dirs = setup_all_vcfs(vcf_files, vcf_dirs)
@@ -440,7 +446,7 @@ else:
     group_dirs = [d for d in os.listdir(os.getcwd()) if os.path.isdir(d) and d in snp_finder.groups]
     vcf_dirs.extend(group_dirs)
     for vcf_dir in vcf_dirs:
-        snp_finder.get_snps(vcf_dir, args.output_json_avg_mq)
+        snp_finder.get_snps(vcf_dir)
 # Finish summary log.
 snp_finder.olfh.write("<br/><b>Time finished:</b> %s<br/>\n" % get_time_stamp())
 total_run_time = datetime.now() - snp_finder.timer_start
