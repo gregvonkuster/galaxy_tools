@@ -8,6 +8,11 @@ from collections import OrderedDict
 from Bio.SeqIO.QualityIO import FastqGeneralIterator
 
 
+INPUT_READS_DIR = 'input_reads'
+OUTPUT_DBKEY_DIR = 'output_dbkey'
+OUTPUT_METRICS_DIR = 'output_metrics'
+
+
 def get_dbkey(dnaprints_dict, key, s):
     # dnaprints_dict looks something like this:
     # {'brucella': {'NC_002945v4': ['11001110', '11011110', '11001100']}
@@ -153,45 +158,83 @@ def get_species_strings(count_summary):
     return brucella_string, bovis_string, para_string
 
 
+def output_dbkey(file_name, dbkey):
+    # Output the dbkey.
+    with open(file_name, "w") as fh:
+        fh.write("%s" % dbkey)
+
+
+def output_metrics(file_name_base, count_list, group, dbkey, output_file):
+    # Output metrics.
+    with open(output_file, "w") as fh:
+        fh.write("Sample: %s\n" % file_name_base)
+        fh.write("Brucella counts: ")
+        for i in count_list[:16]:
+            fh.write("%d," % i)
+        fh.write("\nTB counts: ")
+        for i in count_list[16:24]:
+            fh.write("%d," % i)
+        fh.write("\nPara counts: ")
+        for i in count_list[24:]:
+            fh.write("%d," % i)
+        fh.write("\nGroup: %s" % group)
+        fh.write("\ndbkey: %s\n" % dbkey)
+
+
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--dnaprint_fields', action='append', dest='dnaprint_fields', nargs=2, help="List of dnaprints data table value, name and path fields")
-parser.add_argument('--read1', action='store', dest='read1', required=True, help='Required: single read')
+parser.add_argument('--read1', action='store', dest='read1', required=False, default=None, help='Required: single read')
 parser.add_argument('--read2', action='store', dest='read2', required=False, default=None, help='Optional: paired read')
-parser.add_argument('--gzipped', action='store', dest='gzipped', required=False, default=None, help='Input files are gzipped')
-parser.add_argument('--output_dbkey', action='store', dest='output_dbkey', help='Output reference file')
-parser.add_argument('--output_metrics', action='store', dest='output_metrics', help='Output metrics file')
+parser.add_argument('--gzipped', action='store', dest='gzipped', help='Input files are gzipped')
+parser.add_argument('--output_dbkey', action='store', dest='output_dbkey', required=False, default=None, help='Output reference file')
+parser.add_argument('--output_metrics', action='store', dest='output_metrics', required=False, default=None, help='Output metrics file')
 
 args = parser.parse_args()
 
-fastq_list = [args.read1]
-if args.read2 is not None:
-    fastq_list.append(args.read2)
+fastq_list = []
+if args.read1 is not None:
+    input_collection = False
+    fastq_list.append(args.read1)
+    if args.read2 is not None:
+        fastq_list.append(args.read2)
+else:
+    input_collection = True
+    for file_name in sorted(os.listdir(INPUT_READS_DIR)):
+        file_path = os.path.abspath(os.path.join(INPUT_READS_DIR, file_name))
+        fastq_list.append(file_path)
 
-# The value of dnaprint_fields  is a list of lists, where each list is
+# The value of dnaprint_fields is a list of lists, where each list is
 # the [value, name, path] components of the vsnp_dnaprints data table.
 # The data_manager_vsnp_dnaprints tool assigns the dbkey column from the
 # all_fasta data table to the value column in the vsnp_dnaprints data
 # table to ensure a proper mapping for discovering the dbkey.
 dnaprints_dict = get_dnaprints_dict(args.dnaprint_fields)
-count_summary, count_list, brucella_sum, bovis_sum, para_sum = get_species_counts(fastq_list, args.gzipped)
-brucella_string, bovis_string, para_string = get_species_strings(count_summary)
-group, dbkey = get_group_and_dbkey(dnaprints_dict, brucella_string, brucella_sum, bovis_string, bovis_sum, para_string, para_sum)
 
-# Output the dbkey.
-with open(args.output_dbkey, "w") as fh:
-    fh.write("%s" % dbkey)
-# Output metrics.
-with open(args.output_metrics, "w") as fh:
-    fh.write("Sample: %s\n" % os.path.basename(args.read1).split('_')[0])
-    fh.write("Brucella counts: ")
-    for i in count_list[:16]:
-        fh.write("%d," % i)
-    fh.write("\nTB counts: ")
-    for i in count_list[16:24]:
-        fh.write("%d," % i)
-    fh.write("\nPara counts: ")
-    for i in count_list[24:]:
-        fh.write("%d," % i)
-    fh.write("\nGroup: %s" % group)
-    fh.write("\ndbkey: %s\n" % dbkey)
+if input_collection:
+    # Here fastq_list consists of any number of reads
+    # (but not associated as pairs), so each file will
+    # be processed separately and dataset collections
+    # will be produced as outputs.
+    for fastq_file in fastq_list:
+        count_summary, count_list, brucella_sum, bovis_sum, para_sum = get_species_counts(list(fastq_list), args.gzipped)
+        brucella_string, bovis_string, para_string = get_species_strings(count_summary)
+        group, dbkey = get_group_and_dbkey(dnaprints_dict, brucella_string, brucella_sum, bovis_string, bovis_sum, para_string, para_sum)
+        # Output the dbkey collection element.
+        output_file = os.path.join(OUTPUT_DBKEY_DIR, "%s.txt" % group)
+        output_dbkey(output_file, dbkey)
+        # Output the metrics collection element.
+        file_name_base = os.path.basename(fastq_file).split('_')[0]
+        output_file = os.path.join(OUTPUT_METRICS_DIR, "%s.txt" % group)
+        output_metrics(file_name_base, count_list, group, dbkey, output_file)
+else:
+    # Here fastq_list consists of either a singe read
+    # fastq file or a set of 2 paired read fastq files.
+    count_summary, count_list, brucella_sum, bovis_sum, para_sum = get_species_counts(fastq_list, args.gzipped)
+    brucella_string, bovis_string, para_string = get_species_strings(count_summary)
+    group, dbkey = get_group_and_dbkey(dnaprints_dict, brucella_string, brucella_sum, bovis_string, bovis_sum, para_string, para_sum)
+    # Output the dbkey file.
+    output_dbkey(args.output_dbkey, dbkey)
+    # Output the metrics file.
+    file_name_base = os.path.basename(args.read1).split('_')[0]
+    output_metrics(file_name_base, count_list, group, dbkey, args.output_dbkey)
