@@ -7,6 +7,7 @@ import pandas.io.formats.excel
 import re
 from Bio import SeqIO
 
+INPUT_JSON_AVG_MQ_DIR = 'input_json_avg_mq_dir'
 INPUT_JSON_DIR = 'input_json_dir'
 INPUT_NEWICK_DIR = 'input_newick_dir'
 # Maximum columns allowed in a LibreOffice
@@ -18,12 +19,12 @@ MAXCOLS = 10000
 OUTPUT_EXCEL_DIR = 'output_excel_dir'
 
 
-def annotate_table(table_df, group, gbk_file):
+def annotate_table(table_df, gbk_file):
     gbk_dict = SeqIO.to_dict(SeqIO.parse(gbk_file, "genbank"))
     annotation_dict = {}
     # Create a file of chromosomes and features.
     for chromosome in list(gbk_dict.keys()):
-        tmp_file = "%s_temp.csv" % group
+        tmp_file = "features.csv"
         with open(tmp_file, 'w') as fh:
             for feature in gbk_dict[chromosome].features:
                 if "CDS" in feature.type or "rRNA" in feature.type:
@@ -55,7 +56,7 @@ def annotate_table(table_df, group, gbk_file):
         all_ref = ref_df[ref_df['reference'] == gbk_chrome]
         positions = all_ref.position.to_frame()
         # Create an annotation file.
-        annotation_file = "%s_annotations.csv" % group
+        annotation_file = "annotations.csv"
         with open(annotation_file, "a") as fh:
             for index, row in positions.iterrows():
                 pos = row.position
@@ -89,7 +90,7 @@ def excel_formatter(json_file_name, excel_file_name, group, gbk_file):
     pandas.io.formats.excel.header_style = None
     table_df = pandas.read_json(json_file_name, orient='split')
     if gbk_file is not None:
-        table_df = annotate_table(table_df, group, gbk_file)
+        table_df = annotate_table(table_df, gbk_file)
     else:
         table_df = table_df.append(pandas.Series(name='no annotations'))
     writer = pandas.ExcelWriter(excel_file_name, engine='xlsxwriter')
@@ -208,17 +209,13 @@ def output_table(df, type_str, group, gbk_file):
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--input_avg_mq_json', action='store', dest='input_avg_mq_json', help='Average MQ json file')
+parser.add_argument('--input_avg_mq_json', action='store', dest='input_avg_mq_json', required=False, default=None, help='Average MQ json file')
 parser.add_argument('--input_newick', action='store', dest='input_newick', required=False, default=None, help='Newick file')
 parser.add_argument('--input_snps_json', action='store', dest='input_snps_json', required=False, default=None, help='SNPs json file')
 parser.add_argument('--gbk_file', action='store', dest='gbk_file', required=False, default=None, help='Optional gbk file'),
 
 args = parser.parse_args()
 
-avg_mq_series = pandas.read_json(args.input_avg_mq_json, typ='series', orient='split')
-# Map quality to dataframe.
-mqdf = avg_mq_series.to_frame(name='MQ')
-mqdf = mqdf.T
 # The assumption here is that the list of files
 # in both INPUT_NEWICK_DIR and INPUT_JSON_DIR are
 # named such that they are properly matched if
@@ -240,9 +237,22 @@ else:
     for file_name in sorted(os.listdir(INPUT_JSON_DIR)):
         file_path = os.path.abspath(os.path.join(INPUT_JSON_DIR, file_name))
         json_files.append(file_path)
+if args.input_avg_mq_json is not None:
+    json_avg_mq_files = [args.input_avg_mq_json]
+else:
+    json_avg_mq_files = []
+    for file_name in sorted(os.listdir(INPUT_JSON_AVG_MQ_DIR)):
+        file_path = os.path.abspath(os.path.join(INPUT_JSON_AVG_MQ_DIR, file_name))
+        json_avg_mq_files.append(file_path)
+
 
 for i, newick_file in enumerate(newick_files):
     json_file = json_files[i]
+    json_avg_mq_file = json_avg_mq_files[i]
+    avg_mq_series = pandas.read_json(json_avg_mq_file, typ='series', orient='split')
+    # Map quality to dataframe.
+    mqdf = avg_mq_series.to_frame(name='MQ')
+    mqdf = mqdf.T
     newick_file_name_base = os.path.basename(newick_file)
     # Eliminate the extension.
     newick_file_name_base = os.path.splitext(newick_file_name_base)[0]
