@@ -110,6 +110,31 @@ python '$__tool_directory__/vsnp_add_zero_coverage.py'
     </outputs>
     <tests>
         <test>
+            <param name="input_type" value="collection"/>
+            <param name="bam_input_collection">
+                <collection type="list">
+                    <element name="bam_input.bam" value="bam_input.bam" dbkey="89"/>
+                    <element name="bam_input2.bam" value="bam_input.bam" dbkey="89"/>
+                </collection>
+            </param>
+            <param name="vcf_input_collection">
+                <collection type="list">
+                    <element name="vcf_input.vcf" value="vcf_input.vcf" dbkey="89"/>
+                    <element name="vcf_input2.vcf" value="vcf_input.vcf" dbkey="89"/>
+                </collection>
+            </param>
+            <param name="reference_source" value="history"/>
+            <param name="reference" value="NC_002945v4.fasta" ftype="fasta"/>
+            <output_collection name="output_vcf_collection" type="list">
+                <element name="bam_input_bam.vcf" file="output_vcf.vcf" ftype="vcf" compare="contains"/>
+                <element name="bam_input2_bam.vcf" file="output_vcf.vcf" ftype="vcf" compare="contains"/>
+            </output_collection>
+            <output_collection name="output_metrics_collection" type="list">
+                <element name="bam_input_bam.tabular" file="output_metrics.tabular" ftype="tabular" compare="contains"/>
+                <element name="bam_input2_bam.tabular" file="output_metrics.tabular" ftype="tabular" compare="contains"/>
+            </output_collection>
+        </test>
+        <test>
             <param name="bam_input" value="bam_input.bam" ftype="bam" dbkey="89"/>
             <param name="vcf_input" value="vcf_input.vcf" ftype="vcf" dbkey="89"/>
             <param name="reference_source" value="history"/>
@@ -121,7 +146,12 @@ python '$__tool_directory__/vsnp_add_zero_coverage.py'
     <help>
 **What it does**
 
-Adds zero coverage to a BAM dataset.
+Accepts a combination of single BAM and associated VCF files (or associated collections of each) to produce a VCF file for each
+combination whose positions with no coverage are represented as "N".  These outputs are restricted to SNPs and those regions
+along the reference with no coverage.
+
+A metrics file is also produced for each combination which provides the number of good SNPs, the average coverage and the genome
+coverage.
     </help>
     <citations>
         <citation type="bibtex">
