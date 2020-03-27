@@ -188,14 +188,21 @@ class GetSnps:
         # data frame.
         snps_file = os.path.join(OUTPUT_SNPS_DIR, "%s.fasta" % group)
         test_duplicates = []
+        has_sequence_data = False
         with open(snps_file, 'w') as fh:
             for index, row in parsimonious_df.iterrows():
-                test_duplicates.append(row.name)
-                if test_duplicates.count(row.name) < 2:
-                    print(f'>{row.name}', file=fh)
-                    for pos in row:
-                        print(pos, end='', file=fh)
-                    print("", file=fh)
+                for pos in row:
+                    if len(pos) > 0:
+                        has_sequence_data = True
+                        break
+                if has_sequence_data:
+                    test_duplicates.append(row.name)
+                    if test_duplicates.count(row.name) < 2:
+                        print(f'>{row.name}', file=fh)
+                        for pos in row:
+                            print(pos, end='', file=fh)
+                        print("", file=fh)
+        return has_sequence_data
 
     def find_initial_positions(self, filename):
         # Find SNP positions in a vcf file.
@@ -226,7 +233,7 @@ class GetSnps:
             self.olfh.write("<br/>Error attempting to read file %s: %s<br/>" % (filename, str(e)))
             return {'': ''}, {'': ''}
 
-    def gather_and_filter(self, prefilter_df, group_dir):
+    def gather_and_filter(self, prefilter_df, mq_averages, group_dir):
         # Group a data frame of SNPs.
         if self.excel_grouper_file is None:
             filtered_all_df = prefilter_df
@@ -245,8 +252,16 @@ class GetSnps:
         parsimonious_df = self.get_parsimonious_df(filtered_all_df)
         samples_number, columns = parsimonious_df.shape
         if samples_number >= 4:
-            self.df_to_fasta(parsimonious_df, group_dir)
-            parsimonious_df.to_json(json_snps_file, orient='split')
+            has_sequence_data = self.df_to_fasta(parsimonious_df, group_dir)
+            if has_sequence_data:
+                json_avg_mq_file = os.path.join(OUTPUT_JSON_AVG_MQ_DIR, "%s.json" % group_dir)
+                mq_averages.to_json(json_avg_mq_file, orient='split')
+                parsimonious_df.to_json(json_snps_file, orient='split')
+            else:
+                msg = "<br/>No sequence data"
+                if group_dir is not None:
+                    msg = "%s for group: %s" % (msg, group_dir)
+                self.olfh.write("%s<br/>\n" % msg)
         else:
             msg = "<br/>Too few samples to build tree"
             if group_dir is not None:
@@ -344,9 +359,7 @@ class GetSnps:
         prefilter_df = pandas.concat([ref_positions_df, all_sample_df], join='inner')
         all_mq_df = pandas.DataFrame.from_dict(all_map_qualities)
         mq_averages = all_mq_df.mean(axis=1).astype(int)
-        json_avg_mq_file = os.path.join(OUTPUT_JSON_AVG_MQ_DIR, "%s.json" % group_dir)
-        mq_averages.to_json(json_avg_mq_file, orient='split')
-        self.gather_and_filter(prefilter_df, group_dir)
+        self.gather_and_filter(prefilter_df, mq_averages, group_dir)
 
     def group_vcfs(self, vcf_files):
         # Parse an excel file to produce a
