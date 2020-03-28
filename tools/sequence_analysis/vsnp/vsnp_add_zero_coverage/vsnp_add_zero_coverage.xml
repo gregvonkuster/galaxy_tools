@@ -150,8 +150,13 @@ Accepts a combination of single BAM and associated VCF files (or associated coll
 combination whose positions with no coverage are represented as "N".  These outputs are restricted to SNPs and those regions
 along the reference with no coverage.
 
-A metrics file is also produced for each combination which provides the number of good SNPs, the average coverage and the genome
-coverage.
+A metrics file is produced for each combination which provides the number of good SNPs, the average coverage and the genome
+coverage percentage.
+
+**Required Options**
+
+ * **Choose the type for the BAM and VCF files to be analyzed** - select "Single files" or "Collections of files", then select the appropriate history items (single BAM and VCF files or collections of BAM and VCF files) based on the selected option.
+ * **Choose the source for the reference genome** - select "locally cached" if the reference associated with the BAM and VCF files is available within the Galaxy environment or "from history" to select the reference from the current history.
     </help>
     <citations>
         <citation type="bibtex">
