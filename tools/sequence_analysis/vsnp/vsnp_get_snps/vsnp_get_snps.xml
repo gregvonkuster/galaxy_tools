@@ -48,28 +48,10 @@ mkdir -p $output_snps_dir &&
         #set excel_file = $excel_grouper_cond.excel_grouper_source_cond.excel_grouper_file
     #end if
 #end if
-#if str($gbk_cond.gbk_param) == "yes":
-    #set gbk_source_cond = $gbk_cond.gbk_source_cond
-    #set gbk_source = $gbk_source_cond.gbk_source
-    #if str($gbk_source) == "cached":
-        #set gbk_fields = $__app__.tool_data_tables['vsnp_genbank'].get_fields()
-        #for $i in $gbk_fields:
-            #if str($i[0]) == $reference:
-                #set genbank_file = $i[2]
-                #break
-            #end if
-        #end for
-    #else:
-        #set genbank_file = $gbk_cond.gbk_source_cond.gbk_file
-    #end if
-#end if
 python '$__tool_directory__/vsnp_get_snps.py'
 --reference '$reference'
 #if str($excel_grouper_cond.excel_grouper) == "yes":
     --excel_grouper_file '$excel_file'
-#end if
-#if str($gbk_cond.gbk_param) == "yes":
-    --gbk_file '$genbank_file'
 #end if
 #if str($all_isolates) == "Yes":
     --all_isolates '$all_isolates'
@@ -122,32 +104,6 @@ python '$__tool_directory__/vsnp_get_snps.py'
             </when>
             <when value="no"/>
         </conditional>
-        <conditional name="gbk_cond">
-            <param name="gbk_param" type="select" label="Use Genbank file?">
-                <option value="yes" selected="true">Yes</option>
-                <option value="no">No</option>
-            </param>
-            <when value="yes">
-                <conditional name="gbk_source_cond">
-                    <param name="gbk_source" type="select" label="Choose the source for the Genbank file">
-                        <option value="cached">locally cached</option>
-                        <option value="history">from history</option>
-                    </param>
-                    <when value="cached">
-                        <param name="gbk_file" type="select" label="Genbank file" help="Selection will be overridden if it does not match the dbkeys associated with the collection of VCF files being analyzed">
-                            <options from_data_table="vsnp_genbank"/>
-                            <validator type="no_options" message="No built-in Genbank files are available"/>
-                        </param>
-                    </when>
-                    <when value="history">
-                        <param name="gbk_file" type="data" format="genbank" label="Genbank file">
-                            <validator type="no_options" message="The current history does not include a genbank dataset"/>
-                        </param>
-                    </when>
-                </conditional>
-            </when>
-            <when value="no"/>
-        </conditional>
         <param name="all_isolates" type="select" display="radio" label="Create table with all isolates?">
             <option value="No" selected="true">No</option>
             <option value="Yes">Yes</option>
@@ -175,16 +131,37 @@ python '$__tool_directory__/vsnp_get_snps.py'
                 </collection>
             </param>
             <param name="excel_grouper" value="no"/>
-            <param name="gbk_param" value="no"/>
-            <output name="output_json_avg_mq" file="output_json_avg_mq.json" ftype="json" compare="contains"/>
+            <output_collection name="snps" type="list">
+                <element name="all_vcf.fasta" file="all_vcf.fasta" ftype="fasta" compare="contains"/>
+            </output_collection>
+            <output_collection name="json_avg_mq" type="list">
+                <element name="all_vcf.json" file="json_avg_mq_all_vcf.json" ftype="json" compare="contains"/>
+            </output_collection>
+            <output_collection name="json_snps" type="list">
+                <element name="all_vcf.json" file="json_all_vcf.json" ftype="json" compare="contains"/>
+            </output_collection>
             <output name="output_summary" file="output_summary.html" ftype="html" compare="contains"/>
         </test>
     </tests>
     <help>
 **What it does**
 
-Collects quality parsimonious SNPs from VCF files and produces a collection of alignment files in FASTA format.
-    </help>
+Accepts a zero-coverage VCF file (or a collection of them) produced by the **vSNP: add zero coverage** tool
+along with a collection of VCF files that have been aligned with the same reference. The inputs are analyzed
+to discover quality parsimonious SNPs in the zero-coverage VCF file(s).  An Excel spreadsheet containing
+specified SNPs can optiomally be used to filter desired SNP positions by group.  Users can choose whether to
+select a locally cached Excel spreadsheet or one from their current history.
+
+**Required Options**
+
+ * **Choose the type for the zero coverage VCF files to be analyzed** - select single file or a collection of files, then select the appropriate history item (single VCF item or dataset collection of VCF elements) based on the selected option.
+ * **Collection of VCF files against which to analyze the zero coverages VCF file(s)**  - select a dataset collection from the current history that is associated with the same reference as the selected zero-coverage VCF file(s).
+
+**Additional Options**
+
+ * **Use Excel file for grouping and filtering?** - select Yes to filter desired SNP positions by group.  A cached Excel spreadsheet provides the most widely used SNP positions for grouping, but a custom spreadhseet can be selected from the current history.
+ * **Job Resource Parameters** - an administrator for the Galaxy instance must configure this tool to display this option, so it may not be available.  If it is, you can choose the number of processors to use for tool execution.
+</help>
     <citations>
         <citation type="bibtex">
             @misc{None,

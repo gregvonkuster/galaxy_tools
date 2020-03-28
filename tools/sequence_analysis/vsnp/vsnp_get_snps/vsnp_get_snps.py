@@ -37,7 +37,7 @@ def setup_all_vcfs(vcf_files, vcf_dirs):
 
 class GetSnps:
 
-    def __init__(self, vcf_files, reference, excel_grouper_file, gbk_file,
+    def __init__(self, vcf_files, reference, excel_grouper_file,
                  all_isolates, ac, mq_val, n_threshold, qual_threshold, output_summary):
         self.ac = ac
         self.all_isolates = all_isolates
@@ -45,7 +45,6 @@ class GetSnps:
         # Filter based on the contents of an Excel file.
         self.excel_grouper_file = excel_grouper_file
         # Use Genbank file
-        self.gbk_file = gbk_file
         self.groups = []
         # This will be populated from the columns
         # in the Excel filter file if it is used.
@@ -189,13 +188,14 @@ class GetSnps:
         snps_file = os.path.join(OUTPUT_SNPS_DIR, "%s.fasta" % group)
         test_duplicates = []
         has_sequence_data = False
-        with open(snps_file, 'w') as fh:
-            for index, row in parsimonious_df.iterrows():
-                for pos in row:
-                    if len(pos) > 0:
-                        has_sequence_data = True
-                        break
-                if has_sequence_data:
+        for index, row in parsimonious_df.iterrows():
+            for pos in row:
+                if len(pos) > 0:
+                    has_sequence_data = True
+                    break
+        if has_sequence_data:
+            with open(snps_file, 'w') as fh:
+                for index, row in parsimonious_df.iterrows():
                     test_duplicates.append(row.name)
                     if test_duplicates.count(row.name) < 2:
                         print(f'>{row.name}', file=fh)
@@ -423,7 +423,6 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--all_isolates', action='store', dest='all_isolates', required=False, default="No", help='Create table with all isolates'),
 parser.add_argument('--excel_grouper_file', action='store', dest='excel_grouper_file', required=False, default=None, help='Optional Excel filter file'),
-parser.add_argument('--gbk_file', action='store', dest='gbk_file', required=False, default=None, help='Optional gbk file'),
 parser.add_argument('--output_summary', action='store', dest='output_summary', help='Output summary html file'),
 parser.add_argument('--reference', action='store', dest='reference', help='Reference file'),
 
@@ -440,8 +439,8 @@ for file_name in os.listdir(INPUT_VCF_DIR):
     file_path = os.path.abspath(os.path.join(INPUT_VCF_DIR, file_name))
     vcf_files.append(file_path)
 # Initialize the snp_finder object.
-snp_finder = GetSnps(vcf_files, args.reference, args.excel_grouper_file, args.gbk_file,
-                     args.all_isolates, ac, mq_val, n_threshold, qual_threshold, args.output_summary)
+snp_finder = GetSnps(vcf_files, args.reference, args.excel_grouper_file, args.all_isolates,
+                     ac, mq_val, n_threshold, qual_threshold, args.output_summary)
 # Initialize the set of directories containiing vcf files for analysis.
 vcf_dirs = []
 if args.excel_grouper_file is None:
