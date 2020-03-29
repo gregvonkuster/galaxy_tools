@@ -90,7 +90,8 @@ def output_read_stats(gzipped, fastq_file, ofh, sampling_number=10000, output_sa
     ofh.write("%s Mean Read Quality%s%s\n" % (read, SEP, "%.1f" % df_mean['ave'].mean()))
     # Reads Passing Q30
     reads_gt_q30 = len(df_mean[df_mean['ave'] >= 30])
-    ofh.write("%s Reads Passing Q30%s%s\n" % (read, SEP, f'{reads_gt_q30/sampling_size:0.1%}'))
+    reads_passing_q30 = "{:10.2f}".format(reads_gt_q30/sampling_size)
+    ofh.write("%s reads passing Q30%s%s\n" % (read, SEP, reads_passing_q30))
     return total_read_count
 
 
@@ -159,7 +160,8 @@ for i, output_file in enumerate(output_files):
                     ofh.write("Unmapped Reads%s%d\n" % (SEP, unmapped_reads))
             percent_str = "Unmapped Reads Percentage of Total"
             if unmapped_reads > 0:
-                ofh.write("%s%s%s\n" % (percent_str, SEP, f'{unmapped_reads/total_reads:0.1%}'))
+                unmapped_reads_percentage = "{:10.2f}".format(unmapped_reads/total_reads)
+                ofh.write("%s%s%s%\n" % (percent_str, SEP, unmapped_reads_percentage))
             else:
                 ofh.write("%s%s0\n" % (percent_str, SEP))
         with open(metrics_file, "r") as ifh:
