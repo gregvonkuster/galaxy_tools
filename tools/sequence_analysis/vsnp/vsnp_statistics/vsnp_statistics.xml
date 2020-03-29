@@ -75,7 +75,7 @@ python '$__tool_directory__/vsnp_statistics.py'
 ]]></command>
     <inputs>
         <conditional name="input_type_cond">
-            <param name="input_type" type="select" label="Choose the type for files to be analyzed">
+            <param name="input_type" type="select" label="Choose the category of the files to be analyzed">
                 <option value="single" selected="true">Single files</option>
                 <option value="collection">Collections of files</option>
             </param>
@@ -128,7 +128,14 @@ python '$__tool_directory__/vsnp_statistics.py'
     <help>
 **What it does**
 
-Calculates vSNP statistics for fastqsanger VCF files.
+Accepts a single fastqsanger read, a set of paired reads, or a collections of reads along with associated SAMtools
+idxstats and vSNP zero coverage metrics files and extracts information from the files to produce a tabular statistics
+dataset that includes total reads, mean read length and quality, reads passing Q30, mapped and unmapped reads, depth
+of coverage, good SNP count and more.
+
+**Required options**
+
+ * **Choose the type for files to be analyzed** - select "Single files" or "Collections of files", then select the appropriate history items (single or paired fastqsanger reads or collections of fastqsanger reads and associated idxstats and vSNP zero coverage metrics files) based on the selected option..
     </help>
     <citations>
         <citation type="bibtex">
