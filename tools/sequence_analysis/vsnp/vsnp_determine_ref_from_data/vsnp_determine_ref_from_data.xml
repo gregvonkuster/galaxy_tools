@@ -104,6 +104,11 @@ python '$__tool_directory__/vsnp_determine_ref_from_data.py'
     </outputs>
     <tests>
         <test>
+            <!-- Need to figure out how to test installed data tables -->
+            <param name="read1" value="reads.fastqsanger" ftype="fastqsanger" dbkey="89"/>
+            <param name="read2" value="read2.fastqsanger" ftype="fastqsanger" dbkey="89"/>
+            <output name="output_dbkey" file="output_dbkey.txt" ftype="txt"/>
+            <output name="output_metrics" file="output_metrics.txt" ftype="txt"/>
         </test>
     </tests>
     <help>
