@@ -51,7 +51,7 @@ python '$__tool_directory__/vsnp_build_tables.py'
 ]]></command>
     <inputs>
         <conditional name="input_type_cond">
-            <param name="input_type" type="select" label="Choose the type for the SNPs json and best-scoring ML tree files to be analyzed">
+            <param name="input_type" type="select" label="Choose the category for the files to be analyzed">
                 <option value="single" selected="true">Single files</option>
                 <option value="collection">Collection of files</option>
             </param>
@@ -62,7 +62,7 @@ python '$__tool_directory__/vsnp_build_tables.py'
                 <param name="input_avg_mq_json" type="data" format="json" label="Average MQ json file">
                     <validator type="unspecified_build"/>
                 </param>
-                <param name="input_newick" type="data" format="newick" label="Parsimony tree file">
+                <param name="input_newick" type="data" format="newick" label="Best-scoring ML tree file">
                     <validator type="unspecified_build"/>
                 </param>
             </when>
@@ -160,7 +160,34 @@ python '$__tool_directory__/vsnp_build_tables.py'
     <help>
 **What it does**
 
-Produces Excel spreadsheets from vSNP get SNPs outputs.
+Accepts a combination of single SNPs json, average MQ json and newick files (or associated collections of
+each) to produce annotated SNPs tables in the form of Excel spreadsheets.  The SNPs json and average MQ json
+files are typically produced by the **vSNP: get SNPs** tool and the newick files are typically produced by
+the **Phyogenetic reconstruction with RaXML** tool.
+
+The SNPs tables display closely related isolates and enables identification of mixed SNPs when multiple
+bacterial strains are infecting an organism.  The table structure is shown below.  The columns identify the
+genome location of the SNP calls and the isolates are contained within the rows.  The reference (or ancestral
+strain if the reference is an outgroup) is listed across the top, identified as the "reference call".  SNPs
+that are not highlighted will match the reference.  The map-quality row values are the average of the map
+quality scores of each isolate  in that position.  These scores measure the confidence that the read has been
+mapped to the correct location on the genome.  The maximum score possible is 60, and lower scores lessen the
+confidence that the SNP was correctly identified.  The annotation of the position is provided at the bottom
+of the table.
+
+.. image:: table_description.png
+
+SNPs are sorted according to their evolutionary age within the table.  The oldest SNPs (encompassing the most
+isolates) are furthest to the left.  This sorting is somewhat crude - the intent is to improve readibility or
+more easily match a related tree.
+
+For a more detailed discussion, see the **Validating and correcting SNP calls** section of
+[the vSNP document here](https://github.com/USDA-VS/vSNP/blob/master/docs/detailed_usage.md).
+
+**Required Options**
+
+ * **Choose the category for the files to be analyzed** -  select "Single files" or "Collections of files", then select the appropriate history items (single SNPs json, average MQ json and newick files, or collections of each) based on the selected option.
+ * **Use Genbank file** - Select "yes" to annotate the tables using the information in the Genbank file.  Locally cached files, if available, provide the most widely used annotations, but more custom Genbank files can be chosen from the current history.
     </help>
     <citations>
         <citation type="bibtex">
