@@ -52,7 +52,7 @@ python '$__tool_directory__/vsnp_add_zero_coverage.py'
 ]]></command>
     <inputs>
         <conditional name="input_type_cond">
-            <param name="input_type" type="select" label="Choose the type for the BAM and VCF files to be analyzed">
+            <param name="input_type" type="select" label="Choose the category of the files to be analyzed">
                 <option value="single" selected="true">Single files</option>
                 <option value="collection">Collections of files</option>
             </param>
@@ -155,7 +155,7 @@ coverage percentage.
 
 **Required Options**
 
- * **Choose the type for the BAM and VCF files to be analyzed** - select "Single files" or "Collections of files", then select the appropriate history items (single BAM and VCF files or collections of BAM and VCF files) based on the selected option.
+ * **Choose the category of the files to be analyzed** - select "Single files" or "Collections of files", then select the appropriate history items (single BAM and VCF files or collections of BAM and VCF files) based on the selected option.
  * **Choose the source for the reference genome** - select "locally cached" if the reference associated with the BAM and VCF files is available within the Galaxy environment or "from history" to select the reference from the current history.
     </help>
     <citations>

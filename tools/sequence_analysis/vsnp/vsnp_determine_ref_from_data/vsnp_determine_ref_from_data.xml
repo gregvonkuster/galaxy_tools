@@ -62,7 +62,7 @@ python '$__tool_directory__/vsnp_determine_ref_from_data.py'
 ]]></command>
     <inputs>
         <conditional name="input_type_cond">
-            <param name="input_type" type="select" label="Choose the type for the fastqsanger files to be analyzed">
+            <param name="input_type" type="select" label="Choose the category of the files to be analyzed">
                 <option value="single" selected="true">Single files</option>
                 <option value="collection">Collections of files</option>
             </param>
@@ -114,6 +114,40 @@ python '$__tool_directory__/vsnp_determine_ref_from_data.py'
     <help>
 **What it does**
 
+Accepts a single fastqsanger read, a set of paired reads, or a collections of reads and inspects the data to discover the
+best reference genome for aligning the reads.  This tool is, in essence, a DNA sniffer, and is the first Galaxy tool to
+perform this task.  While inspecting the data, a string of 0's and 1's is compiled based on the data contents, and we call
+the complete string a "DNA print".  All of the "DNA prints" files installed by the complementary **vSNP DNAprints data
+manager** tool are then inspected to find a match for the compiled "DNA print" string.  These files are each associated
+with a Galaxy "dbkey" (i.e., genome build), so when a metach is found, the associated "dbkey" is passed to a mapper (e.g.,
+**Map with BWA-MEM**) to align the reads to the associated reference.
+
+The tool produces 2 text files, a "dbkey" file that contains the dbkey string and a "metrics" file that provides information
+used to compile the "DNA print" string.
+
+This tool is important for samples containing bacterial species because many of the samples have a "mixed bag" of species,
+and discovering the primary species is critical.  DNA print matchig is currently supported for the following genomes.
+
+ * Mycobacterium bovis AF2122/97
+ * Brucella abortus bv. 1 str. 9-941
+ * Brucella abortus strain BER
+ * Brucella canis ATCC 23365
+ * Brucella ceti TE10759-12
+ * Brucella melitensis bv. 1 str. 16M
+ * Brucella melitensis bv. 3 str. Ether
+ * Brucella melitensis BwIM_SOM_36b
+ * Brucella melitensis ATCC 23457
+ * Brucella ovis ATCC 25840
+ * Brucella suis 1330
+ * Mycobacterium tuberculosis H37Rv
+ * Mycobacterium avium subsp. paratuberculosis strain Telford
+ * Mycobacterium avium subsp. paratuberculosis K-10
+ * Brucella suis ATCC 23445
+ * Brucella suis bv. 3 str. 686
+
+**Required Options**
+
+ * **Choose the category of the files to be analyzed** - select "Single files" or "Collections of files", then select the appropriate history items (single or paired fastqsanger reads or collections of fastqsanger reads) based on the selected option.
     </help>
     <citations>
         <citation type="bibtex">

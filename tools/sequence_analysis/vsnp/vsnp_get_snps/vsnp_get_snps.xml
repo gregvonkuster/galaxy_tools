@@ -60,7 +60,7 @@ python '$__tool_directory__/vsnp_get_snps.py'
 ]]></command>
     <inputs>
         <conditional name="input_zc_vcf_type_cond">
-            <param name="input_zc_vcf_type" type="select" label="Choose the type for the zero coverage VCF files to be analyzed">
+            <param name="input_zc_vcf_type" type="select" label="Choose the category of the files to be analyzed">
                 <option value="single" selected="true">A single zero coverage VCF file</option>
                 <option value="collection">A collection of zero coverage VCF files</option>
             </param>
@@ -154,7 +154,7 @@ select a locally cached Excel spreadsheet or one from their current history.
 
 **Required Options**
 
- * **Choose the type for the zero coverage VCF files to be analyzed** - select single file or a collection of files, then select the appropriate history item (single VCF item or dataset collection of VCF elements) based on the selected option.
+ * **Choose the category of the files to be analyzed** - select single file or a collection of files, then select the appropriate history item (single VCF item or dataset collection of VCF elements) based on the selected option.
  * **Collection of VCF files against which to analyze the zero coverages VCF file(s)**  - select a dataset collection from the current history that is associated with the same reference as the selected zero-coverage VCF file(s).
 
 **Additional Options**
