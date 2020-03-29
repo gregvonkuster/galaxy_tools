@@ -161,7 +161,7 @@ for i, output_file in enumerate(output_files):
             percent_str = "Unmapped Reads Percentage of Total"
             if unmapped_reads > 0:
                 unmapped_reads_percentage = "{:10.2f}".format(unmapped_reads/total_reads)
-                ofh.write("%s%s%s%\n" % (percent_str, SEP, unmapped_reads_percentage))
+                ofh.write("%s%s%s\n" % (percent_str, SEP, unmapped_reads_percentage))
             else:
                 ofh.write("%s%s0\n" % (percent_str, SEP))
         with open(metrics_file, "r") as ifh:
