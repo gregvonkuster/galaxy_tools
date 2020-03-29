@@ -1,4 +1,4 @@
-<tool id="vsnp_get_snps" name="vSNP: get snps" version="1.0.0">
+<tool id="vsnp_get_snps" name="vSNP: get SNPs" version="1.0.0">
     <description></description>
     <requirements>
         <requirement type="package" version="0.25.3">pandas</requirement>
