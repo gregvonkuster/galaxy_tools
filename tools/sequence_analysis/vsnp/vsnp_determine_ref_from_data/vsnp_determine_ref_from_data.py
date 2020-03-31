@@ -13,6 +13,18 @@ OUTPUT_DBKEY_DIR = 'output_dbkey'
 OUTPUT_METRICS_DIR = 'output_metrics'
 
 
+def get_base_file_name(file_path):
+    file_name_base = os.path.basename(file_path)
+    if file_name_base.find(".") > 0:
+        # Eliminate the extension.
+        return os.path.splitext(file_name_base)[0]
+    else:
+        # The dot extension was likely changed to
+        # the " character.
+        items = file_name_base.split("_")
+        return "_".join(items[0:-1])
+
+
 def get_dbkey(dnaprints_dict, key, s):
     # dnaprints_dict looks something like this:
     # {'brucella': {'NC_002945v4': ['11001110', '11011110', '11001100']}
@@ -217,16 +229,16 @@ if input_collection:
     # be processed separately and dataset collections
     # will be produced as outputs.
     for fastq_file in fastq_list:
-        count_summary, count_list, brucella_sum, bovis_sum, para_sum = get_species_counts(list(fastq_list), args.gzipped)
+        base_file_name = get_base_file_name(fastq_file)
+        count_summary, count_list, brucella_sum, bovis_sum, para_sum = get_species_counts([fastq_file], args.gzipped)
         brucella_string, bovis_string, para_string = get_species_strings(count_summary)
         group, dbkey = get_group_and_dbkey(dnaprints_dict, brucella_string, brucella_sum, bovis_string, bovis_sum, para_string, para_sum)
         # Output the dbkey collection element.
-        output_file = os.path.join(OUTPUT_DBKEY_DIR, "%s.txt" % group)
+        output_file = os.path.join(OUTPUT_DBKEY_DIR, "%s.txt" % base_file_name)
         output_dbkey(output_file, dbkey)
         # Output the metrics collection element.
-        file_name_base = os.path.basename(fastq_file).split('_')[0]
-        output_file = os.path.join(OUTPUT_METRICS_DIR, "%s.txt" % group)
-        output_metrics(file_name_base, count_list, group, dbkey, output_file)
+        output_file = os.path.join(OUTPUT_METRICS_DIR, "%s.txt" % base_file_name)
+        output_metrics(base_file_name, count_list, group, dbkey, output_file)
 else:
     # Here fastq_list consists of either a singe read
     # fastq file or a set of 2 paired read fastq files.
@@ -236,5 +248,5 @@ else:
     # Output the dbkey file.
     output_dbkey(args.output_dbkey, dbkey)
     # Output the metrics file.
-    file_name_base = os.path.basename(args.read1).split('_')[0]
-    output_metrics(file_name_base, count_list, group, dbkey, args.output_dbkey)
+    base_file_name = get_base_file_name(args.read1)
+    output_metrics(base_file_name, count_list, group, dbkey, args.output_metrics)
