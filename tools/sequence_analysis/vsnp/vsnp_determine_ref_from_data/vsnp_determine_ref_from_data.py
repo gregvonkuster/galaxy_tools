@@ -228,11 +228,11 @@ def output_files(task_queue, timeout):
         task_queue.task_done()
 
 
-def set_num_processors(processors):
+def set_num_cpus(processes):
     num_cpus = int(multiprocessing.cpu_count())
-    if num_cpus < processors:
+    if num_cpus < processes:
         return int(num_cpus / 2)
-    return processors
+    return processes
 
 
 if __name__ == '__main__':
@@ -244,7 +244,7 @@ if __name__ == '__main__':
     parser.add_argument('--gzipped', action='store', dest='gzipped', help='Input files are gzipped')
     parser.add_argument('--output_dbkey', action='store', dest='output_dbkey', required=False, default=None, help='Output reference file')
     parser.add_argument('--output_metrics', action='store', dest='output_metrics', required=False, default=None, help='Output metrics file')
-    parser.add_argument('--processors', action='store', dest='processors', type=int, help='User-selected number of processors to use for tool execution')
+    parser.add_argument('--processes', action='store', dest='processes', type=int, help='User-selected number of processes to use for job splitting')
 
     args = parser.parse_args()
 
@@ -274,15 +274,15 @@ if __name__ == '__main__':
     queue1 = multiprocessing.JoinableQueue()
     queue2 = multiprocessing.JoinableQueue()
     num_files = len(fastq_list)
-    processors = set_num_processors(args.processors)
-    # Set a timeout for gets in the queue.
+    cpus = set_num_cpus(args.processes)
+    # Set a timeout for get()s in the queue.
     timeout = 0.05
 
-    for i, fastq_file in enumerate(fastq_list):
+    for fastq_file in fastq_list:
         queue1.put(fastq_file)
 
     # Complete the get_species_counts task.
-    processes = [multiprocessing.Process(target=get_species_counts, args=(queue1, queue2, args.gzipped, timeout, )) for _ in range(processors)]
+    processes = [multiprocessing.Process(target=get_species_counts, args=(queue1, queue2, args.gzipped, timeout, )) for _ in range(cpus)]
     for p in processes:
         p.start()
     for p in processes:
@@ -290,7 +290,7 @@ if __name__ == '__main__':
     queue1.join()
 
     # Complete the get_species_strings task.
-    processes = [multiprocessing.Process(target=get_species_strings, args=(queue2, queue1, timeout, )) for _ in range(processors)]
+    processes = [multiprocessing.Process(target=get_species_strings, args=(queue2, queue1, timeout, )) for _ in range(cpus)]
     for p in processes:
         p.start()
     for p in processes:
@@ -298,7 +298,7 @@ if __name__ == '__main__':
     queue2.join()
 
     # Complete the get_group_and_dbkey task.
-    processes = [multiprocessing.Process(target=get_group_and_dbkey, args=(queue1, queue2, dnaprints_dict, timeout, )) for _ in range(processors)]
+    processes = [multiprocessing.Process(target=get_group_and_dbkey, args=(queue1, queue2, dnaprints_dict, timeout, )) for _ in range(cpus)]
     for p in processes:
         p.start()
     for p in processes:
@@ -306,7 +306,7 @@ if __name__ == '__main__':
     queue1.join()
 
     # Complete the output_files task.
-    processes = [multiprocessing.Process(target=output_files, args=(queue2, timeout, )) for _ in range(processors)]
+    processes = [multiprocessing.Process(target=output_files, args=(queue2, timeout, )) for _ in range(cpus)]
     for p in processes:
         p.start()
     for p in processes:

@@ -56,7 +56,7 @@ python '$__tool_directory__/vsnp_determine_ref_from_data.py'
     --output_metrics '$output_metrics'
 #end if
 --gzipped $gzipped
---processors $processors
+--processes $processes
 #for $i in $dnaprint_fields:
     --dnaprint_fields '${i[0]}' '${i[2]}'
 #end for
@@ -86,7 +86,7 @@ python '$__tool_directory__/vsnp_determine_ref_from_data.py'
                 <param name="reads_collection" type="data_collection" format="fastqsanger,fastqsanger.gz" collection_type="list" label="Collection of fastqsanger files"/>
             </when>
         </conditional>
-        <param name="processors" type="integer" min="1" max="12" value="8" label="Number of processors for tool execution"/>
+        <param name="processes" type="integer" min="1" max="12" value="8" label="Number of processes for job splitting"/>
     </inputs>
     <outputs>
         <data name="output_dbkey" format="txt"  label="${tool.name} (dbkey) on ${on_string}">
@@ -150,6 +150,7 @@ and discovering the primary species is critical.  DNA print matchig is currently
 **Required Options**
 
  * **Choose the category of the files to be analyzed** - select "Single files" or "Collections of files", then select the appropriate history items (single or paired fastqsanger reads or collections of fastqsanger reads) based on the selected option.
+ * **Number of processes for job splitting** - Select the number of processes for splitting the job to shorten execution time.
     </help>
     <citations>
         <citation type="bibtex">
