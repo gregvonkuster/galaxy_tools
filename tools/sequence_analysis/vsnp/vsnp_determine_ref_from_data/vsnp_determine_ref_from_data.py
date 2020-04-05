@@ -79,9 +79,6 @@ def get_group_and_dbkey(task_queue, finished_queue, dnaprints_dict, timeout):
             tup = task_queue.get(block=True, timeout=timeout)
         except queue.Empty:
             break
-        if tup is None:
-            task_queue.task_done()
-            break
         fastq_file, count_list, brucella_string, brucella_sum, bovis_string, bovis_sum, para_string, para_sum = tup
         if brucella_sum > 3:
             group = "Brucella"
@@ -97,14 +94,6 @@ def get_group_and_dbkey(task_queue, finished_queue, dnaprints_dict, timeout):
             dbkey = ""
         finished_queue.put((fastq_file, count_list, group, dbkey))
         task_queue.task_done()
-    finished_queue.put(None)
-
-
-def get_num_cpus(num_files):
-    num_cpus = int(multiprocessing.cpu_count() / 3)
-    if num_cpus > num_files:
-        return num_files
-    return num_cpus
 
 
 def get_oligo_dict():
@@ -158,9 +147,6 @@ def get_species_counts(task_queue, finished_queue, gzipped, timeout):
             fastq_file = task_queue.get(block=True, timeout=timeout)
         except queue.Empty:
             break
-        if fastq_file is None:
-            task_queue.task_done()
-            break
         count_summary = {}
         oligo_dict = get_oligo_dict()
         for v1 in oligo_dict.values():
@@ -176,7 +162,6 @@ def get_species_counts(task_queue, finished_queue, gzipped, timeout):
         para_sum = sum(count_list[24:])
         finished_queue.put((fastq_file, count_summary, count_list, brucella_sum, bovis_sum, para_sum))
         task_queue.task_done()
-    finished_queue.put(None)
 
 
 def get_species_strings(task_queue, finished_queue, timeout):
@@ -185,9 +170,6 @@ def get_species_strings(task_queue, finished_queue, timeout):
         try:
             tup = task_queue.get(block=True, timeout=timeout)
         except queue.Empty:
-            break
-        if tup is None:
-            task_queue.task_done()
             break
         fastq_file, count_summary, count_list, brucella_sum, bovis_sum, para_sum = tup
         for k, v in count_summary.items():
@@ -207,7 +189,6 @@ def get_species_strings(task_queue, finished_queue, timeout):
         para_string = ''.join(str(e) for e in para_binary)
         finished_queue.put((fastq_file, count_list, brucella_string, brucella_sum, bovis_string, bovis_sum, para_string, para_sum))
         task_queue.task_done()
-    finished_queue.put(None)
 
 
 def output_files(task_queue, timeout):
@@ -215,9 +196,6 @@ def output_files(task_queue, timeout):
         try:
             tup = task_queue.get(block=True, timeout=timeout)
         except queue.Empty:
-            break
-        if tup is None:
-            task_queue.task_done()
             break
         fastq_file, count_list, group, dbkey = tup
         base_file_name = get_base_file_name(fastq_file)
@@ -250,6 +228,13 @@ def output_files(task_queue, timeout):
         task_queue.task_done()
 
 
+def set_num_processors(processors):
+    num_cpus = int(multiprocessing.cpu_count())
+    if num_cpus < processors:
+        return int(num_cpus / 2)
+    return processors
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
@@ -259,6 +244,7 @@ if __name__ == '__main__':
     parser.add_argument('--gzipped', action='store', dest='gzipped', help='Input files are gzipped')
     parser.add_argument('--output_dbkey', action='store', dest='output_dbkey', required=False, default=None, help='Output reference file')
     parser.add_argument('--output_metrics', action='store', dest='output_metrics', required=False, default=None, help='Output metrics file')
+    parser.add_argument('--processors', action='store', dest='processors', type=int, help='User-selected number of processors to use for tool execution')
 
     args = parser.parse_args()
 
@@ -288,16 +274,15 @@ if __name__ == '__main__':
     queue1 = multiprocessing.JoinableQueue()
     queue2 = multiprocessing.JoinableQueue()
     num_files = len(fastq_list)
-    num_cpus = get_num_cpus(num_files)
+    processors = set_num_processors(args.processors)
     # Set a timeout for gets in the queue.
     timeout = 0.05
 
     for i, fastq_file in enumerate(fastq_list):
         queue1.put(fastq_file)
-    queue1.put(None)
 
     # Complete the get_species_counts task.
-    processes = [multiprocessing.Process(target=get_species_counts, args=(queue1, queue2, args.gzipped, timeout, )) for _ in range(num_cpus)]
+    processes = [multiprocessing.Process(target=get_species_counts, args=(queue1, queue2, args.gzipped, timeout, )) for _ in range(processors)]
     for p in processes:
         p.start()
     for p in processes:
@@ -305,7 +290,7 @@ if __name__ == '__main__':
     queue1.join()
 
     # Complete the get_species_strings task.
-    processes = [multiprocessing.Process(target=get_species_strings, args=(queue2, queue1, timeout, )) for _ in range(num_cpus)]
+    processes = [multiprocessing.Process(target=get_species_strings, args=(queue2, queue1, timeout, )) for _ in range(processors)]
     for p in processes:
         p.start()
     for p in processes:
@@ -313,7 +298,7 @@ if __name__ == '__main__':
     queue2.join()
 
     # Complete the get_group_and_dbkey task.
-    processes = [multiprocessing.Process(target=get_group_and_dbkey, args=(queue1, queue2, dnaprints_dict, timeout, )) for _ in range(num_cpus)]
+    processes = [multiprocessing.Process(target=get_group_and_dbkey, args=(queue1, queue2, dnaprints_dict, timeout, )) for _ in range(processors)]
     for p in processes:
         p.start()
     for p in processes:
@@ -321,7 +306,7 @@ if __name__ == '__main__':
     queue1.join()
 
     # Complete the output_files task.
-    processes = [multiprocessing.Process(target=output_files, args=(queue2, timeout, )) for _ in range(num_cpus)]
+    processes = [multiprocessing.Process(target=output_files, args=(queue2, timeout, )) for _ in range(processors)]
     for p in processes:
         p.start()
     for p in processes:

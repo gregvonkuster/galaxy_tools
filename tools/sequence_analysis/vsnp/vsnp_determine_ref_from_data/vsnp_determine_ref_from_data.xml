@@ -56,6 +56,7 @@ python '$__tool_directory__/vsnp_determine_ref_from_data.py'
     --output_metrics '$output_metrics'
 #end if
 --gzipped $gzipped
+--processors $processors
 #for $i in $dnaprint_fields:
     --dnaprint_fields '${i[0]}' '${i[2]}'
 #end for
@@ -85,6 +86,7 @@ python '$__tool_directory__/vsnp_determine_ref_from_data.py'
                 <param name="reads_collection" type="data_collection" format="fastqsanger,fastqsanger.gz" collection_type="list" label="Collection of fastqsanger files"/>
             </when>
         </conditional>
+        <param name="processors" type="integer" min="1" max="12" value="8" label="Number of processors for tool execution"/>
     </inputs>
     <outputs>
         <data name="output_dbkey" format="txt"  label="${tool.name} (dbkey) on ${on_string}">
