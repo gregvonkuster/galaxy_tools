@@ -3,8 +3,10 @@
 # Collect quality parsimonious SNPs from vcf files and output alignment files in fasta format.
 
 import argparse
+import multiprocessing
 import os
 import pandas
+import queue
 import shutil
 import sys
 import time
@@ -23,6 +25,18 @@ def get_time_stamp():
     return datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H-%M-%S')
 
 
+def set_num_cpus(num_files, processes):
+    num_cpus = int(multiprocessing.cpu_count())
+    if num_files < num_cpus and num_files < processes:
+        return num_files
+    if num_cpus < processes:
+        half_cpus = int(num_cpus / 2)
+        if num_files < half_cpus:
+            return num_files
+        return half_cpus
+    return processes
+
+
 def setup_all_vcfs(vcf_files, vcf_dirs):
     # Create the all_vcfs directory and link
     # all input vcf files into it for processing.
@@ -35,9 +49,9 @@ def setup_all_vcfs(vcf_files, vcf_dirs):
     return vcf_dirs
 
 
-class GetSnps:
+class SnpFinder:
 
-    def __init__(self, vcf_files, reference, excel_grouper_file,
+    def __init__(self, num_files, reference, excel_grouper_file,
                  all_isolates, ac, mq_val, n_threshold, qual_threshold, output_summary):
         self.ac = ac
         self.all_isolates = all_isolates
@@ -50,13 +64,16 @@ class GetSnps:
         # in the Excel filter file if it is used.
         self.mq_val = mq_val
         self.n_threshold = n_threshold
-        self.olfh = None
         self.qual_threshold = qual_threshold
         self.reference = reference
         self.start_time = get_time_stamp()
+        self.summary_str = ""
         self.timer_start = datetime.now()
-        self.vcf_files = vcf_files
+        self.num_files = num_files
         self.initiate_summary(output_summary)
+
+    def append_to_summary(self, html_str):
+        self.summary_str = "%s%s" % (self.summary_str, html_str)
 
     def bin_input_files(self, filename, samples_groups_dict, defining_snps, inverted_defining_snps, found_positions, found_positions_mix):
         sample_groups_list = []
@@ -86,7 +103,7 @@ class GetSnps:
                 samples_groups_dict[table_name] = ['<font color="red">No defining SNP</font>']
         except TypeError as e:
             msg = "<br/>Error processing file %s to generate samples_groups_dict: %s<br/>" % (filename, str(e))
-            self.olfh.write(msg)
+            self.append_to_summary(msg)
             samples_groups_dict[table_name] = [msg]
         return samples_groups_dict
 
@@ -227,10 +244,10 @@ class GetSnps:
                             found_positions_mix.update({absolute_position: record.REF})
                 return found_positions, found_positions_mix
             except (ZeroDivisionError, ValueError, UnboundLocalError, TypeError) as e:
-                self.olfh.write("<br/>Error parsing record in file %s: %s<br/>" % (filename, str(e)))
+                self.append_to_summar("<br/>Error parsing record in file %s: %s<br/>" % (filename, str(e)))
                 return {'': ''}, {'': ''}
         except (SyntaxError, AttributeError) as e:
-            self.olfh.write("<br/>Error attempting to read file %s: %s<br/>" % (filename, str(e)))
+            self.append_to_summary("<br/>Error attempting to read file %s: %s<br/>" % (filename, str(e)))
             return {'': ''}, {'': ''}
 
     def gather_and_filter(self, prefilter_df, mq_averages, group_dir):
@@ -261,12 +278,12 @@ class GetSnps:
                 msg = "<br/>No sequence data"
                 if group_dir is not None:
                     msg = "%s for group: %s" % (msg, group_dir)
-                self.olfh.write("%s<br/>\n" % msg)
+                self.append_to_summary("%s<br/>\n" % msg)
         else:
             msg = "<br/>Too few samples to build tree"
             if group_dir is not None:
                 msg = "%s for group: %s" % (msg, group_dir)
-            self.olfh.write("%s<br/>\n" % msg)
+            self.append_to_summary("%s<br/>\n" % msg)
 
     def get_base_file_name(self, file_path):
         file_name_base = os.path.basename(file_path)
@@ -326,40 +343,46 @@ class GetSnps:
             exclusion_list = []
             return exclusion_list
 
-    def get_snps(self, group_dir):
-        # Parse all vcf files to accumulate SNPs into a
-        # data frame.
-        positions_dict = {}
-        group_files = []
-        for file_name in os.listdir(os.path.abspath(group_dir)):
-            file_path = os.path.abspath(os.path.join(group_dir, file_name))
-            group_files.append(file_path)
-        for file_name in group_files:
+    def get_snps(self, task_queue, timeout):
+        while True:
             try:
-                found_positions, found_positions_mix = self.find_initial_positions(file_name)
-                positions_dict.update(found_positions)
-            except Exception as e:
-                self.olfh.write("Error updating the positions_dict dictionary when processing file %s:\n%s\n" % (file_name, str(e)))
-        # Order before adding to file to match
-        # with ordering of individual samples.
-        # all_positions is abs_pos:REF
-        self.all_positions = OrderedDict(sorted(positions_dict.items()))
-        ref_positions_df = pandas.DataFrame(self.all_positions, index=['root'])
-        all_map_qualities = {}
-        df_list = []
-        for file_name in group_files:
-            sample_df, file_name_base, sample_map_qualities = self.decide_snps(file_name)
-            df_list.append(sample_df)
-            all_map_qualities.update({file_name_base: sample_map_qualities})
-        all_sample_df = pandas.concat(df_list)
-        # All positions have now been selected for each sample,
-        # so select parisomony informative SNPs.  This removes
-        # columns where all fields are the same.
-        # Add reference to top row.
-        prefilter_df = pandas.concat([ref_positions_df, all_sample_df], join='inner')
-        all_mq_df = pandas.DataFrame.from_dict(all_map_qualities)
-        mq_averages = all_mq_df.mean(axis=1).astype(int)
-        self.gather_and_filter(prefilter_df, mq_averages, group_dir)
+                group_dir = task_queue.get(block=True, timeout=timeout)
+            except queue.Empty:
+                break
+            # Parse all vcf files to accumulate SNPs into a
+            # data frame.
+            positions_dict = {}
+            group_files = []
+            for file_name in os.listdir(os.path.abspath(group_dir)):
+                file_path = os.path.abspath(os.path.join(group_dir, file_name))
+                group_files.append(file_path)
+            for file_name in group_files:
+                try:
+                    found_positions, found_positions_mix = self.find_initial_positions(file_name)
+                    positions_dict.update(found_positions)
+                except Exception as e:
+                    self.append_to_summary("Error updating the positions_dict dictionary when processing file %s:\n%s\n" % (file_name, str(e)))
+            # Order before adding to file to match
+            # with ordering of individual samples.
+            # all_positions is abs_pos:REF
+            self.all_positions = OrderedDict(sorted(positions_dict.items()))
+            ref_positions_df = pandas.DataFrame(self.all_positions, index=['root'])
+            all_map_qualities = {}
+            df_list = []
+            for file_name in group_files:
+                sample_df, file_name_base, sample_map_qualities = self.decide_snps(file_name)
+                df_list.append(sample_df)
+                all_map_qualities.update({file_name_base: sample_map_qualities})
+            all_sample_df = pandas.concat(df_list)
+            # All positions have now been selected for each sample,
+            # so select parisomony informative SNPs.  This removes
+            # columns where all fields are the same.
+            # Add reference to top row.
+            prefilter_df = pandas.concat([ref_positions_df, all_sample_df], join='inner')
+            all_mq_df = pandas.DataFrame.from_dict(all_map_qualities)
+            mq_averages = all_mq_df.mean(axis=1).astype(int)
+            self.gather_and_filter(prefilter_df, mq_averages, group_dir)
+            task_queue.task_done()
 
     def group_vcfs(self, vcf_files):
         # Parse an excel file to produce a
@@ -382,27 +405,26 @@ class GetSnps:
             found_positions, found_positions_mix = self.find_initial_positions(vcf_file)
             samples_groups_dict = self.bin_input_files(vcf_file, samples_groups_dict, defining_snps, inverted_defining_snps, found_positions, found_positions_mix)
         # Output summary grouping table.
-        self.olfh.write('<br/>')
-        self.olfh.write('<b>Groupings with %d listed:</b><br/>\n' % len(samples_groups_dict))
-        self.olfh.write('<table  cellpadding="5" cellspaging="5" border="1">\n')
+        self.append_to_summary('<br/>')
+        self.append_to_summary('<b>Groupings with %d listed:</b><br/>\n' % len(samples_groups_dict))
+        self.append_to_summary('<table  cellpadding="5" cellspaging="5" border="1">\n')
         for key, value in samples_groups_dict.items():
-            self.olfh.write('<tr align="left"><th>Sample Name</th>\n')
-            self.olfh.write('<td>%s</td>' % key)
+            self.append_to_summary('<tr align="left"><th>Sample Name</th>\n')
+            self.append_to_summary('<td>%s</td>' % key)
             for group in value:
-                self.olfh.write('<td>%s</td>\n' % group)
-            self.olfh.write('</tr>\n')
-        self.olfh.write('</table><br/>\n')
+                self.append_to_summary('<td>%s</td>\n' % group)
+            self.append_to_summary('</tr>\n')
+        self.append_to_summary('</table><br/>\n')
 
     def initiate_summary(self, output_summary):
         # Output summary file handle.
-        self.olfh = open(output_summary, "w")
-        self.olfh.write('<html>\n')
-        self.olfh.write('<head></head>\n')
-        self.olfh.write('<body style=\"font-size:12px;">')
-        self.olfh.write("<b>Time started:</b> %s<br/>" % str(get_time_stamp()))
-        self.olfh.write("<b>Number of VCF inputs:</b> %d<br/>" % len(self.vcf_files))
-        self.olfh.write("<b>Reference:</b> %s<br/>" % str(self.reference))
-        self.olfh.write("<b>All isolates:</b> %s<br/>" % str(self.all_isolates))
+        self.append_to_summary('<html>\n')
+        self.append_to_summary('<head></head>\n')
+        self.append_to_summary('<body style=\"font-size:12px;">')
+        self.append_to_summary("<b>Time started:</b> %s<br/>" % str(get_time_stamp()))
+        self.append_to_summary("<b>Number of VCF inputs:</b> %d<br/>" % self.num_files)
+        self.append_to_summary("<b>Reference:</b> %s<br/>" % str(self.reference))
+        self.append_to_summary("<b>All isolates:</b> %s<br/>" % str(self.all_isolates))
 
     def return_val(self, val, index=0):
         # Handle element and single-element list values.
@@ -419,49 +441,71 @@ class GetSnps:
             return 0
 
 
-parser = argparse.ArgumentParser()
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
 
-parser.add_argument('--all_isolates', action='store', dest='all_isolates', required=False, default="No", help='Create table with all isolates'),
-parser.add_argument('--excel_grouper_file', action='store', dest='excel_grouper_file', required=False, default=None, help='Optional Excel filter file'),
-parser.add_argument('--output_summary', action='store', dest='output_summary', help='Output summary html file'),
-parser.add_argument('--reference', action='store', dest='reference', help='Reference file'),
+    parser.add_argument('--all_isolates', action='store', dest='all_isolates', required=False, default="No", help='Create table with all isolates'),
+    parser.add_argument('--excel_grouper_file', action='store', dest='excel_grouper_file', required=False, default=None, help='Optional Excel filter file'),
+    parser.add_argument('--output_summary', action='store', dest='output_summary', help='Output summary html file'),
+    parser.add_argument('--reference', action='store', dest='reference', help='Reference file'),
+    parser.add_argument('--processes', action='store', dest='processes', type=int, help='User-selected number of processes to use for job splitting')
 
-args = parser.parse_args()
+    args = parser.parse_args()
 
-# Initializations - TODO: should these be passed in as command line args?
-ac = 2
-mq_val = 56
-n_threshold = 50
-qual_threshold = 150
-# Build the list of sample vcf files for the current run.
-vcf_files = []
-for file_name in os.listdir(INPUT_VCF_DIR):
-    file_path = os.path.abspath(os.path.join(INPUT_VCF_DIR, file_name))
-    vcf_files.append(file_path)
-# Initialize the snp_finder object.
-snp_finder = GetSnps(vcf_files, args.reference, args.excel_grouper_file, args.all_isolates,
-                     ac, mq_val, n_threshold, qual_threshold, args.output_summary)
-# Initialize the set of directories containiing vcf files for analysis.
-vcf_dirs = []
-if args.excel_grouper_file is None:
-    vcf_dirs = setup_all_vcfs(vcf_files, vcf_dirs)
-    for vcf_dir in vcf_dirs:
-        snp_finder.get_snps(vcf_dir)
-else:
-    if args.all_isolates.lower() == "yes":
+    # Initializations - TODO: should these be passed in as command line args?
+    ac = 2
+    mq_val = 56
+    n_threshold = 50
+    qual_threshold = 150
+
+    # Build the list of sample vcf files for the current run.
+    vcf_files = []
+    for file_name in os.listdir(INPUT_VCF_DIR):
+        file_path = os.path.abspath(os.path.join(INPUT_VCF_DIR, file_name))
+        vcf_files.append(file_path)
+
+    multiprocessing.set_start_method('spawn')
+    queue1 = multiprocessing.JoinableQueue()
+    num_files = len(vcf_files)
+    cpus = set_num_cpus(num_files, args.processes)
+    # Set a timeout for get()s in the queue.
+    timeout = 0.05
+
+    # Initialize the snp_finder object.
+    snp_finder = SnpFinder(num_files, args.reference, args.excel_grouper_file, args.all_isolates,
+                           ac, mq_val, n_threshold, qual_threshold, args.output_summary)
+
+    # Initialize the set of directories containiing vcf files for analysis.
+    vcf_dirs = []
+    if args.excel_grouper_file is None:
         vcf_dirs = setup_all_vcfs(vcf_files, vcf_dirs)
-    # Parse the Excel file to detemine groups for filtering.
-    snp_finder.group_vcfs(vcf_files)
-    # Append the list of group directories created by
-    # the above call to the set of directories containing
-    # vcf files for analysis
-    group_dirs = [d for d in os.listdir(os.getcwd()) if os.path.isdir(d) and d in snp_finder.groups]
-    vcf_dirs.extend(group_dirs)
+    else:
+        if args.all_isolates.lower() == "yes":
+            vcf_dirs = setup_all_vcfs(vcf_files, vcf_dirs)
+        # Parse the Excel file to detemine groups for filtering.
+        snp_finder.group_vcfs(vcf_files)
+        # Append the list of group directories created by
+        # the above call to the set of directories containing
+        # vcf files for analysis
+        group_dirs = [d for d in os.listdir(os.getcwd()) if os.path.isdir(d) and d in snp_finder.groups]
+        vcf_dirs.extend(group_dirs)
+
+    # Populate the queue for job splitting.
     for vcf_dir in vcf_dirs:
-        snp_finder.get_snps(vcf_dir)
-# Finish summary log.
-snp_finder.olfh.write("<br/><b>Time finished:</b> %s<br/>\n" % get_time_stamp())
-total_run_time = datetime.now() - snp_finder.timer_start
-snp_finder.olfh.write("<br/><b>Total run time:</b> %s<br/>\n" % str(total_run_time))
-snp_finder.olfh.write('</body>\n</html>\n')
-snp_finder.olfh.close()
+        queue1.put(vcf_dir)
+
+    # Complete the get_snps task.
+    processes = [multiprocessing.Process(target=snp_finder.get_snps, args=(queue1, timeout, )) for _ in range(cpus)]
+    for p in processes:
+        p.start()
+    for p in processes:
+        p.join()
+    queue1.join()
+
+    # Finish summary log.
+    snp_finder.append_to_summary("<br/><b>Time finished:</b> %s<br/>\n" % get_time_stamp())
+    total_run_time = datetime.now() - snp_finder.timer_start
+    snp_finder.append_to_summary("<br/><b>Total run time:</b> %s<br/>\n" % str(total_run_time))
+    snp_finder.append_to_summary('</body>\n</html>\n')
+    with open(args.output_summary, "w") as fh:
+        fh.write("%s" % snp_finder.summary_str)
