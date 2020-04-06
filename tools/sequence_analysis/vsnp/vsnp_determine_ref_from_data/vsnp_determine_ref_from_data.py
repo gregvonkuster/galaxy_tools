@@ -228,10 +228,15 @@ def output_files(task_queue, timeout):
         task_queue.task_done()
 
 
-def set_num_cpus(processes):
+def set_num_cpus(num_files, processes):
     num_cpus = int(multiprocessing.cpu_count())
+    if num_files < num_cpus and num_files < processes:
+        return num_files
     if num_cpus < processes:
-        return int(num_cpus / 2)
+        half_cpus = int(num_cpus / 2)
+        if num_files < half_cpus:
+            return num_files
+        return half_cpus
     return processes
 
 
@@ -274,7 +279,7 @@ if __name__ == '__main__':
     queue1 = multiprocessing.JoinableQueue()
     queue2 = multiprocessing.JoinableQueue()
     num_files = len(fastq_list)
-    cpus = set_num_cpus(args.processes)
+    cpus = set_num_cpus(num_files, args.processes)
     # Set a timeout for get()s in the queue.
     timeout = 0.05
 
