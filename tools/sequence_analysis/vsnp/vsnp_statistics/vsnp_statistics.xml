@@ -59,6 +59,7 @@ mkdir -p $output_dir &&
     #end for
 #end if
 python '$__tool_directory__/vsnp_statistics.py'
+--processes $processes
 --dbkey '$dbkey'
 --gzipped '$gzipped'
 #if str($input_type) == "single":
@@ -106,6 +107,7 @@ python '$__tool_directory__/vsnp_statistics.py'
                 <param name="azc_metrics_collection" type="data_collection" format="tabular" collection_type="list" label="Collection of vSNP zero-coverage metrics files"/>
             </when>
         </conditional>
+        <param name="processes" type="integer" min="1" max="12" value="8" label="Number of processes for job splitting"/>
     </inputs>
     <outputs>
         <data name="output" format="tabular">
@@ -136,6 +138,7 @@ of coverage, good SNP count and more.
 **Required options**
 
  * **Choose the type for files to be analyzed** - select "Single files" or "Collections of files", then select the appropriate history items (single or paired fastqsanger reads or collections of fastqsanger reads and associated idxstats and vSNP zero coverage metrics files) based on the selected option..
+ * **Number of processes for job splitting** - Select the number of processes for splitting the job to shorten execution time.
     </help>
     <citations>
         <citation type="bibtex">
