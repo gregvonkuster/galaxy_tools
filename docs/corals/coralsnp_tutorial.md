@@ -19,37 +19,37 @@ The process is straightforward.  Each of the following steps will be discussed i
 The metadata file for the run describes the samples being analyzed by providing important information about them.  The Baums' Lab website provides an [Excel spreadsheet template](http://baumslab.org/documents/SNPChip/STAG_Metadata_Template_v3.xlsm) that can be downloaded and used for each sample run.  Some of the data is optional - here are some details about the columns in the spreadsheet template.
 
  - **user_specimen_id** (required) - user-specific identifier for each sample
- - **field_call** (optional)
+ - **field_call** (optional) - species identified in the field
  - **bcoral_genet_id** (optional) - the Baums' lab coral genet id, deprecated but remains for backward compability with earlier analyses
  - **bsym_genet_id** (optional) - the Baums' lab symbiont genet id, deprecated but remains for backward compability with earlier analyses
  - **reef** (required) - the name of the reef from which the samples were collected
  - **region** (required) - the geographic region in which the reef is located
  - **latitude** (required) - the latitude (in decimal degrees) where the sample was collected
  - **longitude** (required) - the longitude (in decimal degrees) where the sample was colected
- - **geographic_origin** (optional) - where the sample was taken (must be either *"colony"* or *"reef"*), defaults to *"reef*"
- - **colony_location** (optional)
+ - **geographic_origin** (optional) - how the geographic coordinates are associated with the sample (must be either "colony" or "reef"), defaults to "reef"
+ - **colony_location** (optional) - select list includes apical tip, mid-branch, base, sperm, eggs, larva, symbiont and unknown
  - **depth** (optional) - depth (in meters) from surface where the samples was taken, must be decimal value
- - **disease_resist** (optional)
- - **bleach_resist** (optional)
- - **mortality** (optional)
- - **tle** (optional)
- - **spawning** (optional)
+ - **disease_resist** (optional) - percent diseased of the parent colony where the sample was taken
+ - **bleach_resist** (optional) - percent bleached of the parent colony where the sample was taken
+ - **mortality** (optional) - average percent mortality for the genet if known
+ - **tle** (optional) - total linear extension growth estimate (mg/cm2/d) if known
+ - **spawning** (optional) - whether spawning has been observed from this genotype
  - **collector_last_name** (required) - the last name of the collector
  - **collector_first_name** (required) - the first name of the collector
  - **org** (required) - the organization for which the collector is working
  - **collection_date** (required) - the date (format yyyy-mm-dd) when the sample was collected
  - **contact_email** (required) - the collector's email address
  - **seq_facility** (required) - the facility sequencing the samples
- - **array_version** (optional)
+ - **array_version** (optional) - currently only v 1.0 is available
  - **public** (optional) - whether the information about the samples is public, defaults to *"Yes"*
  - **public_after_date** (optional) - the date at which information about the samples can be made public, defaults to the current day
- - **sperm_motility** (required)
- - **healing_time** (required)
- - **dna_extraction_method** (optional) - method used to extract the sample's dna
- - **dna_concentration** (optional) - dna concentration in ug
- - **registry_id** (optional)
- - **result_folder_name** (optional)
- - **plate_barcode** (optional)
+ - **sperm_motility** (required) - percent sperm motility observed
+ - **healing_time** (required) - average time in days of recovery after intentional wounding or fragmentation
+ - **dna_extraction_method** (optional) - method used to extract the sample's DNA
+ - **dna_concentration** (optional) - DNA concentration in ng/ul measured with Qubit or PicoGreen
+ - **registry_id** (optional) - coming soon!
+ - **result_folder_name** (optional) - folder name of the results
+ - **plate_barcode** (optional) - plate barcode
 
 
 It is crucial that the information in this sample metadata file is correct since the analysis pipeline will store portions of it in both current and future analyses for comparison and other uses.  The Excel spreadsheet doesn't validate the information, so care must be taken when entering the data.
