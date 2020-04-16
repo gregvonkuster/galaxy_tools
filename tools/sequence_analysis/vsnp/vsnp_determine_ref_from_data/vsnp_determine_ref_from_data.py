@@ -212,21 +212,21 @@ def output_files(task_queue, timeout):
             output_file = os.path.join(OUTPUT_DBKEY_DIR, "%s.txt" % base_file_name)
             with open(output_file, "w") as fh:
                 fh.write("%s" % dbkey)
-            # Output metrics.
-            output_file = os.path.join(OUTPUT_METRICS_DIR, "%s.txt" % base_file_name)
-            with open(output_file, "w") as fh:
-                fh.write("Sample: %s\n" % base_file_name)
-                fh.write("Brucella counts: ")
-                for i in count_list[:16]:
-                    fh.write("%d," % i)
-                fh.write("\nTB counts: ")
-                for i in count_list[16:24]:
-                    fh.write("%d," % i)
-                fh.write("\nPara counts: ")
-                for i in count_list[24:]:
-                    fh.write("%d," % i)
-                fh.write("\nGroup: %s" % group)
-                fh.write("\ndbkey: %s\n" % dbkey)
+        # Output metrics.
+        output_file = os.path.join(OUTPUT_METRICS_DIR, "%s.txt" % base_file_name)
+        with open(output_file, "w") as fh:
+            fh.write("Sample: %s\n" % base_file_name)
+            fh.write("Brucella counts: ")
+            for i in count_list[:16]:
+                fh.write("%d," % i)
+            fh.write("\nTB counts: ")
+            for i in count_list[16:24]:
+                fh.write("%d," % i)
+            fh.write("\nPara counts: ")
+            for i in count_list[24:]:
+                fh.write("%d," % i)
+            fh.write("\nGroup: %s" % group)
+            fh.write("\ndbkey: %s\n" % dbkey)
         task_queue.task_done()
 
 
