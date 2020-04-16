@@ -286,9 +286,17 @@ class SnpFinder:
             self.append_to_summary("%s<br/>\n" % msg)
 
     def get_base_file_name(self, file_path):
-        file_name_base = os.path.basename(file_path)
-        # Eliminate the extension.
-        return os.path.splitext(file_name_base)[0]
+        base_file_name = os.path.basename(file_path)
+        if base_file_name.find(".") > 0:
+            # Eliminate the extension.
+            return os.path.splitext(base_file_name)[0]
+        elif base_file_name.find("_") > 0:
+            # The dot extension was likely changed to
+            # the " character.
+            items = base_file_name.split("_")
+            return "_".join(items[0:-1])
+        else:
+            return base_file_name
 
     def get_mq_val(self, record_info, filename):
         # Get the MQ (gatk) or MQM (freebayes) value

@@ -22,11 +22,13 @@ def get_base_file_name(file_path):
     if base_file_name.find(".") > 0:
         # Eliminate the extension.
         return os.path.splitext(base_file_name)[0]
-    else:
+    elif base_file_name.find("_") > 0:
         # The dot extension was likely changed to
         # the " character.
         items = base_file_name.split("_")
         return "_".join(items[0:-1])
+    else:
+        return base_file_name
 
 
 def nice_size(size):
@@ -82,7 +84,7 @@ def output_read_stats(gzipped, fastq_file, ofh, sampling_number=10000, output_sa
         df = pandas.read_csv(gzip.open(fastq_file, "r"), header=None, sep="^")
     else:
         df = pandas.read_csv(open(fastq_file, "r"), header=None, sep="^")
-    total_read_count = int(len(df.index)/4)
+    total_read_count = int(len(df.index) / 4)
     # Readx Total Reads
     ofh.write("%s Total Reads%s%s\n" % (read, SEP, total_read_count))
     # Mean Read Length
@@ -104,7 +106,7 @@ def output_read_stats(gzipped, fastq_file, ofh, sampling_number=10000, output_sa
     ofh.write("%s Mean Read Quality%s%s\n" % (read, SEP, "%.1f" % df_mean['ave'].mean()))
     # Reads Passing Q30
     reads_gt_q30 = len(df_mean[df_mean['ave'] >= 30])
-    reads_passing_q30 = "{:10.2f}".format(reads_gt_q30/sampling_size)
+    reads_passing_q30 = "{:10.2f}".format(reads_gt_q30 / sampling_size)
     ofh.write("%s reads passing Q30%s%s\n" % (read, SEP, reads_passing_q30))
     return total_read_count
 
@@ -135,7 +137,7 @@ def output_statistics(task_queue, read2, collection, gzipped, dbkey, timeout):
                         ofh.write("Unmapped Reads%s%d\n" % (SEP, unmapped_reads))
                 percent_str = "Unmapped Reads Percentage of Total"
                 if unmapped_reads > 0:
-                    unmapped_reads_percentage = "{:10.2f}".format(unmapped_reads/total_reads)
+                    unmapped_reads_percentage = "{:10.2f}".format(unmapped_reads / total_reads)
                     ofh.write("%s%s%s\n" % (percent_str, SEP, unmapped_reads_percentage))
                 else:
                     ofh.write("%s%s0\n" % (percent_str, SEP))

@@ -84,7 +84,7 @@ def excel_formatter(json_file_name, excel_file_name, group, annotation_dict):
     ws.freeze_panes(2, 1)
     format_annotation = writer_book.add_format({'font_color': '#0A028C', 'rotation': '-90', 'align': 'top'})
     # Set last row.
-    ws.set_row(rows+1, cols+1, format_annotation)
+    ws.set_row(rows + 1, cols + 1, format_annotation)
     # Make sure that row/column locations don't overlap.
     ws.conditional_format(rows - 2, 1, rows - 1, cols, {'type': 'cell', 'criteria': '<', 'value': 55, 'format': formatlowqual})
     ws.conditional_format(2, 1, rows - 2, cols, {'type': 'cell', 'criteria': '==', 'value': 'B$2', 'format': format_normal})
@@ -148,11 +148,13 @@ def get_base_file_name(file_path):
     if base_file_name.find(".") > 0:
         # Eliminate the extension.
         return os.path.splitext(base_file_name)[0]
-    else:
+    elif base_file_name.find("_") > 0:
         # The dot extension was likely changed to
         # the " character.
         items = base_file_name.split("_")
         return "_".join(items[0:-1])
+    else:
+        return base_file_name
 
 
 def output_cascade_table(cascade_order, mqdf, group, annotation_dict):
