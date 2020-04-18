@@ -86,7 +86,7 @@ python '$__tool_directory__/vsnp_determine_ref_from_data.py'
                 <param name="reads_collection" type="data_collection" format="fastqsanger,fastqsanger.gz" collection_type="list" label="Collection of fastqsanger files"/>
             </when>
         </conditional>
-        <param name="processes" type="integer" min="1" max="20" value="20" label="Number of processes for job splitting"/>
+        <param name="processes" type="integer" min="1" max="20" value="8" label="Number of processes for job splitting"/>
     </inputs>
     <outputs>
         <data name="output_dbkey" format="txt"  label="${tool.name} (dbkey) on ${on_string}">
