@@ -228,7 +228,7 @@ def output_files(fastq_file, count_list, group, dbkey, dbkey_file=None, metrics_
         if base_file_name.find("_") > 0:
             base_file_name = base_file_name.split("_")[0]
     output_dbkey(base_file_name, dbkey, dbkey_file)
-    output_metrics(base_file_name, count_list, metrics_file)
+    output_metrics(base_file_name, count_list, group, dbkey, metrics_file)
 
 
 def output_files_for_collection(task_queue, timeout):
@@ -242,7 +242,7 @@ def output_files_for_collection(task_queue, timeout):
         task_queue.task_done()
 
 
-def output_metrics(file_name, count_list, output_file=None):
+def output_metrics(file_name, count_list, group, dbkey, output_file=None):
     # Output the metrics.
     if output_file is None:
         # We're producing a dataset collection.
