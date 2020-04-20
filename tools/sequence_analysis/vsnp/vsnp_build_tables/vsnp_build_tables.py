@@ -198,7 +198,7 @@ def output_sort_table(cascade_order, mqdf, group, annotation_dict):
 
 
 def output_table(df, type_str, group, annotation_dict):
-    if group == "dataset":
+    if isinstance(group, str) and group.startswith("dataset"):
         # Inputs are single files, not collections,
         # so input file names are not useful for naming
         # output files.

@@ -150,12 +150,12 @@ python '$__tool_directory__/vsnp_build_tables.py'
             </param>
             <param name="gbk_param" value="no"/>
             <output_collection name="excel" type="list">
-                <element name="Mbovis-01D6_cascade_table.xlsx" file="Mbovis-01D6_cascade_table.xlsx" ftype="xlsx" compare="sim_size"/>
-                <element name="Mbovis-01D6_sort_table.xlsx" file="Mbovis-01D6_sort_table.xlsx" ftype="xlsx" compare="sim_size"/>
-                <element name="Mbovis-01D_cascade_table.xlsx" file="Mbovis-01D_cascade_table.xlsx" ftype="xlsx" compare="sim_size"/>
-                <element name="Mbovis-01D_sort_table.xlsx" file="Mbovis-01D_sort_table.xlsx" ftype="xlsx" compare="sim_size"/>
-                <element name="Mbovis-01_cascade_table.xlsx" file="Mbovis-01_cascade_table.xlsx" ftype="xlsx" compare="sim_size"/>
-                <element name="Mbovis-01_sort_table.xlsx" file="Mbovis-01_sort_table.xlsx" ftype="xlsx" compare="sim_size"/>
+                <element name="Mbovis-01D6_snps_cascade_table.xlsx" file="Mbovis-01D6_cascade_table.xlsx" ftype="xlsx" compare="sim_size"/>
+                <element name="Mbovis-01D6_snps_sort_table.xlsx" file="Mbovis-01D6_sort_table.xlsx" ftype="xlsx" compare="sim_size"/>
+                <element name="Mbovis-01D_snps_cascade_table.xlsx" file="Mbovis-01D_cascade_table.xlsx" ftype="xlsx" compare="sim_size"/>
+                <element name="Mbovis-01D_snps_sort_table.xlsx" file="Mbovis-01D_sort_table.xlsx" ftype="xlsx" compare="sim_size"/>
+                <element name="Mbovis-01_snps_cascade_table.xlsx" file="Mbovis-01_cascade_table.xlsx" ftype="xlsx" compare="sim_size"/>
+                <element name="Mbovis-01_snps_sort_table.xlsx" file="Mbovis-01_sort_table.xlsx" ftype="xlsx" compare="sim_size"/>
             </output_collection>
         </test>
     </tests>
