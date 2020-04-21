@@ -1,10 +1,10 @@
 name: vsnp_determine_ref_from_data
 owner: greg
 description: |
-  Contains a tool that gathers information from a vcf file and then inspects all cached bacterial genome references to determine the primary species within the vcf file.
+  Contains a tool that sniffs bacterial genome samples to discover the primary species within the sample.
 homepage_url: https://github.com/USDA-VS/vSNP
 long_description: |
-  Contains a tool that gathers information from a vcf file and then inspects all cached bacterial genome references to determine the primary species within the vcf file.
+  Contains a tool that sniffs bacterial genome samples to discover the primary species within the sample.
 remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/sequence_analysis/vsnp/vsnp_determine_ref_from_data
 type: unrestricted
 categories:
