@@ -110,13 +110,7 @@ python '$__tool_directory__/vsnp_statistics.py'
         <param name="processes" type="integer" min="1" max="20" value="8" label="Number of processes for job splitting"/>
     </inputs>
     <outputs>
-        <data name="output" format="tabular">
-            <filter>input_type_cond['input_type'] == 'single'</filter>
-        </data>
-        <collection name="output_collection" type="list">
-            <discover_datasets pattern="__name__" directory="output" format="tabular" />
-            <filter>input_type_cond['input_type'] == 'collection'</filter>
-        </collection>
+        <data name="output" format="xlsx"/>
     </outputs>
     <tests>
         <test>
@@ -124,7 +118,7 @@ python '$__tool_directory__/vsnp_statistics.py'
             <param name="read2" value="13-1941-6_S4_L001_R2_600000.fastq.gz" ftype="fastqsanger.gz" dbkey="89"/>
             <param name="samtools_idxstats" value="samtools_idxstats.tabular" ftype="tabular" dbkey="89"/>
             <param name="vsnp_azc" value="add_zc_metrics.tabular" ftype="tabular" dbkey="89"/>
-            <output name="output" file="vsnp_statistics.tabular" ftype="tabular" compare="contains"/>
+            <output name="output" file="vsnp_statistics.xlsx" ftype="xlsx" compare="contains"/>
         </test>
     </tests>
     <help>
