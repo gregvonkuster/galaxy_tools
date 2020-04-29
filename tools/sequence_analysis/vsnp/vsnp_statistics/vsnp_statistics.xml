@@ -116,7 +116,7 @@ python '$__tool_directory__/vsnp_statistics.py'
             <param name="read2" value="13-1941-6_S4_L001_R2_600000.fastq.gz" ftype="fastqsanger.gz" dbkey="89"/>
             <param name="samtools_idxstats" value="samtools_idxstats.tabular" ftype="tabular" dbkey="89"/>
             <param name="vsnp_azc" value="add_zc_metrics.tabular" ftype="tabular" dbkey="89"/>
-            <output name="output" file="vsnp_statistics.xlsx" ftype="xlsx" compare="contains"/>
+            <output name="output" file="vsnp_statistics.xlsx" ftype="xlsx" compare="sim_size"/>
         </test>
     </tests>
     <help>
