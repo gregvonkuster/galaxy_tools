@@ -2,32 +2,15 @@
 
 import argparse
 import gzip
-import multiprocessing
 import numpy
 import os
 import pandas
-import queue
+import shutil
 
 INPUT_IDXSTATS_DIR = 'input_idxstats'
 INPUT_METRICS_DIR = 'input_metrics'
 INPUT_READS_DIR = 'input_reads'
-OUTPUT_DIR = 'output'
 QUALITYKEY = {'!':'0', '"':'1', '#':'2', '$':'3', '%':'4', '&':'5', "'":'6', '(':'7', ')':'8', '*':'9', '+':'10', ',':'11', '-':'12', '.':'13', '/':'14', '0':'15', '1':'16', '2':'17', '3':'18', '4':'19', '5':'20', '6':'21', '7':'22', '8':'23', '9':'24', ':':'25', ';':'26', '<':'27', '=':'28', '>':'29', '?':'30', '@':'31', 'A':'32', 'B':'33', 'C':'34', 'D':'35', 'E':'36', 'F':'37', 'G':'38', 'H':'39', 'I':'40', 'J':'41', 'K':'42', 'L':'43', 'M':'44', 'N':'45', 'O':'46', 'P':'47', 'Q':'48', 'R':'49', 'S':'50', 'T':'51', 'U':'52', 'V':'53', 'W':'54', 'X':'55', 'Y':'56', 'Z':'57', '_':'1', ']':'1', '[':'1', '\\':'1', '\n':'1', '`':'1', 'a':'1', 'b':'1', 'c':'1', 'd':'1', 'e':'1', 'f':'1', 'g':'1', 'h':'1', 'i':'1', 'j':'1', 'k':'1', 'l':'1', 'm':'1', 'n':'1', 'o':'1', 'p':'1', 'q':'1', 'r':'1', 's':'1', 't':'1', 'u':'1', 'v':'1', 'w':'1', 'x':'1', 'y':'1', 'z':'1', ' ':'1'}
-READCOLUMNS = ['Sample', 'Reference', 'Fastq File', 'Size', 'Total Reads', 'Mean Read Length', 'Mean Read Quality', 'Reads Passing Q30']
-SEP = "\t"
-
-
-def append_to_excel(output_file, df):
-    # Append a DataFrame to an existing Excel file,
-    # creating the file if is doesn't exist.
-    if os.path.getsize(output_file) > 0:
-        existing_df = pandas.read_excel(output_file)
-        appended_df = pandas.concat([existing_df, df], ignore_index=True)
-        appended_df.to_excel(output_file, index=False)
-    else:
-        writer = pandas.ExcelWriter(output_file, engine='xlsxwriter')
-        df.to_excel(writer, sheet_name='Sheet1')
-        writer.save()
 
 
 def fastq_to_df(fastq_file, gzipped):
@@ -72,39 +55,25 @@ def nice_size(size):
     return '??? bytes'
 
 
-def output_statistics(task_queue, gzipped, dbkey, output_file, timeout):
+def output_statistics(reads_files, idxstats_files, metrics_files, output_file, gzipped, dbkey):
     # Produce an Excel spreadsheet that
     # contains a row for each sample.
-    while True:
-        try:
-            tup = task_queue.get(block=True, timeout=timeout)
-        except queue.Empty:
-            break
-        fastq_file, idxstats_file, metrics_file = tup
+    columns = ['Reference', 'File Size', 'Mean Read Length', 'Mean Read Quality', 'Reads Passing Q30',
+               'Total Reads', 'All Mapped Reads', 'Unmapped Reads', 'Unmapped Reads Percentage of Total',
+               'Reference with Coverage', 'Average Depth of Coverage', 'Good SNP Count']
+    data_frames = []
+    for i, fastq_file in enumerate(reads_files):
+        idxstats_file = idxstats_files[i]
+        metrics_file = metrics_files[i]
         file_name_base = os.path.basename(fastq_file)
-        columns = ['Sample', 'Reference', 'File', 'File Size', 'Mean Read Length',
-                   'Mean Read Quality', 'Reads Passing Q30', 'Total Reads', 'All Mapped Reads',
-                   'Unmapped Reads', 'Unmapped Reads Percentage of Total', 'Reference with Coverage',
-                   'Average Depth of Coverage', 'Good SNP Count']
-        output_df = pandas.DataFrame(index=[file_name_base], columns=columns)
-        output_df.index.name = 'sample'
-        try:
-            # Illumina read file names are something like:
-            # 13-1941-6_S4_L001_R1_600000_fastq_gz
-            sample = file_name_base.split("_")[0]
-        except Exception:
-            sample = ""
         # Read fastq_file into a data frame.
         fastq_df = fastq_to_df(fastq_file, gzipped)
         total_reads = int(len(fastq_df.index) / 4)
-        # Sample
-        output_df.at[file_name_base, 'Sample'] = sample
+        current_sample_df = pandas.DataFrame(index=[file_name_base], columns=columns)
         # Reference
-        output_df.at[file_name_base, 'Reference'] = dbkey
-        # File
-        output_df.at[file_name_base, 'File'] = "Read File%s%s" % (SEP, file_name_base)
+        current_sample_df.at[file_name_base, 'Reference'] = dbkey
         # File Size
-        output_df.at[file_name_base, 'File Size'] = nice_size(os.path.getsize(fastq_file))
+        current_sample_df.at[file_name_base, 'File Size'] = nice_size(os.path.getsize(fastq_file))
         # Mean Read Length
         sampling_size = 10000
         if sampling_size > total_reads:
@@ -118,36 +87,41 @@ def output_statistics(task_queue, gzipped, dbkey, output_file, timeout):
                 base_qualities.append(int(QUALITYKEY[base]))
             dict_mean[index] = numpy.mean(base_qualities)
             list_length.append(len(row.array[0]))
-        output_df.at[file_name_base, 'Mean Read Length'] = "%.1f" % numpy.mean(list_length)
+        current_sample_df.at[file_name_base, 'Mean Read Length'] = "%.1f" % numpy.mean(list_length)
         # Mean Read Quality
         df_mean = pandas.DataFrame.from_dict(dict_mean, orient='index', columns=['ave'])
-        output_df.at[file_name_base, 'Mean Read Quality'] = "%.1f" % df_mean['ave'].mean()
+        current_sample_df.at[file_name_base, 'Mean Read Quality'] = "%.1f" % df_mean['ave'].mean()
         # Reads Passing Q30
         reads_gt_q30 = len(df_mean[df_mean['ave'] >= 30])
         reads_passing_q30 = "{:10.2f}".format(reads_gt_q30 / sampling_size)
-        output_df.at[file_name_base, 'Reads Passing Q30'] = reads_passing_q30
+        current_sample_df.at[file_name_base, 'Reads Passing Q30'] = reads_passing_q30
         # Total Reads
-        output_df.at[file_name_base, 'Total Reads'] = total_reads
+        current_sample_df.at[file_name_base, 'Total Reads'] = total_reads
         # All Mapped Reads
         all_mapped_reads, unmapped_reads = process_idxstats_file(idxstats_file)
-        output_df.at[file_name_base, 'All Mapped Reads'] = all_mapped_reads
+        current_sample_df.at[file_name_base, 'All Mapped Reads'] = all_mapped_reads
         # Unmapped Reads
-        output_df.at[file_name_base, 'Unmapped Reads'] = unmapped_reads
+        current_sample_df.at[file_name_base, 'Unmapped Reads'] = unmapped_reads
         # Unmapped Reads Percentage of Total
         if unmapped_reads > 0:
             unmapped_reads_percentage = "{:10.2f}".format(unmapped_reads / total_reads)
         else:
             unmapped_reads_percentage = 0
-        output_df.at[file_name_base, 'Unmapped Reads Percentage of Total'] = unmapped_reads_percentage
+        current_sample_df.at[file_name_base, 'Unmapped Reads Percentage of Total'] = unmapped_reads_percentage
         # Reference with Coverage
         ref_with_coverage, avg_depth_of_coverage, good_snp_count = process_metrics_file(metrics_file)
-        output_df.at[file_name_base, 'Reference with Coverage'] = ref_with_coverage
+        current_sample_df.at[file_name_base, 'Reference with Coverage'] = ref_with_coverage
         # Average Depth of Coverage
-        output_df.at[file_name_base, 'Average Depth of Coverage'] = avg_depth_of_coverage
+        current_sample_df.at[file_name_base, 'Average Depth of Coverage'] = avg_depth_of_coverage
         # Good SNP Count
-        output_df.at[file_name_base, 'Good SNP Count'] = good_snp_count
-        append_to_excel(output_file, output_df)
-        task_queue.task_done()
+        current_sample_df.at[file_name_base, 'Good SNP Count'] = good_snp_count
+        data_frames.append(current_sample_df)
+    excel_df = pandas.concat(data_frames)
+    excel_file_name = "output.xlsx"
+    writer = pandas.ExcelWriter(excel_file_name, engine='xlsxwriter')
+    excel_df.to_excel(writer, sheet_name='Sheet1')
+    writer.save()
+    shutil.move(excel_file_name, output_file)
 
 
 def process_idxstats_file(idxstats_file):
@@ -178,23 +152,11 @@ def process_metrics_file(metrics_file):
             if i == 1:
                 # MarkDuplicates 10.338671 98.74%
                 ref_with_coverage = items[3]
-                avg_depth_of_coverage = "{:10.2f}".format(items[2])
+                avg_depth_of_coverage = items[2]
             elif i == 2:
                 # VCFfilter 611
                 good_snp_count = items[1]
     return ref_with_coverage, avg_depth_of_coverage, good_snp_count
-
-
-def set_num_cpus(num_files, processes):
-    num_cpus = int(multiprocessing.cpu_count())
-    if num_files < num_cpus and num_files < processes:
-        return num_files
-    if num_cpus < processes:
-        half_cpus = int(num_cpus / 2)
-        if num_files < half_cpus:
-            return num_files
-        return half_cpus
-    return processes
 
 
 if __name__ == '__main__':
@@ -205,16 +167,16 @@ if __name__ == '__main__':
     parser.add_argument('--dbkey', action='store', dest='dbkey', help='Reference dbkey')
     parser.add_argument('--gzipped', action='store', dest='gzipped', help='Input files are gzipped')
     parser.add_argument('--samtools_idxstats', action='store', dest='samtools_idxstats', required=False, default=None, help='Output of samtools_idxstats')
-    parser.add_argument('--output', action='store', dest='output', required=False, default=None, help='Output Excel statistics file')
+    parser.add_argument('--output', action='store', dest='output', help='Output Excel statistics file')
     parser.add_argument('--vsnp_azc', action='store', dest='vsnp_azc', required=False, default=None, help='Output of vsnp_add_zero_coverage')
-    parser.add_argument('--processes', action='store', dest='processes', type=int, help='User-selected number of processes to use for job splitting')
 
     args = parser.parse_args()
+    print("args:\n%s\n" % str(args))
 
     reads_files = []
     idxstats_files = []
     metrics_files = []
-    # We'll accumulates each output
+    # Accumulate inputs.
     if args.read1 is not None:
         # The inputs are not dataset collections, so
         # read1, read2 (possibly) and vsnp_azc will also
@@ -237,27 +199,4 @@ if __name__ == '__main__':
         for file_name in sorted(os.listdir(INPUT_METRICS_DIR)):
             file_path = os.path.abspath(os.path.join(INPUT_METRICS_DIR, file_name))
             metrics_files.append(file_path)
-
-    multiprocessing.set_start_method('spawn')
-    queue1 = multiprocessing.JoinableQueue()
-    num_files = len(reads_files)
-    cpus = set_num_cpus(num_files, args.processes)
-    # Set a timeout for get()s in the queue.
-    timeout = 0.05
-
-    for i, read_file in enumerate(reads_files):
-        idxstats_file = idxstats_files[i]
-        metrics_file = metrics_files[i]
-        queue1.put((read_file, idxstats_file, metrics_file))
-
-    # Complete the output_statistics task.
-    processes = [multiprocessing.Process(target=output_statistics, args=(queue1, args.gzipped, args.dbkey, args.output, timeout, )) for _ in range(cpus)]
-    for p in processes:
-        p.start()
-    for p in processes:
-        p.join()
-    queue1.join()
-
-    if queue1.empty():
-        queue1.close()
-        queue1.join_thread()
+    output_statistics(reads_files, idxstats_files, metrics_files, args.output, args.gzipped, args.dbkey)
