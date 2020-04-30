@@ -1,7 +1,6 @@
 <tool id="vsnp_statistics" name="vSNP: statistics" version="1.0.0">
     <description></description>
     <requirements>
-        <requirement type="package" version="0.5.1">humanize</requirement>
         <requirement type="package" version="1.16.5">numpy</requirement>
         <requirement type="package" version="0.25.3">pandas</requirement>
         <requirement type="package" version="1.2.0">xlrd</requirement>
@@ -122,10 +121,11 @@ python '$__tool_directory__/vsnp_statistics.py'
     <help>
 **What it does**
 
-Accepts a single fastqsanger read, a set of paired reads, or a collections of reads along with associated SAMtools
-idxstats and vSNP zero coverage metrics files and extracts information from the files to produce a tabular statistics
-dataset that includes total reads, mean read length and quality, reads passing Q30, mapped and unmapped reads, depth
-of coverage, good SNP count and more.
+Accepts a single fastqsanger sample, a set of paired read samples, or a collections of samples along with associated
+SAMtools idxstats and vSNP zero coverage metrics files and extracts information from them to produce an Excel
+spreadsheet containing statistics for each sample.  Statistics include reference, file size, mean read length, mean
+read quality, reads passing Q30, total reads, all mapped reads, unmapped reads, unmapped reads percentage of total,
+reference with coverage, average depth of coverage and good SNP count.
 
 **Required options**
 

@@ -1,10 +1,12 @@
 name: vsnp_statistics
 owner: greg
 description: |
-  Contains a tool that outputs statistics on VCF files.
+  Contains a tool that produces an Excel spreadsheet containing statistics for samples and associated metrics files.
 homepage_url: https://github.com/USDA-VS/vSNP
 long_description: |
-  Contains a tool that outputs statistics on VCF files.
+  Contains a tool Accepts a single fastqsanger sample, a set of paired read samples, or a collections of samples
+  along with associated SAMtools idxstats and vSNP zero coverage metrics files and extracts information from them
+  to produce an Excel spreadsheet containing statistics for each sample.
 remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/sequence_analysis/vsnp/vsnp_statistics
 type: unrestricted
 categories:
