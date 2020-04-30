@@ -15,9 +15,10 @@ INPUT_NEWICK_DIR = 'input_newick_dir'
 # Maximum columns allowed in a LibreOffice
 # spreadsheet is 1024.  Excel allows for
 # 16,384 columns, but we'll set the lower
-# number as the maximum since Galaxy is
-# mostly run on Linux.
-MAXCOLS = 10000
+# number as the maximum.  Some browsers
+# (e.g., Firefox on Linux) are configured
+# to use LibreOffice for Excel spreadsheets.
+MAXCOLS = 1024
 OUTPUT_EXCEL_DIR = 'output_excel_dir'
 
 
@@ -245,7 +246,7 @@ def preprocess_tables(task_queue, annotation_dict, timeout):
             for line in fh:
                 line = re.sub('[:,]', '\n', line)
                 line = re.sub('[)(]', '', line)
-                line = re.sub('[0-9].*\.[0-9].*\n', '', line)
+                line = re.sub(r'[0-9].*\.[0-9].*\n', '', line)
                 line = re.sub('root\n', '', line)
         sample_order = line.split('\n')
         sample_order = list([_f for _f in sample_order if _f])
