@@ -2,7 +2,6 @@
     <description></description>
     <requirements>
         <requirement type="package" version="1.76">biopython</requirement>
-        <requirement type="package" version="1.16.5">numpy</requirement>
         <requirement type="package" version="0.25.3">pandas</requirement>
         <requirement type="package" version="0.15.4">pysam</requirement>
     </requirements>
@@ -22,21 +21,21 @@ mkdir -p $output_metrics_dir &&
     #set bam_input = $input_type_cond.bam_input
     #set file_name = $bam_input.file_name
     #set file_name_base = $os.path.basename($file_name)
-    ln -s $file_name $input_bam_dir/$file_name_base &&
+    ln -s '$file_name' '$input_bam_dir/$file_name_base' &&
     #set vcf_input = $input_type_cond.vcf_input
     #set file_name = $vcf_input.file_name
     #set file_name_base = $os.path.basename($file_name)
-    ln -s $file_name $input_vcf_dir/$file_name_base &&
+    ln -s '$file_name' '$input_vcf_dir/$file_name_base' &&
 #else:
     #for $i in $input_type_cond.bam_input_collection:
         #set filename = $i.file_name
         #set identifier = re.sub('[^\s\w\-]', '_', str($i.element_identifier))
-        ln -s $filename $input_bam_dir/$identifier &&
+        ln -s '$filename' '$input_bam_dir/$identifier' &&
     #end for
     #for $i in $input_type_cond.vcf_input_collection:
         #set filename = $i.file_name
         #set identifier = re.sub('[^\s\w\-]', '_', str($i.element_identifier))
-        ln -s $filename $input_vcf_dir/$identifier &&
+        ln -s '$filename' '$input_vcf_dir/$identifier' &&
     #end for
 #end if
 python '$__tool_directory__/vsnp_add_zero_coverage.py'
@@ -141,7 +140,7 @@ python '$__tool_directory__/vsnp_add_zero_coverage.py'
             <param name="vcf_input" value="vcf_input.vcf" ftype="vcf" dbkey="89"/>
             <param name="reference_source" value="history"/>
             <param name="reference" value="NC_002945v4.fasta" ftype="fasta"/>
-            <param name="output_vcf" value="output_vcf.vcf" ftype="vcf" compare="contains"/>
+            <output name="output_vcf" value="output_vcf.vcf" ftype="vcf" compare="contains"/>
             <output name="output_metrics" file="output_metrics.tabular" ftype="tabular" compare="contains"/>
         </test>
     </tests>

@@ -8,7 +8,6 @@ import pysam
 import queue
 import re
 import shutil
-from numpy import mean
 from Bio import SeqIO
 
 INPUT_BAM_DIR = 'input_bam_dir'
