@@ -115,13 +115,13 @@ python '$__tool_directory__/vsnp_add_zero_coverage.py'
             <param name="bam_input_collection">
                 <collection type="list">
                     <element name="bam_input.bam" value="bam_input.bam" dbkey="89"/>
-                    <element name="bam_input2.bam" value="bam_input2.bam" dbkey="89"/>
+                    <element name="bam_input2.bam" value="bam_input.bam" dbkey="89"/>
                 </collection>
             </param>
             <param name="vcf_input_collection">
                 <collection type="list">
                     <element name="vcf_input.vcf" value="vcf_input.vcf" dbkey="89"/>
-                    <element name="vcf_input2.vcf" value="vcf_input2.vcf" dbkey="89"/>
+                    <element name="vcf_input2.vcf" value="vcf_input.vcf" dbkey="89"/>
                 </collection>
             </param>
             <param name="reference_source" value="history"/>
