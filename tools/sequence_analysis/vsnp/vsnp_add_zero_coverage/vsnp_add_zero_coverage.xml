@@ -39,7 +39,7 @@ mkdir -p $output_metrics_dir &&
     #end for
 #end if
 python '$__tool_directory__/vsnp_add_zero_coverage.py'
---processes $processes
+--processes \${GALAXY_SLOTS:-4}
 #if str($reference_cond.reference_source) == "cached"
     --reference '$reference_cond.reference.fields.path'
 #else:
@@ -91,7 +91,6 @@ python '$__tool_directory__/vsnp_add_zero_coverage.py'
                 </param>
             </when>
         </conditional>
-        <param name="processes" type="integer" min="1" max="20" value="8" label="Number of processes for job splitting"/>
     </inputs>
     <outputs>
         <data name="output_vcf" format="vcf"  label="${tool.name} (filtered VCF) on ${on_string}">
@@ -158,7 +157,6 @@ coverage percentage.
 
  * **Choose the category of the files to be analyzed** - select "Single files" or "Collections of files", then select the appropriate history items (single BAM and VCF files or collections of BAM and VCF files) based on the selected option.
  * **Choose the source for the reference genome** - select "locally cached" if the reference associated with the BAM and VCF files is available within the Galaxy environment or "from history" to select the reference from the current history.
- * **Number of processes for job splitting** - Select the number of processes for splitting the job to shorten execution time.
     </help>
     <citations>
         <citation type="bibtex">
