@@ -21,17 +21,17 @@ mkdir -p $output_snps_dir &&
     #set reference = $i.metadata.dbkey
     #set filename = $i.file_name
     #set name = $i.name
-    ln -s $filename $input_vcf_dir/$name &&
+    ln -s '$filename' '$input_vcf_dir/$name' &&
 #end for
 #if str($input_zc_vcf_type) == "single":
     #set input_zc_vcf = $input_zc_vcf_type_cond.input_zc_vcf
     #set file_name_base = $os.path.basename($input_zc_vcf.file_name)
-    ln -s $input_zc_vcf $input_vcf_dir/$file_name_base &&
+    ln -s '$input_zc_vcf' '$input_vcf_dir/$file_name_base' &&
 #else
     #for $i in $input_zc_vcf_type_cond.input_zc_vcf_collection:
         #set filename = $i.file_name
         #set name = $i.name
-        ln -s $filename $input_vcf_dir/$name &&
+        ln -s '$filename' '$input_vcf_dir/$name' &&
     #end for
 #end if
 #if str($excel_grouper_cond.excel_grouper) == "yes":
@@ -49,7 +49,7 @@ mkdir -p $output_snps_dir &&
     #end if
 #end if
 python '$__tool_directory__/vsnp_get_snps.py'
---processes $processes
+--processes \${GALAXY_SLOTS:-4}
 --reference '$reference'
 #if str($excel_grouper_cond.excel_grouper) == "yes":
     --excel_grouper_file '$excel_file'
@@ -109,17 +109,16 @@ python '$__tool_directory__/vsnp_get_snps.py'
             <option value="No" selected="true">No</option>
             <option value="Yes">Yes</option>
         </param>
-        <param name="processes" type="integer" min="1" max="20" value="8" label="Number of processes for job splitting"/>
     </inputs>
     <outputs>
         <collection name="snps" type="list" label="${tool.name} (SNPs) on ${on_string}">
-            <discover_datasets pattern="__name__" directory="output_snps_dir" format="fasta" />
+            <discover_datasets pattern="__name__" directory="output_snps_dir" format="fasta"/>
         </collection>
         <collection name="json_avg_mq" type="list" label="${tool.name} (average MQ) on ${on_string}">
-            <discover_datasets pattern="__name__" directory="output_json_avg_mq_dir" format="json" />
+            <discover_datasets pattern="__name__" directory="output_json_avg_mq_dir" format="json"/>
         </collection>
         <collection name="json_snps" type="list" label="${tool.name} (SNPs as json) on ${on_string}">
-            <discover_datasets pattern="__name__" directory="output_json_snps_dir" format="json" />
+            <discover_datasets pattern="__name__" directory="output_json_snps_dir" format="json"/>
         </collection>
         <data name="output_summary" format="html" label="${tool.name} (summary) on ${on_string}"/>
     </outputs>
@@ -163,7 +162,6 @@ select a locally cached Excel spreadsheet or one from their current history.
 
  * **Use Excel file for grouping and filtering?** - select Yes to filter desired SNP positions by group.  A cached Excel spreadsheet provides the most widely used SNP positions for grouping, but a custom spreadhseet can be selected from the current history.
  * **Job Resource Parameters** - an administrator for the Galaxy instance must configure this tool to display this option, so it may not be available.  If it is, you can choose the number of processors to use for tool execution.
- * **Number of processes for job splitting** - Select the number of processes for splitting the job to shorten execution time.
 </help>
     <citations>
         <citation type="bibtex">
