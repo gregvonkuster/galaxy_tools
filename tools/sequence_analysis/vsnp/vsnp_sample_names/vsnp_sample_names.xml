@@ -15,7 +15,7 @@ mkdir -p $output_dir
     #if $sample_name.find("_") > 0:
         #set sample_name = $sample_name.split("_")[0]
     #end if
-    echo $sample_name > $output
+    && echo '$sample_name' > '$output'
 #else:
     #for $i in $input_type_cond.reads_collection:
         #set sample_name = $os.path.basename($i.element_identifier)
@@ -23,7 +23,7 @@ mkdir -p $output_dir
             #set sample_name = $sample_name.split(".")[0]
         #end if
         #set output_file = $os.path.join($output_dir, $sample_name)
-        && echo $sample_name > $output_file
+        && echo '$sample_name' > '$output_file'
     #end for
 #end if
 ]]></command>
