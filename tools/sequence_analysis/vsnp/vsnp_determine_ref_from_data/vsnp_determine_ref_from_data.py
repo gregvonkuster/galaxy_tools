@@ -19,13 +19,12 @@ def get_base_file_name(file_path):
     if base_file_name.find(".") > 0:
         # Eliminate the extension.
         return os.path.splitext(base_file_name)[0]
-    elif base_file_name.find("_") > 0:
-        # The dot extension was likely changed to
-        # the " character.
-        items = base_file_name.split("_")
-        no_ext = "_".join(items[0:-2])
-        if len(no_ext) > 0:
-            return no_ext
+    elif base_file_name.find("_fq") > 0:
+        # The "." character has likely
+        # changed to an "_" character.
+        return base_file_name.split("_fq_")[0]
+    elif base_file_name.find("_fastq") > 0:
+        return base_file_name.split("_fastq")[0]
     return base_file_name
 
 
@@ -220,13 +219,6 @@ def output_dbkey(file_name, dbkey, output_file=None):
 
 def output_files(fastq_file, count_list, group, dbkey, dbkey_file=None, metrics_file=None):
     base_file_name = get_base_file_name(fastq_file)
-    if dbkey_file is not None:
-        # We're dealing with a single read or
-        # a set of paired reads.  If the latter,
-        # the following will hopefully produce a
-        # good sample string.
-        if base_file_name.find("_") > 0:
-            base_file_name = base_file_name.split("_")[0]
     output_dbkey(base_file_name, dbkey, dbkey_file)
     output_metrics(base_file_name, count_list, group, dbkey, metrics_file)
 
@@ -277,10 +269,11 @@ def set_num_cpus(num_files, processes):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--dnaprint_fields', action='append', dest='dnaprint_fields', nargs=2, help="List of dnaprints data table value, name and path fields")
+    parser.add_argument('--dnaprint_fields', action='append', dest='dnaprint_fields', nargs=2, required=False, default=None, help="List of dnaprints data table value, name and path fields")
     parser.add_argument('--read1', action='store', dest='read1', required=False, default=None, help='Required: single read')
     parser.add_argument('--read2', action='store', dest='read2', required=False, default=None, help='Optional: paired read')
     parser.add_argument('--gzipped', action='store', dest='gzipped', help='Input files are gzipped')
+    parser.add_argument('--in_test_mode', action='store', dest='in_test_mode', required=False, default=None, help='Functional test mode flag')
     parser.add_argument('--output_dbkey', action='store', dest='output_dbkey', required=False, default=None, help='Output reference file')
     parser.add_argument('--output_metrics', action='store', dest='output_metrics', required=False, default=None, help='Output metrics file')
     parser.add_argument('--processes', action='store', dest='processes', type=int, help='User-selected number of processes to use for job splitting')
@@ -304,7 +297,10 @@ if __name__ == '__main__':
     # The data_manager_vsnp_dnaprints tool assigns the dbkey column from the
     # all_fasta data table to the value column in the vsnp_dnaprints data
     # table to ensure a proper mapping for discovering the dbkey.
-    dnaprints_dict = get_dnaprints_dict(args.dnaprint_fields)
+    if args.in_test_mode is None:
+        dnaprints_dict = get_dnaprints_dict(args.dnaprint_fields)
+    else:
+        dnaprints_dict = {'bovis': {'AF2122': ['11001110', '11011110', '11001100']}}
 
     if collection:
         # Here fastq_list consists of any number of
