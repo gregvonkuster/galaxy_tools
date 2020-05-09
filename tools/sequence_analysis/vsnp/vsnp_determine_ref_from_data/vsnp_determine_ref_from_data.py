@@ -22,7 +22,7 @@ def get_base_file_name(file_path):
     elif base_file_name.find("_fq") > 0:
         # The "." character has likely
         # changed to an "_" character.
-        return base_file_name.split("_fq_")[0]
+        return base_file_name.split("_fq")[0]
     elif base_file_name.find("_fastq") > 0:
         return base_file_name.split("_fastq")[0]
     return base_file_name
