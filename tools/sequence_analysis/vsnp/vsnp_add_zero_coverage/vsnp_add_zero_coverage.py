@@ -21,13 +21,11 @@ def get_base_file_name(file_path):
     if base_file_name.find(".") > 0:
         # Eliminate the extension.
         return os.path.splitext(base_file_name)[0]
-    elif base_file_name.find("_") > 0:
-        # The dot extension was likely changed to
-        # the " character.
-        items = base_file_name.split("_")
-        return "_".join(items[0:-1])
-    else:
-        return base_file_name
+    elif base_file_name.endswith("_vcf"):
+        # The "." character has likely
+        # changed to an "_" character.
+        return base_file_name.rstrip("_vcf")
+    return base_file_name
 
 
 def get_coverage_and_snp_count(task_queue, reference, output_metrics, output_vcf, timeout):
