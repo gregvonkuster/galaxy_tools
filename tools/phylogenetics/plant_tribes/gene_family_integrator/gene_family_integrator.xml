@@ -1,30 +1,30 @@
-<tool id="plant_tribes_gene_family_integrator" name="GeneFamilyIntegrator" version="@WRAPPER_VERSION@.3.0" profile="18.09">
+<tool id="plant_tribes_gene_family_integrator" name="GeneFamilyIntegrator" version="@WRAPPER_VERSION@.4.0" profile="18.09">
     <description>integrates gene models in pre-computed orthologous gene family clusters with classified gene coding sequences</description>
     <macros>
         <import>macros.xml</import>
     </macros>
     <requirements>
-        <requirement type="package" version="1.0.3">plant_tribes_gene_family_integrator</requirement>
+        <requirement type="package" version="1.0.4">plant_tribes_gene_family_integrator</requirement>
     </requirements>
     <code file="get_clustering_methods.py"/>
     <command detect_errors="exit_code"><![CDATA[
+#import re
 #set input_dir = 'input_dir'
 mkdir $input_dir &&
 #for $i in $input:
     #set filename = $i.file_name
     #set name = $i.name
-    ln -s $filename $input_dir/$name &&
+    ln -s '$filename' '$input_dir/$name' &&
 #end for
 GeneFamilyIntegrator
 --orthogroup_fasta '$input_dir'
 --scaffold '$scaffold.fields.path'
---method $method
+--method '$method'
 &>gene_family_integrator_log.txt;
 if [[ $? -ne 0 ]]; then
     cp gene_family_integrator_log.txt integratedGeneFamilies_dir;
     exit 1;
-fi
-    ]]></command>
+fi]]></command>
     <inputs>
         <param name="input" format="fasta" type="data_collection" collection_type="list" label="Classified orthogroup fasta files" />
         <expand macro="param_scaffold" />
@@ -47,7 +47,6 @@ fi
                     <element name="39614.fna" value="39614.fna"/>
                 </collection>
             </param>
-            <param name="scaffold" value="22Gv1.1"/>
             <param name="method" value="orthomcl"/>
             <output_collection name="output" type="list">
                 <element name="3722.faa" file="3722_integrated.faa" ftype="fasta"/>
