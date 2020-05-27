@@ -1,10 +1,10 @@
-<tool id="plant_tribes_kaks_analysis" name="KaKsAnalysis" version="@WRAPPER_VERSION@.3.0">
+<tool id="plant_tribes_kaks_analysis" name="KaKsAnalysis" version="@WRAPPER_VERSION@.4.0">
     <description>estimates paralogous and orthologous pairwise synonymous (Ks) and non-synonymous (Ka) substitution rates</description>
     <macros>
         <import>macros.xml</import>
     </macros>
     <requirements>
-        <requirement type="package" version="1.0.3">plant_tribes_kaks_analysis</requirement>
+        <requirement type="package" version="1.0.4">plant_tribes_kaks_analysis</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
 #set output_dir = 'kaksAnalysis_dir'
