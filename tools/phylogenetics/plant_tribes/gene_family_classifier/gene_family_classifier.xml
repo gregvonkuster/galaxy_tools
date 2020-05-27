@@ -1,10 +1,10 @@
-<tool id="plant_tribes_gene_family_classifier" name="GeneFamilyClassifier" version="@WRAPPER_VERSION@.3.0" profile="18.09">
+<tool id="plant_tribes_gene_family_classifier" name="GeneFamilyClassifier" version="@WRAPPER_VERSION@.4.0" profile="18.09">
     <description>classifies gene sequences into pre-computed orthologous gene family clusters</description>
     <macros>
         <import>macros.xml</import>
     </macros>
     <requirements>
-        <requirement type="package" version="1.0.3">plant_tribes_gene_family_classifier</requirement>
+        <requirement type="package" version="1.0.4">plant_tribes_gene_family_classifier</requirement>
     </requirements>
     <code file="get_clustering_methods.py"/>
     <command detect_errors="exit_code"><![CDATA[
@@ -205,7 +205,6 @@ python '$__tool_directory__/gene_family_classifier.py'
     <tests>
         <test>
             <param name="input" value="transcripts.cleaned.nr.pep" ftype="fasta"/>
-            <param name="scaffold" value="22Gv1.1"/>
             <param name="method" value="orthomcl"/>
             <param name="classifier" value="both"/>
             <param name="options_type_selector" value="advanced"/>
@@ -225,12 +224,12 @@ python '$__tool_directory__/gene_family_classifier.py'
                 <element name="20.fna" file="20.fna" ftype="fasta"/>
                 <element name="3494.faa" file="3494.faa" ftype="fasta"/>
                 <element name="3494.fna" file="3494.fna" ftype="fasta"/>
-                <element name="3722.faa" file="3722.faa" ftype="fasta"/>
-                <element name="3722.fna" file="3722.fna" ftype="fasta"/>
-                <element name="38889.faa" file="38889.faa" ftype="fasta"/>
-                <element name="38889.fna" file="38889.fna" ftype="fasta"/>
-                <element name="39614.faa" file="39614.faa" ftype="fasta"/>
-                <element name="39614.fna" file="39614.fna" ftype="fasta"/>
+                <element name="3722.faa" file="3722.gfc.faa" ftype="fasta"/>
+                <element name="3722.fna" file="3722.gfc.fna" ftype="fasta"/>
+                <element name="38889.faa" file="38889.gfc.faa" ftype="fasta"/>
+                <element name="38889.fna" file="38889.gfc.fna" ftype="fasta"/>
+                <element name="39614.faa" file="39614.gfc.faa" ftype="fasta"/>
+                <element name="39614.fna" file="39614.gfc.fna" ftype="fasta"/>
                 <element name="5235.faa" file="5235.faa" ftype="fasta"/>
                 <element name="5235.fna" file="5235.fna" ftype="fasta"/>
             </output_collection>
