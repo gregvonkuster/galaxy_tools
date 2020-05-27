@@ -1,10 +1,10 @@
-<tool id="plant_tribes_gene_family_phylogeny_builder" name="GeneFamilyPhylogenyBuilder" version="@WRAPPER_VERSION@.3.1" profile="18.09">
+<tool id="plant_tribes_gene_family_phylogeny_builder" name="GeneFamilyPhylogenyBuilder" version="@WRAPPER_VERSION@.4.1" profile="18.09">
     <description>builds phylogenetic trees of aligned orthologous gene family clusters</description>
     <macros>
         <import>macros.xml</import>
     </macros>
     <requirements>
-        <requirement type="package" version="1.0.3">plant_tribes_gene_family_phylogeny_builder</requirement>
+        <requirement type="package" version="1.0.4">plant_tribes_gene_family_phylogeny_builder</requirement>
     </requirements>
     <code file="get_clustering_methods.py"/>
     <command detect_errors="exit_code"><![CDATA[
