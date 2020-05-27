@@ -1,10 +1,10 @@
-<tool id="plant_tribes_gene_family_aligner" name="GeneFamilyAligner" version="@WRAPPER_VERSION@.3.0">
+<tool id="plant_tribes_gene_family_aligner" name="GeneFamilyAligner" version="@WRAPPER_VERSION@.4.0">
     <description>aligns integrated orthologous gene family clusters</description>
     <macros>
         <import>macros.xml</import>
     </macros>
     <requirements>
-        <requirement type="package" version="1.0.3">plant_tribes_gene_family_aligner</requirement>
+        <requirement type="package" version="1.0.4">plant_tribes_gene_family_aligner</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
 #set alignment_method = $alignment_method_cond.alignment_method
