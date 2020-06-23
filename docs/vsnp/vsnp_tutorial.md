@@ -119,7 +119,7 @@ If using the Firefox Browser, clicking the icon will popup the following alert d
 
 Click the *OK* button to display the Excel table in an Excel spreadsheet.
 
-![vSNP: all_vcf_cascade_table Excel spreadsheet](excel_tablepng)
+![vSNP: all_vcf_cascade_table Excel spreadsheet](excel_table.png)
 
 Some browsers (e.g., Safari) may be configured to download the Excel table instead of displaying it as shown above.  When using these browsers, you can open the downloaded file in Excel.
 
