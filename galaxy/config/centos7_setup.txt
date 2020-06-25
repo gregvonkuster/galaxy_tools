@@ -7,9 +7,9 @@ netstat -antp | grep 8081
 # ===============================================================
 
 # ===============================================================
-# Perform all of the following as root.  This assumes you are
-# installing Python in /usr/local/bin, /usr/local/lib, etc since
-# the system Python is install in /usr/bin, /usr/lib, etc
+# Perform all of the following as root (use sudo -i).  This assumes
+# you are installing Python in /usr/local/bin, /usr/local/lib, etc
+# since the system Python is install in /usr/bin, /usr/lib, etc
 # ===============================================================
 
 # Make sure what version of the OS we are running
@@ -28,38 +28,31 @@ yum groupinstall -y development
 yum install -y zlib-devel openssl-devel sqlite-devel bzip2-devel
 
 # ===============================================================
-# Download Python
+# Install Python 3
+# In CentOS 7 releases prior to 7.7, it was necessary to make
+# Python 3 available for installation by setting up third-party
+# repositories, such as the IUS repository, because the CentOS
+# base repository did not provide a Python 3 package. Thankfully,
+# as of CentOS 7.7, Python 3 is available in the base package
+# repository!
 # ===============================================================
-wget https://www.python.org/ftp/python/2.7.13/Python-2.7.13.tgz
-tar -xzf Python-2.7.13.tgz
-
-#Configure and install into /usr/local/bin
-cd Python-2.7.13
-./configure --prefix=/usr/local --enable-unicode=ucs4
-make -j6
-make altinstall
-ln -s /usr/local/bin/python2.7 /usr/local/bin/python
+yum install -y python3
 
 # ===============================================================
-# Install setuptools from source
+# That’s it! Python 3 is now installed! Another helpful idea to
+# consider is that PIP, the Python package manager for Python 3,
+# is installed alongside the Python 3 package, so we don’t have
+# to worry about that as an additional installation step.
+# However, we need to set 2 temporary aliases to ensure we are
+# using Python 3 in the following steps.
 # ===============================================================
-cd
-wget —no-check-certificate https://github.com/pypa/setuptools/archive/v36.0.1.tar.gz
-tar -xzf v36.0.1.tar.gz
-cd setuptools-36.0.1
-/usr/local/bin/python bootstrap.py
-/usr/local/bin/python setup.py install
-
-# ===============================================================
-# Install pip
-# ===============================================================
-cd
-curl https://bootstrap.pypa.io/get-pip.py | /usr/local/bin/python
+alias python="/usr/bin/python3"
+alias pip="/usr/boin/pip3.6"
 
 # ===============================================================
 # Install virtualenv
 # ===============================================================
-/usr/local/bin/pip install virtualenv
+pip install virtualenv
 
 # ===============================================================
 # Install git
@@ -174,11 +167,11 @@ PartitionName=debug Nodes=ARTEMIS-DHIS-2 Default=YES MaxTime=INFINITE State=UP
 # ===============================================================
 
 # After placing the file into /usr/local/etc/slurm.conf, edit the file and change this line:
-NodeName=artemis-dhis-2 CPUs=4 State=UNKNOWN 
+NodeName=ARTEMIS-DHIS-2 CPUs=4 State=UNKNOWN 
 
 to be:
 
-NodeName=artemis-dhis-2 NodeAddr=127.0.0.1 CPUs=4 State=UNKNOWN 
+NodeName=ARTEMIS-DHIS-2 NodeAddr=127.0.0.1 CPUs=4 State=UNKNOWN 
 
 # ===============================================================
 # Make sure directories are writable by the slurm user for all process id files, log files, etc
@@ -213,68 +206,9 @@ systemctl start slurmd.service && systemctl start slurmctld.service
 slurmd -c
 
 # ===============================================================
-# Make sure firewalld is enabled and running and then reopen
-# port 1855 for access.  This is a bit scary, so have at least
-# 2 terminal windows open to the VM as user root.
-# ==============================================================
-# The following command may cause the terminal window to hang for a while...
-systemctl enable firewalld
-systemctl start firewalld
-systemctl status firewalld
-firewall-cmd --permanent --zone=public --add-port=1855/udp
-firewall-cmd --permanent --zone=public --add-port=1855/tcp
-firewall-cmd --reload
-
+# Download slurm-drmaa by following the instructions here
+# https://github.com/natefoo/slurm-drmaa
 # ===============================================================
-# Open ports in the firewall for Galaxy and Galaxy reports
-# ===============================================================
-firewall-cmd --permanent --zone=public --add-port=8080/udp
-firewall-cmd --permanent --zone=public --add-port=8080/tcp
-firewall-cmd --permanent --zone=public --add-port=8081/udp
-firewall-cmd --permanent --zone=public --add-port=8081/tcp
-
-# ===============================================================
-# Open ports in the firewall for slurm
-# ===============================================================
-firewall-cmd --permanent --zone=public --add-port=6817/udp
-firewall-cmd --permanent --zone=public --add-port=6817/tcp
-firewall-cmd --permanent --zone=public --add-port=6818/udp
-firewall-cmd --permanent --zone=public --add-port=6818/tcp
-firewall-cmd --permanent --zone=public --add-port=7321/udp
-firewall-cmd --permanent --zone=public --add-port=7321/tcp
-firewall-cmd --reload
-
-yum install ntp -y
-chkconfig ntpd on
-ntpdate pool.ntp.org
-systemctl start ntpd
-
-ldconfig -n /usr/local/lib
-
-# ===============================================================
-# Download slurm-drmaa-1.0.7.tar.gz (or latest) from
-# http://apps.man.poznan.pl/trac/slurm-drmaa/downloads
-# into the home directory for root
-# ===============================================================
-cd
-wget http://apps.man.poznan.pl/trac/slurm-drmaa/downloads/slurm-drmaa-1.0.7.tar.gz
-tar -xzf slurm-drmaa-1.0.7.tar.gz
-cd slurm-drmaa-1.0.7
-
-# This will configure it to be installed into the default location /usr/local
-./configure --with-slurm-inc=/usr/local/include/slurm --with-slurm-lib=/usr/local/lib --prefix=/usr/local
-make -j6
-make install
-
-# ===============================================================
-# Add the interface to the public zone.
-# ===============================================================
-# To get the active zones, public should be active
-firewall-cmd --get-active-zones
-# To get the interface, something like eno16780032
-ifconfig
-firewall-cmd --add-interface=eno16780032 --permanent --zone=public
-firewall-cmd --reload
 
 # ===============================================================
 # Install Postgres
@@ -331,8 +265,6 @@ alter user galaxy password galaxy
 # Make sure PATH points to the correct Python
 # Install galaxy
 # Activate the Galaxy virtual env (.venv)
-# Make sure using correct Python and pip
-pip install drmaa
+# Make sure using correct Python 3 and pip
 pip install supervisor
-pip install uwsgi
 
