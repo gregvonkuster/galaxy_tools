@@ -1,0 +1,12 @@
+name: correct_stag_database
+owner: greg
+description: |
+  Contains a tool that updates the corals (stag) database tables with values in a tabular file.
+homepage_url: http://baumslab.org
+long_description: |
+  Contains a tool that updates records in the corals (stag) database tables with values in a tabular file
+  that have been manually corrected.
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/corals/correct_stag_database
+type: unrestricted
+categories:
+  - Micro-array Analysis

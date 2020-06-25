@@ -1,0 +1,9 @@
+# Configuration file for the correct_stag_database tool.
+
+[defaults]
+
+# This section contains default settings for command line parameters that
+# can be overridden when they are passed to executed scripts.
+
+DB_STORAGE_DIR = /tmp/db_store
+DB_NAME = stag

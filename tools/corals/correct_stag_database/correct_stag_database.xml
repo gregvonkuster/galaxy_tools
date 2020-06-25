@@ -1,0 +1,83 @@
+<tool id="correct_stag_database" name="Correct stag database" version="1.0.0">
+    <description>with corrected values</description>
+    <command detect_errors="exit_code"><![CDATA[
+#set input_dir = "input_dir"
+python '$__tool_directory__/correct_stag_database.py'
+--config_file $__tool_directory__/usd_config.ini
+--database_connection_string '$__app__.config.corals_database_connection'
+--input '$input'
+--output '$output'
+]]></command>
+    <inputs>
+        <param name="input" type="data" format="tabular" label="Tabular file containing corrected values"/>
+    </inputs>
+    <outputs>
+        <data name="output" format="txt" label="${tool.name} (process log) on ${on_string}"/>
+    </outputs>
+    <tests>
+        <test>
+            <!--Testing this tool is a bit difficult at the current time.-->
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+Accepts a tabular dataset containing corrected values and updates specified column values in the colony,
+experiment, genotype, person, phenotype, reef and sample tables in the stag database.  The database must
+be Postgres, and this tool exports the database into a file stored in a specified directory on disk before
+the database is updated.
+
+The first line of the tabulr file must be the header, and the file must have the following columns in order.
+ 1.  affymetrix id
+ 2.  sample id
+ 3.  user specimen id
+ 4.  field call
+ 5.  sample depth
+ 6.  percent missing data coral
+ 7.  percent heterozygous coral
+ 8.  percent acerv coral
+ 9.  percent apalm coral
+ 10. bcoral genet id
+ 11. registry id
+ 12. dna extraction method
+ 13. dna concentration
+ 14. colony location
+ 15. colony latitude
+ 16. colony longitude
+ 17. colony depth
+ 18. reef name
+ 19. region
+ 20. reef latitude
+ 21. reef longitude
+ 22. geographic origin
+ 23. coral mlg clonal id
+ 24. coral mlg rep sample id
+ 25. genetic coral species call
+ 26. spawning
+ 27. sperm motility
+ 28. tle
+ 29. disease resist
+ 30. bleach resist
+ 31. mortality
+ 32. healing time
+ 33. sequence facility
+ 34. array version
+ 35. plate barcode
+ 36. collector last name
+ 37. collector first name
+ 38. organization
+ 39. collector email
+ 40. collection date
+    </help>
+    <citations>
+        <citation type="bibtex">
+            @misc{None,
+            journal = {None},
+            author = {Baums I},
+            title = {Manuscript in preparation},
+            year = {None},
+            url = {http://baumslab.org}
+        </citation>
+    </citations>
+</tool>
+
