@@ -3,7 +3,7 @@
     <command detect_errors="exit_code"><![CDATA[
 #set input_dir = "input_dir"
 python '$__tool_directory__/correct_stag_database.py'
---config_file $__tool_directory__/usd_config.ini
+--config_file $__tool_directory__/csd_config.ini
 --database_connection_string '$__app__.config.corals_database_connection'
 --input '$input'
 --output '$output'
@@ -27,7 +27,7 @@ experiment, genotype, person, phenotype, reef and sample tables in the stag data
 be Postgres, and this tool exports the database into a file stored in a specified directory on disk before
 the database is updated.
 
-The first line of the tabulr file must be the header, and the file must have the following columns in order.
+The first line of the tabular file must be the header, and the file must have the following columns in order.
  1.  affymetrix id
  2.  sample id
  3.  user specimen id

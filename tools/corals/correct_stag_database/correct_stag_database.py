@@ -5,7 +5,6 @@ import argparse
 import datetime
 import os
 import psycopg2
-import string
 import subprocess
 import sys
 
@@ -39,7 +38,7 @@ def get_config_settings(config_file, section='defaults'):
     config_parser.read(config_file)
     for key, value in config_parser.items(section):
         if section == 'defaults':
-            d[string.upper(key)] = value
+            d[key.upper()] = value
         else:
             d[key] = value
     return d
@@ -104,22 +103,6 @@ def set_to_null(val):
     return False
 
 
-def split_line(line, sep="\t"):
-    # Remove R quote chars.
-    items = line.split(sep)
-    unquoted_items = []
-    for item in items:
-        unquoted_items.append(item.strip('"'))
-    return unquoted_items
-
-
-def string_as_bool(string):
-    if str(string).lower() in ('true', 'yes', 'on', '1'):
-        return True
-    else:
-        return False
-
-
 class StagDatabaseUpdater(object):
     def __init__(self):
         self.args = None
@@ -136,12 +119,12 @@ class StagDatabaseUpdater(object):
 
     def connect_db(self):
         url = make_url(self.args.database_connection_string)
-        self.log('Attempting to connect to the database...')
+        self.log('Attempting to connect to the database...\n')
         args = url.translate_connect_args(username='user')
         args.update(url.query)
         assert url.get_dialect().name == 'postgresql', 'This script can only be used with PostgreSQL.'
         self.conn = psycopg2.connect(**args)
-        self.log("Successfully connected to the database...")
+        self.log("Successfully connected to the database...\n")
 
     def export_database(self):
         # Export the database to the configured storage location.
@@ -193,8 +176,8 @@ class StagDatabaseUpdater(object):
         items = line.split("\t")
         if len(items) != 40:
             # Skip bad lines.
-            self.outfh.write("Skipping line %d with %d items, 40 items are required." % (i+1, len(items)))
-            return (), (), (), (), (), ()
+            self.outfh.write("\nSkipping line %d, shown below, with %d items, 40 items are required.\n%s\n\n" % (i + 1, len(items), line))
+            return (), (), (), (), (), (), ()
         affy_id = self.handle_none(items[0])
         # The sample_id column value is i
         # auto-generated so should not be
@@ -243,8 +226,8 @@ class StagDatabaseUpdater(object):
             email = email.lower()
         collection_date = self.handle_none(items[39])
         if not self.valid_date(collection_date):
-            self.log("Skipping line %d due to invalid collection_date, date formats must be yyyy-mm-dd." % i+1)
-            return (), (), (), (), (), ()
+            self.log("\nSkipping line %d, shown below, due to invalid collection_date, date formats must be yyyy-mm-dd.\n%s\n\n" % (i + 1, line))
+            return (), (), (), (), (), (), ()
         # Gather values per table columns.
         colony_tup = (colony_latitude, colony_longitude, colony_depth)
         experiment_tup = (seq_facility, array_version, plate_barcode)
@@ -259,9 +242,9 @@ class StagDatabaseUpdater(object):
 
     def run(self):
         self.export_database()
-        with open(self.args.parse_args, "r") as fh:
+        with open(self.args.input, "r") as fh:
             for i, line in enumerate(fh):
-                line = line.rstrip('\r\n')
+                line = line.rstrip()
                 if i == 0:
                     # Skip header.
                     continue
@@ -272,7 +255,7 @@ class StagDatabaseUpdater(object):
                 # The affy_id is the unique key in the sample
                 # table that enables connections to other tables.
                 affy_id = sample_tup[0]
-                self.log("\n Processing affy id: %s...\n" % affy_id)
+                self.log("\nProcessing affy id: %s...\n" % affy_id)
 
                 # Get the foreign key ids from the sample table.
                 cmd = "SELECT colony_id, experiment_id, genotype_id, collector_id, phenotype_id "
@@ -302,7 +285,7 @@ class StagDatabaseUpdater(object):
                 self.update_sample_table(sample_tup)
 
     def shutdown(self):
-        self.log("Shutting down...")
+        self.log("\nShutting down...\n")
         self.outfh.flush()
         self.outfh.close()
         self.conn.close()
@@ -330,7 +313,7 @@ class StagDatabaseUpdater(object):
         args = [latitude, longitude, depth, colony_id]
         self.update(cmd, args)
         self.flush()
-        self.log("Updated the colony table row associated with affy_id '%s'" % affy_id)
+        self.log("Updated the colony table row associated with affy_id '%s'\n" % affy_id)
         return colony_id
 
     def update_experiment_table(self, experiment_id, affy_id, tup):
@@ -342,7 +325,7 @@ class StagDatabaseUpdater(object):
         args = [seq_facility, array_version, plate_barcode, experiment_id]
         self.update(cmd, args)
         self.flush()
-        self.log("Updated the experiment table row associated with affy_id '%s'" % affy_id)
+        self.log("Updated the experiment table row associated with affy_id '%s'\n" % affy_id)
 
     def update_genotype_table(self, genotype_id, affy_id, tup):
         coral_mlg_clonal_id = handle_column_value(tup[0], get_sql_param=False)
@@ -353,7 +336,7 @@ class StagDatabaseUpdater(object):
         args = [coral_mlg_clonal_id, coral_mlg_rep_sample_id, genetic_coral_species_call, genotype_id]
         self.update(cmd, args)
         self.flush()
-        self.log("Updated the genotype table row associated with affy_id '%s'" % affy_id)
+        self.log("Updated the genotype table row associated with affy_id '%s'\n" % affy_id)
 
     def update_person_table(self, collector_id, affy_id, tup):
         last_name = handle_column_value(tup[0], get_sql_param=False)
@@ -365,7 +348,7 @@ class StagDatabaseUpdater(object):
         args = [last_name, first_name, organization, email, collector_id]
         self.update(cmd, args)
         self.flush()
-        self.log("Updated the person table row associated with affy_id '%s'" % affy_id)
+        self.log("Updated the person table row associated with affy_id '%s'\n" % affy_id)
 
     def update_phenotype_table(self, phenotype_id, affy_id, tup):
         spawning = handle_column_value(tup[0], get_sql_param=False)
@@ -377,15 +360,15 @@ class StagDatabaseUpdater(object):
         healing_time = handle_column_value(tup[6], get_sql_param=False)
         # Update the row in the phenotype table.
         cmd = "UPDATE phenotype SET spawning=%s, sperm_motility=%s, tle=%s, disease_resist=%s, "
-        cmd += "disease_resist=%s, mortality=%s, healing_time=%s WHERE id=%s;"
-        args = [spawning, sperm_motility, tle, disease_resist, bleach_resist, mortality, healing_time]
+        cmd += "bleach_resist=%s, mortality=%s, healing_time=%s WHERE id=%s;"
+        args = [spawning, sperm_motility, tle, disease_resist, bleach_resist, mortality, healing_time, phenotype_id]
         self.update(cmd, args)
         self.flush()
-        self.log("Updated the phenotype table row associated with affy_id '%s'" % affy_id)
+        self.log("Updated the phenotype table row associated with affy_id '%s'\n" % affy_id)
 
     def update_reef_table(self, colony_id, affy_id, tup):
         # Get the reef_id key ids from the colony table.
-        cmd = "SELECT reef_id FROM colony WHERE id = '%s';" % colony_id
+        cmd = "SELECT reef_id FROM colony WHERE id = %s;" % colony_id
         cur = self.conn.cursor()
         cur.execute(cmd)
         try:
@@ -403,12 +386,11 @@ class StagDatabaseUpdater(object):
         longitude = handle_column_value(tup[3], get_sql_param=False)
         geographic_origin = handle_column_value(tup[4], get_sql_param=False)
         # Update the row in the reef table.
-        cmd = "UPDATE reef SET name=%s, region=%s, latitude=%s, longitude=%s, "
-        cmd += "geographic_origin=%s WHERE id=%s;"
+        cmd = "UPDATE reef SET name=%s, region=%s, latitude=%s, longitude=%s, geographic_origin=%s WHERE id=%s;"
         args = [name, region, latitude, longitude, geographic_origin, reef_id]
         self.update(cmd, args)
         self.flush()
-        self.log("Updated the reef table row associated with affy_id '%s'" % affy_id)
+        self.log("Updated the reef table row associated with affy_id '%s'\n" % affy_id)
 
     def update_sample_table(self, tup):
         affy_id = tup[0]
@@ -435,7 +417,7 @@ class StagDatabaseUpdater(object):
                 dna_concentration, colony_location, collection_date, affy_id]
         self.update(cmd, args)
         self.flush()
-        self.log("Updated the sample table row with affy_id '%s'" % affy_id)
+        self.log("Updated the sample table row with affy_id '%s'\n" % affy_id)
 
     def valid_date(self, val):
         # Date strings must be formated as yyyy-mm-dd.
