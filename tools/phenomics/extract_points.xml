@@ -1,0 +1,47 @@
+<tool id="extract_points" name="Extract points" version="1.0.0">
+    <description>from a VTK file</description>
+    <requirements>
+        <requirement type="package" version="1.18.5">numpy</requirement>
+        <requirement type="package" version="9.0.0">vtk</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+#import os
+#import re
+#set input_dir = 'input_dir'
+#set output_dir = 'output_dir'
+mkdir -p $input_dir &&
+mkdir -p $output_dir &&
+#for $i in $input:
+    #set filename = $i.file_name
+    #set identifier = re.sub('[^\s\w\-]', '_', str($i.element_identifier))
+    ln -s '$filename' '$input_dir/$identifier' &&
+#end for
+python '$__tool_directory__/extract_points.py'
+]]></command>
+    <inputs>
+        <param name="input" type="data_collection" format="vtkascii,vtkbinary" collection_type="list" label="Collection of VTK files"/>
+    </inputs>
+    <outputs>
+        <collection name="output" type="list">
+            <discover_datasets pattern="__name__" directory="output_dir" format="csv"/>
+        </collection>
+    </outputs>
+    <tests>
+    </tests>
+    <help>
+**What it does**
+
+Accepts a collection of VTK files and extracts the points to produce an associated csv file for each.
+    </help>
+    <citations>
+        <citation type="bibtex">
+            @misc{None,
+            journal = {None},
+            author = {?},
+            title = {Manuscript in preparation},
+            year = {None},
+            url = {},}
+        </citation>
+    </citations>
+</tool>
+
