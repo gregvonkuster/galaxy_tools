@@ -1,0 +1,112 @@
+<tool id="methylit_read_counts_2_granges_list" name="MethylIT: Convert Read counts" version="1.0.0">
+    <description>to GRanges List</description>
+    <requirements>
+        <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
+        <requirement type="package" version="1.24.0">bioconductor-genomeinfodb</requirement>
+        <requirement type="package" version="1.40.0">bioconductor-genomicranges</requirement>
+        <requirement type="package" version="1.12.8">r-data.table</requirement>
+        <requirement type="package" version="0.3.2.1">r-methylit</requirement>
+        <requirement type="package" version="1.6.6">r-optparse</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+#import os
+#set input_data_dir='input_data_dir'
+#set output_data_dir='output_data_dir'
+mkdir input_data_dir &&
+mkdir output_data_dir &&
+#for $i in $input:
+    #set filename = $i.file_name
+    ln -s $filename $input_data_dir/$os.path.basename($filename) &&
+#end for
+Rscript '$__tool_directory__/methylit_read_counts_2_granges_list.R'
+#if $chromosomes and str($chromosomes) != '':
+    --chromosomes '$chromosomes'
+#end if
+#if $chromosome_names and str($chromosome_names) != '':
+    --chromosome_names '$chromosome_names'
+#end if
+#for $column_item in $column_repeat:
+    #if str($column_item.column_name) == 'seqnames':
+        --seqnames $column_item.column_number
+    #elif str($column_item.column_name) == 'start':
+        --start $column_item.column_number
+    #elif str($column_item.column_name) == 'end':
+        --end $column_item.column_number
+    #elif str($column_item.column_name) == 'strand':
+        --strand $column_item.column_number
+    #elif str($column_item.column_name) == 'fraction':
+        --fraction $column_item.column_number
+    #elif str($column_item.column_name) == 'percent':
+        --percent $column_item.column_number
+    #elif str($column_item.column_name) == 'mC':
+        --mC $column_item.column_number
+    #elif str($column_item.column_name) == 'uC':
+        --uC $column_item.column_number
+    #elif str($column_item.column_name) == 'coverage':
+        --coverage $column_item.column_number
+    #elif str($column_item.column_name) == 'context':
+        --context $column_item.column_number
+    #end if
+#end for
+--input_data_dir '$input_data_dir'
+#if $pattern and str($pattern) != '':
+    --pattern '$pattern'
+#end if
+#if $sample_id and str($sample_id) != '':
+    --sample_id '$sample_id'
+#end if
+fi]]></command>
+    <inputs>
+        <param name="input" type="data_collection" format="tabular" collection_type="list" label="Collection of tabular files"/>
+        <param name="chromosomes" type="text" value="" label="Chromosomes" help="Enter a comma-separated list if morre than one item"/>
+        <param name="chromosome_names" type="text" value="" label="Chromosome names" help="Enter a comma-separated list if morre than one item"/>
+        <repeat name="column_repeat" title="Column" min="1">
+            <param name="column_name" type="select" display="radio" label="Column name">
+                <option value="seqnames" selected="true">chromosomes</option>
+                <option value="start">start</option>
+                <option value="end">end</option>
+                <option value="strand">strand</option>
+                <option value="fraction">fraction</option>
+                <option value="percent">methylation percentage</option>
+                <option value="mC">methylates cytosine</option>
+                <option value="uC">non-methylates cytosine</option>
+                <option value="coverage">coverage</option>
+                <option value="context">methylation context</option>
+            </param>
+            <param name="column_number" type="integer" value="1" min="1" label="Column number of the name selected above"/>
+        </repeat>
+        <param name="pattern" type="text" value="" label="Pattern"/>
+        <param name="sample_id" type="text" value="" label="Sample id" help="Enter a comma-separated list if morre than one item"/>
+    </inputs>
+    <outputs>
+        <collection name="output" type="list">
+            <discover_datasets pattern="__name__" directory="output_data_dir" format="csv"/>
+        </collection>
+    </outputs>
+    <tests>
+    </tests>
+    <help>
+**What it does**
+
+Reads files with methylation count table data downloaded from the GEO databse or generated after the alignment of a BS-seq dataset,
+producing a list of GRanges objects with the information provided.
+
+Embryonic stem cells datasets
+
+ - https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM2041nnn/GSM2041690/suppl//GSM2041690_WGBS_UCLA1_Primed_rep1_CGmethratio.tab.gz
+ - https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM2041nnn/GSM2041691/suppl//GSM2041691_WGBS_UCLA1_Primed_rep2_CGmethratio.tab.gz
+ - https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM2041nnn/GSM2041692/suppl//GSM2041692_WGBS_UCLA1_Primed_rep3_CGmethratio.tab.gz
+
+ Breast tissues (normal, cancer, metastasis)
+
+ - https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM1279nnn/GSM1279517/suppl//GSM1279517_CpGcontext.Breast.txt.gz
+ - https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM1279nnn/GSM1279514/suppl//GSM1279514_CpGcontext.468PT.txt.gz
+ - https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM1279nnn/GSM1279513/suppl//GSM1279513_CpGcontext.468LN.txt.gz
+    </help>
+    <citations>
+        <citation type="doi">10.3389/fphys.2016.00165</citation>
+        <citation type="doi">10.1175/JTECH-D-11-00103.1</citation>
+        <citation type="doi">10.7289/V5D21VHZ</citation>
+    </citations>
+</tool>
+
