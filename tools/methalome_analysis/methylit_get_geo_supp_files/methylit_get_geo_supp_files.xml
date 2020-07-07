@@ -2,6 +2,8 @@
     <description></description>
     <requirements>
         <requirement type="package" version="4.3">r-curl</requirement>
+        <requirement type="package" version="0.3.2.1">r-methylit</requirement>
+        <requirement type="package" version="1.6.6">r-optparse</requirement>
         <requirement type="package" version="3.99_0.3">r-xml</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
@@ -33,7 +35,7 @@ fi]]></command>
     </inputs>
     <outputs>
         <collection name="output" type="list">
-            <discover_datasets pattern="__name__" directory="output_data_dir" format="csv"/>
+            <discover_datasets pattern="__name__" directory="output_data_dir" format="tabular.gz"/>
         </collection>
     </outputs>
     <tests>
