@@ -1,0 +1,64 @@
+<tool id="methylit_get_geo_supp_files" name="MethylIT: Get GEO supplemental file" version="1.0.0">
+    <description></description>
+    <requirements>
+        <requirement type="package" version="4.3">r-curl</requirement>
+        <requirement type="package" version="3.99_0.3">r-xml</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+#import os
+#set output_data_dir='output_data_dir'
+mkdir output_data_dir &&
+Rscript '$__tool_directory__/methylit_get_geo_supp_files.R'
+--geo '$geo'
+#if $pattern and str($pattern) != '':
+    --pattern '$pattern'
+#end if
+fi]]></command>
+    <inputs>
+        <param name="geo" type="text" label="GEO accession number(s)" help="Enter comma-separated list of GEO accession numbers">
+            <validator type="empty_field"/>
+            <sanitizer invalid_char="">
+                <valid initial="string.ascii_letters,string.digits">
+                    <add value=","/>
+                </valid>
+            </sanitizer>
+        </param>
+        <param name="pattern" type="text" value="" label="Optional pattern for the name of the supplementary files from the GEO dataset">
+            <sanitizer invalid_char="">
+                <valid initial="string.ascii_letters,string.digits">
+                    <add value="_"/>
+                </valid>
+            </sanitizer>
+        </param>
+    </inputs>
+    <outputs>
+        <collection name="output" type="list">
+            <discover_datasets pattern="__name__" directory="output_data_dir" format="csv"/>
+        </collection>
+    </outputs>
+    <tests>
+    </tests>
+    <help>
+**What it does**
+
+aDownload supplemental files from a specified GEO dataset.
+
+Embryonic stem cells datasets
+
+ - GSM2041690
+ - GSM2041691
+ - GSM2041692
+
+ Breast tissues (normal, cancer, metastasis)
+
+ - GSM1279517
+ - GSM1279514
+ - GSM1279513
+    </help>
+    <citations>
+        <citation type="doi">10.3389/fphys.2016.00165</citation>
+        <citation type="doi">10.1175/JTECH-D-11-00103.1</citation>
+        <citation type="doi">10.7289/V5D21VHZ</citation>
+    </citations>
+</tool>
+
