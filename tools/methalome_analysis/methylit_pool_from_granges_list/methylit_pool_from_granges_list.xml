@@ -1,0 +1,97 @@
+<tool id="methylit_pool_from_granges_list" name="MethylIT: pool from GRanges list" version="1.0.0">
+    <description></description>
+    <requirements>
+        <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
+        <requirement type="package" version="1.22.0">bioconductor-biocparallel</requirement>
+        <requirement type="package" version="1.34.0">bioconductor-repitools</requirement>
+        <requirement type="package" version="0.26.0">bioconductor-s4vectors</requirement>
+        <requirement type="package" version="0.56.0">r-matrixstats</requirement>
+        <requirement type="package" version="0.3.2.1">r-methylit</requirement>
+        <requirement type="package" version="1.6.6">r-optparse</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+#import os
+#import re
+#set input_data_dir='input_data_dir'
+mkdir input_data_dir &&
+#for $i in $lr:
+    #set file_name = $i.file_name
+    #set identifier = re.sub('[^\s\w\-\\.]', '_', str($i.element_identifier))
+    ln -s '$file_name' '$input_data_dir/$identifier' &&
+#end for
+Rscript '$__tool_directory__/methylit_pool_from_granges_list.R'
+--input_data_dir '$input_data_dir'
+--stat '$stat_cond.stat'
+#if str($stat_cond.stat) == "jackmean":
+    --jstat '$stat_cond.jstat'
+#end if
+--num_cores \${GALAXY_SLOTS:-4}
+--prob '$prob_cond.prob'
+#if str($prob_cond.prob) == 'yes':
+    --column_number $column_number
+#else:
+    --column_number 1
+#end if
+--output '$output'
+&>process_log.txt;
+]]></command>
+    <inputs>
+        <param name="lr" type="data_collection" format="csv" collection_type="list" label="Collection of MehylIT GRanges files"/>
+        <conditional name="stat_cond">
+            <param name="stat" type="select" label="Select statistic used to estimate the methylation pool">
+                <option value="mean" selected="true">mean</option>
+                <option value="median">median</option>
+                <option value="sum">sum</option>
+                <option value="jackmean">jackmean</option>
+            </param>
+            <when value="mean"/>
+            <when value="median"/>
+            <when value="sum"/>
+            <when value="jackmean">
+                <param name="jstat" type="select" label="Select the option to compute the jacknife vector and corresponding mean of the selected statistics">
+                    <option value="sum" selected="true">sum</option>
+                    <option value="mean">mean</option>
+                    <option value="median">median</option>
+                </param>
+            </when>
+        </conditional>
+        <conditional name="prob_cond">
+            <param name="prob" type="select" label="Is the variable for pooling is between 0 and 1?">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no"/>
+            <when value="yes">
+                <param name="column_number" type="integer" value="1" min="1" label="Column number of the probability values in the GRanges files"/>
+            </when>
+        </conditional>
+    </inputs>
+    <outputs>
+        <data name="output" format="csv"/>
+    </outputs>
+    <tests>
+    </tests>
+    <help>
+**What it does**
+
+aDownload supplemental files from a specified GEO dataset.
+
+Embryonic stem cells datasets
+
+ - GSM2041690
+ - GSM2041691
+ - GSM2041692
+
+ Breast tissues (normal, cancer, metastasis)
+
+ - GSM1279517
+ - GSM1279514
+ - GSM1279513
+    </help>
+    <citations>
+        <citation type="doi">10.3389/fphys.2016.00165</citation>
+        <citation type="doi">10.1175/JTECH-D-11-00103.1</citation>
+        <citation type="doi">10.7289/V5D21VHZ</citation>
+    </citations>
+</tool>
+
