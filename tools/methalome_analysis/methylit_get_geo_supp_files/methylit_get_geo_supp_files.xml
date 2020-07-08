@@ -15,7 +15,8 @@ Rscript '$__tool_directory__/methylit_get_geo_supp_files.R'
 #if $pattern and str($pattern) != '':
     --pattern '$pattern'
 #end if
-fi]]></command>
+--output_dir '$output_data_dir'
+&>process_log.txt;]]></command>
     <inputs>
         <param name="geo" type="text" label="GEO accession number(s)" help="Enter comma-separated list of GEO accession numbers">
             <validator type="empty_field"/>
@@ -43,7 +44,7 @@ fi]]></command>
     <help>
 **What it does**
 
-Download supplemental files from a specified GEO dataset.
+aDownload supplemental files from a specified GEO dataset.
 
 Embryonic stem cells datasets
 
