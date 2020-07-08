@@ -10,13 +10,15 @@
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
 #import os
+#import re
 #set input_data_dir='input_data_dir'
 #set output_data_dir='output_data_dir'
 mkdir input_data_dir &&
 mkdir output_data_dir &&
 #for $i in $input:
-    #set filename = $i.file_name
-    ln -s $filename $input_data_dir/$os.path.basename($filename) &&
+    #set file_name = $i.file_name
+    #set identifier = re.sub('[^\s\w\-\\.]', '_', str($i.element_identifier))
+    ln -s '$file_name' '$input_data_dir/$identifier' &&
 #end for
 Rscript '$__tool_directory__/methylit_read_counts_2_granges_list.R'
 #if $chromosomes and str($chromosomes) != '':
@@ -55,7 +57,7 @@ Rscript '$__tool_directory__/methylit_read_counts_2_granges_list.R'
 #if $sample_id and str($sample_id) != '':
     --sample_id '$sample_id'
 #end if
-fi]]></command>
+&>process_log.txt;]]></command>
     <inputs>
         <param name="input" type="data_collection" format="tabular" collection_type="list" label="Collection of tabular files"/>
         <param name="chromosomes" type="text" value="" label="Chromosomes" help="Enter a comma-separated list if morre than one item"/>

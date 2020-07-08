@@ -36,43 +36,33 @@ get_columns <- function(seqnames, start, end, strand, fraction, percent, mC, uC,
     if (!is.null(seqnames)) {
         columns['seqnames'] <- seqnames;
     }
-    cat("columns: ", toString(columns), "\n");
     if (!is.null(start)) {
         columns['start'] <- start;
     }
-    cat("columns: ", toString(columns), "\n");
     if (!is.null(end)) {
         columns['end'] <- end;
     }
-    cat("columns: ", toString(columns), "\n");
     if (!is.null(strand)) {
         columns['strand'] <- strand;
     }
-    cat("columns: ", toString(columns), "\n");
     if (!is.null(fraction)) {
         columns['fraction'] <- fraction;
     }
-    cat("columns: ", toString(columns), "\n");
     if (!is.null(percent)) {
         columns['percent'] <- percent;
     }
-    cat("columns: ", toString(columns), "\n");
     if (!is.null(mC)) {
         columns['mC'] <- mC;
     }
-    cat("columns: ", toString(columns), "\n");
     if (!is.null(uC)) {
         columns['uC'] <- uC;
     }
-    cat("columns: ", toString(columns), "\n");
     if (!is.null(coverage)) {
         columns['coverage'] <- coverage;
     }
-    cat("columns: ", toString(columns), "\n");
     if (!is.null(context)) {
         columns['context'] <- context;
     }
-    cat("columns: ", toString(columns), "\n");
     return (columns)
 }
 
@@ -110,17 +100,6 @@ if (is.null(opt$sample_id)) {
 }
 
 # Create the GRangesList data frame.
-cat("\n######################\n");
-cat("\ninput_data_files:\n");
-input_data_files
-cat("\nsample_id:\n");
-sample_id
-cat("\npattern:\n");
-opt$pattern
-cat("\ncolumns:\n");
-columns
-cat("\n######################\n");
-
 meth_list <- readCounts2GRangesList(filenames=input_data_files,
                                     sample.id=sample_id,
                                     pattern=opt$pattern,
@@ -129,13 +108,7 @@ meth_list <- readCounts2GRangesList(filenames=input_data_files,
                                     chromosome.names=chromosome_names,
                                     chromosomes=chromosomes,
                                     verbose=TRUE);
-cat("\nmeth_list:\n");
-meth_list
-cat("\ntypeof(meth_data_frame):\n");
-typeof(meth_list)
 num_dfs <- length(meth_list)[[1]];
-cat("\nnum_dfs:\n");
-num_dfs
 
 for (i in 1:num_dfs) {
     df <- meth_list[i];
