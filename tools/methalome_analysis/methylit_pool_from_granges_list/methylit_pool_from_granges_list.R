@@ -53,5 +53,5 @@ unique_grange <- poolFromGRlist(LR=granges_list,
 # Convert the GRange object to a data frame for saving
 # to a file.
 df <- annoGR2DF(unique_grange);
-write.table(df, file=opt$output, quote=FALSE, row.names=FALSE, sep=",");
+write.csv(df, file=opt$output, row.names=F);
 
