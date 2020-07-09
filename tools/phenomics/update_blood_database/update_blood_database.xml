@@ -1,0 +1,45 @@
+<tool id="update_blood_database" name="Update blood database" version="1.0.0">
+    <description>with new blood cell data</description>
+    <command detect_errors="exit_code"><![CDATA[
+#set input_dir = "input_dir"
+mkdir $input_dir &&
+#for $i in $input:
+    #set filename = $i.file_name
+    #set name = $i.name
+    ln -s $filename $input_dir/$name &&
+#end for
+python '$__tool_directory__/update_blood_database.py'
+--config_file $__tool_directory__/ubd_config.ini
+--database_connection_string '$__app__.config.blood_database_connection'
+--input_dir '$input_dir'
+--output '$output']]></command>
+    <inputs>
+        <param name="input" format="tabular" type="data_collection" collection_type="list" label="Tabular datasets for database update"/>
+    </inputs>
+    <outputs>
+        <data name="output" format="txt" label="${tool.name} (process log) on ${on_string}"/>
+    </outputs>
+    <tests>
+        <test>
+            <!--Testing this tool is a bit difficult at the current time.-->
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+Accepts a set of tabular datasets, one for each row of the blood_cell table in the blood database, and
+updates the table with the data.  The database must be Postgres, and this tool exports the database
+into a file stored in a specified directory on disk before the database is updated.
+    </help>
+    <citations>
+        <citation type="bibtex">
+            @misc{None,
+            journal = {None},
+            author = {Von Kuster, G},
+            title = {Manuscript in preparation},
+            year = {None},
+            url = {}
+        </citation>
+    </citations>
+</tool>
+
