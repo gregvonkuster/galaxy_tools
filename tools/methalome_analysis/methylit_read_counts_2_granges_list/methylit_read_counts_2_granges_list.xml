@@ -12,23 +12,24 @@
 #import os
 #import re
 #set input_type = $input_type_cond.input_type
-#set input_data_dir='input_data_dir'
-#set output_data_dir='output_data_dir'
+#set input_data_dir = 'input_data_dir'
+#set output_data_dir = 'output_data_dir'
 mkdir input_data_dir &&
 mkdir output_data_dir &&
 #if str($input_type) == "collection":
-    #for $i in $input_type_cond.input:
+    #for $i in $input_type_cond.input_collection:
         #set file_name = $i.file_name
-        #set identifier = re.sub('[^\s\w\-\\.]', '_', str($i.element_identifier))
+        ## We likely have an identiefier that is a URL,
+        ## so eliminate everything but the base file name..
+        #set base_file_name = $i.element_identifier.split("/")[-1]
+        #set identifier = re.sub('[^\s\w\-\\.]', '_', str($base_file_name))
         ln -s '$file_name' '$input_data_dir/$identifier' &&
     #end for
 #end if
 Rscript '$__tool_directory__/methylit_read_counts_2_granges_list.R'
 #if str($input_type) == "single":
-    #set file_name = $input_type_cond.input.file_name
-    #set identifier = re.sub('[^\s\w\-\\.]', '_', str($i.element_identifier))
-    --input '$identifier'
-    --output '$output'
+    --single_input '$input_type_cond.input_single'
+    --output '$output_single'
 #else:
     --input_data_dir '$input_data_dir'
     --output_data_dir '$output_data_dir'
@@ -68,7 +69,7 @@ Rscript '$__tool_directory__/methylit_read_counts_2_granges_list.R'
 #if $sample_id and str($sample_id) != '':
     --sample_id '$sample_id'
 #end if
-&>process_log.txt;]]></command>
+&>process_log.txt]]></command>
     <inputs>
         <conditional name="input_type_cond">
             <param name="input_type" type="select" label="Choose the category of the files to be analyzed">
@@ -76,10 +77,10 @@ Rscript '$__tool_directory__/methylit_read_counts_2_granges_list.R'
                 <option value="collection">Collections of files</option>
             </param>
             <when value="single">
-                <param name="input" type="data" format="tabular" label="Methylation count file"/>
+                <param name="input_single" type="data" format="tabular" label="Methylation count file"/>
             </when>
             <when value="collection">
-                <param name="input" type="data_collection" format="tabular" collection_type="list" label="Collection of methylation count files"/>
+                <param name="input_collection" type="data_collection" format="tabular" collection_type="list" label="Collection of methylation count files"/>
             </when>
         </conditional>
         <param name="chromosomes" type="text" value="" label="Chromosomes" help="Enter a comma-separated list if morre than one item"/>
@@ -103,10 +104,10 @@ Rscript '$__tool_directory__/methylit_read_counts_2_granges_list.R'
         <param name="sample_id" type="text" value="" label="Sample id" help="Enter a comma-separated list if morre than one item"/>
     </inputs>
     <outputs>
-        <data name="output" format="csv">
+        <data name="output_single" format="csv">
             <filter>input_type_cond['input_type'] == "single"</filter>
         </data>
-        <collection name="output" type="list">
+        <collection name="output_collection" type="list">
             <discover_datasets pattern="__name__" directory="output_data_dir" format="csv"/>
             <filter>input_type_cond['input_type'] == "collection"</filter>
         </collection>

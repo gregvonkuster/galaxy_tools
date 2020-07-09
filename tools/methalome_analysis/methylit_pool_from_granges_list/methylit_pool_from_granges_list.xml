@@ -1,4 +1,4 @@
-<tool id="methylit_pool_from_granges_list" name="MethylIT: Pool from GRanges list" version="1.0.0">
+<tool id="methylit_pool_from_granges_list" name="MethylIT: pool from GRanges list" version="1.0.0">
     <description></description>
     <requirements>
         <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
@@ -33,8 +33,7 @@ Rscript '$__tool_directory__/methylit_pool_from_granges_list.R'
     --column_number 1
 #end if
 --output '$output'
-&>process_log.txt;
-]]></command>
+&>process_log.txt]]></command>
     <inputs>
         <param name="lr" type="data_collection" format="csv" collection_type="list" label="Collection of MehylIT GRanges files"/>
         <conditional name="stat_cond">

@@ -15,7 +15,6 @@ option_list <- list(
     make_option(c("--coverage"), action="store", dest="coverage", type="integer", default=NULL, help="Integer number of the coverage column in the inputs"),
     make_option(c("--end"), action="store", dest="end", type="integer", default=NULL, help="Integer number of the end column in the inputs"),
     make_option(c("--fraction"), action="store", dest="fraction", type="integer", default=NULL, help="Integer number of the fraction column in the inputs"),
-    make_option(c("--input"), action="store", dest="input", default=NULL, help="Single input file"),
     make_option(c("--input_data_dir"), action="store", dest="input_data_dir", default=NULL, help="Directory containing the input files"),
     make_option(c("--mC"), action="store", dest="mC", type="integer", default=NULL, help="Integer number of the mC column in the inputs"),
     make_option(c("--output"), action="store", dest="output", default=NULL, help="Single output file"),
@@ -25,6 +24,7 @@ option_list <- list(
     make_option(c("--percent"), action="store", dest="percent", type="integer", default=NULL, help="Integer number of the percent column in the inputs"),
     make_option(c("--sample_id"), action="store", dest="sample_id", default=NULL, help="Names of the samples corresponding to each file"),
     make_option(c("--seqnames"), action="store", dest="seqnames", type="integer", default=NULL, help="Integer number of the seqnames column in the inputs"),
+    make_option(c("--single_input"), action="store", dest="single_input", default=NULL, help="Single input file"),
     make_option(c("--start"), action="store", dest="start", type="integer", default=NULL, help="Integer number of the start column in the inputs"),
     make_option(c("--strand"), action="store", dest="strand", type="integer", default=NULL, help="Integer number of the strand column in the inputs"),
     make_option(c("--uC"), action="store", dest="uC", type="integer", default=NULL, help="Integer number of the uC column in the inputs")
@@ -69,14 +69,14 @@ get_columns <- function(seqnames, start, end, strand, fraction, percent, mC, uC,
     return (columns)
 }
 
-if (is.null(opt$input)) {
+if (is.null(opt$single_input)) {
     single_input <- FALSE;
 } else {
     single_input <- TRUE;
 }
 
 if (single_input) {
-    input_data_files <- list(opt$input);
+    input_data_files <- list(opt$single_input);
 } else {
     # Get the list of input data files.
     input_data_files <- list.files(path=opt$input_data_dir, full.names=TRUE);
