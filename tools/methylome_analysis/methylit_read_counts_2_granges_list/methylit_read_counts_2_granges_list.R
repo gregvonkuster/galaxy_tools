@@ -111,26 +111,26 @@ if (is.null(opt$sample_id)) {
     sample_id <- c(unlist(sample_id_list, use.names=FALSE));
 }
 
-# Create the GRangesList data frame.
-meth_list <- readCounts2GRangesList(filenames=input_data_files,
-                                    sample.id=sample_id,
-                                    pattern=opt$pattern,
-                                    remove=FALSE, 
-                                    columns=columns,
-                                    chromosome.names=chromosome_names,
-                                    chromosomes=chromosomes,
-                                    verbose=TRUE);
-num_dfs <- length(meth_list)[[1]];
+# Create the GRanges list.
+granges_list <- readCounts2GRangesList(filenames=input_data_files,
+                                       sample.id=sample_id,
+                                       pattern=opt$pattern,
+                                       remove=FALSE, 
+                                       columns=columns,
+                                       chromosome.names=chromosome_names,
+                                       chromosomes=chromosomes,
+                                       verbose=TRUE);
+num_granges <- length(granges_list)[[1]];
 
-for (i in 1:num_dfs) {
-    df <- meth_list[i];
+for (i in 1:num_granges) {
+    grange <- granges_list[i];
     # Save the data frame.
     if (single_input) {
-        write.csv(df, file=opt$output, row.names=F);
+        write.csv(grange, file=opt$output, row.names=F);
     } else {
         file_name <- paste(sample_id[i], ".csv", sep="");
         file_path = paste(opt$output_data_dir, file_name, sep="/");
-        write.csv(df, file=file_path, row.names=F);
+        write.csv(grange, file=file_path, row.names=F);
     }
 }
 
