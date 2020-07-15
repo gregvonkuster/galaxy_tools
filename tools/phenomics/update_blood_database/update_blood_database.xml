@@ -14,7 +14,7 @@ python '$__tool_directory__/update_blood_database.py'
 --input_dir '$input_dir'
 --output '$output']]></command>
     <inputs>
-        <param name="input" format="tabular" type="data_collection" collection_type="list" label="Tabular datasets for database update"/>
+        <param name="input" format="tabular" type="data_collection" collection_type="list" label="Collection of statistics files"/>
     </inputs>
     <outputs>
         <data name="output" format="txt" label="${tool.name} (process log) on ${on_string}"/>

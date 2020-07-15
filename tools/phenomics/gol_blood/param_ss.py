@@ -66,15 +66,16 @@ class ParamSS:
         base_file_name = '{}.csv'.format(cell_id)
         file_path = os.path.join(output_dir, base_file_name)
         with open(file_path, 'w') as fh:
-            field_names = ['Name' 'X' 'Y' 'Z' 'Scale' 'rSig']
+            field_names = ['name', 'x', 'y', 'z', 'scale', 'rsig']
             csv_writer = csv.DictWriter(fh, fieldnames=field_names)
             csv_writer.writeheader()
-            x = '{:.6f}'.format(self.xc[0])
-            y = '{:.6f}'.format(self.yc[0])
-            z = '{:.6f}'.format(self.zc[0])
-            scale = '{:.6f}'.format(self.r[0])
-            rsig = '{:.6f}'.format(self.rSig[0])
-            csv_writer.writerow({'Name': cell_id, 'X': x, 'Y': y, 'Z': z, 'Scale': scale, 'rSig': rsig})
+            row_dict = dict(name=cell_id,
+                            x='{:.6f}'.format(self.xc[0]),
+                            y='{:.6f}'.format(self.yc[0]),
+                            z='{:.6f}'.format(self.zc[0]),
+                            scale='{:.6f}'.format(self.r[0]),
+                            rsig='{:.6f}'.format(self.rSig[0]))
+            csv_writer.writerow(row_dict)
 
     def output_json(self, output_dir, cell_id):
         base_file_name = '{}.json'.format(cell_id)

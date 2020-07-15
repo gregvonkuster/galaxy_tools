@@ -129,20 +129,20 @@ class BloodDatabaseUpdater(object):
     def update_blood_cell_table(self, file_path):
         self.log("Updating the blood_cell table...")
         # Columns in the file are:
-        # phix phiy phiz sigma_squared zeta
+        # x y z scale rsig
         blood_cell_table_inserts = 0
         with open(file_path, "r") as fh:
             for line in fh:
                 line = line.rstrip("\n")
                 items = line.split("\t")
                 name = items[0]
-                phix = items[1]
-                phiy = items[2]
-                phiz = items[3]
-                sigma_squared = items[4]
-                zeta = items[5]
+                x = items[1]
+                y = items[2]
+                z = items[3]
+                scale = items[4]
+                rsig = items[5]
                 cmd = "INSERT INTO blood_cell VALUES (nextval('blood_cell_id_seq'), %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;"
-                args = ['NOW()', 'NOW()', name, phix, phiy, phiz, sigma_squared, zeta]
+                args = ['NOW()', 'NOW()', name, x, y, z, scale, rsig]
                 cur = self.update(cmd, args)
                 self.flush()
                 blood_cell_id = cur.fetchone()[0]
