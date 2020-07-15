@@ -1,4 +1,4 @@
-<tool id="gof_blood" name="Geometry of Life" version="1.0.0">
+<tool id="gol_blood" name="Geometry of Life" version="1.0.0">
     <description>blood n eye</description>
     <requirements>
         <requirement type="package" version="3.2.2">matplotlib</requirement>
@@ -19,7 +19,7 @@ mkdir $output_json_dir &&
     #set identifier = re.sub('[^\s\w\-\\.]', '_', str($i.element_identifier))
     ln -s '$filename' '$input_dir/$identifier' &&
 #end for
-python '$__tool_directory__/gof_blood.py'
+python '$__tool_directory__/gol_blood.py'
 --input_dir '$input_dir'
 --output_csv_dir '$output_csv_dir'
 --output_json_dir '$output_json_dir'
