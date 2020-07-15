@@ -13,7 +13,7 @@ mkdir -p $input_dir &&
 mkdir -p $output_dir &&
 #for $i in $input:
     #set filename = $i.file_name
-    #set identifier = re.sub('[^\s\w\-]', '_', str($i.element_identifier))
+    #set identifier = re.sub('[^\s\w\-\\.]', '_', str($i.element_identifier))
     ln -s '$filename' '$input_dir/$identifier' &&
 #end for
 python '$__tool_directory__/extract_points.py'
