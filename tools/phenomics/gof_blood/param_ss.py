@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
+import csv
 import json
 import numpy as np
 import os
 
 
 class ParamSS:
-    def __init__(self,  n_data,  meanR):
+    def __init__(self, n_data, meanR):
         self.xc = [0, 0]
         self.yc = [0, 0]
         self.zc = [0, 0]
@@ -18,7 +19,7 @@ class ParamSS:
         self.sInG = np.zeros((n_data, 2))
         self.meanR = meanR
 
-    def set_params(self,  param_dict):
+    def set_params(self, param_dict):
         self.xc[0] = self.xc[0] + param_dict['xc']
         self.xc[1] = self.xc[1] + param_dict['xc']**2
         self.yc[0] = self.yc[0] + param_dict['yc']
@@ -38,7 +39,7 @@ class ParamSS:
         self.sInG[:, 0] = self.sInG[:, 0] + param_dict['sInG']
         self.sInG[:, 1] = self.sInG[:, 1] + param_dict['sInG']**2
 
-    def summarize_params(self,  sample):
+    def summarize_params(self, sample):
         self.xc[0] = self.xc[0]/sample
         self.xc[1] = np.sqrt(self.xc[1]/sample - self.xc[0]**2)
         self.yc[0] = self.yc[0]/sample
@@ -61,12 +62,19 @@ class ParamSS:
         self.sInGIndex = np.where(self.sInG[:, 0] > 0.5)[0]
         self.sOutGIndex = np.where(self.sInG[:, 0] <= 0.5)[0]
 
-    def output_csv(self, output_dir,  cell_id, sep='\t'):
+    def output_csv(self, output_dir, cell_id, sep='\t'):
         base_file_name = '{}.csv'.format(cell_id)
         file_path = os.path.join(output_dir, base_file_name)
-        with open(file_path,  'w') as fh:
-            fh.write('Name{}X{}Y{}Z{}Scale{}rSig\n'.format(sep, sep, sep, sep, sep))
-            fh.write('{}{}{:.6f}{}{:.6f}{}{:.6f}{}{:.6f}{}{:.6f}\n'.format(cell_id, sep, self.xc[0], sep, self.yc[0], sep, self.zc[0], sep, self.r[0], sep, self.rSig[0]))
+        with open(file_path, 'w') as fh:
+            field_names = ['Name' 'X' 'Y' 'Z' 'Scale' 'rSig']
+            csv_writer = csv.DictWriter(fh, fieldnames=field_names)
+            csv_writer.writeheader()
+            x = '{:.6f}'.format(self.xc[0])
+            y = '{:.6f}'.format(self.yc[0])
+            z = '{:.6f}'.format(self.zc[0])
+            scale = '{:.6f}'.format(self.r[0])
+            rsig = '{:.6f}'.format(self.rSig[0])
+            csv_writer.writerow({'Name': cell_id, 'X': x, 'Y': y, 'Z': z, 'Scale': scale, 'rSig': rsig})
 
     def output_json(self, output_dir, cell_id):
         base_file_name = '{}.json'.format(cell_id)

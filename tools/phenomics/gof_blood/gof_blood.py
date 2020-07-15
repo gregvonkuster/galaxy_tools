@@ -127,7 +127,7 @@ for file_name in sorted(os.listdir(args.input_dir)):
                                       eStd=[1, 1, 1])
 
     # MCMC Analysis
-    for n in range(args.burnin+args.sample):
+    for n in range(args.burnin + args.sample):
         if (np.mod(n, args.thin) == 0 or n == 0):
             log_fh.write("\nn {}\n".format(n))
             mles_param_dict['cLogLike'] = metrics.calc_log_like_sphere_mix(mles_param_dict['xc'],
