@@ -1,0 +1,104 @@
+<tool id="gof_blood" name="Geometry of Life" version="1.0.0">
+    <description>blood n eye</description>
+    <requirements>
+        <requirement type="package" version="3.2.2">matplotlib</requirement>
+        <requirement type="package" version="1.18.5">numpy</requirement>
+        <requirement type="package" version="1.5.0">scipy</requirement>
+        <requirement type="package" version="0.23.1">scikit-learn</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+#import re
+#set input_dir = 'input_dir'
+#set output_csv_dir = 'output_csv_dir'
+#set output_json_dir = 'output_json_dir'
+mkdir $input_dir &&
+mkdir $output_csv_dir &&
+mkdir $output_json_dir &&
+#for $i in $input:
+    #set filename = $i.file_name
+    #set identifier = re.sub('[^\s\w\-\\.]', '_', str($i.element_identifier))
+    ln -s '$filename' '$input_dir/$identifier' &&
+#end for
+python '$__tool_directory__/gof_blood.py'
+--input_dir '$input_dir'
+--output_csv_dir '$output_csv_dir'
+--output_json_dir '$output_json_dir'
+--output_log '$output_log'
+#if str($options_type.options_type_selector) == 'advanced':
+    --burnin $burnin
+    --nGrid $nGrid
+    --sample $sample
+    --thin $thin
+    --xTau $xTau
+    --yTau $yTau
+    --zTau $zTau
+    --rTau $rTau
+    --xETau $xETau
+    --yETau $yETau
+    --zETau $zETau
+    #if str($options_type_cond.plotFigures) == 'true':
+        --plotFigures '$plotFigures'
+    #end if
+    #if str($options_type_cond.randomStart) == 'true':
+        --randomStart '$randomStart'
+    #end if
+    #if str($options_type_cond.fixR) == 'true':
+        --fixR '$fixR'
+    #end if
+#end if
+    ]]></command>
+    <inputs>
+        <param name="input" format="csv" type="data_collection" collection_type="list" label="Collection of image points files"/>
+        <conditional name="options_type">
+            <param name="options_type_selector" type="select" label="Options configuration">
+                <option value="basic" selected="true">Basic</option>
+                <option value="advanced">Advanced</option>
+            </param>
+            <when value="basic" />
+            <when value="advanced">
+                <param name="burnin" type="integer" value="250" min="0" label="burnin"/>
+                <param name="nGrid" type="integer" value="6" min="0" label="nGrid"/>
+                <param name="sample" type="integer" value="250" min="0" label="sample"/>
+                <param name="thin" type="integer" value="10" min="0" label="thin"/>
+                <param name="xTau" type="float" value="0.01" min="0" label="xTau"/>
+                <param name="yTau" type="float" value="0.01" min="0" label="yTau"/>
+                <param name="zTau" type="float" value="0.01" min="0" label="zTau"/>
+                <param name="rTau" type="float" value="0.01" min="0" label="rTau"/>
+                <param name="xETau" type="float" value="0.01" min="0" label="xeTau"/>
+                <param name="yETau" type="float" value="0.01" min="0" label="yeTau"/>
+                <param name="zETau" type="float" value="0.01" min="0" label="zeTau"/>
+                <param name="plotFigures" type="boolean" truevalue="true" falsevalue="" checked="False" label="Plot figures"/>
+                <param name="randomStart" type="boolean" truevalue="true" falsevalue="" checked="False" label="Random start"/>
+                <param name="fixR" type="boolean" truevalue="true" falsevalue="" checked="True" label="Fix R"/>
+            </when>
+        </conditional>
+    </inputs>
+    <outputs>
+        <collection name="output_csv" type="list">
+            <discover_datasets pattern="__name__" directory="output_csv_dir" format="csv"/>
+        </collection>
+        <collection name="output_json" type="list">
+            <discover_datasets pattern="__name__" directory="output_json_dir" format="json"/>
+        </collection>
+        <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}"/>
+    </outputs>
+    <tests>
+        <test>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+    </help>
+    <citations>
+        <citation type="bibtex">
+            @misc{None,
+            journal = {None},
+            author = {Von Kuster, G},
+            title = {Manuscript in preparation},
+            year = {None},
+            url = {}
+        </citation>
+    </citations>
+</tool>
+
