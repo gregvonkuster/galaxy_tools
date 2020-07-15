@@ -132,15 +132,18 @@ class BloodDatabaseUpdater(object):
         # x y z scale rsig
         blood_cell_table_inserts = 0
         with open(file_path, "r") as fh:
-            for line in fh:
+            for i, line in enumerate(fh):
+                if i == 0:
+                    # skip header.
+                    continue
                 line = line.rstrip("\n")
                 items = line.split("\t")
                 name = items[0]
-                x = items[1]
-                y = items[2]
-                z = items[3]
-                scale = items[4]
-                rsig = items[5]
+                x = '{:.6f}'.format(float(items[1]))
+                y = '{:.6f}'.format(float(items[2]))
+                z = '{:.6f}'.format(float(items[3]))
+                scale = '{:.6f}'.format(float(items[4]))
+                rsig = '{:.6f}'.format(float(items[5]))
                 cmd = "INSERT INTO blood_cell VALUES (nextval('blood_cell_id_seq'), %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;"
                 args = ['NOW()', 'NOW()', name, x, y, z, scale, rsig]
                 cur = self.update(cmd, args)
