@@ -24,7 +24,7 @@ option_list <- list(
     make_option(c("--percent"), action="store", dest="percent", type="integer", default=NULL, help="Integer number of the percent column in the inputs"),
     make_option(c("--sample_id"), action="store", dest="sample_id", default=NULL, help="Names of the samples corresponding to each file"),
     make_option(c("--seqnames"), action="store", dest="seqnames", type="integer", default=NULL, help="Integer number of the seqnames column in the inputs"),
-    make_option(c("--single_input"), action="store", dest="single_input", default=NULL, help="Single input file"),
+    make_option(c("--single_input"), action="store", dest="single_input", default=NULL, help="Single rdata input file"),
     make_option(c("--start"), action="store", dest="start", type="integer", default=NULL, help="Integer number of the start column in the inputs"),
     make_option(c("--strand"), action="store", dest="strand", type="integer", default=NULL, help="Integer number of the strand column in the inputs"),
     make_option(c("--uC"), action="store", dest="uC", type="integer", default=NULL, help="Integer number of the uC column in the inputs")
@@ -124,13 +124,13 @@ num_granges <- length(granges_list)[[1]];
 
 for (i in 1:num_granges) {
     grange <- granges_list[i];
-    # Save the data frame.
+    # Save the data.
     if (single_input) {
-        write.csv(grange, file=opt$output, row.names=F);
+        save(grange, file=opt$output);
     } else {
-        file_name <- paste(sample_id[i], ".csv", sep="");
+        file_name <- paste(sample_id[i], ".rdata", sep="");
         file_path = paste(opt$output_data_dir, file_name, sep="/");
-        write.csv(grange, file=file_path, row.names=F);
+        save(grange, file=file_path);
     }
 }
 

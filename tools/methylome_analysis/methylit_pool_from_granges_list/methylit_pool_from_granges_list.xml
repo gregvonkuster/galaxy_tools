@@ -35,7 +35,7 @@ Rscript '$__tool_directory__/methylit_pool_from_granges_list.R'
 --output '$output'
 &>process_log.txt]]></command>
     <inputs>
-        <param name="lr" type="data_collection" format="csv" collection_type="list" label="Collection of MehylIT GRanges files"/>
+        <param name="lr" type="data_collection" format="rdata" collection_type="list" label="Collection of MehylIT GRanges files"/>
         <conditional name="stat_cond">
             <param name="stat" type="select" label="Select statistic used to estimate the methylation pool">
                 <option value="mean" selected="true">mean</option>
@@ -66,7 +66,7 @@ Rscript '$__tool_directory__/methylit_pool_from_granges_list.R'
         </conditional>
     </inputs>
     <outputs>
-        <data name="output" format="csv"/>
+        <data name="output" format="rdata"/>
     </outputs>
     <tests>
     </tests>

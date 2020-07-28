@@ -104,11 +104,11 @@ Rscript '$__tool_directory__/methylit_read_counts_2_granges_list.R'
         <param name="sample_id" type="text" value="" label="Sample id" help="Enter a comma-separated list if morre than one item"/>
     </inputs>
     <outputs>
-        <data name="output_single" format="csv">
+        <data name="output_single" format="rdata">
             <filter>input_type_cond['input_type'] == "single"</filter>
         </data>
         <collection name="output_collection" type="list">
-            <discover_datasets pattern="__name__" directory="output_data_dir" format="csv"/>
+            <discover_datasets pattern="__name__" directory="output_data_dir" format="rdata"/>
             <filter>input_type_cond['input_type'] == "collection"</filter>
         </collection>
     </outputs>

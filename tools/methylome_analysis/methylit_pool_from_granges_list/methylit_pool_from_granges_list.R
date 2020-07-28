@@ -30,8 +30,8 @@ num_input_files <- length(input_data_files);
 granges_list <- list();
 for (i in 1:num_input_files) {
     input_data_file <- input_data_files[i];
-    df = read.csv(file=input_data_file, header=T, strip.white=TRUE, stringsAsFactors=FALSE, sep=",");
-    granges_list[[i]] <- df;
+    grange = load(input_data_file);
+    granges_list[[i]] <- grange;
 }
 
 # Convert prob to boolean.
@@ -50,8 +50,6 @@ unique_grange <- poolFromGRlist(LR=granges_list,
                                 column=opt$column_number,
                                 jstat=opt$jstat,
                                 verbose=TRUE);
-# Convert the GRange object to a data frame for saving
-# to a file.
-df <- annoGR2DF(unique_grange);
-write.csv(df, file=opt$output, row.names=F);
+# Save the grange object to a file.
+save(df, file=opt$output);
 

@@ -1,0 +1,198 @@
+<tool id="methylit_estimate_divergence" name="MethylIT: Estimate divergence" version="1.0.0">
+    <description></description>
+    <requirements>
+        <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
+        <requirement type="package" version="1.22.0">bioconductor-biocparallel</requirement>
+        <requirement type="package" version="1.40.0">bioconductor-genomicranges</requirement>
+        <requirement type="package" version="0.3.2.1">r-methylit</requirement>
+        <requirement type="package" version="1.6.6">r-optparse</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+#import os
+#import re
+#set meth_level = $meth_level_cond.meth_level
+#set meth_level_columns_cond = $meth_level_cond.columns_cond
+#set meth_level_columns = $meth_level_columns_cond.columns
+#set input_indiv_dir='input_indiv_dir'
+mkdir input_indiv_dir &&
+#for $i in $indiv:
+    #set file_name = $i.file_name
+    #set identifier = re.sub('[^\s\w\-\\.]', '_', str($i.element_identifier))
+    ln -s '$file_name' '$input_indiv_dir/$identifier' &&
+#end for
+Rscript '$__tool_directory__/methylit_estimate_divergence.R'
+--ref '$ref'
+--input_indiv_dir '$input_indiv_dir'
+--bayesian '$bayesian'
+#if str($meth_level) == 'no':
+    ## meth_level is FALSE
+    #if str($meth_level_columns) == 'yes':
+        ## meth_level is FALSE and columns is NULL
+        --column1 1
+        --column2 2
+    #else:
+        ## meth_level is FALSE and columns is not NULL
+        --column1 $meth_level_columns_cond.column1
+        --column2 $meth_level_columns_cond.column2
+    #end if
+    #set compute_jd = $compute_jd_cond.compute_jd_cond
+    #if str($comput_jd) == 'yes':
+        --jd $compute_jd_cond.jd
+        --logbase $compute_jd_cond.logbase
+    #end if
+#else:
+    ## meth_level is TRUE
+    --meth_level $meth_level
+    #if str($meth_level_columns) == 'no':
+        ## meth_level is TRUE and columns is not NULL
+        --column1 $meth_level_columns_cond.column1
+        --column2 $meth_level_columns_cond.column2
+    ## else  meth_level is TRUE and columns is NULL
+        --column1 1
+    #end if
+#end if
+--min_coverage1 $min_coverage1
+#if str($min_coverage_cond.min_coverage) == 'yes':
+    --min_coverage2 $min_coverage_cond.min_coverage2
+#end if
+--min_meth1 $min_meth1
+#if str($min_meth_cond.min_meth) == 'yes':
+    --min_meth2 $min_meth_cond.min_meth2
+#end if
+--min_umeth1 $min_umeth1
+#if str($min_umeth_cond.min_umeth) == 'yes':
+    --min_umeth2 $min_umeth_cond.min_umeth2
+#end if
+--min_sitecov $min_sitecov
+#set set_high_coverage = $set_high_coverage_cond.set_high_coverage
+#if str($set_high_coverage) == 'yes':
+    --high_coverage $set_high_coverage_cond.high_coverage
+#end if
+--percentile $percentile
+--num_cores \${GALAXY_SLOTS:-4}
+--output '$output'
+&>process_log.txt]]></command>
+    <inputs>
+        <param name="ref" type="data" format="rdata" label="GRanges reference file" help="The reference individual that will be used in the estimation of the information divergence"/>
+        <param name="indiv" type="data_collection" format="rdata" collection_type="list" label="Collection of GRanges files" help="The individuals that will be used in the estimation of the information divergence"/>
+        <param name="bayesian" type="select" label="Perform the estimations based on posterior estimations of methylation levels?">
+            <option value="no" selected="true">No</option>
+            <option value="yes">Yes</option>
+        </param>
+        <conditional name="meth_level_cond">
+            <param name="meth_level" type="select" label="Methylation levels are given in place of counts?">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no">
+                <!-- meth_level is FALSE -->
+                <conditional name="columns_cond">
+                    <param name="columns" type="select" label="Use defaults for the columns corresponding to the methylation levels?">
+                        <option value="yes" selected="true">Yes</option>
+                        <option value="no">No</option>
+                    </param>
+                    <when value="no">
+                        <!-- meth_level is FALSE and columns is not NULL -->
+                        <param name="column1" type="integer" value="1" min="1" label="Column number of methylated read counts"/>
+                        <param name="column2" type="integer" value="2" min="1" label="Column number of unmethylated read counts"/>
+                    </when>
+                    <when value="yes">
+                        <!-- meth_level is FALSE and columns is NULL -->
+                    </when>
+                </conditional>
+                <conditional name="compute_jd_cond">
+                    <param name="compute_jd" type="select" label="Add a column with values of J-information divergence?">
+                        <option value="no" selected="true">No</option>
+                        <option value="yes">Yes</option>
+                    </param>
+                    <when value="no"/>
+                    <when value="yes">
+                        <param name="logbase" type="integer" value="2" min="1" label="Logarithm base used to compute the J-information divergence"/>
+                    </when>
+                </conditional>
+            </when>
+            <when value="yes">
+                <!-- meth_level is TRUE -->
+                <conditional name="columns_cond">
+                    <param name="columns" type="select" label="Use defaults for the columns corresponding to the methylation levels?">
+                        <option value="yes" selected="true">Yes</option>
+                        <option value="no">No</option>
+                    </param>
+                    <when value="no">
+                        <!-- meth_level is TRUE and columns is not NULL -->
+                        <param name="column1" type="integer" value="1" min="1" label="Column number of methylation level p1"/>
+                        <param name="column2" type="integer" value="2" min="1" label="Column number of methylation level p2"/>
+                    </when>
+                    <when value="yes">
+                        <!-- meth_level is TRUE and columns is NULL -->
+                    </when>
+                </conditional>
+            </when>
+        </conditional>
+        <param name="min_coverage1" type="integer" value="4" min="0" label="Minimum coverage for cytosine site in sample 1"/>
+        <conditional name="min_coverage_cond">
+            <param name="min_coverage" type="select" label="Apply minimum coverage for cytosine site to each sample?">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no"/>
+            <when value="yes">
+                <param name="min_coverage2" type="integer" value="4" min="0" label="Minimum coverage for cytosine site in sample 2"/>
+            </when>
+        </conditional>
+        <param name="min_meth1" type="integer" value="4" min="0" label="Minimum read counts of methylated cytosine in sample 1"/>
+        <conditional name="min_meth_cond">
+            <param name="min_meth" type="select" label="Apply minimum read counts of methylated cytosine to each sample?">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no"/>
+            <when value="yes">
+                <param name="min_meth2" type="integer" value="4" min="0" label="Minimum read counts of methylated cytosine in sample 2"/>
+            </when>
+        </conditional>
+        <param name="min_umeth1" type="integer" value="0" min="0" label="Minimum number of reads to consider cytosine position in sample 1"/>
+        <conditional name="min_umeth_cond">
+            <param name="min_umeth" type="select" label="Apply minimum number of reads to consider cytosine position to each sample?">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no"/>
+            <when value="yes">
+                <param name="min_umeth2" type="integer" value="0" min="0" label="Minimum number of reads to consider cytosine position in sample 2"/>
+            </when>
+        </conditional>
+        <param name="min_sitecov" type="integer" value="4" min="0" label="Minimum total coverage for samples"/>
+        <conditional name="set_high_coverage_cond">
+            <param name="set_high_coverage" type="select" label="Specify high coverage floor?" help="Cytosine sites having higher coverage than this are discarded">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no"/>
+            <when value="yes">
+                <param name="high_coverage" type="integer" value="4" min="0" label="High coverage floor for samples"/>
+            </when>
+        </conditional>
+        <param name="percentile" type="float" value="0.9999" min="0" max="1" label="Threshold to remove the outliers from each file and all files stacked" />
+    </inputs>
+    <outputs>
+        <data name="output" format="rdata"/>
+    </outputs>
+    <tests>
+    </tests>
+    <help>
+**What it does**
+
+Computes selected information divergences of methylation levels, with 2 levels computed by default: Hellinger divergence (\emph{H})
+and the total variation distance (\emph{TVD}).  In the context of methylation analysis \emph{TVD} corresponds to the absolute
+difference of methylation levels.  Here, although the variable reported is the total variation (\emph{TV}), the variable actually
+used for the downstream analysis is \emph{TVD}. Once a differentially methylated position (DMP) is identified in the downstream
+analysis, \emph{TV} is the standard indicator of whether the cytosine position is hyper- or hypo-methylated.
+    </help>
+    <citations>
+        <citation type="doi">10.3389/fphys.2016.00165</citation>
+        <citation type="doi">10.1175/JTECH-D-11-00103.1</citation>
+        <citation type="doi">10.7289/V5D21VHZ</citation>
+    </citations>
+</tool>
+
