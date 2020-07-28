@@ -70,9 +70,9 @@ class ParamSS:
             csv_writer = csv.DictWriter(fh, fieldnames=field_names)
             csv_writer.writeheader()
             row_dict = dict(name=cell_id,
-                            x='{:.6f}'.format(self.xc[0]),
-                            y='{:.6f}'.format(self.yc[0]),
-                            z='{:.6f}'.format(self.zc[0]),
+                            x='{:.6f}'.format(self.xE[0]),
+                            y='{:.6f}'.format(self.yE[0]),
+                            z='{:.6f}'.format(self.zE[0]),
                             scale='{:.6f}'.format(self.r[0]),
                             rsig='{:.6f}'.format(self.rSig[0]))
             csv_writer.writerow(row_dict)
