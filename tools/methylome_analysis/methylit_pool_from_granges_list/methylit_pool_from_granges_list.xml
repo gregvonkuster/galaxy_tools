@@ -35,7 +35,7 @@ Rscript '$__tool_directory__/methylit_pool_from_granges_list.R'
 --output '$output'
 &>process_log.txt]]></command>
     <inputs>
-        <param name="lr" type="data_collection" format="rdata" collection_type="list" label="Collection of MehylIT GRanges files"/>
+        <param name="lr" type="data_collection" format="rdata" collection_type="list" label="Collection of GRanges files"/>
         <conditional name="stat_cond">
             <param name="stat" type="select" label="Select statistic used to estimate the methylation pool">
                 <option value="mean" selected="true">mean</option>
@@ -55,7 +55,7 @@ Rscript '$__tool_directory__/methylit_pool_from_granges_list.R'
             </when>
         </conditional>
         <conditional name="prob_cond">
-            <param name="prob" type="select" label="Is the variable for pooling is between 0 and 1?">
+            <param name="prob" type="select" label="Is the variable for pooling between 0 and 1?">
                 <option value="no" selected="true">No</option>
                 <option value="yes">Yes</option>
             </param>

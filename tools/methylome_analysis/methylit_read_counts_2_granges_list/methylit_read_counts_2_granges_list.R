@@ -4,8 +4,8 @@ suppressPackageStartupMessages(library("Biobase"))
 suppressPackageStartupMessages(library("BiocManager"))
 suppressPackageStartupMessages(library("GenomeInfoDb"))
 suppressPackageStartupMessages(library("GenomicRanges"))
-suppressPackageStartupMessages(library("data.table"))
 suppressPackageStartupMessages(library("MethylIT"))
+suppressPackageStartupMessages(library("Repitools"))
 suppressPackageStartupMessages(library("optparse"))
 
 option_list <- list(
@@ -24,7 +24,7 @@ option_list <- list(
     make_option(c("--percent"), action="store", dest="percent", type="integer", default=NULL, help="Integer number of the percent column in the inputs"),
     make_option(c("--sample_id"), action="store", dest="sample_id", default=NULL, help="Names of the samples corresponding to each file"),
     make_option(c("--seqnames"), action="store", dest="seqnames", type="integer", default=NULL, help="Integer number of the seqnames column in the inputs"),
-    make_option(c("--single_input"), action="store", dest="single_input", default=NULL, help="Single rdata input file"),
+    make_option(c("--single_input"), action="store", dest="single_input", default=NULL, help="Single input file"),
     make_option(c("--start"), action="store", dest="start", type="integer", default=NULL, help="Integer number of the start column in the inputs"),
     make_option(c("--strand"), action="store", dest="strand", type="integer", default=NULL, help="Integer number of the strand column in the inputs"),
     make_option(c("--uC"), action="store", dest="uC", type="integer", default=NULL, help="Integer number of the uC column in the inputs")
@@ -103,7 +103,7 @@ if (is.null(opt$chromosome_names)) {
 columns <- get_columns(opt$seqnames, opt$start, opt$end, opt$strand, opt$fraction, opt$percent, opt$mC, opt$uC, opt$coverage, opt$context);
 
 if (is.null(opt$sample_id)) {
-    sample_id = NULL;
+    sample_id <- NULL;
 } else {
     # Convert sample_id into a character vector.
     sample_id_str <- as.character(opt$sample_id);
@@ -112,25 +112,24 @@ if (is.null(opt$sample_id)) {
 }
 
 # Create the GRanges list.
-granges_list <- readCounts2GRangesList(filenames=input_data_files,
-                                       sample.id=sample_id,
-                                       pattern=opt$pattern,
-                                       remove=FALSE, 
-                                       columns=columns,
-                                       chromosome.names=chromosome_names,
-                                       chromosomes=chromosomes,
-                                       verbose=TRUE);
-num_granges <- length(granges_list)[[1]];
+grange_list <- readCounts2GRangesList(filenames=input_data_files,
+                                      sample.id=sample_id,
+                                      pattern=opt$pattern,
+                                      remove=FALSE, 
+                                      columns=columns,
+                                      chromosome.names=chromosome_names,
+                                      chromosomes=chromosomes,
+                                      verbose=TRUE);
+num_granges <- length(grange_list)[[1]];
 
 for (i in 1:num_granges) {
-    grange <- granges_list[i];
-    # Save the data.
+    grange <- grange_list[[i]];
     if (single_input) {
-        save(grange, file=opt$output);
+        saveRDS(grange, file=opt$output, compress=TRUE);
     } else {
-        file_name <- paste(sample_id[i], ".rdata", sep="");
-        file_path = paste(opt$output_data_dir, file_name, sep="/");
-        save(grange, file=file_path);
+        file_name <- paste(sample_id[[i]], ".rdata", sep="");
+        file_path <- paste(opt$output_data_dir, file_name, sep="/");
+        saveRDS(grange, file=file_path, compress=TRUE);
     }
 }
 

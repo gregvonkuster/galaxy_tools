@@ -25,24 +25,24 @@ opt <- args$options;
 
 # Get the list of input data files.
 input_data_files <- list.files(path=opt$input_data_dir, full.names=TRUE);
-num_input_files <- length(input_data_files);
+num_input_files <- length(input_data_files)[[1]];
 
-granges_list <- list();
+# Load the list of intputs into data frames
+grange_list <- list();
 for (i in 1:num_input_files) {
-    input_data_file <- input_data_files[i];
-    grange = load(input_data_file);
-    granges_list[[i]] <- grange;
+    input_data_file <- normalizePath(input_data_files[[i]]);
+    grange_list[[i]] <- readRDS(file=input_data_file);
 }
 
 # Convert prob to boolean.
 if (opt$prob == 'yes') {
-    prob = TRUE;
+    prob <- TRUE;
 } else {
-    prob = FALSE;
+    prob <- FALSE;
 }
 
-# Create a unique GRange object from the GRanges list.
-unique_grange <- poolFromGRlist(LR=granges_list,
+# Create a unique GRange from the GRanges list.
+unique_grange <- poolFromGRlist(LR=grange_list,
                                 stat=opt$stat,
                                 num.cores=opt$num_cores,
                                 tasks=0L,
@@ -50,6 +50,5 @@ unique_grange <- poolFromGRlist(LR=granges_list,
                                 column=opt$column_number,
                                 jstat=opt$jstat,
                                 verbose=TRUE);
-# Save the grange object to a file.
-save(df, file=opt$output);
+saveRDS(unique_grange, file=opt$output, compress=TRUE);
 

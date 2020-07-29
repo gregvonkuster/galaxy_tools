@@ -2,8 +2,12 @@
     <description></description>
     <requirements>
         <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
+        <requirement type="package" version="0.34.0">bioconductor-biocgenerics</requirement>
         <requirement type="package" version="1.22.0">bioconductor-biocparallel</requirement>
         <requirement type="package" version="1.40.0">bioconductor-genomicranges</requirement>
+        <requirement type="package" version="1.24.0">bioconductor-genomeinfodb</requirement>
+        <requirement type="package" version="2.22.1">bioconductor-iranges</requirement>
+        <requirement type="package" version="0.26.0">bioconductor-s4vectors</requirement>
         <requirement type="package" version="0.3.2.1">r-methylit</requirement>
         <requirement type="package" version="1.6.6">r-optparse</requirement>
     </requirements>
@@ -28,15 +32,16 @@ Rscript '$__tool_directory__/methylit_estimate_divergence.R'
     ## meth_level is FALSE
     #if str($meth_level_columns) == 'yes':
         ## meth_level is FALSE and columns is NULL
-        --column1 1
-        --column2 2
+        --col1 1
+        --col2 2
     #else:
         ## meth_level is FALSE and columns is not NULL
-        --column1 $meth_level_columns_cond.column1
-        --column2 $meth_level_columns_cond.column2
+        --col1 $meth_level_columns_cond.col1
+        --col2 $meth_level_columns_cond.col2
     #end if
-    #set compute_jd = $compute_jd_cond.compute_jd_cond
-    #if str($comput_jd) == 'yes':
+    #set compute_jd_cond = $meth_level_cond.compute_jd_cond
+    #set compute_jd = $compute_jd_cond.compute_jd
+    #if str($compute_jd) == 'yes':
         --jd $compute_jd_cond.jd
         --logbase $compute_jd_cond.logbase
     #end if
@@ -45,23 +50,23 @@ Rscript '$__tool_directory__/methylit_estimate_divergence.R'
     --meth_level $meth_level
     #if str($meth_level_columns) == 'no':
         ## meth_level is TRUE and columns is not NULL
-        --column1 $meth_level_columns_cond.column1
-        --column2 $meth_level_columns_cond.column2
+        --col1 $meth_level_columns_cond.col1
+        --col2 $meth_level_columns_cond.col2
     ## else  meth_level is TRUE and columns is NULL
-        --column1 1
+        --col1 1
     #end if
 #end if
---min_coverage1 $min_coverage1
+--mcov1 $mcov1
 #if str($min_coverage_cond.min_coverage) == 'yes':
-    --min_coverage2 $min_coverage_cond.min_coverage2
+    --mcov2 $min_coverage_cond.mcov2
 #end if
---min_meth1 $min_meth1
+--mmeth1 $mmeth1
 #if str($min_meth_cond.min_meth) == 'yes':
-    --min_meth2 $min_meth_cond.min_meth2
+    --mmeth2 $min_meth_cond.mmeth2
 #end if
---min_umeth1 $min_umeth1
+--mum1 $mum1
 #if str($min_umeth_cond.min_umeth) == 'yes':
-    --min_umeth2 $min_umeth_cond.min_umeth2
+    --mum2 $min_umeth_cond.mum2
 #end if
 --min_sitecov $min_sitecov
 #set set_high_coverage = $set_high_coverage_cond.set_high_coverage
@@ -73,9 +78,9 @@ Rscript '$__tool_directory__/methylit_estimate_divergence.R'
 --output '$output'
 &>process_log.txt]]></command>
     <inputs>
-        <param name="ref" type="data" format="rdata" label="GRanges reference file" help="The reference individual that will be used in the estimation of the information divergence"/>
-        <param name="indiv" type="data_collection" format="rdata" collection_type="list" label="Collection of GRanges files" help="The individuals that will be used in the estimation of the information divergence"/>
-        <param name="bayesian" type="select" label="Perform the estimations based on posterior estimations of methylation levels?">
+        <param name="ref" type="data" format="rdata" label="GRange reference file" help="The reference individual that will be used in the estimation of the information divergence"/>
+        <param name="indiv" type="data_collection" format="rdata" collection_type="list" label="Collection of GRange files" help="The individuals that will be used in the estimation of the information divergence"/>
+        <param name="bayesian" type="select" label="Perform the estimations based on posterior estimations of methylation levels?" help="--bayesian">
             <option value="no" selected="true">No</option>
             <option value="yes">Yes</option>
         </param>
@@ -87,14 +92,14 @@ Rscript '$__tool_directory__/methylit_estimate_divergence.R'
             <when value="no">
                 <!-- meth_level is FALSE -->
                 <conditional name="columns_cond">
-                    <param name="columns" type="select" label="Use defaults for the columns corresponding to the methylation levels?">
+                    <param name="columns" type="select" label="Use defaults for the columns corresponding to the methylation levels?" help="--columns">
                         <option value="yes" selected="true">Yes</option>
                         <option value="no">No</option>
                     </param>
                     <when value="no">
                         <!-- meth_level is FALSE and columns is not NULL -->
-                        <param name="column1" type="integer" value="1" min="1" label="Column number of methylated read counts"/>
-                        <param name="column2" type="integer" value="2" min="1" label="Column number of unmethylated read counts"/>
+                        <param name="col1" type="integer" value="1" min="1" label="Column number of methylated read counts"/>
+                        <param name="col2" type="integer" value="2" min="1" label="Column number of unmethylated read counts"/>
                     </when>
                     <when value="yes">
                         <!-- meth_level is FALSE and columns is NULL -->
@@ -120,8 +125,8 @@ Rscript '$__tool_directory__/methylit_estimate_divergence.R'
                     </param>
                     <when value="no">
                         <!-- meth_level is TRUE and columns is not NULL -->
-                        <param name="column1" type="integer" value="1" min="1" label="Column number of methylation level p1"/>
-                        <param name="column2" type="integer" value="2" min="1" label="Column number of methylation level p2"/>
+                        <param name="col1" type="integer" value="1" min="1" label="Column number of methylation level p1"/>
+                        <param name="col2" type="integer" value="2" min="1" label="Column number of methylation level p2"/>
                     </when>
                     <when value="yes">
                         <!-- meth_level is TRUE and columns is NULL -->
@@ -129,7 +134,7 @@ Rscript '$__tool_directory__/methylit_estimate_divergence.R'
                 </conditional>
             </when>
         </conditional>
-        <param name="min_coverage1" type="integer" value="4" min="0" label="Minimum coverage for cytosine site in sample 1"/>
+        <param name="mcov1" type="integer" value="4" min="0" label="Minimum coverage for cytosine site in sample 1" help="--min.coverage"/>
         <conditional name="min_coverage_cond">
             <param name="min_coverage" type="select" label="Apply minimum coverage for cytosine site to each sample?">
                 <option value="no" selected="true">No</option>
@@ -137,10 +142,10 @@ Rscript '$__tool_directory__/methylit_estimate_divergence.R'
             </param>
             <when value="no"/>
             <when value="yes">
-                <param name="min_coverage2" type="integer" value="4" min="0" label="Minimum coverage for cytosine site in sample 2"/>
+                <param name="mcov2" type="integer" value="4" min="0" label="Minimum coverage for cytosine site in sample 2"/>
             </when>
         </conditional>
-        <param name="min_meth1" type="integer" value="4" min="0" label="Minimum read counts of methylated cytosine in sample 1"/>
+        <param name="mmeth1" type="integer" value="4" min="0" label="Minimum read counts of methylated cytosine in sample 1" help="--min.meth"/>
         <conditional name="min_meth_cond">
             <param name="min_meth" type="select" label="Apply minimum read counts of methylated cytosine to each sample?">
                 <option value="no" selected="true">No</option>
@@ -148,10 +153,10 @@ Rscript '$__tool_directory__/methylit_estimate_divergence.R'
             </param>
             <when value="no"/>
             <when value="yes">
-                <param name="min_meth2" type="integer" value="4" min="0" label="Minimum read counts of methylated cytosine in sample 2"/>
+                <param name="mmeth2" type="integer" value="4" min="0" label="Minimum read counts of methylated cytosine in sample 2"/>
             </when>
         </conditional>
-        <param name="min_umeth1" type="integer" value="0" min="0" label="Minimum number of reads to consider cytosine position in sample 1"/>
+        <param name="mum1" type="integer" value="0" min="0" label="Minimum number of reads to consider cytosine position in sample 1" help="--min.umeth"/>
         <conditional name="min_umeth_cond">
             <param name="min_umeth" type="select" label="Apply minimum number of reads to consider cytosine position to each sample?">
                 <option value="no" selected="true">No</option>
@@ -159,7 +164,7 @@ Rscript '$__tool_directory__/methylit_estimate_divergence.R'
             </param>
             <when value="no"/>
             <when value="yes">
-                <param name="min_umeth2" type="integer" value="0" min="0" label="Minimum number of reads to consider cytosine position in sample 2"/>
+                <param name="mum2" type="integer" value="0" min="0" label="Minimum number of reads to consider cytosine position in sample 2"/>
             </when>
         </conditional>
         <param name="min_sitecov" type="integer" value="4" min="0" label="Minimum total coverage for samples"/>
@@ -170,7 +175,7 @@ Rscript '$__tool_directory__/methylit_estimate_divergence.R'
             </param>
             <when value="no"/>
             <when value="yes">
-                <param name="high_coverage" type="integer" value="4" min="0" label="High coverage floor for samples"/>
+                <param name="high_coverage" type="integer" value="4" min="0" label="High coverage floor for samples" help="--high.coverage"/>
             </when>
         </conditional>
         <param name="percentile" type="float" value="0.9999" min="0" max="1" label="Threshold to remove the outliers from each file and all files stacked" />
