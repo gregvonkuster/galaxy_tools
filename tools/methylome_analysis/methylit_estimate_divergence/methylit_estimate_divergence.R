@@ -23,7 +23,7 @@ option_list <- list(
     make_option(c("--mum1"), action="store", dest="mum1", type="integer", help="Minimum read counts of unmethylated cytosine in sample 1"),
     make_option(c("--mum2"), action="store", dest="mum2", type="integer", default=NULL, help="Minimum read counts of unmethylated cytosine in sample 2"),
     make_option(c("--num_cores"), action="store", dest="num_cores", type="integer", help="The number of cores to use"),
-    make_option(c("--output"), action="store", dest="output", help="Output Granges converted to data frame file"),
+    make_option(c("--output_dir"), action="store", dest="output_dir", help="Directory for output files"),
     make_option(c("--percentile"), action="store", dest="percentile", type="double", help="Threshold to remove the outliers from each file and all files stacked"),
     make_option(c("--ref"), action="store", dest="ref", help="A GRange file for the reference individual")
 )
@@ -31,8 +31,6 @@ option_list <- list(
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list);
 args <- parse_args(parser, positional_arguments=TRUE);
 opt <- args$options;
-
-cat("\nargs:\n", toString(args), "\n");
 
 # Convert bayesian to boolean.
 if (is.null(opt$bayesian)) {
@@ -59,14 +57,11 @@ ref = readRDS(file=opt$ref);
 
 # Read the list of input files for the individual into data frames.
 input_indiv_files <- list.files(path=opt$input_indiv_dir, full.names=TRUE);
-cat("\ninput_indiv_files: ", toString(input_indiv_files), "\n");
 num_input_indiv_files <- length(input_indiv_files);
-cat("num_input_indiv_files: ", num_input_indiv_files, "\n");
 
 grange_list <- list();
 for (i in 1:num_input_indiv_files) {
-    cat("i: ", i, "\n");
-    input_indiv_file <- normalizePath(input_indiv_files[[i]]);
+    input_indiv_file <- input_indiv_files[[i]];
     grange_list[[i]] <- readRDS(input_indiv_file);
 }
 
@@ -97,8 +92,6 @@ if (!is.null(opt$mcov1) && !is.null(opt$mcov2)) {
     min_coverage <- opt$mcov1;
 }
 
-cat("\nmin_coverage: ", min_coverage, "\n");
-
 # Convert min_meth to an integer or integer vector if not NULL.
 if (!is.null(opt$mmeth1) && !is.null(opt$mmeth2)) {
     min_meth <- integer(length=2);
@@ -107,8 +100,6 @@ if (!is.null(opt$mmeth1) && !is.null(opt$mmeth2)) {
 } else if (!is.null(opt$mmeth1)) {
     min_meth <- opt$mmeth1;
 }
-
-cat("\nmin_meth: ", min_meth, "\n");
 
 # Convert min_umeth to an integer or integer vector if not NULL.
 if (!is.null(opt$mum1) && !is.null(opt$mum2)) {
@@ -137,24 +128,29 @@ cat("\nmeth_level: ", meth_level, "\n");
 cat("\nopt$logbase: ", opt$logbase, "\n");
 
 # Compute the information divergences of methylation levels.
-inf_div_obj <- estimateDivergence(ref,
-                                  grange_list,
-                                  bayesian=bayesian,
-                                  columns=columns,
-                                  min.coverage=min_coverage,
-                                  min.meth=min_meth,
-                                  min.umeth=min_umeth,
-                                  min.sitecov=opt$min_sitecov,
-                                  high.coverage=opt$high_coverage,
-                                  percentile=percentile,
-                                  jd=jd,
-                                  num.cores=opt$num_cores,
-                                  tasks=0L,
-                                  meth.level=meth_level,
-                                  logbase=opt$logbase,
-                                  verbose=TRUE);
+grange_est_div_list <- estimateDivergence(ref,
+                                          grange_list,
+                                          Bayesian=bayesian,
+                                          columns=columns,
+                                          min.coverage=min_coverage,
+                                          min.meth=min_meth,
+                                          min.umeth=min_umeth,
+                                          min.sitecov=opt$min_sitecov,
+                                          high.coverage=opt$high_coverage,
+                                          percentile=percentile,
+                                          JD=jd,
+                                          num.cores=opt$num_cores,
+                                          meth.level=meth_level,
+                                          logbase=opt$logbase,
+                                          verbose=TRUE);
 
-cat("inf_div_obj:\n", toString(inf_div_obj, "\n");
-cat("typeof(inf_div_obj:\n");
-typeof(inf_div_obj
+num_grange_est_div_objs <- length(grange_est_div_list)[[1]];
+for (i in 1:num_grange_est_div_objs) {
+    input_path <- input_indiv_files[[i]];
+    base_file_name <- basename(input_path);
+    output_file_name <- paste('Est_HD_', base_file_name, sep='');
+    file_path <- paste(opt$output_dir, output_file_name, sep="/");
+    grange_est_div <- grange_est_div_list[[i]];
+    saveRDS(grange_est_div, file=file_path, compress=TRUE);
+}
 
