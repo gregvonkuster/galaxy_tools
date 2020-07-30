@@ -1,0 +1,126 @@
+<tool id="methylit_unique_granges" name="MethylIT: Build unique GRange" version="1.0.0">
+    <description>from a list of GRange objects</description>
+    <requirements>
+        <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
+        <requirement type="package" version="0.34.0">bioconductor-biocgenerics</requirement>
+        <requirement type="package" version="1.22.0">bioconductor-biocparallel</requirement>
+        <requirement type="package" version="1.40.0">bioconductor-genomicranges</requirement>
+        <requirement type="package" version="1.24.0">bioconductor-genomeinfodb</requirement>
+        <requirement type="package" version="2.22.1">bioconductor-iranges</requirement>
+        <requirement type="package" version="0.26.0">bioconductor-s4vectors</requirement>
+        <requirement type="package" version="0.3.2.1">r-methylit</requirement>
+        <requirement type="package" version="1.6.6">r-optparse</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+#import os
+#import re
+#set input_dir='input_dir'
+mkdir input_dir &&
+#for $i in $input:
+    #set file_name = $i.file_name
+    #set identifier = re.sub('[^\s\w\-\\.]', '_', str($i.element_identifier))
+    ln -s '$file_name' '$input_dir/$identifier' &&
+#end for
+Rscript '$__tool_directory__/methylit_unique_granges.R'
+--input_dir '$input_dir'
+--ncols $ncols
+#if str($specify_columns_cond.specify_columns) == "yes":
+    --columns '$specify_columns_cond.columns'
+#end if
+#if str($specify_chromosomes_cond.specify_chromosomes) == "yes":
+    --chromosomes '$specify_chromosomes_cond.chromosomes'
+#end if
+#if str($overlap_cond.overlap) == "yes":
+    --maxgap $overlap_cond.maxgap
+    --minoverlap $overlap_cond.minoverlap
+#end if
+#if str($specify_missing_cond.specify_missing) == "yes":
+    --missing $specify_missing_cond.missing
+#end if
+--overlap_type '$overlap_type'
+--select '$select'
+--ignore_strand '$ignore_strand'
+--num_cores \${GALAXY_SLOTS:-4}
+--output '$output'
+&>process_log.txt]]></command>
+    <inputs>
+        <param name="input" type="data_collection" format="rdata" collection_type="list" label="Collection of GRange files"/>
+        <param name="ncols" type="integer" value="0" min="0" label="Number of columns to use from the metadata of each GRange" help="--ncols: if set to 0, all columns from each GRange will be included in the output"/>
+        <conditional name="specify_columns_cond">
+            <param name="specify_columns" type="select" label="Specify columns to use from the meta-column of each GRange object?">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no"/>
+            <when value="yes">
+                <param name="columns" type="text" value="" label="Comma-separated list of numbers of each column to use from the GRange objects" help="--columns"/>
+            </when>
+        </conditional>
+        <conditional name="specify_chromosomes_cond">
+            <param name="specify_chromosomes" type="select" label="Specify chromosomes to be used?">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no"/>
+            <when value="yes">
+                <param name="chromosomes" type="text" value="" label="Comma-separated list of chromosomes to use from the GRange objects" help="--chromosomes"/>
+            </when>
+        </conditional>
+        <conditional name="overlap_cond">
+            <param name="overlap" type="select" label="Specify overlap interval?" help="Positions within this interval will be considered overlapping">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no"/>
+            <when value="yes">
+                <param name="maxgap" type="integer" value="0" min="0" label="Maximum gap for finding interval overlaps between GRange objects" help="--maxgap"/>
+                <param name="minoverlap" type="integer" value="1" min="1" label="Minimum gap for finding interval overlaps between GRange objects" help="--minoverlap"/>
+            </when>
+        </conditional>
+        <conditional name="specify_missing_cond">
+            <param name="specify_missing" type="select" label="Specify value to us for GRange objects with missing values?">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no"/>
+            <when value="yes">
+                <param name="missing" type="integer" value="0" min="0" label="Value to use for missing values in GRange objects" help="--missing"/>
+            </when>
+        </conditional>
+        <param name="overlap_type" type="select" label="Overlap type" help="--type">
+            <option value="any" selected="true">Any</option>
+            <option value="start">Start</option>
+            <option value="end">End</option>
+            <option value="within">Within</option>
+            <option value="equal">Equal</option>
+        </param>
+        <param name="select" type="select" label="Select value" help="--select">
+            <option value="all" selected="true">All</option>
+            <option value="first">First</option>
+            <option value="last">Last</option>
+            <option value="arbitrary">Arbitrary</option>
+        </param>
+        <param name="ignore_strand" type="select" label="Ignore strand?" help="--ignofr.strand">
+            <option value="no" selected="true">No</option>
+            <option value="yes">Yes</option>
+        </param>
+    </inputs>
+    <outputs>
+        <data name="output" format="rdata"/>
+    </outputs>
+    <tests>
+    </tests>
+    <help>
+**What it does**
+
+Build a unique GRange object from a list of GRange objects.  The metadata of each of these GRange objects must have one or more
+columns to yield a unique GRange object with metadata columns from the original GRange objects.  Otherwise, a unique GRange object
+will becreated  without metadata columns. Additionally, all metadata must be the same class (i.e. numeric characters, or factor).
+    </help>
+    <citations>
+        <citation type="doi">10.3389/fphys.2016.00165</citation>
+        <citation type="doi">10.1175/JTECH-D-11-00103.1</citation>
+        <citation type="doi">10.7289/V5D21VHZ</citation>
+    </citations>
+</tool>
+
