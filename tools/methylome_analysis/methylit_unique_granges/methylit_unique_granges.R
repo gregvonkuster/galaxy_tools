@@ -74,9 +74,10 @@ if (is.null(opt$minoverlap)) {
     minoverlap <- opt$minoverlap;
 }
 
-if (is.null(opt$missing)) {
+if (is.null(opt$missing) || opt$missing == '0') {
     missing <- 0;
 } else {
+    # The value of missing will be NA here.
     missing <- opt$missing;
 }
 
@@ -84,9 +85,13 @@ if (is.null(opt$missing)) {
 input_files <- list.files(path=opt$input_dir, full.names=TRUE);
 num_input_files <- length(input_files);
 
+column_list <- list();
 grange_list <- list();
 for (i in 1:num_input_files) {
-    input_file <- normalizePath(input_files[[i]]);
+    input_file <- input_files[[i]];
+    # Get the base file name without the extension.
+    column <- sub(pattern="(.*)\\..*$", replacement="\\1", basename(input_file))
+    column_list[[i]] <- column;
     grange_list[[i]] <- readRDS(input_file);
 }
 
@@ -103,6 +108,7 @@ grange <- uniqueGRanges(grange_list,
                         ignore.strand=ignore_strand,
                         num.cores=opt$num_cores,
                         verbose=TRUE);
+colnames(mcols(grange)) <- c(unlist(column_list, use.names=FALSE));
 
 saveRDS(grange, file=opt$output, compress=TRUE);
 

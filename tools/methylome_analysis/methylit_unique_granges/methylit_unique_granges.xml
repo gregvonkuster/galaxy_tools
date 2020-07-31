@@ -84,7 +84,10 @@ Rscript '$__tool_directory__/methylit_unique_granges.R'
             </param>
             <when value="no"/>
             <when value="yes">
-                <param name="missing" type="integer" value="0" min="0" label="Value to use for missing values in GRange objects" help="--missing"/>
+                <param name="missing" type="select" label="Value to use for missing values in GRange objects" help="--missing">
+                    <option value="0" selected="true">0</option>
+                    <option value="NA">NA</option>
+                </param>
             </when>
         </conditional>
         <param name="overlap_type" type="select" label="Overlap type" help="--type">
@@ -100,7 +103,7 @@ Rscript '$__tool_directory__/methylit_unique_granges.R'
             <option value="last">Last</option>
             <option value="arbitrary">Arbitrary</option>
         </param>
-        <param name="ignore_strand" type="select" label="Ignore strand?" help="--ignofr.strand">
+        <param name="ignore_strand" type="select" label="Ignore strand?" help="--ignore.strand">
             <option value="no" selected="true">No</option>
             <option value="yes">Yes</option>
         </param>
