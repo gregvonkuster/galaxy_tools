@@ -147,8 +147,7 @@ grange_est_div_list <- estimateDivergence(ref,
 num_grange_est_div_objs <- length(grange_est_div_list)[[1]];
 for (i in 1:num_grange_est_div_objs) {
     input_path <- input_indiv_files[[i]];
-    base_file_name <- basename(input_path);
-    output_file_name <- paste('Est_HD_', base_file_name, sep='');
+    output_file_name <- basename(input_path);
     file_path <- paste(opt$output_dir, output_file_name, sep="/");
     grange_est_div <- grange_est_div_list[[i]];
     saveRDS(grange_est_div, file=file_path, compress=TRUE);
