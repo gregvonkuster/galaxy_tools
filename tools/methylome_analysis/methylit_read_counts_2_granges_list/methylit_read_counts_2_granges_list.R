@@ -122,8 +122,23 @@ grange_list <- readCounts2GRangesList(filenames=input_data_files,
                                       verbose=TRUE);
 num_granges <- length(grange_list)[[1]];
 
+############
+# Debugging.
+cat("input_data_files: ", toString(input_data_files), "\n");
+cat("chromosomes: ", toString(chromosomes), "\n");
+cat("chromosome_names: ", toString(chromosome_names), "\n");
+cat("columns: ", toString(columns), "\n");
+cat("sample_id: ", toString(sample_id), "\n");
+cat("grange_list: \n");
+############
+
 for (i in 1:num_granges) {
     grange <- grange_list[[i]];
+    ############
+    # Debugging.
+    show(grange);
+    cat("\n\n");
+    ############
     if (single_input) {
         saveRDS(grange, file=opt$output, compress=TRUE);
     } else {

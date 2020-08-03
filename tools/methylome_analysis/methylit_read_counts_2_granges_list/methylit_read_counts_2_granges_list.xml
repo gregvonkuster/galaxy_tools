@@ -69,7 +69,18 @@ Rscript '$__tool_directory__/methylit_read_counts_2_granges_list.R'
 #if $sample_id and str($sample_id) != '':
     --sample_id '$sample_id'
 #end if
-&>process_log.txt]]></command>
+#if str($output_log_cond.output_log) == 'yes':
+    &>'$output_log';
+#else:
+    &>output_log.txt;
+    if [[ $? -ne 0 ]]; then
+        #if str($input_type) == "single":
+            cp output_log.txt '$output_single';
+        #else:
+            cp output_log.txt $output_data_dir/output_log.txt;
+        #end if
+    fi
+#end if]]></command>
     <inputs>
         <conditional name="input_type_cond">
             <param name="input_type" type="select" label="Choose the category of the files to be analyzed">
@@ -102,8 +113,19 @@ Rscript '$__tool_directory__/methylit_read_counts_2_granges_list.R'
         </repeat>
         <param name="pattern" type="text" value="" label="Pattern"/>
         <param name="sample_id" type="text" value="" label="Sample id" help="Enter a comma-separated list if morre than one item"/>
+        <conditional name="output_log_cond">
+            <param name="output_log" type="select" label="Output process log?">
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
+            </param>
+            <when value="yes"/>
+            <when value="no"/>
+        </conditional>
     </inputs>
     <outputs>
+        <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}">
+            <filter>output_log_cond['output_log'] == 'yes'</filter>
+        </data>
         <data name="output_single" format="rdata">
             <filter>input_type_cond['input_type'] == "single"</filter>
         </data>
