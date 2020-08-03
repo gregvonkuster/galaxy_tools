@@ -8,8 +8,10 @@
         <requirement type="package" version="1.24.0">bioconductor-genomeinfodb</requirement>
         <requirement type="package" version="2.22.1">bioconductor-iranges</requirement>
         <requirement type="package" version="0.26.0">bioconductor-s4vectors</requirement>
+        <requirement type="package" version="1.0.1">r-dplyr</requirement>
         <requirement type="package" version="0.3.2.1">r-methylit</requirement>
         <requirement type="package" version="1.6.6">r-optparse</requirement>
+        <requirement type="package" version="1.4.4">r-reshape2</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
 #import os
@@ -41,8 +43,18 @@ Rscript '$__tool_directory__/methylit_unique_granges.R'
 --select '$select'
 --ignore_strand '$ignore_strand'
 --num_cores \${GALAXY_SLOTS:-4}
---output '$output'
-&>process_log.txt]]></command>
+--output_data_frame '$output_data_frame'
+--output_grange '$output_grange'
+#if str($output_log_cond.output_log) == 'yes':
+    &>'$output_log';
+#else:
+    &>output_log.txt;
+    if [[ $? -ne 0 ]]; then
+        cp output_log.txt '$output_data_frame';
+        cp output_log.txt '$output_grange';
+    fi
+#end if
+]]></command>
     <inputs>
         <param name="input" type="data_collection" format="rdata" collection_type="list" label="Collection of GRange files"/>
         <param name="ncols" type="integer" value="0" min="0" label="Number of columns to use from the metadata of each GRange" help="--ncols: if set to 0, all columns from each GRange will be included in the output"/>
@@ -107,9 +119,21 @@ Rscript '$__tool_directory__/methylit_unique_granges.R'
             <option value="no" selected="true">No</option>
             <option value="yes">Yes</option>
         </param>
+        <conditional name="output_log_cond">
+            <param name="output_log" type="select" label="Output process log?">
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
+            </param>
+            <when value="yes"/>
+            <when value="no"/>
+        </conditional>
     </inputs>
     <outputs>
-        <data name="output" format="rdata"/>
+        <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}">
+            <filter>output_log_cond['output_log'] == 'yes'</filter>
+        </data>
+        <data name="output_data_frame" format="csv"/>
+        <data name="output_grange" format="rdata"/>
     </outputs>
     <tests>
     </tests>

@@ -4,11 +4,13 @@ suppressPackageStartupMessages(library("Biobase"))
 suppressPackageStartupMessages(library("BiocGenerics"))
 suppressPackageStartupMessages(library("BiocManager"))
 suppressPackageStartupMessages(library("BiocParallel"))
+suppressPackageStartupMessages(library("dplyr"))
 suppressPackageStartupMessages(library("GenomeInfoDb"))
 suppressPackageStartupMessages(library("GenomicRanges"))
 suppressPackageStartupMessages(library("IRanges"))
 suppressPackageStartupMessages(library("MethylIT"))
 suppressPackageStartupMessages(library("optparse"))
+suppressPackageStartupMessages(library("reshape2"))
 suppressPackageStartupMessages(library("S4Vectors"))
 
 option_list <- list(
@@ -21,7 +23,8 @@ option_list <- list(
     make_option(c("--missing"), action="store", dest="missing", type="integer", default=NULL, help="Value to use for missing values in GRange objects"),
     make_option(c("--ncols"), action="store", dest="ncols", type="integer", help="Number of columns to use from the metadata of each GRange"),
     make_option(c("--num_cores"), action="store", dest="num_cores", type="integer", help="The number of cores to use"),
-    make_option(c("--output"), action="store", dest="output", help="Output file"),
+    make_option(c("--output_data_frame"), action="store", dest="output_data_frame", help="Output csv file"),
+    make_option(c("--output_grange"), action="store", dest="output_grange", help="Output GRange file"),
     make_option(c("--select"), action="store", dest="select", help="Select value"),
     make_option(c("--overlap_type"), action="store", dest="overlap_type", help="Overlap type")
 )
@@ -63,9 +66,9 @@ if (opt$ignore_strand == 'no') {
 }
 
 if (is.null(opt$maxgap)) {
-    max_gap <- -1;
+    maxgap <- -1;
 } else {
-    max_gap <- opt$max_gap;
+    maxgap <- opt$maxgap;
 }
 
 if (is.null(opt$minoverlap)) {
@@ -89,26 +92,108 @@ column_list <- list();
 grange_list <- list();
 for (i in 1:num_input_files) {
     input_file <- input_files[[i]];
-    # Get the base file name without the extension.
     column <- sub(pattern="(.*)\\..*$", replacement="\\1", basename(input_file))
     column_list[[i]] <- column;
     grange_list[[i]] <- readRDS(input_file);
 }
+
+############
+# Debugging.
+cat("\ninput_files: ", toString(input_files), "\n");
+cat("\nopt$ncols: ", opt$ncols, "\n");
+cat("\ncolumns: ", toString(columns), "\n");
+cat("\nchromosomes: ", toString(chromosomes), "\n");
+cat("\nmaxgap: ", maxgap, "\n");
+cat("\nminoverlap: ", minoverlap, "\n");
+cat("\nmissing: ", missing, "\n");
+cat("\noverlap_type: ", opt$overlap_type, "\n");
+cat("\nopt$select: ", opt$select, "\n");
+cat("\nignore_strand: ", ignore_strand, "\n");
+cat("\n\n");
+cat("grange_list: \n");
+for (i in 1:num_input_files) {
+    grange <- grange_list[[i]];
+    show(grange);
+    cat("\n\n");
+}
+############
 
 # Get the unique GRange object from the list of GRange objects.
 grange <- uniqueGRanges(grange_list,
                         ncols=opt$ncols,
                         columns=columns,
                         chromosomes=chromosomes,
-                        maxgap=max_gap,
+                        maxgap=maxgap,
                         minoverlap=minoverlap,
                         missing=missing,
-                        type=opt$overlap_type,
+                        type=opt$opt$overlap_type,
                         select=opt$select,
                         ignore.strand=ignore_strand,
                         num.cores=opt$num_cores,
                         verbose=TRUE);
 colnames(mcols(grange)) <- c(unlist(column_list, use.names=FALSE));
 
-saveRDS(grange, file=opt$output, compress=TRUE);
+############
+# Debugging.
+cat("grange: \n");
+show(grange);
+cat("\n\n");
+############
+
+# Copy the GRange object to a data frame
+# for persisting.
+df <- data.frame(matrix(ncol=num_input_files, nrow=nrow(mcols(grange))));
+colnames(df) <- c(unlist(column_list, use.names=FALSE));
+for (i in 1:num_input_files) {
+    column_name <- column_list[[i]];
+    column_index <- grep(column_name, colnames(df))[[1]];
+    ############
+    # Debugging.
+    cat("\ncolumn_index: ", column_index, "\n");
+    cat("column_name: ", column_name, "\n\n");
+    ############
+    df[,column_index] <- mcols(grange)[[column_name]];
+}
+
+############
+# Debugging.
+cat("Initial data frame after GRange conversion: \n");
+cat("dim(df):\n");
+dim(df);
+cat("str(df):\n");
+str(df);
+cat("summary(df):\n");
+summary(df);
+cat("colnames(df):\n");
+colnames(df);
+cat("head(df):\n");
+head(df);
+cat("\n\n");
+############
+
+hd_df <- melt(df);
+colnames(hd_df) <- c("Category", "HellingerDivergence")
+hd_df <- hd_df[hd_df$HellingerDivergence > 0, ]
+
+############
+# Debugging.
+cat("Data frame after melting: \n");
+cat("dim(df):\n");
+dim(df);
+cat("str(df):\n");
+str(df);
+cat("summary(df):\n");
+summary(df);
+cat("colnames(df):\n");
+colnames(df);
+cat("head(df):\n");
+head(df);
+cat("\n\n");
+############
+
+# Save the unique GRange object.
+saveRDS(grange, file=opt$output_grange, compress=TRUE);
+
+# Save the data frame.
+write.table(hd_df, file=opt$output_data_frame, sep='\t');
 
