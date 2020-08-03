@@ -113,7 +113,8 @@ if (!is.null(opt$mum1) && !is.null(opt$mum2)) {
 percentile <- formatC(opt$percentile, digits=3, format="f")
 
 
-cat("\nminu_meth: ", min_umeth, "\n");
+############
+# Debugging.
 cat("\nbayesian: ", bayesian, "\n");
 cat("\ncolumns: ", toString(columns), "\n");
 cat("\nmin_coverage: ", min_coverage, "\n");
@@ -126,6 +127,17 @@ cat("\njd: ", jd, "\n");
 cat("\nopt$num_cores: ", opt$num_cores, "\n");
 cat("\nmeth_level: ", meth_level, "\n");
 cat("\nopt$logbase: ", opt$logbase, "\n");
+cat("ref: \n");
+show(ref);
+cat("\n\n");
+cat("grange_list: \n");
+for (i in 1:num_input_indiv_files) {
+    grange <- grange_list[[i]];
+    show(grange);
+    cat("\n\n");
+}
+cat("grange_est_div_list: \n");
+############
 
 # Compute the information divergences of methylation levels.
 grange_est_div_list <- estimateDivergence(ref,
@@ -150,6 +162,11 @@ for (i in 1:num_grange_est_div_objs) {
     output_file_name <- basename(input_path);
     file_path <- paste(opt$output_dir, output_file_name, sep="/");
     grange_est_div <- grange_est_div_list[[i]];
+    ############
+    # Debugging.
+    show(grange_est_div);
+    cat("\n\n");
+    ############
     saveRDS(grange_est_div, file=file_path, compress=TRUE);
 }
 
