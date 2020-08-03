@@ -41,6 +41,21 @@ if (opt$prob == 'yes') {
     prob <- FALSE;
 }
 
+############
+# Debugging.
+cat("input_data_files: ", toString(input_data_files), "\n");
+cat("stat: ", opt$stat, "\n");
+cat("prob: ", prob, "\n");
+cat("column: ", opt$column_number, "\n");
+cat("jstat: ", opt$jstat, "\n");
+cat("LR: \n");
+for (i in 1:num_input_files) {
+    grange <- grange_list[[i]];
+    show(grange);
+    cat("\n\n");
+}
+############
+
 # Create a unique GRange from the GRanges list.
 unique_grange <- poolFromGRlist(LR=grange_list,
                                 stat=opt$stat,
