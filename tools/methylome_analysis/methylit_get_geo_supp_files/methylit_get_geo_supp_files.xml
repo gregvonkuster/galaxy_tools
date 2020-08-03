@@ -9,7 +9,11 @@
         <requirement type="package" version="3.99_0.3">r-xml</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
-#import os
+#if str($geo).find(",") == -1:
+    #set single_output = True
+#else:
+    #set single_output = False
+#end if
 #set output_data_dir='output_data_dir'
 mkdir output_data_dir &&
 Rscript '$__tool_directory__/methylit_get_geo_supp_files.R'
@@ -17,11 +21,22 @@ Rscript '$__tool_directory__/methylit_get_geo_supp_files.R'
 #if $pattern and str($pattern) != '':
     --pattern '$pattern'
 #end if
-#if str($geo).find(",") == -1:
+#if $single_output:
     --output '$output'
 #end if
 --output_dir '$output_data_dir'
-&>process_log.txt]]></command>
+#if str($output_log_cond.output_log) == 'yes':
+    &>'$output_log';
+#else:
+    &>output_log.txt;
+    if [[ $? -ne 0 ]]; then
+        #if $single_output:
+            cp output_log.txt '$output';
+        #else:
+            cp output_log.txt $output_data_dir/output_log.txt;
+        #end if
+    fi
+#end if]]></command>
     <inputs>
         <param name="geo" type="text" label="GEO accession number(s)" help="Enter comma-separated list of GEO accession numbers">
             <validator type="empty_field"/>
@@ -38,8 +53,19 @@ Rscript '$__tool_directory__/methylit_get_geo_supp_files.R'
                 </valid>
             </sanitizer>
         </param>
+        <conditional name="output_log_cond">
+            <param name="output_log" type="select" label="Output process log?">
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
+            </param>
+            <when value="yes"/>
+            <when value="no"/>
+        </conditional>
     </inputs>
     <outputs>
+        <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}">
+            <filter>output_log_cond['output_log'] == 'yes'</filter>
+        </data>
         <data name="output" format="tabular">
             <filter>geo.find(",") == -1</filter>
         </data>
