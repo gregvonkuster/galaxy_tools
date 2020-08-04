@@ -81,7 +81,13 @@ if (is.null(opt$missing) || opt$missing == '0') {
     missing <- 0;
 } else {
     # The value of missing will be NA here.
-    missing <- opt$missing;
+    missing <- NA;
+}
+
+if (opt$ncols == 0) {
+    ncols <- NULL;
+} else {
+    ncols <- opt$ncols;
 }
 
 # Read the list of input GRange files.
@@ -90,17 +96,20 @@ num_input_files <- length(input_files);
 
 column_list <- list();
 grange_list <- list();
+hdiv_list <- list();
 for (i in 1:num_input_files) {
     input_file <- input_files[[i]];
     column <- sub(pattern="(.*)\\..*$", replacement="\\1", basename(input_file))
     column_list[[i]] <- column;
-    grange_list[[i]] <- readRDS(input_file);
+    grange <- readRDS(input_file);
+    grange_list[[i]] <- grange;
+    hdiv_list[[i]] <- grange[, "hdiv"];
 }
 
 ############
 # Debugging.
 cat("\ninput_files: ", toString(input_files), "\n");
-cat("\nopt$ncols: ", opt$ncols, "\n");
+cat("\nopt$ncols: ", ncols, "\n");
 cat("\ncolumns: ", toString(columns), "\n");
 cat("\nchromosomes: ", toString(chromosomes), "\n");
 cat("\nmaxgap: ", maxgap, "\n");
@@ -116,33 +125,39 @@ for (i in 1:num_input_files) {
     show(grange);
     cat("\n\n");
 }
+cat("hdiv_list: \n");
+for (i in 1:num_input_files) {
+    hdiv <- hdiv_list[[i]];
+    show(hdiv);
+    cat("\n\n");
+}
 ############
 
 # Get the unique GRange object from the list of GRange objects.
-grange <- uniqueGRanges(grange_list,
-                        ncols=opt$ncols,
-                        columns=columns,
-                        chromosomes=chromosomes,
-                        maxgap=maxgap,
-                        minoverlap=minoverlap,
-                        missing=missing,
-                        type=opt$opt$overlap_type,
-                        select=opt$select,
-                        ignore.strand=ignore_strand,
-                        num.cores=opt$num_cores,
-                        verbose=TRUE);
-colnames(mcols(grange)) <- c(unlist(column_list, use.names=FALSE));
+unique_grange <- uniqueGRanges(hdiv_list,
+                               ncols=ncols,
+                               columns=columns,
+                               chromosomes=chromosomes,
+                               maxgap=maxgap,
+                               minoverlap=minoverlap,
+                               missing=missing,
+                               type=opt$overlap_type,
+                               select=opt$select,
+                               ignore.strand=ignore_strand,
+                               num.cores=opt$num_cores,
+                               verbose=TRUE);
+colnames(mcols(unique_grange)) <- c(unlist(column_list, use.names=FALSE));
 
 ############
 # Debugging.
-cat("grange: \n");
-show(grange);
+cat("\nunique_grange: \n");
+show(unique_grange);
 cat("\n\n");
 ############
 
 # Copy the GRange object to a data frame
 # for persisting.
-df <- data.frame(matrix(ncol=num_input_files, nrow=nrow(mcols(grange))));
+df <- data.frame(matrix(ncol=num_input_files, nrow=nrow(mcols(unique_grange))));
 colnames(df) <- c(unlist(column_list, use.names=FALSE));
 for (i in 1:num_input_files) {
     column_name <- column_list[[i]];
@@ -152,12 +167,12 @@ for (i in 1:num_input_files) {
     cat("\ncolumn_index: ", column_index, "\n");
     cat("column_name: ", column_name, "\n\n");
     ############
-    df[,column_index] <- mcols(grange)[[column_name]];
+    df[,column_index] <- mcols(unique_grange)[[column_name]];
 }
 
 ############
 # Debugging.
-cat("Initial data frame after GRange conversion: \n");
+cat("\nInitial data frame after GRange conversion: \n");
 cat("dim(df):\n");
 dim(df);
 cat("str(df):\n");
@@ -171,13 +186,13 @@ head(df);
 cat("\n\n");
 ############
 
-hd_df <- melt(df);
-colnames(hd_df) <- c("Category", "HellingerDivergence")
-hd_df <- hd_df[hd_df$HellingerDivergence > 0, ]
+df <- melt(df);
+colnames(df) <- c("Category", "HellingerDivergence")
+df <- df[df$HellingerDivergence > 0, ]
 
 ############
 # Debugging.
-cat("Data frame after melting: \n");
+cat("\nData frame after melting: \n");
 cat("dim(df):\n");
 dim(df);
 cat("str(df):\n");
@@ -195,5 +210,5 @@ cat("\n\n");
 saveRDS(grange, file=opt$output_grange, compress=TRUE);
 
 # Save the data frame.
-write.table(hd_df, file=opt$output_data_frame, sep='\t');
+write.table(df, file=opt$output_data_frame, sep='\t');
 
