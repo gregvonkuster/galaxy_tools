@@ -210,5 +210,5 @@ cat("\n\n");
 saveRDS(grange, file=opt$output_grange, compress=TRUE);
 
 # Save the data frame.
-write.table(df, file=opt$output_data_frame, sep='\t');
+write.table(df, file=opt$output_data_frame, sep='\t', quote=FALSE, row.names=FALSE);
 
