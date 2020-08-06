@@ -5,6 +5,87 @@ suppressPackageStartupMessages(library("BiocManager"))
 suppressPackageStartupMessages(library("GenomicRanges"))
 suppressPackageStartupMessages(library("MethylIT"))
 suppressPackageStartupMessages(library("optparse"))
+suppressPackageStartupMessages(library("xtable"))
+
+get_empirical_cumulative_probability_distributions_critical_values <- function(grange_list) {
+    # FIXME: this function currently throws this exception:
+    # error in evaluating the argument 'args' in selecting a method for function 'do.call': error in evaluating the
+    # argument 'x' in selecting a method for function 'quantile': non-numeric argument to mathematical function
+    # Calls: ... quantile -> .handleSimpleError -> h -> .handleSimpleError -> h
+    critical_val <- do.call(rbind, lapply(grange_list, function(x) {
+        hd.95 = quantile(x$hdiv, 0.95)
+        tv.95 = quantile(abs(x$bay.TV), 0.95)
+        return(c(tv = tv.95, hd = hd.95))
+    }))
+    return(critical_val);
+}
+
+get_cytosine_site_coverage <- function(grange_list, high_coverage) {
+    # Output cytosine read counts for grange_list.
+    covr <- lapply(grange_list, function(x) {
+        cov1 <- x$c1 + x$t1;
+        cov2 <- x$c2 + x$t2;
+        cov <- apply(cbind(cov1, cov2), 1, max);
+        return(cov);
+    })
+
+    do.call(rbind, lapply(covr, function(x) {
+        q60 <- quantile(x, 0.6);
+        q9999 <- quantile(x, 0.9999);
+        idx1 <- which(x >= q60);
+        idx2 <- which(x <= high_coverage);
+        q95 <- quantile(x, 0.95);
+        idx <- intersect(idx1, idx2);
+        return(c(round(summary(x)),
+                 q60,
+                 quantile(x, c(0.95, 0.99, 0.999, 0.9999)),
+                 '#sites_ge_8' = sum(x >= 8),
+                 'q60_le_high_coverage' = sum((x >= q60) & (x <= high_coverage)),
+                 '#sites_gt_high_coverage' = sum(x > high_coverage)
+                )
+              )
+         }
+    ))
+}
+
+get_methylated_read_statistics <- function(grange_list, high_coverage) {
+    # Descriptive statistics for methylated reads.
+    methc <- lapply(grange_list, function(x) {
+        r <- apply(cbind(x$c1, x$c2), 1, max)
+        return(r)
+    })
+
+    do.call(rbind, lapply(methc, function(x) {
+        q10 <- quantile(x, 0.1)
+        q60 <- quantile(x, 0.6)
+        q9999 <- quantile(x, 0.9999)
+        idx1 <- which(x >= q60)
+        idx2 <- which(x <= high_coverage)
+        q95 <- quantile(x, 0.95)
+        idx <- intersect(idx1, idx2)
+        return(c(round(summary(x)),
+                q10,
+                q60,
+                quantile(x, c(0.95, 0.99, 0.999, 0.9999)),
+                '#sites_ge_8' = sum(x >= 8),
+                'q60_to_high_coverage' = sum((x >= q60) & (x <= high_coverage)),
+                '#sites_gt_high_coverage' = sum(x > high_coverage)))
+        })
+    )
+}
+
+output_statistics <- function(output_file, csc_df, mrs_df) {
+    sink(output_file);
+    cat("<html><head></head><body>");
+    cat("<h3>Cytosine Site Coverage</h3>");
+    print(xtable(csc_df), type="html");
+    cat("<h3>Methylated Reads Statistics</h3>");
+    print(xtable(mrs_df), type="html");
+    # cat("<h3>Critical Values from Empirical Cumulative Probability Distributions</h3>");
+    # print(xtable(critical_vals_df), type="html");
+    cat("</body></html>");
+    sink();
+}
 
 option_list <- list(
     make_option(c("--bayesian"), action="store", dest="bayesian", help="Perform the estimations based on posterior estimations of methylation"),
@@ -23,6 +104,7 @@ option_list <- list(
     make_option(c("--mum1"), action="store", dest="mum1", type="integer", help="Minimum read counts of unmethylated cytosine in sample 1"),
     make_option(c("--mum2"), action="store", dest="mum2", type="integer", default=NULL, help="Minimum read counts of unmethylated cytosine in sample 2"),
     make_option(c("--num_cores"), action="store", dest="num_cores", type="integer", help="The number of cores to use"),
+    make_option(c("--output_crc"), action="store", dest="output_crc", help="Output cytosince read counts file"),
     make_option(c("--output_dir"), action="store", dest="output_dir", help="Directory for output files"),
     make_option(c("--percentile"), action="store", dest="percentile", type="double", help="Threshold to remove the outliers from each file and all files stacked"),
     make_option(c("--ref"), action="store", dest="ref", help="A GRange file for the reference individual")
@@ -157,9 +239,11 @@ grange_est_div_list <- estimateDivergence(ref,
                                           verbose=TRUE);
 
 num_grange_est_div_objs <- length(grange_est_div_list)[[1]];
+hd_names <- NULL;
 for (i in 1:num_grange_est_div_objs) {
     input_path <- input_indiv_files[[i]];
     output_file_name <- basename(input_path);
+    sans_ext <- sub(pattern = "(.*)\\..*$", replacement = "\\1", output_file_name);
     file_path <- paste(opt$output_dir, output_file_name, sep="/");
     grange_est_div <- grange_est_div_list[[i]];
     ############
@@ -168,5 +252,43 @@ for (i in 1:num_grange_est_div_objs) {
     cat("\n\n");
     ############
     saveRDS(grange_est_div, file=file_path, compress=TRUE);
+    # Accumulate for later cytosine reads output.
+    if (is.null(hd_names)) {
+        hd_names <- c(sans_ext);
+    } else {
+        hd_names <- c(hd_names, sans_ext);
+    }
 }
+names(grange_est_div_list) <- hd_names;
+
+csc_df <- get_cytosine_site_coverage(grange_est_div_list, opt$high_coverage);
+
+############
+# Debugging.
+cat("\ncytosine site coverage:\n");
+show(csc_df);
+cat("\n\n");
+############
+
+mrs_df <- get_methylated_read_statistics(grange_est_div_list, opt$high_coverage);
+
+############
+# Debugging.
+cat("\nmethylated reads statistics:\n");
+show(mrs_df);
+cat("\n\n");
+############
+
+# FIXME: see the function above.
+# critical_vals_df <- get_empirical_cumulative_probability_distributions_critical_values(grange_list);
+
+############
+# Debugging.
+# cat("\ncritical values from empirical cumulative probability distributions:\n");
+# show(critical_vals_df);
+# cat("\n\n");
+############
+
+# output_statistics(opt$output_crc, csc_df, mrs_df, critical_vals_df);
+output_statistics(opt$output_crc, csc_df, mrs_df);
 
