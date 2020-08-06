@@ -14,7 +14,6 @@
         <requirement type="package" version="1.4.4">r-reshape2</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
-#import os
 #import re
 #set input_dir='input_dir'
 mkdir input_dir &&
