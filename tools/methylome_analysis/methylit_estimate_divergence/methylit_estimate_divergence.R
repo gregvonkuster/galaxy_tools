@@ -105,7 +105,7 @@ option_list <- list(
     make_option(c("--mum2"), action="store", dest="mum2", type="integer", default=NULL, help="Minimum read counts of unmethylated cytosine in sample 2"),
     make_option(c("--num_cores"), action="store", dest="num_cores", type="integer", help="The number of cores to use"),
     make_option(c("--output_crc"), action="store", dest="output_crc", help="Output cytosince read counts file"),
-    make_option(c("--output_dir"), action="store", dest="output_dir", help="Directory for output files"),
+    make_option(c("--output_infdiv"), action="store", dest="output_infdiv", help="Output infDiv file"),
     make_option(c("--percentile"), action="store", dest="percentile", type="double", help="Threshold to remove the outliers from each file and all files stacked"),
     make_option(c("--ref"), action="store", dest="ref", help="A GRange file for the reference individual")
 )
@@ -194,7 +194,6 @@ if (!is.null(opt$mum1) && !is.null(opt$mum2)) {
 
 percentile <- formatC(opt$percentile, digits=3, format="f")
 
-
 ############
 # Debugging.
 cat("\nbayesian: ", bayesian, "\n");
@@ -218,59 +217,38 @@ for (i in 1:num_input_indiv_files) {
     show(grange);
     cat("\n\n");
 }
-cat("grange_est_div_list: \n");
 ############
 
 # Compute the information divergences of methylation levels.
-grange_est_div_list <- estimateDivergence(ref,
-                                          grange_list,
-                                          Bayesian=bayesian,
-                                          columns=columns,
-                                          min.coverage=min_coverage,
-                                          min.meth=min_meth,
-                                          min.umeth=min_umeth,
-                                          min.sitecov=opt$min_sitecov,
-                                          high.coverage=opt$high_coverage,
-                                          percentile=percentile,
-                                          JD=jd,
-                                          num.cores=opt$num_cores,
-                                          meth.level=meth_level,
-                                          logbase=opt$logbase,
-                                          verbose=TRUE);
+infDiv <- estimateDivergence(ref,
+                             grange_list,
+                             Bayesian=bayesian,
+                             columns=columns,
+                             min.coverage=min_coverage,
+                             min.meth=min_meth,
+                             min.umeth=min_umeth,
+                             min.sitecov=opt$min_sitecov,
+                             high.coverage=opt$high_coverage,
+                             percentile=percentile,
+                             JD=jd,
+                             num.cores=opt$num_cores,
+                             meth.level=meth_level,
+                             logbase=opt$logbase,
+                             verbose=TRUE);
 
-num_grange_est_div_objs <- length(grange_est_div_list)[[1]];
-hd_names <- NULL;
-for (i in 1:num_grange_est_div_objs) {
-    input_path <- input_indiv_files[[i]];
-    output_file_name <- basename(input_path);
-    sans_ext <- sub(pattern = "(.*)\\..*$", replacement = "\\1", output_file_name);
-    file_path <- paste(opt$output_dir, output_file_name, sep="/");
-    grange_est_div <- grange_est_div_list[[i]];
-    ############
-    # Debugging.
-    show(grange_est_div);
-    cat("\n\n");
-    ############
-    saveRDS(grange_est_div, file=file_path, compress=TRUE);
-    # Accumulate for later cytosine reads output.
-    if (is.null(hd_names)) {
-        hd_names <- c(sans_ext);
-    } else {
-        hd_names <- c(hd_names, sans_ext);
-    }
-}
-names(grange_est_div_list) <- hd_names;
+saveRDS(infDiv, file=opt$output_infdiv, compress=TRUE);
 
-csc_df <- get_cytosine_site_coverage(grange_est_div_list, opt$high_coverage);
+csc_df <- get_cytosine_site_coverage(infDiv, opt$high_coverage);
 
 ############
 # Debugging.
+cat("\ninfDiv names: ", toString(names(infDiv)), "\n");
 cat("\ncytosine site coverage:\n");
 show(csc_df);
 cat("\n\n");
 ############
 
-mrs_df <- get_methylated_read_statistics(grange_est_div_list, opt$high_coverage);
+mrs_df <- get_methylated_read_statistics(infDiv, opt$high_coverage);
 
 ############
 # Debugging.

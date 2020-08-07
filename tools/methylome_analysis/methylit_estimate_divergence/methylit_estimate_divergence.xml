@@ -19,9 +19,7 @@
 #set meth_level_columns_cond = $meth_level_cond.columns_cond
 #set meth_level_columns = $meth_level_columns_cond.columns
 #set input_indiv_dir='input_indiv_dir'
-#set output_dir='output_dir'
 mkdir input_indiv_dir &&
-mkdir output_dir &&
 #for $i in $indiv:
     #set file_name = $i.file_name
     #set identifier = re.sub('[^\s\w\-\\.]', '_', str($i.element_identifier))
@@ -78,14 +76,14 @@ Rscript '$__tool_directory__/methylit_estimate_divergence.R'
 #end if
 --output_crc '$output_crc'
 --percentile $percentile
---output_dir '$output_dir'
+--output_infdiv '$output_infdiv'
 --num_cores \${GALAXY_SLOTS:-4}
 #if str($output_log_cond.output_log) == 'yes':
     &>'$output_log';
 #else:
     &>output_log.txt;
     if [[ $? -ne 0 ]]; then
-        cp output_log.txt $output_dir/output_log.txt;
+        cp output_log.txt $output_infdiv;
     fi
 #end if
 ]]></command>
@@ -205,9 +203,7 @@ Rscript '$__tool_directory__/methylit_estimate_divergence.R'
             <filter>output_log_cond['output_log'] == 'yes'</filter>
         </data>
         <data name="output_crc" format="html" label="${tool.name} (statistics) on ${on_string}"/>
-        <collection name="output_collection" type="list">
-            <discover_datasets pattern="__name__" directory="output_dir" format="rdata"/>
-        </collection>
+        <data name="output_infdiv" format="rdata" label="${tool.name} (infDiv) on ${on_string}"/>
     </outputs>
     <tests>
     </tests>
