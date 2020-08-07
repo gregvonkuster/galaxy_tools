@@ -17,7 +17,7 @@ option_list <- list(
     make_option(c("--chromosomes"), action="store", dest="chromosomes", default=NULL, help="Comma-separated list of the chromosomes to use from the GRange objects"),
     make_option(c("--columns"), action="store", dest="columns", default=NULL, help="Comma-separated list of numbers of each column to use from the GRange objects"),
     make_option(c("--ignore_strand"), action="store", dest="ignore_strand", help="Ignore strand"),
-    make_option(c("--input_dir"), action="store", dest="input_dir", help="Directory of GRanges files"),
+    make_option(c("--input"), action="store", dest="input", help="Input information divergence estimator file"),
     make_option(c("--maxgap"), action="store", dest="maxgap", type="integer", default=NULL, help="Maximum gap for finding interval overlaps between GRange objects"),
     make_option(c("--minoverlap"), action="store", dest="minoverlap", type="integer", default=NULL, help="Minimum gap for finding interval overlaps between GRange objects"),
     make_option(c("--missing"), action="store", dest="missing", type="integer", default=NULL, help="Value to use for missing values in GRange objects"),
@@ -51,7 +51,7 @@ if (!is.null(opt$columns)) {
     } else {
         columns <- integer(num_columns);
         for (i in 1:num_columns) {
-            column[[i]] <- columns_list[[i]];
+            columns[[i]] <- columns_list[[i]];
         }
     }
 } else {
@@ -90,43 +90,39 @@ if (opt$ncols == 0) {
     ncols <- opt$ncols;
 }
 
-# Read the list of input GRange files.
-input_files <- list.files(path=opt$input_dir, full.names=TRUE);
-num_input_files <- length(input_files);
-
-column_list <- list();
-grange_list <- list();
+inf_div <- readRDS(opt$input);
+inf_div_names <- names(inf_div);
+############
+# Debugging.
+cat("\ninf_div_names: ", toString(inf_div_names), "\n");
+############
+num_inf_divs <- length(inf_div_names)[[1]];
 hdiv_list <- list();
-for (i in 1:num_input_files) {
-    input_file <- input_files[[i]];
-    column <- sub(pattern="(.*)\\..*$", replacement="\\1", basename(input_file))
-    column_list[[i]] <- column;
-    grange <- readRDS(input_file);
-    grange_list[[i]] <- grange;
+for (i in 1:num_inf_divs) {
+    grange <- inf_div[[i]];
     hdiv_list[[i]] <- grange[, "hdiv"];
 }
 
 ############
 # Debugging.
-cat("\ninput_files: ", toString(input_files), "\n");
-cat("\nopt$ncols: ", ncols, "\n");
-cat("\ncolumns: ", toString(columns), "\n");
-cat("\nchromosomes: ", toString(chromosomes), "\n");
-cat("\nmaxgap: ", maxgap, "\n");
-cat("\nminoverlap: ", minoverlap, "\n");
-cat("\nmissing: ", missing, "\n");
-cat("\noverlap_type: ", opt$overlap_type, "\n");
-cat("\nopt$select: ", opt$select, "\n");
-cat("\nignore_strand: ", ignore_strand, "\n");
-cat("\n\n");
-cat("grange_list: \n");
-for (i in 1:num_input_files) {
-    grange <- grange_list[[i]];
+cat("num_inf_divs: ", num_inf_divs, "\n");
+cat("ncols: ", ncols, "\n");
+cat("columns: ", toString(columns), "\n");
+cat("chromosomes: ", toString(chromosomes), "\n");
+cat("maxgap: ", maxgap, "\n");
+cat("minoverlap: ", minoverlap, "\n");
+cat("missing: ", missing, "\n");
+cat("overlap_type: ", opt$overlap_type, "\n");
+cat("opt$select: ", opt$select, "\n");
+cat("ignore_strand: ", ignore_strand, "\n");
+cat("granges:\n");
+for (i in 1:num_inf_divs) {
+    grange <- inf_div[[i]];
     show(grange);
     cat("\n\n");
 }
-cat("hdiv_list: \n");
-for (i in 1:num_input_files) {
+cat("inf_divs: \n");
+for (i in 1:num_inf_divs) {
     hdiv <- hdiv_list[[i]];
     show(hdiv);
     cat("\n\n");
@@ -146,7 +142,7 @@ unique_grange <- uniqueGRanges(hdiv_list,
                                ignore.strand=ignore_strand,
                                num.cores=opt$num_cores,
                                verbose=TRUE);
-colnames(mcols(unique_grange)) <- c(unlist(column_list, use.names=FALSE));
+colnames(mcols(unique_grange)) <- c(unlist(inf_div_names, use.names=FALSE));
 
 ############
 # Debugging.
@@ -157,10 +153,10 @@ cat("\n\n");
 
 # Copy the GRange object to a data frame
 # for persisting.
-df <- data.frame(matrix(ncol=num_input_files, nrow=nrow(mcols(unique_grange))));
-colnames(df) <- c(unlist(column_list, use.names=FALSE));
-for (i in 1:num_input_files) {
-    column_name <- column_list[[i]];
+df <- data.frame(matrix(ncol=num_inf_divs, nrow=nrow(mcols(unique_grange))));
+colnames(df) <- c(unlist(inf_div_names, use.names=FALSE));
+for (i in 1:num_inf_divs) {
+    column_name <- inf_div_names[[i]];
     column_index <- grep(column_name, colnames(df))[[1]];
     ############
     # Debugging.
