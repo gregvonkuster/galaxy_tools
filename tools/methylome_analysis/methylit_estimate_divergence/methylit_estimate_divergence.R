@@ -142,9 +142,13 @@ input_indiv_files <- list.files(path=opt$input_indiv_dir, full.names=TRUE);
 num_input_indiv_files <- length(input_indiv_files);
 
 grange_list <- list();
+inf_div_names <- list();
 for (i in 1:num_input_indiv_files) {
     input_indiv_file <- input_indiv_files[[i]];
     grange_list[[i]] <- readRDS(input_indiv_file);
+    base_file_name <- basename(input_indiv_file);
+    sans_ext <- sub(pattern = "(.*)\\..*$", replacement = "\\1", base_file_name);
+    inf_div_names[[i]] <- sans_ext;
 }
 
 # Convert jd to a boolean.
@@ -235,7 +239,7 @@ infDiv <- estimateDivergence(ref,
                              meth.level=meth_level,
                              logbase=opt$logbase,
                              verbose=TRUE);
-
+names(infDiv) <- inf_div_names;
 saveRDS(infDiv, file=opt$output_infdiv, compress=TRUE);
 
 csc_df <- get_cytosine_site_coverage(infDiv, opt$high_coverage);
