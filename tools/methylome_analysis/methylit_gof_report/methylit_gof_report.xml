@@ -1,5 +1,5 @@
-<tool id="methylit_gof_report" name="MethylIT: Report" version="1.0.0">
-    <description>the Best Fitted Probability Distribution Model</description>
+<tool id="methylit_gof_report" name="MethylIT: Goodness of Fit report" version="1.0.0">
+    <description>for the probability distribution model</description>
     <requirements>
         <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
         <requirement type="package" version="1.40.0">bioconductor-genomicranges</requirement>
