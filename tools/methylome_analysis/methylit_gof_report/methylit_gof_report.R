@@ -88,7 +88,14 @@ saveRDS(gof_report, file=opt$output_gof, compress=TRUE);
 
 # Output the gof report HTML file.
 sink(opt$output_txt);
-gof_report
+if (opt$output_spec == 'all') {
+    cat("## Statistics ## \n");
+    gof_report$stats
+}
+cat("\n\n## Best Model ##\n");
+gof_report$bestModel
+cat("\n\n## NLMS ##\n");
+gof_report$nlms
 cat("\n\n");
 sink();
 
