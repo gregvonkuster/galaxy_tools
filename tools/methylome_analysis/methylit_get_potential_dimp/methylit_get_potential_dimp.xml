@@ -1,4 +1,4 @@
-<tool id="methylit_get_potential_dimp" name="MethylIT: select cytosine sites" version="1.0.0">
+<tool id="methylit_get_potential_dimp" name="MethylIT: Select cytosine sites" version="1.0.0">
     <description>carrying the potential methylation signal</description>
     <requirements>
         <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
