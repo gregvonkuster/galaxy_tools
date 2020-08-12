@@ -31,7 +31,7 @@ Rscript '$__tool_directory__/methylit_gof_report.R'
 ]]></command>
     <inputs>
         <param name="input" type="data" format="rdata" label="Information divergence estimator file with information divergence values in the meta-columns"/>
-        <param name="model" type="select" display="checkbox" multiple="true" label="Model name">
+        <param name="model" type="select" display="checkboxes" multiple="true" label="Model name">
             <option value="Weibull2P" selected="true">Weibull2P</option>
             <option value="Weibull3P">Weibull3P</option>
             <option value="Gamma2P">Gamma2P</option>
