@@ -1,0 +1,181 @@
+<tool id="methylit_get_potential_dimp" name="MethylIT: select cytosine sites" version="1.0.0">
+    <description>carrying the potential methylation signal</description>
+    <requirements>
+        <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
+        <requirement type="package" version="1.40.0">bioconductor-genomicranges</requirement>
+        <requirement type="package" version="0.3.2.1">r-methylit</requirement>
+        <requirement type="package" version="1.6.6">r-optparse</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+#set specify_model_and_nlms=$specify_model_and_nlms_cond.specify_model_and_nlms
+Rscript '$__tool_directory__/methylit_get_potential_dimp.R'
+--absolute $absolute
+--alpha $alpha
+--div_column $div_column
+#if str($specify_model_and_nlms) == "yes":
+    --gof_report '$gof_report'
+#else:
+    #set specify_model=$specify_model_and_nlms_cond.specify_model_cond.specify_model
+    #if str($specify_model) == "yes":
+        --dist_name '$specify_model_and_nlms_cond.specify_model_cond.model'
+    #else:
+        #set specify_pval_column=$specify_pval_column_cond.specify_pval_column
+        #if str($specify_pval_column) == "yes":
+            --pval_column '$specify_model_and_nlms_cond.specify_model_cond.specify_pval_column_cond.pval_column'
+        #end if
+    #end if
+#end if
+--input '$input'
+#if str($specify_tv_col_and_cut_cond.specify_tv_col_and_cut) == "yes":
+    --tv_col $specify_tv_col_and_cut_cond.tv_col
+    --tv_cut $specify_tv_col_and_cut_cond.tv_cut
+#end if
+#if str($specify_hdiv_col_and_cut_cond.specify_hdiv_col_and_cut) == "yes":
+    --hdiv_col $specify_hdiv_col_and_cut_cond.hdiv_col
+    --hdiv_cut $specify_hdiv_col_and_cut_cond.hdiv_cut
+#end if
+#if str($specify_min_coverage_cond.specify_min_coverage) == "yes":
+    --min_coverage $specify_min_coverage_cond.min_coverage
+#end if
+#if str($specify_padjustmethod_cond.specify_padjustmethod) == "yes":
+    --padjustmethod '$specify_padjustmethod_cond.padjustmethod'
+#end if
+--output_rdata '$output_rdata'
+#if str($output_log_cond.output_log) == 'yes':
+    &>'$output_log';
+#else:
+    &>output_log.txt;
+    if [[ $? -ne 0 ]]; then
+        cp output_log.txt '$output_data_frame';
+        cp output_log.txt '$output_grange';
+    fi
+#end if
+]]></command>
+    <inputs>
+        <param name="input" type="data" format="rdata" label="File containing an information divergence estimator or a GRange object that includes Fisher's columns"/>
+        <conditional name="specify_model_and_nlms_cond">
+            <param name="specify_model_and_nlms" type="select" label="Retrieve the name of the fitted distribution and the list of distribution fitted models from a Goodness of Fit report?">
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
+            </param>
+            <when value="yes">
+                <param name="gof_report" type="data" format="rdata" label="File containing a Goodness of Fit (GOF) report"/>
+            </when>
+            <when value="no">
+                <conditional name="specify_model_cond">
+                    <param name="specify_model" type="select" label="Manually specify the fitted distribution model?">
+                        <option value="no" selected="true">No</option>
+                        <option value="yes">Yes</option>
+                    </param>
+                    <when value="yes">
+                        <param name="model" type="select" display="checkboxes" multiple="true" label="Model name" help="--dist.name">
+                            <option value="Weibull2P" selected="true">Weibull2P</option>
+                            <option value="Weibull3P">Weibull3P</option>
+                            <option value="Gamma2P">Gamma2P</option>
+                            <option value="Gamma3P">Gamma3P</option>
+                            <option value="GGamma3P">GGamma3P</option>
+                            <option value="GGamma4P">GGamma4P</option>
+                        </param>
+                    </when>
+                    <when value="no">
+                        <conditional name="specify_pval_column_cond">
+                            <param name="specify_pval_column" type="select" label="Specify the column containing p-values from the Grange objects in the input?">
+                                <option value="no" selected="true">No</option>
+                                <option value="yes">Yes</option>
+                            </param>
+                            <when value="yes">
+                                <param name="pval_column" type="integer" value="8" min="1" label="Index of the GRanges column containing the p-values" help="--pval.com"/>
+                            </when>
+                            <when value="no"/>
+                        </conditional>
+                    </when>
+                </conditional>
+            </when>
+        </conditional>
+        <param name="div_column" type="integer" value="9" min="1" label="Index of the GRanges column containing the information divergence" help="--div.col"/>
+        <param name="absolute" type="select" label="Transform TV into |TV|?" help="--absolute">
+            <option value="no" selected="true">No</option>
+            <option value="yes">Yes</option>
+        </param>
+        <param name="alpha" type="float" value="0.05" min="0" max="1" label="Value to select cytosine sites with information divergence for which the probabilities hold" help="--alpha"/>
+        <conditional name="specify_tv_col_and_cut_cond">
+            <param name="specify_tv_col_and_cut" type="select" label="Specify column number and cutoff for total variation?">
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
+            </param>
+            <when value="yes">
+                <param name="tv_col" type="integer" value="8" min="1" label="Index of the GRanges column containing the total variation for filtering cytosine positions" help="--tv.col"/>
+                <param name="tv_cut" type="float" value="0.5" min="0" label="Total variation cutoff" help="--tv.cut"/>
+            </when>
+            <when value="no"/>
+        </conditional>
+        <conditional name="specify_hdiv_col_and_cut_cond">
+            <param name="specify_hdiv_col_and_cut" type="select" label="Specify column number and cutoff for Hellinger distance?">
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
+            </param>
+            <when value="yes">
+                <param name="hdiv_col" type="integer" value="8" min="1" label="Index of the GRanges column containing the Hellinger distance for filtering cytosince positions" help="--hdiv.col"/>
+                <param name="hdiv_cut" type="float" value="0.5" min="0" label="Hellinger distance for filtering cytosince positions cutoff" help="--hdiv.cut"/>
+            </when>
+            <when value="no"/>
+        </conditional>
+
+
+        <conditional name="specify_min_coverage_cond">
+            <param name="specify_min_coverage" type="select" label="Specify_minimum coverage for cytosine sites?">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no"/>
+            <when value="yes">
+                <param name="min_coverage" type="integer" value="0" min="0" label="Minimum coverage for cysosine sites" help="--min.coverage"/>
+            </when>
+        </conditional>
+        <conditional name="specify_padjustmethod_cond">
+            <param name="specify_padjustmethod" type="select" label="Specify the method used to adjust the p-values from other approaches?">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="yes">
+                <param name="padjustmethod" type="select" label="Select method for adjusting the p-values" help="--pAdjustMethod">
+                    <option value="BH" selected="true">BH</option>
+                </param>
+            </when>
+            <when value="no"/>
+        </conditional>
+        <conditional name="output_log_cond">
+            <param name="output_log" type="select" label="Output process log?">
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
+            </param>
+            <when value="yes"/>
+            <when value="no"/>
+        </conditional>
+    </inputs>
+    <outputs>
+        <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}">
+            <filter>output_log_cond['output_log'] == 'yes'</filter>
+        </data>
+        <data name="output_rdata" format="rdata"/>
+    </outputs>
+    <tests>
+    </tests>
+    <help>
+**What it does**
+
+Performs a selection of the cytosine sites carrying the potential methylation signal. The potential signals from
+controls and treatments are used as prior classification in further steps of signal detection.  The potential signals
+are cytosine sites k with information divergence (DIV_k) values greater than the DIV(alpha = 0.05). The value of
+alpha can be specified. For example, potential signals with DIV_k > DIV(alpha = 0.01) can be selected. For each
+sample, cytosine sites are selected based on the corresponding nonlinear fitted distribution model that has been
+supplied.
+
+    </help>
+    <citations>
+        <citation type="doi">10.3389/fphys.2016.00165</citation>
+        <citation type="doi">10.1175/JTECH-D-11-00103.1</citation>
+        <citation type="doi">10.7289/V5D21VHZ</citation>
+    </citations>
+</tool>
+
