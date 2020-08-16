@@ -45,7 +45,7 @@ if (!is.null(opt$gof_report)) {
     if (is.null(opt$dist_name)) {
         dist_name <- NULL;
     } else {
-        dist_name <- string_to_charactor_vector(opt$dist_name);
+        dist_name <- string_to_character_vector(opt$dist_name);
     }
 }
 

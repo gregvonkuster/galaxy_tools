@@ -90,13 +90,13 @@ if (single_input) {
 if (is.null(opt$chromosomes)) {
     chromosomes = NULL;
 } else {
-    chromosomes <- string_to_charactor_vector(opt$chromosomes);
+    chromosomes <- string_to_character_vector(opt$chromosomes);
 }
 
 if (is.null(opt$chromosome_names)) {
     chromosome_names = NULL;
 } else {
-    chromosome_names <- string_to_charactor_vector(opt$chromosome_names);
+    chromosome_names <- string_to_character_vector(opt$chromosome_names);
 }
 
 columns <- get_columns(opt$seqnames, opt$start, opt$end, opt$strand, opt$fraction, opt$percent, opt$mC, opt$uC, opt$coverage, opt$context);
@@ -104,7 +104,7 @@ columns <- get_columns(opt$seqnames, opt$start, opt$end, opt$strand, opt$fractio
 if (is.null(opt$sample_id)) {
     sample_id <- NULL;
 } else {
-    sample_id <- string_to_charactor_vector(opt$sample_id);
+    sample_id <- string_to_character_vector(opt$sample_id);
 }
 
 # Create the GRanges list.

@@ -31,7 +31,7 @@ source(utils_path);
 
 absolute <- string_to_boolean(opt$absolute, default=FALSE);
 confl_model <- string_to_boolean(opt$confl_model, default=FALSE);
-model <- string_to_charactor_vector(opt$model);
+model <- string_to_character_vector(opt$model);
 npoints <- zero_to_null(opt$npoints);
 inf_div <- readRDS(opt$input);
 

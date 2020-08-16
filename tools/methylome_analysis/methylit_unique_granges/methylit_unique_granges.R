@@ -41,7 +41,7 @@ source(utils_path);
 if (is.null(opt$chromosomes)) {
     chromosomes = NULL;
 } else {
-    chromosomes <- string_to_charactor_vector(opt$chromosomes);
+    chromosomes <- string_to_character_vector(opt$chromosomes);
 }
 
 if (is.null(opt$columns)) {

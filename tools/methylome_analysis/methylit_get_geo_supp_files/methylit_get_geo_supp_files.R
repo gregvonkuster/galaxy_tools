@@ -22,7 +22,7 @@ opt <- args$options;
 utils_path <- paste(opt$script_dir, "utils.R", sep="/");
 source(utils_path);
 
-geo <- string_to_charactor_vector(opt$geo);
+geo <- string_to_character_vector(opt$geo);
 
 # Download the file(s) to the output directory.
 df <- getGEOSuppFiles(GEO=geo, makeDirectory=FALSE, baseDir=opt$output_dir, pattern=opt$pattern, verbose=TRUE);
