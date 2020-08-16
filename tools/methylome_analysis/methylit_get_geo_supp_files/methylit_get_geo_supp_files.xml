@@ -25,6 +25,7 @@ Rscript '$__tool_directory__/methylit_get_geo_supp_files.R'
     --output '$output'
 #end if
 --output_dir '$output_data_dir'
+--script_dir '$__tool_directory__'
 #if str($output_log_cond.output_log) == 'yes':
     &>'$output_log';
 #else:
