@@ -69,6 +69,7 @@ Rscript '$__tool_directory__/methylit_read_counts_2_granges_list.R'
 #if $sample_id and str($sample_id) != '':
     --sample_id '$sample_id'
 #end if
+--script_dir '$__tool_directory__'
 #if str($output_log_cond.output_log) == 'yes':
     &>'$output_log';
 #else:
@@ -94,8 +95,20 @@ Rscript '$__tool_directory__/methylit_read_counts_2_granges_list.R'
                 <param name="input_collection" type="data_collection" format="tabular" collection_type="list" label="Collection of methylation count files"/>
             </when>
         </conditional>
-        <param name="chromosomes" type="text" value="" label="Chromosomes" help="Enter a comma-separated list if morre than one item"/>
-        <param name="chromosome_names" type="text" value="" label="Chromosome names" help="Enter a comma-separated list if morre than one item"/>
+        <param name="chromosomes" type="text" value="" label="Chromosomes" help="Enter a comma-separated list if more than one item">
+            <sanitizer invalid_char="">
+                <valid initial="string.ascii_letters,string.digits">
+                    <add value=","/>
+                </valid>
+            </sanitizer>
+        </param>
+        <param name="chromosome_names" type="text" value="" label="Chromosome names" help="Enter a comma-separated list if more than one item">
+            <sanitizer invalid_char="">
+                <valid initial="string.ascii_letters,string.digits">
+                    <add value=","/>
+                </valid>
+            </sanitizer>
+        </param>
         <repeat name="column_repeat" title="Column" min="1">
             <param name="column_name" type="select" display="radio" label="Column name">
                 <option value="seqnames" selected="true">chromosomes</option>
@@ -111,8 +124,20 @@ Rscript '$__tool_directory__/methylit_read_counts_2_granges_list.R'
             </param>
             <param name="column_number" type="integer" value="1" min="1" label="Column number of the name selected above"/>
         </repeat>
-        <param name="pattern" type="text" value="" label="Pattern"/>
-        <param name="sample_id" type="text" value="" label="Sample id" help="Enter a comma-separated list if morre than one item"/>
+        <param name="pattern" type="text" value="" label="Pattern">
+            <sanitizer invalid_char="">
+                <valid initial="string.ascii_letters,string.digits">
+                    <add value=","/>
+                </valid>
+            </sanitizer>
+        </param>
+        <param name="sample_id" type="text" value="" label="Sample id" help="Enter a comma-separated list if more than one item">
+            <sanitizer invalid_char="">
+                <valid initial="string.ascii_letters,string.digits">
+                    <add value=","/>
+                </valid>
+            </sanitizer>
+        </param>
         <conditional name="output_log_cond">
             <param name="output_log" type="select" label="Output process log?">
                 <option value="yes" selected="true">Yes</option>

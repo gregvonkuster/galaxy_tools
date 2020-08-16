@@ -23,6 +23,7 @@ option_list <- list(
     make_option(c("--pattern"), action="store", dest="pattern", default=NULL, help="Chromosome name pattern"),
     make_option(c("--percent"), action="store", dest="percent", type="integer", default=NULL, help="Integer number of the percent column in the inputs"),
     make_option(c("--sample_id"), action="store", dest="sample_id", default=NULL, help="Names of the samples corresponding to each file"),
+    make_option(c("--script_dir"), action="store", dest="script_dir", help="R script source directory"),
     make_option(c("--seqnames"), action="store", dest="seqnames", type="integer", default=NULL, help="Integer number of the seqnames column in the inputs"),
     make_option(c("--single_input"), action="store", dest="single_input", default=NULL, help="Single input file"),
     make_option(c("--start"), action="store", dest="start", type="integer", default=NULL, help="Integer number of the start column in the inputs"),
@@ -33,6 +34,10 @@ option_list <- list(
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list);
 args <- parse_args(parser, positional_arguments=TRUE);
 opt <- args$options;
+
+# Import the shared utility functions.
+utils_path <- paste(opt$script_dir, "utils.R", sep="/");
+source(utils_path);
 
 get_columns <- function(seqnames, start, end, strand, fraction, percent, mC, uC, coverage, context) {
     columns <- integer();
@@ -85,19 +90,13 @@ if (single_input) {
 if (is.null(opt$chromosomes)) {
     chromosomes = NULL;
 } else {
-    # Convert chromosomes into a character vector.
-    chromosomes_str <- as.character(opt$chromosomes);
-    chromosomes_list <- strsplit(chromosomes_str, ",")[[1]];
-    chromosomes <- c(unlist(chromosomes_list, use.names=FALSE));
+    chromosomes <- string_to_charactor_vector(opt$chromosomes);
 }
 
 if (is.null(opt$chromosome_names)) {
     chromosome_names = NULL;
 } else {
-    # Convert chromosome_names into a character vector.
-    chromosome_names_str <- as.character(opt$chromosome_names);
-    chromosome_names_list <- strsplit(chromosome_names_str, ",")[[1]];
-    chromosome_names <- c(unlist(chromosome_names_list, use.names=FALSE));
+    chromosome_names <- string_to_charactor_vector(opt$chromosome_names);
 }
 
 columns <- get_columns(opt$seqnames, opt$start, opt$end, opt$strand, opt$fraction, opt$percent, opt$mC, opt$uC, opt$coverage, opt$context);
@@ -105,10 +104,7 @@ columns <- get_columns(opt$seqnames, opt$start, opt$end, opt$strand, opt$fractio
 if (is.null(opt$sample_id)) {
     sample_id <- NULL;
 } else {
-    # Convert sample_id into a character vector.
-    sample_id_str <- as.character(opt$sample_id);
-    sample_id_list <- strsplit(sample_id_str, ",")[[1]];
-    sample_id <- c(unlist(sample_id_list, use.names=FALSE));
+    sample_id <- string_to_charactor_vector(opt$sample_id);
 }
 
 # Create the GRanges list.
