@@ -19,6 +19,7 @@ option_list <- list(
     make_option(c("--output_rdata"), action="store", dest="output_rdata", help="Output rdata file"),
     make_option(c("--padjustmethod"), action="store", dest="padjustmethod", default=NULL, help="Method for adjusting the p-values"),
     make_option(c("--pval_column"), action="store", dest="pval_column", type="integer", default=NULL, help="Index of the GRanges column containing the p-values"),
+    make_option(c("--script_dir"), action="store", dest="script_dir", help="R script source directory"),
     make_option(c("--tv_col"), action="store", dest="tv_col", type="integer", default=NULL, help="Index of the GRanges column containing the total variation for filtering cytosine positions"),
     make_option(c("--tv_cut"), action="store", dest="tv_cut", type="double", default=NULL, help="Total variation cutoff")
 )
@@ -29,15 +30,11 @@ opt <- args$options;
 
 cat("args:\n", toString(args), "\n\n");
 
-# Convert absolute to boolean.
-if (opt$absolute == 'no') {
-    absolute <- FALSE;
-} else {
-    absolute <- TRUE;
-}
+# Import the shared utility functions.
+utils_path <- paste(opt$script_dir, "utils.R", sep="/");
+source(utils_path);
 
-# Convert alpha to float.
-alpha <- formatC(opt$alpha, digits=3, format="f")
+absolute <- string_to_boolean(opt$absolute, default=FALSE);
 
 if (!is.null(opt$gof_report)) {
     gof_report <- readRDS(opt$gof_report);
@@ -48,38 +45,21 @@ if (!is.null(opt$gof_report)) {
     if (is.null(opt$dist_name)) {
         dist_name <- NULL;
     } else {
-        # Convert opt$dist_name into a character vector.
-        dist_name_str <- as.character(opt$dist_name);
-        dist_name_list <- strsplit(dist_name_str, ",")[[1]];
-        dist_name <- c(unlist(dist_name_list, use.names=FALSE));
+        dist_name <- string_to_charactor_vector(opt$dist_name);
     }
-}
-
-if (is.null(opt$hdiv_cut)) {
-    hdiv_cut <- NULL;
-} else {
-    # Convert opt$hdiv_cut to float.
-    hdiv_cut <- formatC(opt$hdiv_cut, digits=3, format="f")
 }
 
 LR <- readRDS(opt$input);
 
-if (is.null(opt$tv_cut)) {
-    tv_cut <- NULL;
-} else {
-    # Convert opt$tv_cut to float.
-    tv_cut <- formatC(opt$tv_cut, digits=3, format="f")
-}
-
 ############
 # Debugging.
 cat("\nabsolute: ", absolute, "\n");
-cat("\nalpha: ", alpha, "\n");
+cat("\nopt$alpha: ", opt$alpha, "\n");
 cat("\ndist_name: ", dist_name, "\n");
 cat("\nopt$div_column: ", opt$div_column, "\n");
 cat("\nopt$gof_report: ", opt$gof_report, "\n");
 cat("\nopt$hdiv_col: ", opt$hdiv_col, "\n");
-cat("\njhdiv_cut: ", hdiv_cut, "\n");
+cat("\njopt$hdiv_cut: ", opt$hdiv_cut, "\n");
 cat("\nnlms:\n");
 nlms
 cat("\n\n");
@@ -88,7 +68,7 @@ cat("\nopt$min_coverage: ", opt$min_coverage, "\n");
 cat("\nopt$padjustmethod: ", opt$padjustmethod, "\n");
 cat("\nopt$pval_column: ", opt$pval_column, "\n");
 cat("\nopt$tv_col: ", opt$tv_col, "\n");
-cat("\tv_cut: ", tv_cut, "\n");
+cat("\opt$tv_cut: ", opt$tv_cut, "\n");
 cat("\n\n");
 ############
 
@@ -97,13 +77,13 @@ potential_methylation_signal <- getPotentialDIMP(LR,
                                                  div.col=opt$div_column,
                                                  dist.name=dist_name,
                                                  absolute=absolute,
-                                                 alpha=alpha,
+                                                 alpha=opt$alpha,
                                                  pval.col=opt$pval_column,
                                                  tv.col=opt$tv_col,
-                                                 tv.cut=tv_cut,
+                                                 tv.cut=opt$tv_cut,
                                                  min.coverage=opt$min_coverage,
                                                  hdiv.col=opt$hdiv_col,
-                                                 hdiv.cut=hdiv_cut,
+                                                 hdiv.cut=opt$hdiv_cut,
                                                  pAdjustMethod=opt$padjustmethod);
 
 ############

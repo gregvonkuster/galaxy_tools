@@ -41,6 +41,7 @@ Rscript '$__tool_directory__/methylit_get_potential_dimp.R'
     --padjustmethod '$specify_padjustmethod_cond.padjustmethod'
 #end if
 --output_rdata '$output_rdata'
+--script_dir '$__tool_directory__'
 #if str($output_log_cond.output_log) == 'yes':
     &>'$output_log';
 #else:
