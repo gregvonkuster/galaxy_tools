@@ -78,6 +78,7 @@ Rscript '$__tool_directory__/methylit_estimate_divergence.R'
 --percentile $percentile
 --output_infdiv '$output_infdiv'
 --num_cores \${GALAXY_SLOTS:-4}
+--script_dir '$__tool_directory__'
 #if str($output_log_cond.output_log) == 'yes':
     &>'$output_log';
 #else:

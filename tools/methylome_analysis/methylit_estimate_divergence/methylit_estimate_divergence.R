@@ -107,21 +107,19 @@ option_list <- list(
     make_option(c("--output_crc"), action="store", dest="output_crc", help="Output cytosince read counts file"),
     make_option(c("--output_infdiv"), action="store", dest="output_infdiv", help="Output infDiv file"),
     make_option(c("--percentile"), action="store", dest="percentile", type="double", help="Threshold to remove the outliers from each file and all files stacked"),
-    make_option(c("--ref"), action="store", dest="ref", help="A GRange file for the reference individual")
+    make_option(c("--ref"), action="store", dest="ref", help="A GRange file for the reference individual"),
+    make_option(c("--script_dir"), action="store", dest="script_dir", help="R script source directory")
 )
 
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list);
 args <- parse_args(parser, positional_arguments=TRUE);
 opt <- args$options;
 
-# Convert bayesian to boolean.
-if (is.null(opt$bayesian)) {
-    bayesian <- FALSE;
-} else if (opt$bayesian=='yes') {
-    bayesian <- TRUE;
-} else {
-    bayesian <- FALSE;
-}
+# Import the shared utility functions.
+utils_path <- paste(opt$script_dir, "utils.R", sep="/");
+source(utils_path);
+
+bayesian <- string_to_boolean(opt$bayesian, default=FALSE);;
 
 # Convert columns to an integer or integer vector if not NULL.
 if (!is.null(opt$col1) & !is.null(opt$col2)) {
@@ -151,23 +149,8 @@ for (i in 1:num_input_indiv_files) {
     inf_div_names[[i]] <- sans_ext;
 }
 
-# Convert jd to a boolean.
-if (is.null(opt$jd)) {
-    jd <- FALSE;
-} else if (opt$jd=='yes') {
-    jd <- TRUE;
-} else {
-    jd <- FALSE;
-}
-
-# Convert meth_level to a boolean.
-if (is.null(opt$meth_level)) {
-    meth_level <- FALSE;
-} else if (opt$meth_level=='yes') {
-    meth_level <- TRUE;
-} else {
-    meth_level <- FALSE;
-}
+jd <- string_to_boolean(opt$jd, default=FALSE);;
+meth_level <- string_to_boolean(opt$meth_level, default=FALSE);;
 
 # Convert min_coverage to an integer or integer vector if not NULL.
 if (!is.null(opt$mcov1) && !is.null(opt$mcov2)) {
@@ -196,8 +179,6 @@ if (!is.null(opt$mum1) && !is.null(opt$mum2)) {
     min_umeth <- opt$mum1;
 }
 
-percentile <- formatC(opt$percentile, digits=3, format="f")
-
 ############
 # Debugging.
 cat("\nbayesian: ", bayesian, "\n");
@@ -207,7 +188,7 @@ cat("\nmin_meth: ", min_meth, "\n");
 cat("\nmin_umeth: ", min_umeth, "\n");
 cat("\nopt$min_sitecov: ", opt$min_sitecov, "\n");
 cat("\nopt$high_coverage: ", opt$high_coverage, "\n");
-cat("\npercentile: ", percentile, "\n");
+cat("\nopt$percentile: ", opt$percentile, "\n");
 cat("\njd: ", jd, "\n");
 cat("\nopt$num_cores: ", opt$num_cores, "\n");
 cat("\nmeth_level: ", meth_level, "\n");
@@ -233,7 +214,7 @@ infDiv <- estimateDivergence(ref,
                              min.umeth=min_umeth,
                              min.sitecov=opt$min_sitecov,
                              high.coverage=opt$high_coverage,
-                             percentile=percentile,
+                             percentile=opt$percentile,
                              JD=jd,
                              num.cores=opt$num_cores,
                              meth.level=meth_level,
