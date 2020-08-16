@@ -16,12 +16,17 @@ option_list <- list(
     make_option(c("--num_cores"), action="store", dest="num_cores", help="The number of cores to use"),
     make_option(c("--output"), action="store", dest="output", help="Output Granges converted to data frame file"),
     make_option(c("--prob"), action="store", dest="prob", help="Whether the variable for pooling is between 0 and 1"),
+    make_option(c("--script_dir"), action="store", dest="script_dir", help="R script source directory"),
     make_option(c("--stat"), action="store", dest="stat", help="Statistic used to estimate the methylation pool")
 )
 
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list);
 args <- parse_args(parser, positional_arguments=TRUE);
 opt <- args$options;
+
+# Import the shared utility functions.
+utils_path <- paste(opt$script_dir, "utils.R", sep="/");
+source(utils_path);
 
 # Get the list of input data files.
 input_data_files <- list.files(path=opt$input_data_dir, full.names=TRUE);
@@ -34,12 +39,7 @@ for (i in 1:num_input_files) {
     grange_list[[i]] <- readRDS(file=input_data_file);
 }
 
-# Convert prob to boolean.
-if (opt$prob == 'yes') {
-    prob <- TRUE;
-} else {
-    prob <- FALSE;
-}
+prob <- string_to_boolean(opt$prob, default=FALSE);
 
 ############
 # Debugging.

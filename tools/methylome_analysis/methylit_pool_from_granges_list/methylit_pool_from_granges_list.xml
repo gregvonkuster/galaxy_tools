@@ -32,6 +32,7 @@ Rscript '$__tool_directory__/methylit_pool_from_granges_list.R'
     --column_number 1
 #end if
 --output '$output'
+--script_dir '$__tool_directory__'
 #if str($output_log_cond.output_log) == 'yes':
     &>'$output_log';
 #else:
