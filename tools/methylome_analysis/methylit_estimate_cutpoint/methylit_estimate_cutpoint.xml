@@ -1,0 +1,235 @@
+<tool id="methylit_estimate_cutpoint" name="MethylIT: Estimate cutpoints" version="1.0.0">
+    <description>to distinguish treatment methylation signal from control</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <requirements>
+        <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
+        <requirement type="package" version="1.40.0">bioconductor-genomicranges</requirement>
+        <requirement type="package" version="0.26.0">bioconductor-s4vectors</requirement>
+        <requirement type="package" version="6.0_86">r-caret</requirement>
+        <requirement type="package" version="0.3.2.1">r-methylit</requirement>
+        <requirement type="package" version="1.6.6">r-optparse</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+#set classifier1 = $specify_classifier1_cond.classifier1
+Rscript '$__tool_directory__/methylit_estimate_cutpoint.R'
+--classifier1 '$classifier1'
+#if str($classifier1) in ["logistic", "pca_logistic"]:
+    #set specify_interactions_cond = $specify_classifier1_cond.specify_interactions_cond
+    #if str($specify_interactions_cond.specify_interactions) == "yes":
+        --interactions '$specify_interactions_cond.specify_interactions.interactions'
+    #end if
+#end if
+#if str($specify_classifier2_cond.specify_classifier2) == "yes":
+    --classifier2 '$specify_classifier2_cond.specify_classifier2.classifier2'
+#end if
+--column '$column'
+--control_names '$control_names'
+#set specify_div_col = $specify_div_col_cond.specify_div_col
+#if str($specify_div_col) == "yes":
+    --div_col $specify_div_col_cond.div_col
+    #set specify_cut_values_cond = $specify_div_col_cond.specify_cut_values_cond
+    #set specify_cut_values = $specify_cut_values_cond.specify_cut_values
+    #if str($specify_cut_values) == "yes":
+        --cut_values_from $specify_cut_values_cond.cut_values_from
+        --cut_values_to $specify_cut_values_cond.cut_values_to
+        --cut_values_by $specify_cut_values_cond.cut_values_by
+    #end if
+#end if
+#if str($cutp_data_cond.cutp_data) == "yes":
+    --cutp_data '$cutp_data_cond.cutp_data'
+#end if
+--input '$input'
+#if str($specify_simple_cond.simple) == "yes"
+    --clas_perf '$specify_simple_cond.clas_perf'
+#else:
+    --post_cut $specify_simple_cond.post_cut
+    --stat $specify_simple_cond.stat
+#end if
+--n_pc $n_pc
+--num_cores \${GALAXY_SLOTS:-4}
+--prop $prop
+--script_dir '$__tool_directory__'
+--simple '$specify_simple_cond.simple'
+--treatment_names '$treatment_names'
+#if str($specify_tv_col_cond.specify_tv_col) == "yes":
+    --tv_col $specify_tv_col_cond.tv_col
+#end if
+--tv_cut $tv_cut
+--output_rdata '$output_rdata'
+#if str($output_log_cond.output_log) == "yes":
+    &>'$output_log';
+#else:
+    &>output_log.txt;
+    if [[ $? -ne 0 ]]; then
+        cp output_log.txt '$output_data_frame';
+        cp output_log.txt '$output_grange';
+    fi
+#end if
+]]></command>
+    <inputs>
+        <param name="input" type="data" format="rdata" label="File containing GRange objects that include selected cytosine sites and specified divergence probabilities" help="Typically produced by the MethylIT: Select cytosine sites carrying the potential methylation signal tool"/>
+        <param name="control_names" type="text" value="" label="Names of the control sample columns in the input GRange objects" help="Enter a comma-separated list if more than one item">
+            <sanitizer invalid_char="">
+                <valid initial="string.ascii_letters,string.digits">
+                    <add value=","/>
+                    <add value="_"/>
+                </valid>
+            </sanitizer>
+        </param>
+        <param name="treatment_names" type="text" value="" label="Names of the treatment sample columns in the input GRange objects" help="Enter a comma-separated list if more than one item">
+            <sanitizer invalid_char="">
+                <valid initial="string.ascii_letters,string.digits">
+                    <add value=","/>
+                    <add value="_"/>
+                </valid>
+            </sanitizer>
+        </param>
+        <conditional name="specify_simple_cond">
+            <param name="simple" type="select" label="Use the Youden Index to estimate the cutpoint?" help="--simple: select No to report the minimum information divergence value with posterior classification probability greater than the value of post.cut specified below">
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
+            </param>
+            <when value="yes">
+                <param name="clas_perf" type="select" label="Evaluate the classification performance for the estimated cutpoint using a model classifier?">
+                    <option value="no" selected="true">No</option>
+                    <option value="yes">Yes</option>
+                </param>
+            </when>
+            <when value="no">
+                <param name="post_cut" type="float" value="0.5" min="0" label="Posterior probability to decide whether a DMP belongs to treatment group" help="--post.cut"/>
+                <param name="stat" type="integer" value="0" min="0" max="12" label="Set the number indicating the statistic to be used in the testing testing" help="--stat: 0: Accuracy 1:Sensitivity 2:Specificity 3:Pos Pred Value 4:Neg Pred Value 5:Precision 6:Recall 7:F1 8:Prevalence 9:Detection Rate 10:Detection Prevalence 11:Balanced Accuracy 12:FDR"/>
+            </when>
+        </conditional>
+        <param name="column" type="select" display="checkboxes" multiple="true" label="Select column names to be used for the predictor variables" help="--column">
+            <option value="hdiv" selected="true">hdiv (Hellinger divergence)</option>
+            <option value="TV">TV (total variation)</option>
+            <option value="bay.TV">bay.TV (Bayesian total variation)</option>
+            <option value="wprob">wprob (probability of potential)</option>
+            <option value="pos">pos (relative cytosine site position)</option>
+        </param>
+        <conditional name="specify_classifier1_cond">
+            <param name="classifier1" type="select" display="checkboxes" multiple="true" label="Select classification models" help="--classifier1">
+                <option value="logistic" selected="true">logistic (logistic regression model)</option>
+                <option value="lda">lda (linear discriminant analysis)</option>
+                <option value="qda">qda (quadratic discriminant analysis)</option>
+                <option value="pca_logistic">pca.logistic (logistic regression model using the principal component estimated with principal component analysis as predictor variables)</option>
+                <option value="pca_qda">pca.qda (quadratic discriminant analysis using principle components as predictor variables)</option>
+            </param>
+            <when value="logistic">
+                <expand macro="specify_interactions_cond"/>
+            </when>
+            <when value="lda"/>
+            <when value="qda"/>
+            <when value="pca_logistic">
+                <expand macro="specify_interactions_cond"/>
+            </when>
+            <when value="pca_qda"/>
+        </conditional>
+        <conditional name="specify_classifier2_cond">
+            <param name="specify_classifier2" type="select" label="Select classification models to evaluate the classification performance and return the corresponding best fitted model?">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no"/>
+            <when value="yes">
+                <param name="classifier2" type="select" display="checkboxes" multiple="true" label="Select classification models" help="--classifier2">
+                    <option value="logistic" selected="true">logistic (logistic regression model)</option>
+                    <option value="lda">lda (linear discriminant analysis)</option>
+                    <option value="qda">qda (quadratic discriminant analysis)</option>
+                    <option value="pca_logistic">pca.logistic (logistic regression model using the principal component estimated with principal component analysis as predictor variables)</option>
+                    <option value="pca_qda">pca.qda (quadratic discriminant analysis using principle components as predictor variables)</option>
+                </param>
+            </when>
+        </conditional>
+        <param name="tv_cut" type="float" value="0.25" min="0" label="Cutoff for the total variation distance to be applied to each site/range" help="--tv.cut"/>
+        <conditional name="specify_tv_col_cond">
+            <param name="specify_tv_col" type="select" label="Specify GRange column number for total variation?">
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
+            </param>
+            <when value="yes">
+                <param name="tv_col" type="integer" value="8" min="1" label="Index of the GRanges column containing the total variation for filtering cytosine positions" help="--tv.col"/>
+            </when>
+            <when value="no"/>
+        </conditional>
+        <conditional name="specify_div_col_cond">
+            <param name="specify_div_col" type="select" label="Specify GRange column number containing the divergence variable for which the estimation of the cutpoint will be performed?">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="yes">
+                <param name="div_col" type="integer" value="9" min="1" label="Index of the GRanges column containing the divergence variable" help="--div.col"/>
+                <conditional name="specify_cut_values_cond">
+                    <param name="specify_cut_values" type="select" label="Specify cut values of the information divergence in the GRanges column selected above?" help="--cut.values">
+                        <option value="no" selected="true">No</option>
+                        <option value="yes">Yes</option>
+                    </param>
+                    <when value="no"/>
+                    <when value="yes">
+                        <param name="cut_values_from" type="integer" value="1" min="1" label="Starting point of the sequence"/>
+                        <param name="cut_values_to" type="integer" value="1" min="1" label="Ending point of the sequence"/>
+                        <param name="cut_values_by" type="integer" value="1" min="1" label="Increment of the sequence"/>
+                    </when>
+                </conditional>
+            </when>
+            <when value="no"/>
+        </conditional>
+        <param name="prop" type="float" value="0.6" min="0" label="Proportion to split the dataset used in the logistic regression into two subsets, training and testing" help="--prop"/>
+        <param name="n_pc" type="integer" value="1" min="1" max="4" label="Number of principal components to use if the classifier is not 'logistic'" help="--n.pc"/>
+        <conditional name="cutp_data_cond">
+            <param name="cutp_data" type="select" label="Output a data frame for further analysis or estimation of the optimal cutpoint based  only on the selected divergence?" help="--cutp_data">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no"/>
+            <when value="yes"/>
+        </conditional>
+        <conditional name="output_log_cond">
+            <param name="output_log" type="select" label="Output process log?">
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
+            </param>
+            <when value="yes"/>
+            <when value="no"/>
+        </conditional>
+    </inputs>
+    <outputs>
+        <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}">
+            <filter>output_log_cond['output_log'] == 'yes'</filter>
+        </data>
+        <data name="output_rdata" format="rdata"/>
+    </outputs>
+    <tests>
+    </tests>
+    <help>
+**What it does**
+
+Performs an estimation of the optimal cutpoint for the classification of the differentially methylated (cytosines) positions into
+two classes: DMPs from control and DMPs from treatment. The simplest approach to estimate the cutpoint is based on the application
+of Youden Index. More complexes approach based in several machine learning model are provided as well.
+
+Results of the classification performance from the estimated cutpoint are normally given, with the exception of those extreme situations
+where the statistics to evaluate performance cannot be estimated. More than one classifier model can be applied. For example, one
+classifier (logistic model) can be used to estimate the posterior classification probabilities of DMP into those from control and
+those from treatment. These probabilities are then used to estimate the cutpoint in range of values from, say, 0.5 to 0.8.  Next,
+a different classifier can be used to evaluate the classification performance. Different classifier models would yield different
+performances.  Models are returned and can be used in further prediction with new datasets from the same batch experiment. This is
+a machine learning approach to discriminate the biological regulatory signal naturally generated in the control from that one induced
+by the treatment.
+
+Notice that the estimation of an optimal cutpoint based on the application Youden Index (simple = TRUE) only uses the information
+provided by the selected information divergence. As a result, classification results based only in one variable can be poor or can
+fail. However, option simple = FALSE, uses the information from several variables following a machine-learning (ML) approach.
+
+Nevertheless, when simple = TRUE, still a ML model classifier can be built using the optimal cutpoint estimated and setting
+clas.perf = TRUE.
+    </help>
+    <citations>
+        <citation type="doi">10.3389/fphys.2016.00165</citation>
+        <citation type="doi">10.1175/JTECH-D-11-00103.1</citation>
+        <citation type="doi">10.7289/V5D21VHZ</citation>
+    </citations>
+</tool>
+
