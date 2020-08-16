@@ -128,6 +128,8 @@ Rscript '$__tool_directory__/methylit_read_counts_2_granges_list.R'
             <sanitizer invalid_char="">
                 <valid initial="string.ascii_letters,string.digits">
                     <add value=","/>
+                    <add value="_"/>
+                    <add value="^"/>
                 </valid>
             </sanitizer>
         </param>

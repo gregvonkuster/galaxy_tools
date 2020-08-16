@@ -68,7 +68,7 @@ cat("\nopt$min_coverage: ", opt$min_coverage, "\n");
 cat("\nopt$padjustmethod: ", opt$padjustmethod, "\n");
 cat("\nopt$pval_column: ", opt$pval_column, "\n");
 cat("\nopt$tv_col: ", opt$tv_col, "\n");
-cat("\opt$tv_cut: ", opt$tv_cut, "\n");
+cat("\nopt$tv_cut: ", opt$tv_cut, "\n");
 cat("\n\n");
 ############
 

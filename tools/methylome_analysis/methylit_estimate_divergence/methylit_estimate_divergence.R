@@ -119,7 +119,7 @@ opt <- args$options;
 utils_path <- paste(opt$script_dir, "utils.R", sep="/");
 source(utils_path);
 
-bayesian <- string_to_boolean(opt$bayesian, default=FALSE);;
+bayesian <- string_to_boolean(opt$bayesian, default=FALSE);
 
 # Convert columns to an integer or integer vector if not NULL.
 if (!is.null(opt$col1) & !is.null(opt$col2)) {
@@ -149,8 +149,8 @@ for (i in 1:num_input_indiv_files) {
     inf_div_names[[i]] <- sans_ext;
 }
 
-jd <- string_to_boolean(opt$jd, default=FALSE);;
-meth_level <- string_to_boolean(opt$meth_level, default=FALSE);;
+jd <- string_to_boolean(opt$jd, default=FALSE);
+meth_level <- string_to_boolean(opt$meth_level, default=FALSE);
 
 # Convert min_coverage to an integer or integer vector if not NULL.
 if (!is.null(opt$mcov1) && !is.null(opt$mcov2)) {
