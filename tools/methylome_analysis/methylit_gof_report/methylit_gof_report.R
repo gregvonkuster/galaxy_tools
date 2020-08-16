@@ -17,39 +17,22 @@ option_list <- list(
     make_option(c("--num_cores"), action="store", dest="num_cores", type="integer", help="The number of cores to use"),
     make_option(c("--output_gof"), action="store", dest="output_gof", help="Output rdata file"),
     make_option(c("--output_txt"), action="store", dest="output_txt", help="Output txt file"),
-    make_option(c("--output_spec"), action="store", dest="output_spec", help="Output specifications")
+    make_option(c("--output_spec"), action="store", dest="output_spec", help="Output specifications"),
+    make_option(c("--script_dir"), action="store", dest="script_dir", help="R script source directory")
 )
 
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list);
 args <- parse_args(parser, positional_arguments=TRUE);
 opt <- args$options;
 
-# Convert absolute to boolean.
-if (opt$absolute == 'no') {
-    absolute <- FALSE;
-} else {
-    absolute <- TRUE;
-}
+# Import the shared utility functions.
+utils_path <- paste(opt$script_dir, "utils.R", sep="/");
+source(utils_path);
 
-# Convert confl_model to boolean.
-if (opt$confl_model == 'no') {
-    confl_model <- FALSE;
-} else {
-    confl_model <- TRUE;
-}
-
-# Convert opt$model into a character vector.
-model_str <- as.character(opt$model);
-model_list <- strsplit(model_str, ",")[[1]];
-model <- c(unlist(model_list, use.names=FALSE));
-
-# If npoints is 0, comnvert to NULL.
-if (opt$npoints == 0) {
-    npoints <- NULL;
-} else {
-    npoints <- opt$npoints;
-}
-
+absolute <- string_to_boolean(opt$absolute, default=FALSE);
+confl_model <- string_to_boolean(opt$confl_model, default=FALSE);
+model <- string_to_charactor_vector(opt$model);
+npoints <- zero_to_null(opt$npoints);
 inf_div <- readRDS(opt$input);
 
 ############

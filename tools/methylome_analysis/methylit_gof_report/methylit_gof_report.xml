@@ -1,4 +1,4 @@
-<tool id="methylit_gof_report" name="MethylIT: Goodness of Fit report" version="1.0.0">
+<tool id="methylit_gof_report" name="MethylIT: Goodness of Fit Report" version="1.0.0">
     <description>for the probability distribution model</description>
     <requirements>
         <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
@@ -19,6 +19,7 @@ Rscript '$__tool_directory__/methylit_gof_report.R'
 --output_gof '$output_gof'
 --output_txt '$output_txt'
 --output_spec '$output_spec'
+--script_dir '$__tool_directory__'
 #if str($output_log_cond.output_log) == 'yes':
     &>'$output_log';
 #else:
