@@ -36,6 +36,7 @@ Rscript '$__tool_directory__/methylit_unique_granges.R'
 --num_cores \${GALAXY_SLOTS:-4}
 --output_data_frame '$output_data_frame'
 --output_grange '$output_grange'
+--script_dir '$__tool_directory__'
 #if str($output_log_cond.output_log) == 'yes':
     &>'$output_log';
 #else:

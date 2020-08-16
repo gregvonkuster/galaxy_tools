@@ -26,44 +26,31 @@ option_list <- list(
     make_option(c("--output_data_frame"), action="store", dest="output_data_frame", help="Output csv file"),
     make_option(c("--output_grange"), action="store", dest="output_grange", help="Output GRange file"),
     make_option(c("--select"), action="store", dest="select", help="Select value"),
-    make_option(c("--overlap_type"), action="store", dest="overlap_type", help="Overlap type")
+    make_option(c("--overlap_type"), action="store", dest="overlap_type", help="Overlap type"),
+    make_option(c("--script_dir"), action="store", dest="script_dir", help="R script source directory")
 )
 
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list);
 args <- parse_args(parser, positional_arguments=TRUE);
 opt <- args$options;
 
+# Import the shared utility functions.
+utils_path <- paste(opt$script_dir, "utils.R", sep="/");
+source(utils_path);
+
 if (is.null(opt$chromosomes)) {
     chromosomes = NULL;
 } else {
-    # Convert chromosomes into a character vector.
-    chromosomes_str <- as.character(opt$chromosomes);
-    chromosomes_list <- strsplit(chromosomes_str, ",")[[1]];
-    chromosomes <- c(unlist(chromosomes_list, use.names=FALSE));
+    chromosomes <- string_to_charactor_vector(opt$chromosomes);
 }
 
-# Convert columns to an integer or integer vector if not NULL.
-if (!is.null(opt$columns)) {
-    columns_list <- strsplit(opt$columns, ",")[[1]];
-    num_columns <- length(columns_list)[[1]];
-    if (num_columns == 1) {
-        columns <- columns_list[[1]];
-    } else {
-        columns <- integer(num_columns);
-        for (i in 1:num_columns) {
-            columns[[i]] <- columns_list[[i]];
-        }
-    }
-} else {
+if (is.null(opt$columns)) {
     columns <- NULL;
+} else {
+    columns <- string_to_integer_or_vector(opt$columns);
 }
 
-# Convert ignore_strand to boolean.
-if (opt$ignore_strand == 'no') {
-    ignore_strand <- FALSE;
-} else {
-    ignore_strand <- TRUE;
-}
+ignore_strand <- string_to_boolean(opt$ignore_strand, default=FALSE);
 
 if (is.null(opt$maxgap)) {
     maxgap <- -1;
@@ -151,8 +138,7 @@ show(unique_grange);
 cat("\n\n");
 ############
 
-# Copy the GRange object to a data frame
-# for persisting.
+# Copy the GRange object to a data frame for persisting.
 df <- data.frame(matrix(ncol=num_inf_divs, nrow=nrow(mcols(unique_grange))));
 colnames(df) <- c(unlist(inf_div_names, use.names=FALSE));
 for (i in 1:num_inf_divs) {
