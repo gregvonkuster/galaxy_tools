@@ -1,8 +1,5 @@
 <tool id="methylit_estimate_cutpoint" name="MethylIT: Estimate cutpoints" version="1.0.0">
     <description>to distinguish treatment methylation signal from control</description>
-    <macros>
-        <import>macros.xml</import>
-    </macros>
     <requirements>
         <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
         <requirement type="package" version="1.40.0">bioconductor-genomicranges</requirement>
@@ -12,17 +9,16 @@
         <requirement type="package" version="1.6.6">r-optparse</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
-#set classifier1 = $specify_classifier1_cond.classifier1
 Rscript '$__tool_directory__/methylit_estimate_cutpoint.R'
 --classifier1 '$classifier1'
 #if str($classifier1) in ["logistic", "pca_logistic"]:
-    #set specify_interactions_cond = $specify_classifier1_cond.specify_interactions_cond
     #if str($specify_interactions_cond.specify_interactions) == "yes":
         --interactions '$specify_interactions_cond.specify_interactions.interactions'
     #end if
 #end if
-#if str($specify_classifier2_cond.specify_classifier2) == "yes":
-    --classifier2 '$specify_classifier2_cond.specify_classifier2.classifier2'
+#set specify_classifier2 = $specify_classifier2_cond.specify_classifier2
+#if str($specify_classifier2) == "yes":
+    --classifier2 '$specify_classifier2_cond.classifier2'
 #end if
 --column '$column'
 --control_names '$control_names'
@@ -71,6 +67,7 @@ Rscript '$__tool_directory__/methylit_estimate_cutpoint.R'
     <inputs>
         <param name="input" type="data" format="rdata" label="File containing GRange objects that include selected cytosine sites and specified divergence probabilities" help="Typically produced by the MethylIT: Select cytosine sites carrying the potential methylation signal tool"/>
         <param name="control_names" type="text" value="" label="Names of the control sample columns in the input GRange objects" help="Enter a comma-separated list if more than one item">
+            <validator type="empty_field"/>
             <sanitizer invalid_char="">
                 <valid initial="string.ascii_letters,string.digits">
                     <add value=","/>
@@ -79,6 +76,7 @@ Rscript '$__tool_directory__/methylit_estimate_cutpoint.R'
             </sanitizer>
         </param>
         <param name="treatment_names" type="text" value="" label="Names of the treatment sample columns in the input GRange objects" help="Enter a comma-separated list if more than one item">
+            <validator type="empty_field"/>
             <sanitizer invalid_char="">
                 <valid initial="string.ascii_letters,string.digits">
                     <add value=","/>
@@ -92,7 +90,7 @@ Rscript '$__tool_directory__/methylit_estimate_cutpoint.R'
                 <option value="no">No</option>
             </param>
             <when value="yes">
-                <param name="clas_perf" type="select" label="Evaluate the classification performance for the estimated cutpoint using a model classifier?">
+                <param name="clas_perf" type="select" label="Evaluate the classification performance for the estimated cutpoint using a model classifier?" help="--clas.perf">
                     <option value="no" selected="true">No</option>
                     <option value="yes">Yes</option>
                 </param>
@@ -109,58 +107,67 @@ Rscript '$__tool_directory__/methylit_estimate_cutpoint.R'
             <option value="wprob">wprob (probability of potential)</option>
             <option value="pos">pos (relative cytosine site position)</option>
         </param>
-        <conditional name="specify_classifier1_cond">
-            <param name="classifier1" type="select" display="checkboxes" multiple="true" label="Select classification models" help="--classifier1">
-                <option value="logistic" selected="true">logistic (logistic regression model)</option>
-                <option value="lda">lda (linear discriminant analysis)</option>
-                <option value="qda">qda (quadratic discriminant analysis)</option>
-                <option value="pca_logistic">pca.logistic (logistic regression model using the principal component estimated with principal component analysis as predictor variables)</option>
-                <option value="pca_qda">pca.qda (quadratic discriminant analysis using principle components as predictor variables)</option>
-            </param>
-            <when value="logistic">
-                <expand macro="specify_interactions_cond"/>
-            </when>
-            <when value="lda"/>
-            <when value="qda"/>
-            <when value="pca_logistic">
-                <expand macro="specify_interactions_cond"/>
-            </when>
-            <when value="pca_qda"/>
-        </conditional>
-        <conditional name="specify_classifier2_cond">
-            <param name="specify_classifier2" type="select" label="Select classification models to evaluate the classification performance and return the corresponding best fitted model?">
+        <param name="classifier1" type="select" display="radio" label="Select classification model" help="--classifier1">
+            <option value="logistic" selected="true">logistic (logistic regression model)</option>
+            <option value="lda">lda (linear discriminant analysis)</option>
+            <option value="qda">qda (quadratic discriminant analysis)</option>
+            <option value="pca.lda">pca.lda (linear discriminant analysis with principal component analysis as predictor variables)</option>
+            <option value="pca.logistic">pca.logistic (logistic regression model using the principal component estimated with principal component analysis as predictor variables)</option>
+            <option value="pca.qda">pca.qda (quadratic discriminant analysis using principle components as predictor variables)</option>
+        </param>
+        <!-- It seems the function evaluateDIMPclass may have all combinations, but not sure, so we'll just use these for now -->
+        <conditional name="specify_interactions_cond">
+            <param name="specify_interactions" type="select" label="Specify interactions to consider in the logistics regression model?" help="--interactions: applied only if selected classification models include logistic or pca.logistic">
                 <option value="no" selected="true">No</option>
                 <option value="yes">Yes</option>
             </param>
             <when value="no"/>
             <when value="yes">
-                <param name="classifier2" type="select" display="checkboxes" multiple="true" label="Select classification models" help="--classifier2">
+                <param name="interactions" type="select" display="checkboxes" label="Select interactions" help="--interactions">
+                    <option value="hdiv_tv" selected="true">hdiv:tv)</option>
+                    <option value="hdiv_wprob">hdiv:wprob)</option>
+                    <option value="hdiv_pos">hdiv:pos)</option>
+                    <option value="tv_wprob">tv:wprob)</option>
+                    <option value="tv_pos">tv:pos)</option>
+                    <option value="wprob_pos">wprob:pos)</option>
+                </param>
+            </when>
+        </conditional>
+        <conditional name="specify_classifier2_cond">
+            <param name="specify_classifier2" type="select" label="Select classification models to evaluate the classification performance and return the corresponding best fitted model?" help="--classifier2">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no"/>
+            <when value="yes">
+                <param name="classifier2" type="select" display="radio" label="Select classification model">
                     <option value="logistic" selected="true">logistic (logistic regression model)</option>
                     <option value="lda">lda (linear discriminant analysis)</option>
                     <option value="qda">qda (quadratic discriminant analysis)</option>
-                    <option value="pca_logistic">pca.logistic (logistic regression model using the principal component estimated with principal component analysis as predictor variables)</option>
-                    <option value="pca_qda">pca.qda (quadratic discriminant analysis using principle components as predictor variables)</option>
+                    <option value="pca.lda">pca.lda (linear discriminant analysis with principal component analysis as predictor variables)</option>
+                    <option value="pca.logistic">pca.logistic (logistic regression model using the principal component estimated with principal component analysis as predictor variables)</option>
+                    <option value="pca.qda">pca.qda (quadratic discriminant analysis using principle components as predictor variables)</option>
                 </param>
             </when>
         </conditional>
         <param name="tv_cut" type="float" value="0.25" min="0" label="Cutoff for the total variation distance to be applied to each site/range" help="--tv.cut"/>
         <conditional name="specify_tv_col_cond">
-            <param name="specify_tv_col" type="select" label="Specify GRange column number for total variation?">
+            <param name="specify_tv_col" type="select" label="Specify GRange column number for total variation?" help="--tv.col">
                 <option value="yes" selected="true">Yes</option>
                 <option value="no">No</option>
             </param>
             <when value="yes">
-                <param name="tv_col" type="integer" value="8" min="1" label="Index of the GRanges column containing the total variation for filtering cytosine positions" help="--tv.col"/>
+                <param name="tv_col" type="integer" value="8" min="1" label="Index of the GRanges column containing the total variation for filtering cytosine positions"/>
             </when>
             <when value="no"/>
         </conditional>
         <conditional name="specify_div_col_cond">
-            <param name="specify_div_col" type="select" label="Specify GRange column number containing the divergence variable for which the estimation of the cutpoint will be performed?">
+            <param name="specify_div_col" type="select" label="Specify GRange column number containing the divergence variable for which the estimation of the cutpoint will be performed?" help="--div.col">
                 <option value="no" selected="true">No</option>
                 <option value="yes">Yes</option>
             </param>
             <when value="yes">
-                <param name="div_col" type="integer" value="9" min="1" label="Index of the GRanges column containing the divergence variable" help="--div.col"/>
+                <param name="div_col" type="integer" value="9" min="1" label="Index of the GRanges column containing the divergence variable"/>
                 <conditional name="specify_cut_values_cond">
                     <param name="specify_cut_values" type="select" label="Specify cut values of the information divergence in the GRanges column selected above?" help="--cut.values">
                         <option value="no" selected="true">No</option>
