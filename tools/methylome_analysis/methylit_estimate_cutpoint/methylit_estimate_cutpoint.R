@@ -117,9 +117,45 @@ l <- estimateCutPoint(LR,
 
 ############
 # Debugging.
-cat("\nl:\n");
-l
-cat("typeof(l): ", typeof(l), "\n");
+cat("l$cutpoint:\n");
+l$cutpoint
+cat("\n\n");
+cat("l$testSetPerformance:\n");
+l$testSetPerformance
+cat("\n\n");
+cat("l$testSetModel.FDR:\n");
+l$testSetModel.FDR
+cat("\n\n");
+cat("l$model:\n");
+l$model
+cat("\n\n");
+cat("l$modelConfMatrix:\n");
+l$modelConfMatrix
+cat("\n\n");
+cat("l$initModel:\n");
+l$initModel
+cat("\n\n");
+cat("l$postProbCut:\n");
+l$postProbCut
+cat("\n\n");
+cat("l$postCut:\n");
+l$postCut
+cat("\n\n");
+cat("l$classifier:\n");
+l$classifier
+cat("\n\n");
+cat("l$classifier:\n");
+l$classifier
+cat("\n\n");
+cat("l$statistic:\n");
+l$statistic
+cat("\n\n");
+cat("l$optStatVal:\n");
+l$optStatVal
+cat("\n\n");
+cat("l$cutpData:\n");
+l$ocutpData
+cat("\n\n");
 ############
 
 # Save the potential_methylation_signal.
