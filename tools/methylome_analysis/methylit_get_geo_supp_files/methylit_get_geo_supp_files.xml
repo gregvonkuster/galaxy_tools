@@ -1,5 +1,8 @@
 <tool id="methylit_get_geo_supp_files" name="MethylIT: Get GEO supplemental file" version="1.0.0">
     <description></description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
     <requirements>
         <requirement type="package" version="4.3">r-curl</requirement>
         <requirement type="package" version="1.4.2">r-fs</requirement>
@@ -94,10 +97,6 @@ Embryonic stem cells datasets
  - GSM1279514
  - GSM1279513
     </help>
-    <citations>
-        <citation type="doi">10.3389/fphys.2016.00165</citation>
-        <citation type="doi">10.1175/JTECH-D-11-00103.1</citation>
-        <citation type="doi">10.7289/V5D21VHZ</citation>
-    </citations>
+    <expand macro="citations"/>
 </tool>
 

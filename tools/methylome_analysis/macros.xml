@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<macros>
+    <xml name="citations">
+        <citations>
+            <citation type="doi">10.3389/fphys.2016.00165</citation>
+            <citation type="doi">10.1175/JTECH-D-11-00103.1</citation>
+            <citation type="doi">10.7289/V5D21VHZ</citation>
+        </citations>
+    </xml>
+</macros>

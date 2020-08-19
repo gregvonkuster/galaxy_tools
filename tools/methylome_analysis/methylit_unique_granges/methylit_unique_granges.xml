@@ -1,5 +1,8 @@
 <tool id="methylit_unique_granges" name="MethylIT: Build unique GRange" version="1.0.0">
     <description>from a list of GRange objects</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
     <requirements>
         <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
         <requirement type="package" version="0.34.0">bioconductor-biocgenerics</requirement>
@@ -137,10 +140,6 @@ must have one or more columns to yield a unique GRange object with metadata colu
 a unique GRange object will becreated  without metadata columns. Additionally, all metadata must be the same class (i.e. numeric
 characters, or factor).
     </help>
-    <citations>
-        <citation type="doi">10.3389/fphys.2016.00165</citation>
-        <citation type="doi">10.1175/JTECH-D-11-00103.1</citation>
-        <citation type="doi">10.7289/V5D21VHZ</citation>
-    </citations>
+    <expand macro="citations"/>
 </tool>
 

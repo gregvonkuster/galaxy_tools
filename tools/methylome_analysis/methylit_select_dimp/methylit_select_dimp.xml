@@ -1,5 +1,8 @@
 <tool id="methylit_select_dimp" name="MethylIT: Select cytosine positions" version="1.0.0">
     <description>for which the divergence is greater than the cutpoint</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
     <requirements>
         <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
         <requirement type="package" version="1.40.0">bioconductor-genomicranges</requirement>
@@ -124,10 +127,6 @@ However, when pooling DNA extracted from a tissue, the previous reasonings about
 factor: cells from the same tissue are not synchronized but are found in different stages of their ontogenetic developments. Hence,
 the DMP concept holds in the mentioned circumstances where the uncertainty of methylation is present.
     </help>
-    <citations>
-        <citation type="doi">10.3389/fphys.2016.00165</citation>
-        <citation type="doi">10.1175/JTECH-D-11-00103.1</citation>
-        <citation type="doi">10.7289/V5D21VHZ</citation>
-    </citations>
+    <expand macro="citations"/>
 </tool>
 

@@ -1,5 +1,6 @@
 <tool id="methylit_pool_from_granges_list" name="MethylIT: pool from GRanges list" version="1.0.0">
     <description></description>
+    <expand macro="citations"/>
     <requirements>
         <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
         <requirement type="package" version="1.22.0">bioconductor-biocparallel</requirement>
@@ -105,10 +106,6 @@ Embryonic stem cells datasets
  - GSM1279514
  - GSM1279513
     </help>
-    <citations>
-        <citation type="doi">10.3389/fphys.2016.00165</citation>
-        <citation type="doi">10.1175/JTECH-D-11-00103.1</citation>
-        <citation type="doi">10.7289/V5D21VHZ</citation>
-    </citations>
+    <expand macro="citations"/>
 </tool>
 

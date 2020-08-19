@@ -1,5 +1,8 @@
 <tool id="methylit_estimate_divergence" name="MethylIT: Estimate divergence" version="1.0.0">
     <description></description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
     <requirements>
         <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
         <requirement type="package" version="0.34.0">bioconductor-biocgenerics</requirement>
@@ -217,10 +220,6 @@ difference of methylation levels.  Here, although the variable reported is the t
 used for the downstream analysis is \emph{TVD}. Once a differentially methylated position (DMP) is identified in the downstream
 analysis, \emph{TV} is the standard indicator of whether the cytosine position is hyper- or hypo-methylated.
     </help>
-    <citations>
-        <citation type="doi">10.3389/fphys.2016.00165</citation>
-        <citation type="doi">10.1175/JTECH-D-11-00103.1</citation>
-        <citation type="doi">10.7289/V5D21VHZ</citation>
-    </citations>
+    <expand macro="citations"/>
 </tool>
 
