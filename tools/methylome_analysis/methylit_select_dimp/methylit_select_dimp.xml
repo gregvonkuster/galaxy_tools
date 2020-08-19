@@ -1,0 +1,133 @@
+<tool id="methylit_select_dimp" name="MethylIT: Select cytosine positions" version="1.0.0">
+    <description>for which the divergence is greater than the cutpoint</description>
+    <requirements>
+        <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
+        <requirement type="package" version="1.40.0">bioconductor-genomicranges</requirement>
+        <requirement type="package" version="0.26.0">bioconductor-s4vectors</requirement>
+        <requirement type="package" version="6.0_86">r-caret</requirement>
+        <requirement type="package" version="0.3.2.1">r-methylit</requirement>
+        <requirement type="package" version="1.6.6">r-optparse</requirement>
+        <requirement type="package" version="1.8_4">r-xtable</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+Rscript '$__tool_directory__/methylit_select_dimp.R'
+--absolute $absolute
+#if str($specify_div_col_cond.specify_div_col) == "yes":
+    --div_col $specify_div_col_cond.div_col
+#end if
+--input_cutpoint '$input_cutpoint'
+--input_pdmp '$input_pdmp'
+--output_crc '$output_crc'
+--output_rdata '$output_rdata'
+#if str($specify_pval_column_cond.specify_pval_column) == "yes":
+    --pval_column '$specify_pval_column_cond.pval_column'
+#end if
+--script_dir '$__tool_directory__'
+#if str($specify_tv_col_cond.specify_tv_col) == "yes":
+    --tv_col $specify_tv_col_cond.tv_col
+#end if
+#if str($specify_tv_cut_cond.specify_tv_cut) == "yes":
+    --tv_cut $specify_tv_cut_cond.tv_cut
+#end if
+#if str($output_log_cond.output_log) == "yes":
+    &>'$output_log';
+#else:
+    &>output_log.txt;
+    if [[ $? -ne 0 ]]; then
+        cp output_log.txt '$output_data_frame';
+        cp output_log.txt '$output_grange';
+    fi
+#end if
+]]></command>
+    <inputs>
+        <param name="input_pdmp" type="data" format="rdata" label="File containing GRange objects that include selected cytosine sites and specified divergence probabilities" help="Typically produced by the MethylIT: Select cytosine sites carrying the potential methylation signal tool"/>
+        <param name="input_cutpoint" type="data" format="rdata" label="File containing an estimated cutpoint" help="Typically produced by the MethylIT: Estimate cutpoint tool"/>
+        <conditional name="specify_div_col_cond">
+            <param name="specify_div_col" type="select" label="Specify GRange column number containing the divergence variable for which the estimation of the cutpoint will be performed?" help="--div.col">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="yes">
+                <param name="div_col" type="integer" value="9" min="1" label="Index of the GRanges column containing the divergence variable"/>
+            </when>
+            <when value="no"/>
+        </conditional>
+        <conditional name="specify_pval_column_cond">
+            <param name="specify_pval_column" type="select" label="Specify the column containing p-values from the Grange objects in the input?">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="yes">
+                <param name="pval_column" type="integer" value="8" min="1" label="Index of the GRanges column containing the p-values" help="--pval.col"/>
+            </when>
+            <when value="no"/>
+        </conditional>
+        <param name="absolute" type="select" label="Transform total variation (TV) into |TV|?" help="--absolute">
+            <option value="no" selected="true">No</option>
+            <option value="yes">Yes</option>
+        </param>
+        <conditional name="specify_tv_col_cond">
+            <param name="specify_tv_col" type="select" label="Specify GRange column number for total variation?" help="--tv.col">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="yes">
+                <param name="tv_col" type="integer" value="8" min="1" label="Index of the GRanges column containing the total variation for filtering cytosine positions"/>
+            </when>
+            <when value="no"/>
+        </conditional>
+        <conditional name="specify_tv_cut_cond">
+            <param name="specify_tv_cut" type="select" label="Specify cutoff for the total variation distance to be applied to each site/range?" help="--tv.cut">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="yes">
+                <param name="tv_cut" type="float" value="0.25" min="0" label="Cutoff for the total variation distance"/>
+            </when>
+            <when value="no"/>
+        </conditional>
+        <conditional name="output_log_cond">
+            <param name="output_log" type="select" label="Output process log?">
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
+            </param>
+            <when value="yes"/>
+            <when value="no"/>
+        </conditional>
+    </inputs>
+    <outputs>
+        <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}">
+            <filter>output_log_cond['output_log'] == 'yes'</filter>
+        </data>
+        <data name="output_crc" format="html" label="${tool.name} (statistics) on ${on_string}"/>
+        <data name="output_rdata" format="rdata"/>
+    </outputs>
+    <tests>
+    </tests>
+    <help>
+**What it does**
+
+Return the differentially informative methylated positions (DMPs) for a given cutpoint previously estimated with the MethylIT:
+Estimate cutpoint tool.  DMPs are cytosine positions for which the divergence is greater than the cutpoint.
+
+Theoretically a DMP denotes a cytosine position with high probability to be differentially methylated. That is, in the statistical
+molecular-biophysics context, a DMP must be considered only in a probabilistic term and not as an absolute deterministic experimental
+output.
+
+The uncertainty and dynamics of the DNA methylation process, the continuous action of the omnipresent thermal fluctuations, as well
+as the inherent stochasticity of the biochemical reactions make it impossible to ensure whether a specific cytosine position is
+methylated in an absolutely deterministic sense. Notice that the concept of DMP is not applicable to a single cell (if we use an
+instrumentation/protocol to directly measure methylation at the molecular level, and not via PCR), since a concrete, single DNA
+cytosine position in a single cell is methylated or not methylated.
+
+However, when pooling DNA extracted from a tissue, the previous reasonings about uncertainty hold plus an additional uncertainty
+factor: cells from the same tissue are not synchronized but are found in different stages of their ontogenetic developments. Hence,
+the DMP concept holds in the mentioned circumstances where the uncertainty of methylation is present.
+    </help>
+    <citations>
+        <citation type="doi">10.3389/fphys.2016.00165</citation>
+        <citation type="doi">10.1175/JTECH-D-11-00103.1</citation>
+        <citation type="doi">10.7289/V5D21VHZ</citation>
+    </citations>
+</tool>
+
