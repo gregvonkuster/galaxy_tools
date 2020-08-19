@@ -20,7 +20,7 @@ get_empirical_cumulative_probability_distributions_critical_values <- function(g
     return(critical_val);
 }
 
-get_cytosine_site_coverage <- function(grange_list, high_coverage) {
+get_cytosine_site_coverage <- function(grange_list) {
     # Output cytosine read counts for grange_list.
     covr <- lapply(grange_list, function(x) {
         cov1 <- x$c1 + x$t1;
@@ -33,58 +33,19 @@ get_cytosine_site_coverage <- function(grange_list, high_coverage) {
         q60 <- quantile(x, 0.6);
         q9999 <- quantile(x, 0.9999);
         idx1 <- which(x >= q60);
-        idx2 <- which(x <= high_coverage);
+        idx2 <- which(x <= 500);
         q95 <- quantile(x, 0.95);
         idx <- intersect(idx1, idx2);
         return(c(round(summary(x)),
                  q60,
                  quantile(x, c(0.95, 0.99, 0.999, 0.9999)),
                  '#sites_ge_8' = sum(x >= 8),
-                 'q60_le_high_coverage' = sum((x >= q60) & (x <= high_coverage)),
-                 '#sites_gt_high_coverage' = sum(x > high_coverage)
+                 'q60_le_500' = sum((x >= q60) & (x <= 500)),
+                 '#sites_gt_500' = sum(x > 500)
                 )
               )
          }
     ))
-}
-
-get_methylated_read_statistics <- function(grange_list, high_coverage) {
-    # Descriptive statistics for methylated reads.
-    methc <- lapply(grange_list, function(x) {
-        r <- apply(cbind(x$c1, x$c2), 1, max)
-        return(r)
-    })
-
-    do.call(rbind, lapply(methc, function(x) {
-        q10 <- quantile(x, 0.1)
-        q60 <- quantile(x, 0.6)
-        q9999 <- quantile(x, 0.9999)
-        idx1 <- which(x >= q60)
-        idx2 <- which(x <= high_coverage)
-        q95 <- quantile(x, 0.95)
-        idx <- intersect(idx1, idx2)
-        return(c(round(summary(x)),
-                q10,
-                q60,
-                quantile(x, c(0.95, 0.99, 0.999, 0.9999)),
-                '#sites_ge_8' = sum(x >= 8),
-                'q60_to_high_coverage' = sum((x >= q60) & (x <= high_coverage)),
-                '#sites_gt_high_coverage' = sum(x > high_coverage)))
-        })
-    )
-}
-
-output_statistics <- function(output_file, csc_df, mrs_df) {
-    sink(output_file);
-    cat("<html><head></head><body>");
-    cat("<h3>Cytosine Site Coverage</h3>");
-    print(xtable(csc_df), type="html");
-    cat("<h3>Methylated Reads Statistics</h3>");
-    print(xtable(mrs_df), type="html");
-    # cat("<h3>Critical Values from Empirical Cumulative Probability Distributions</h3>");
-    # print(xtable(critical_vals_df), type="html");
-    cat("</body></html>");
-    sink();
 }
 
 option_list <- list(
@@ -223,7 +184,7 @@ infDiv <- estimateDivergence(ref,
 names(infDiv) <- inf_div_names;
 saveRDS(infDiv, file=opt$output_infdiv, compress=TRUE);
 
-csc_df <- get_cytosine_site_coverage(infDiv, opt$high_coverage);
+csc_df <- get_cytosine_site_coverage(infDiv);
 
 ############
 # Debugging.
@@ -233,7 +194,7 @@ show(csc_df);
 cat("\n\n");
 ############
 
-mrs_df <- get_methylated_read_statistics(infDiv, opt$high_coverage);
+mrs_df <- get_methylated_read_statistics(infDiv);
 
 ############
 # Debugging.
@@ -252,6 +213,6 @@ cat("\n\n");
 # cat("\n\n");
 ############
 
-# output_statistics(opt$output_crc, csc_df, mrs_df, critical_vals_df);
-output_statistics(opt$output_crc, csc_df, mrs_df);
+# FIXME: critical_vals_df is empty here: output_statistics(opt$output_crc, csc_df, mrs_df, critical_vals_df);
+output_statistics(opt$output_crc, csc_df=csc_df, mrs_df=mrs_df);
 
