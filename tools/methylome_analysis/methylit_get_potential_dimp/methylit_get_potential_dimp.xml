@@ -85,7 +85,7 @@ Rscript '$__tool_directory__/methylit_get_potential_dimp.R'
                                 <option value="yes">Yes</option>
                             </param>
                             <when value="yes">
-                                <param name="pval_column" type="integer" value="8" min="1" label="Index of the GRanges column containing the p-values" help="--pval.com"/>
+                                <param name="pval_column" type="integer" value="8" min="1" label="Index of the GRanges column containing the p-values" help="--pval.col"/>
                             </when>
                             <when value="no"/>
                         </conditional>
@@ -94,7 +94,7 @@ Rscript '$__tool_directory__/methylit_get_potential_dimp.R'
             </when>
         </conditional>
         <param name="div_column" type="integer" value="9" min="1" label="Index of the GRanges column containing the information divergence" help="--div.col"/>
-        <param name="absolute" type="select" label="Transform TV into |TV|?" help="--absolute">
+        <param name="absolute" type="select" label="Transform total variation (TV) into |TV|?" help="--absolute">
             <option value="no" selected="true">No</option>
             <option value="yes">Yes</option>
         </param>
