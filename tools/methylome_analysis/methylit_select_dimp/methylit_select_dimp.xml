@@ -100,7 +100,7 @@ Rscript '$__tool_directory__/methylit_select_dimp.R'
             <filter>output_log_cond['output_log'] == 'yes'</filter>
         </data>
         <data name="output_crc" format="html" label="${tool.name} (statistics) on ${on_string}"/>
-        <data name="output_rdata" format="rdata"/>
+        <data name="output_rdata" format="rdata" label="${tool.name} (pDMP) on ${on_string}"/>
     </outputs>
     <tests>
     </tests>
