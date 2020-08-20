@@ -1,0 +1,179 @@
+<tool id="methylit_evaluate_dimp_class" name="MethylIT: Evaluate DMPs classification" version="1.0.0">
+    <description>for a given cutpoint</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <requirements>
+        <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
+        <requirement type="package" version="1.40.0">bioconductor-genomicranges</requirement>
+        <requirement type="package" version="1.22.0">bioconductor-biocparallel</requirement>
+        <requirement type="package" version="6.0_86">r-caret</requirement>
+        <requirement type="package" version="7.3_52">r-mass</requirement>
+        <requirement type="package" version="0.3.2.1">r-methylit</requirement>
+        <requirement type="package" version="1.6.6">r-optparse</requirement>
+        <requirement type="package" version="1.8_4">r-xtable</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+Rscript '$__tool_directory__/methylit_evaluate_dimp_class.R'
+#if str($center_cond.center) == "yes":
+    --center '$specify_center_cond.center'
+#end if
+--classifier '$classifier'
+--column '$column'
+--control_names '$control_names'
+--input '$input'
+#if str($classifier) in ["logistic", "pca_logistic"]:
+    #if str($specify_interactions_cond.specify_interactions) == "yes":
+        --interactions '$specify_interactions_cond.specify_interactions.interactions'
+    #end if
+#end if
+--n_pc $n_pc
+--num_boot $num_boot
+--num_cores \${GALAXY_SLOTS:-4}
+--output_html '$output_html'
+--output_type '$output_type'
+--prop $prop
+#if str($specify_pval_column_cond.specify_pval_column) == "yes":
+    --pval_column '$specify_pval_column_cond.pval_column'
+#end if
+#if str($scale_cond.scale) == "yes":
+    --scale '$scale_cond.scale'
+#end if
+--script_dir '$__tool_directory__'
+--seed $seed
+--treatment_names '$treatment_names'
+#if str($output_log_cond.output_log) == "yes":
+    &>'$output_log';
+#else:
+    &>output_log.txt;
+    if [[ $? -ne 0 ]]; then
+        cp output_log.txt '$output_data_frame';
+        cp output_log.txt '$output_grange';
+    fi
+#end if
+]]></command>
+    <inputs>
+        <param name="input" type="data" format="rdata" label="File containing a pDMP object" help="Typically produced by the MethylIT: Select cytosine positions tool"/>
+        <param name="control_names" type="text" value="" label="Names of the control sample columns in the input GRange objects" help="Enter a comma-separated list if more than one item">
+            <validator type="empty_field"/>
+            <sanitizer invalid_char="">
+                <valid initial="string.ascii_letters,string.digits">
+                    <add value=","/>
+                    <add value="_"/>
+                </valid>
+            </sanitizer>
+        </param>
+        <param name="treatment_names" type="text" value="" label="Names of the treatment sample columns in the input GRange objects" help="Enter a comma-separated list if more than one item">
+            <validator type="empty_field"/>
+            <sanitizer invalid_char="">
+                <valid initial="string.ascii_letters,string.digits">
+                    <add value=","/>
+                    <add value="_"/>
+                </valid>
+            </sanitizer>
+        </param>
+        <param name="column" type="select" display="checkboxes" multiple="true" label="Select column names to be used for the predictor variables" help="--column">
+            <option value="hdiv" selected="true">hdiv (Hellinger divergence)</option>
+            <option value="TV">TV (total variation)</option>
+            <option value="bay.TV">bay.TV (Bayesian total variation)</option>
+            <option value="wprob">wprob (probability of potential)</option>
+            <option value="pos">pos (relative cytosine site position)</option>
+        </param>
+        <param name="classifier" type="select" display="radio" label="Select classification model" help="--classifier">
+            <option value="logistic" selected="true">logistic (logistic regression model)</option>
+            <option value="lda">lda (linear discriminant analysis)</option>
+            <option value="qda">qda (quadratic discriminant analysis)</option>
+            <option value="pca.lda">pca.lda (linear discriminant analysis with principal component analysis as predictor variables)</option>
+            <option value="pca.logistic">pca.logistic (logistic regression model using the principal component estimated with principal component analysis as predictor variables)</option>
+            <option value="pca.qda">pca.qda (quadratic discriminant analysis using principle components as predictor variables)</option>
+        </param>
+        <!-- It seems the function evaluateDIMPclass may have all combinations, but not sure, so we'll just use these for now -->
+        <conditional name="specify_interactions_cond">
+            <param name="specify_interactions" type="select" label="Specify interactions to consider in the logistics regression model?" help="--interactions: applied only if selected classification models include logistic or pca.logistic">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no"/>
+            <when value="yes">
+                <param name="interactions" type="select" display="checkboxes" label="Select interactions" help="--interactions">
+                    <option value="hdiv_tv" selected="true">hdiv:tv)</option>
+                    <option value="hdiv_wprob">hdiv:wprob)</option>
+                    <option value="hdiv_pos">hdiv:pos)</option>
+                    <option value="tv_wprob">tv:wprob)</option>
+                    <option value="tv_pos">tv:pos)</option>
+                    <option value="wprob_pos">wprob:pos)</option>
+                </param>
+            </when>
+        </conditional>
+        <conditional name="specify_pval_column_cond">
+            <param name="specify_pval_column" type="select" label="Specify the column containing p-values from the Grange objects in the input?">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="yes">
+                <param name="pval_column" type="integer" value="8" min="1" label="Index of the GRanges column containing the p-values" help="--pval.col"/>
+            </when>
+            <when value="no"/>
+        </conditional>
+        <param name="n_pc" type="integer" value="1" min="1" max="4" label="Number of principal components to use if the classifier is not 'logistic'" help="--n.pc"/>
+        <conditional name="center_cond">
+            <param name="center" type="select" label="Shift variables to be zero-centered?" help="--center: only used if classifier is 'pcaLDA'">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no"/>
+            <when value="yes"/>
+        </conditional>
+        <conditional name="scale_cond">
+            <param name="scale" type="select" label="Scale variables to have unit variance before the analysis takes place?" help="--scale: only used if classifier is 'pcaLDA'">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no"/>
+            <when value="yes"/>
+        </conditional>
+        <param name="prop" type="float" value="0.6" min="0" label="Proportion to split the dataset used in the logistic regression into two subsets, training and testing" help="--prop"/>
+        <param name="output_type" type="select" display="radio" label="Select type of output" help="--output">
+            <option value="conf.mat" selected="true">conf.mat</option>
+            <option value="mc.val">mc.val</option>
+            <option value="boot.all">boot.all</option>
+            <option value="all">all</option>
+        </param>
+        <param name="num_boot" type="integer" value="100" min="1" label="Number of bootstrap validations to perform in the evaluation of the logistic regression 'group versus divergence' at DMPs" help="--num.boot"/>
+        <param name="seed" type="integer" value="1234" min="1" label="Seed value for random number generation" help="--seed"/>
+        <conditional name="output_log_cond">
+            <param name="output_log" type="select" label="Output process log?">
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
+            </param>
+            <when value="yes"/>
+            <when value="no"/>
+        </conditional>
+    </inputs>
+    <outputs>
+        <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}">
+            <filter>output_log_cond['output_log'] == 'yes'</filter>
+        </data>
+        <data name="output_html" format="html" label="${tool.name} (performance) on ${on_string}"/>
+    </outputs>
+    <tests>
+    </tests>
+    <help>
+**What it does**
+
+Return the evaluation of the classification of DMPs into two clases for a given cutpoint: DMPS from control and DMPs from treatment samples.
+
+The regulatory methylation signal is also an output from a natural process that continuously takes place across the ontogenetic development
+of the organisms.  So we expect to see methylation signal on natural ordinary conditions.  To distinguish a control methylation signal from
+a treatment, three classification models are provided: 1) logistic, 2) Linear Discriminant Analysis (LDA) and 3) Quadratic Discriminant
+Analysis (QDA).  In particular, four predictor variables can be used: Hellinger divergence 'hdiv', total variation 'TV', probability of
+potential DMP 'wprob' and DMP genomic coordinated 'pos'. Principal component analysis (PCA) is used to convert a set of observations of
+possibly correlated predictor variables into a set of values of linearly uncorrelated variables (principal components, PCs). The PCs are
+used as new, uncorrelated predictor variables for LDA, QDA, and logistic classifiers.
+
+A classification result with low accuracy and compromising values from other classification performance indicators suggest that the treatment
+does not induce a significant regulatory signal different from control.
+    </help>
+    <expand macro="citations"/>
+</tool>
+

@@ -26,7 +26,7 @@ get_methylated_read_statistics <- function(obj) {
     )
 }
 
-output_statistics <- function(output_file, csc_df=NULL, mrs_df=NULL, critical_vals_df=NULL) {
+output_statistics <- function(output_file, csc_df=NULL, mrs_df=NULL, critical_vals_df=NULL, perf_df=NULL) {
     sink(output_file);
     cat("<html><head></head><body>");
     if (!is.null(csc_df)) {
@@ -40,6 +40,10 @@ output_statistics <- function(output_file, csc_df=NULL, mrs_df=NULL, critical_va
     if (!is.null(critical_vals_df)) {
         cat("<h3>Critical Values from Empirical Cumulative Probability Distributions</h3>");
         print(xtable(critical_vals_df), type="html");
+    }
+    if (!is.null(perf_df)) {
+        cat("<h3>Classifier Performance</h3>");
+        print(xtable(perf_df), type="html");
     }
     cat("</body></html>");
     sink();
