@@ -2,13 +2,13 @@
 import argparse
 import os
 import shutil
-import string
 import sys
 import threading
 import time
+from datetime import datetime
 
 from bioblend import galaxy
-from datetime import datetime
+
 from six.moves import configparser
 
 parser = argparse.ArgumentParser()
@@ -80,7 +80,7 @@ def get_config_settings(config_file, section='defaults'):
     config_parser.read(config_file)
     for key, value in config_parser.items(section):
         if section == 'defaults':
-            d[string.upper(key)] = value
+            d[key.upper()] = value
         else:
             d[key] = value
     return d
@@ -266,7 +266,7 @@ def update_workflow_params(workflow_dict, dbkey, output_nj_phylogeny_tree, outpu
             # Reset the default value 'no' of output_nj_phylogeny_tree to 'yes'.
             if parameter_updates is None:
                 parameter_updates = {}
-            output_nj_phylogeny_tree_dict = {'output_nj_phylogeny_tree' : 'yes'}
+            output_nj_phylogeny_tree_dict = {'output_nj_phylogeny_tree': 'yes'}
             parameter_updates[step_id] = output_nj_phylogeny_tree_dict
             outputfh.write("Updated step id %s with the following entry:\n%s\n" % (step_id, str(output_nj_phylogeny_tree_dict)))
     return parameter_updates

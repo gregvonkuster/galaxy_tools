@@ -2,11 +2,12 @@
 
 
 import argparse
-import psycopg2
 import sys
 
-from sqlalchemy import create_engine
+import psycopg2
+
 from sqlalchemy import MetaData
+from sqlalchemy import create_engine
 from sqlalchemy.engine.url import make_url
 
 metadata = MetaData()

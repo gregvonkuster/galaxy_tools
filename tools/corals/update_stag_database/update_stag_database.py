@@ -3,17 +3,18 @@
 
 import argparse
 import datetime
-import dateutil.parser
 import os
-import psycopg2
-import string
 import subprocess
 import sys
 
+import dateutil.parser
+
+import psycopg2
+
 from six.moves import configparser
 
-from sqlalchemy import create_engine
 from sqlalchemy import MetaData
+from sqlalchemy import create_engine
 from sqlalchemy.engine.url import make_url
 
 now = datetime.datetime.utcnow
@@ -42,7 +43,7 @@ def get_config_settings(config_file, section='defaults'):
     config_parser.read(config_file)
     for key, value in config_parser.items(section):
         if section == 'defaults':
-            d[string.upper(key)] = value
+            d[key.upper()] = value
         else:
             d[key] = value
     return d

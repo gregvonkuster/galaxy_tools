@@ -15,7 +15,7 @@ parser.add_argument('--output', dest='output', help='Output dataset'),
 args = parser.parse_args()
 
 EMAIL_MAX_LEN = 255
-VALID_EMAIL_RE = re.compile("[^@]+@[^@]+\.[^@]+")
+VALID_EMAIL_RE = re.compile(r'[^@]+@[^@]+\.[^@]+')
 
 
 def add_error_msg(accumulated_msgs, msg):
