@@ -59,6 +59,12 @@ get_database_connection <- function(db_conn_string) {
     return (conn);
 }
 
+log_data_frame <- function(name, df) {
+    cat("\n", name, ":\n");
+    show(df);
+    cat("\n\n");
+}
+
 time_elapsed <- function(start_time) {
     cat("Elapsed time: ", proc.time() - start_time, "\n\n");
 }
@@ -86,11 +92,17 @@ time_elapsed(start_time);
 # Convert VCF file into a genind for the Poppr package.
 start_time <- time_start("Converting VCF data to a genind object");
 genind_obj <- vcfR2genind(vcf);
+cat("\ngenind_obj:\n");
+genind_obj
+cat("\n\n");
 time_elapsed(start_time);
 
 # Add population information to the genind object.
 population_info_data_table <- read.table(opt$input_pop_info, check.names=FALSE, header=F, na.strings=c("", "NA"), stringsAsFactors=FALSE, sep="\t", quote="");
 colnames(population_info_data_table) <- c("row_id", "affy_id", "user_specimen_id", "region");
+cat("\npopulation_info_data_table:\n");
+population_info_data_table
+cat("\n\n");
 #write_data_frame(output_data_dir, "population_info_data_table", population_info_data_table);
 genind_obj@pop <- as.factor(population_info_data_table$region);
 strata(genind_obj) <- data.frame(pop(genind_obj));
@@ -98,6 +110,9 @@ strata(genind_obj) <- data.frame(pop(genind_obj));
 # Convert genind object to a genclone object.
 start_time <- time_start("Converting the genind object to a genclone object");
 genind_clone <- as.genclone(genind_obj);
+cat("\ngenind_clone:\n");
+genind_clone
+cat("\n\n");
 time_elapsed(start_time);
 
 # Calculate the bitwise distance between individuals.
@@ -106,10 +121,11 @@ bitwise_distance <- bitwise.dist(genind_clone);
 time_elapsed(start_time);
 
 # Multilocus genotypes (threshold of 3.2%).
+cat("\nFiltering multilocus genotypes with threshold of 3.2%...\n\n");
 mlg.filter(genind_clone, distance=bitwise_distance) <- 0.032;
-m <- mlg.table(genind_clone, background=TRUE, color=TRUE);
 
 # Create list of MLGs.
+cat("\nCreating list of mlg_ids...\n\n");
 mlg_ids <- mlg.id(genind_clone);
 
 # Read user's Affymetrix 96 well plate tabular file.
@@ -122,11 +138,14 @@ colnames(affy_metadata_data_frame) <- c("user_specimen_id", "field_call", "bcora
                                         "sperm_motility", "healing_time", "dna_extraction_method", "dna_concentration", "registry_id",
                                         "result_folder_name", "plate_barcode");
 affy_metadata_data_frame$user_specimen_id <- as.character(affy_metadata_data_frame$user_specimen_id);
+log_data_frame("affy_metadata_data_frame", affy_metadata_data_frame);
 user_specimen_ids <- as.character(affy_metadata_data_frame$user_specimen_id);
+cat("\nuser_specimen_ids:\n", toString(user_specimen_ids), "\n\n");
 # The specimen_id_field_call_data_table looks like this:
 # user_specimen_ids V2
 # 1090              prolifera
 # 1091              prolifera
+cat("\nCreating specimen_id_field_call_data_table...\n");
 specimen_id_field_call_data_table <- data.table(user_specimen_ids, affy_metadata_data_frame$field_call);
 # Rename the user_specimen_ids column.
 setnames(specimen_id_field_call_data_table, c("user_specimen_ids"), c("user_specimen_id"));
@@ -152,17 +171,20 @@ smlg <- sample_table_columns %>%
 smlg_data_frame <- as.data.frame(smlg);
 colnames(smlg_data_frame) <- c("user_specimen_id", "affy_id", "bcoral_genet_id", "genotype_id",
 		               "coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "genetic_coral_species_call");
+log_data_frame("smlg_data_frame", smlg_data_frame);
 # Missing GT in samples submitted.
 start_time <- time_start("Discovering missing GT in samples");
 gt <- extract.gt(vcf, element="GT", as.numeric=FALSE);
 missing_gt <- apply(gt, MARGIN=2, function(x){ sum(is.na(x))});
 missing_gt <- (missing_gt / nrow(vcf)) * 100;
 missing_gt_data_frame <- data.frame(missing_gt);
+log_data_frame("missing_gt_data_frame", missing_gt_data_frame);
 # The specimen_id_field_call_data_table looks like this:
 # rn                                 missing_gt
 # a100000-4368120-060520-256_I07.CEL 0.06092608
 # a100000-4368120-060520-256_K07.CEL 0.05077173
-missing_gt_data_table <-setDT(missing_gt_data_frame, keep.rownames=TRUE)[];
+cat("\nCreating missing_gt_data_table...\n");
+missing_gt_data_table <- setDT(missing_gt_data_frame, keep.rownames=TRUE)[];
 # Rename the rn column.
 setnames(missing_gt_data_table, c("rn"), c("affy_id"));
 # Rename the missing_gt column.
@@ -180,12 +202,16 @@ fixed_snp_data_frame <- as.data.frame(probe_annotation_table_columns);
 colnames(fixed_snp_data_frame) <- c("probe_set_id", "custid", "fixed_status", "acerv_allele");
 # Filter unwanted rows.
 fixed_snp_data_frame <- subset(fixed_snp_data_frame, fixed_snp_data_frame$fixed_status=="keep");
+log_data_frame("fixed_snp_data_frame", fixed_snp_data_frame);
 gt_fixed <- gt[rownames(gt) %in% fixed_snp_data_frame$probe_set_id, ];
+log_data_frame("gt_fixed", gt_fixed);
 
 # Missing GT in fixed SNPs.
 missing_gt_fixed <- apply(gt_fixed, MARGIN=2, function(x){ sum(is.na(x))});
 missing_gt_fixed <- (missing_gt_fixed / nrow(gt_fixed)) * 100;
 missing_gt_fixed_data_frame <- data.frame(missing_gt_fixed);
+log_data_frame("missing_gt_fixed_data_frame", missing_gt_fixed_data_frame);
+cat("\nCreating missing_gt_fixed_data_table...\n");
 missing_gt_fixed_data_table <- setDT(missing_gt_fixed_data_frame, keep.rownames=TRUE)[];
 # Rename the rn column.
 setnames(missing_gt_fixed_data_table, c("rn"), c("affy_id"));
@@ -199,10 +225,12 @@ start_time <- time_start("Discovering heterozygous alleles");
 heterozygous_alleles <- apply(gt_fixed, MARGIN=2, function(x) {sum(lengths(regmatches(x, gregexpr("0/1", x))))});
 heterozygous_alleles <- (heterozygous_alleles / nrow(gt_fixed)) * 100;
 heterozygous_alleles_data_frame <- data.frame(heterozygous_alleles);
+log_data_frame("heterozygous_alleles_data_frame", heterozygous_alleles_data_frame);
 # The heterozygous_alleles_data_table looks like this:
 # rn                                 heterozygous_alleles
 # a100000-4368120-060520-256_I07.CEL 73.94903
 # a100000-4368120-060520-256_K07.CEL 74.40089
+cat("\nCreating heterozygous_alleles_data_table...\n");
 heterozygous_alleles_data_table <- setDT(heterozygous_alleles_data_frame, keep.rownames=TRUE)[];
 # Rename the rn column.
 setnames(heterozygous_alleles_data_table, c("rn"), c("affy_id"));
@@ -233,10 +261,12 @@ start_time <- time_start("Discovering reference alleles");
 ap_sum <- rowSums(cbind(reference_alleles_ap,alternative_alleles_ap));
 ap_alleles <- (ap_sum / nrow(gt_fixed)) * 100;
 ap_alleles_data_frame <- data.frame(ap_alleles);
+log_data_frame("ap_alleles_data_frame", ap_alleles_data_frame);
 # The reference_alleles_data_table looks like this:
 # rn                                 reference_alleles
 # a100000-4368120-060520-256_I07.CEL 11.60642
 # a100000-4368120-060520-256_K07.CEL 11.45918
+cat("\nCreating ap_alleles_data_table...\n");
 ap_alleles_data_table <- setDT(ap_alleles_data_frame, keep.rownames=TRUE)[];
 # Rename the rn column.
 setnames(ap_alleles_data_table, c("rn"), c("affy_id"));
@@ -251,10 +281,12 @@ start_time <- time_start("Discovering alternative alleles");
 ac_sum <- rowSums(cbind(reference_alleles_ac,alternative_alleles_ac));
 ac_alleles <- (ac_sum  / nrow(gt_fixed)) * 100;
 ac_alleles_data_frame <- data.frame(ac_alleles);
+log_data_frame("ac_alleles_data_frame", ac_alleles_data_frame);
 # The alternative_alleles_data_table looks like this:
 # rn                                 alternative_alleles
 # a100000-4368120-060520-256_I07.CEL 14.38363
 # a100000-4368120-060520-256_K07.CEL 14.08916
+cat("\nCreating ac_alleles_data_table...\n");
 ac_alleles_data_table <- setDT(ac_alleles_data_frame, keep.rownames=TRUE)[];
 # Rename the rn column.
 setnames(ac_alleles_data_table, c("rn"), c("affy_id"));
@@ -268,6 +300,7 @@ time_elapsed(start_time);
 # mlg_ids
 # a550962-4368120-060520-500_M23.CEL
 # a550962-4368120-060520-256_A19.CEL
+cat("\nCreating mlg_ids_data_table...\n");
 mlg_ids_data_table <- data.table(mlg_ids, keep.rownames=TRUE);
 # Rename the mlg_ids column.
 setnames(mlg_ids_data_table, c("mlg_ids"), c("affy_id"));
@@ -371,6 +404,7 @@ time_elapsed(start_time);
 start_time <- time_start("Creating representative clone for genotype table");
 no_dup_genotypes_genind <- clonecorrect(genind_clone, strata=~pop.genind_obj.);
 id_rep <- mlg.id(no_dup_genotypes_genind);
+cat("\nCreating id_data_table...\n");
 id_data_table <- data.table(id_rep, keep.rownames=TRUE);
 # Rename the id_rep column.
 setnames(id_data_table, c("id_rep"), c("affy_id"));
@@ -394,10 +428,12 @@ gds_array <- read.gdsn(index.gdsn(genofile, "sample.id"));
 # gds_array looks like this:
 # [1] "a550962-4368120-060520-500_A03.CEL" "a550962-4368120-060520-500_A05.CEL"
 gds_data_frame <- data.frame(gds_array);
+log_data_frame("gds_data_frame", gds_data_frame);
 # gds_data_frame looks like this:
 # gds_array
 # a550962-4368120-060520-500_A03.CEL
 # a550962-4368120-060520-500_A05.CEL
+cat("\nCreating gds_data_table...\n");
 gds_data_table <- setDT(gds_data_frame, keep.rownames=FALSE)[];
 # Rename the gds_array column.
 setnames(gds_data_table, c("gds_array"), c("affy_id"));
@@ -859,3 +895,4 @@ taxonomy_table_data_frame <- stag_db_report %>%
 colnames(taxonomy_table_data_frame) <- c("genetic_coral_species_call", "affy_id", "genus_name", "species_name");
 write_data_frame(output_data_dir, "taxonomy.tabular", taxonomy_table_data_frame);
 time_elapsed(start_time);
+
