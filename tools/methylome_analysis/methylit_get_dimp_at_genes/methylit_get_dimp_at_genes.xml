@@ -1,16 +1,17 @@
-<tool id="methylit_get_dimp_pat_genes" name="MethylIT: Count DMPs at gene-body" version="1.0.0">
+<tool id="methylit_get_dimp_at_genes" name="MethylIT: Count DMPs at gene-body" version="1.0.0">
     <description></description>
     <macros>
         <import>macros.xml</import>
     </macros>
     <requirements>
         <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
+        <requirement type="package" version="0.34.0">bioconductor-biocgenerics</requirement>
         <requirement type="package" version="1.24.0">bioconductor-genomeinfodb</requirement>
         <requirement type="package" version="1.40.0">bioconductor-genomicranges</requirement>
         <requirement type="package" version="1.48.0">bioconductor-rtracklayer</requirement>
+        <requirement type="package" version="0.26.0">bioconductor-s4vectors</requirement>
         <requirement type="package" version="1.12.8">r-data.table</requirement>
         <requirement type="package" version="0.3.2.1">r-methylit</requirement>
-        <requirement type="package" version="0.26.0">bioconductor-s4vectors</requirement>
         <requirement type="package" version="1.6.6">r-optparse</requirement>
         <requirement type="package" version="1.8_4">r-xtable</requirement>
     </requirements>
@@ -18,9 +19,13 @@
 ## TODO: add additional parameters used by the ‘findOverlaps’
 ## function (e.g., maxgap, minoverlap, etc).  See
 ## https://www.rdocumentation.org/packages/IRanges/versions/2.0.1/topics/findOverlaps-methods
-Rscript '$__tool_directory__/methylit_get_dimp_pat_genes.R'
---input_genes '$input_genes'
---input_gr '$input_gr'
+Rscript '$__tool_directory__/methylit_get_dimp_at_genes.R'
+#if str($gene_annot_cond.gene_annot_source) == "cached":
+    --gene_annot '$gene_annot_cond.gene_annot.fields.path'
+#else:
+    --gene_annot '$gene_annot_cond.gene_annot'
+#end if
+--input '$input'
 --ignore_strand '$ignore_strand'
 --output_rdata '$output_rdata'
 --output_type '$output_type'
@@ -36,13 +41,33 @@ Rscript '$__tool_directory__/methylit_get_dimp_pat_genes.R'
 #end if
 ]]></command>
     <inputs>
-        <param name="input_gr" type="data" format="rdata" label="File containing any of the following objects: pDMP, InfDiv, GRangesList, GRanges or a list of GRanges" help="--GR: Typically produced by the MethylIT: Evaluate DMPs classificatio tool"/>
-        <param name="input_genes" type="data" format="rdata" label="File containing a GRanges object with gene coordinates and gene IDs" help="--GENES"/>
+        <param name="input" type="data" format="rdata" label="File containing any of the following objects: pDMP, InfDiv, GRangesList, GRanges or a list of GRanges" help="--GR: Typically produced by the MethylIT: Evaluate DMPs classificatio tool"/>
+        <conditional name="gene_annot_cond">
+            <param name="gene_annot_source" type="select" label="Choose the source for the gene annotations">
+                <option value="cached" selected="true">locally cached</option>
+                <option value="history">from history</option>
+            </param>
+            <when value="cached">
+                <param name="gene_annot" type="select" label="Using gene annotations">
+                    <options from_data_table="gff_gene_annotations"/>
+                    <!-- No <filter> tag here!
+                    <validator type="no_options" message="Built-in gene annotations are not available for the build associated with the selected BAM file"/> -->
+                </param>
+            </when>
+            <when value="history">
+                <param name="gene_annot" type="data" format="fasta" label="Using gene annotation file">
+                    <validator type="no_options" message="The current history does not include a gff dataset"/>
+                </param>
+            </when>
+        </conditional>
         <param name="output_type" type="select" display="radio" label="Select class of object to be output" help="--output">
             <option value="list" selected="true">list</option>
             <option value="GRanges">GRanges</option>
         </param>
-        <param name="ignore_strand" type="select" label="Ignore strand?" help="--ignore.strand"/>
+        <param name="ignore_strand" type="select" label="Ignore strand?" help="--ignore.strand">
+            <option value="yes" selected="true">Yes</option>
+            <option value="no">No</option>
+        </param>
         <param name="overlap_type" type="select" display="radio" label="Select overlap type" help="--type">
             <option value="within" selected="true">within</option>
             <option value="start">start</option>
