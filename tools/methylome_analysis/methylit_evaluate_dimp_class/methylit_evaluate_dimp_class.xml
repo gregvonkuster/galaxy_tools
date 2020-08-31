@@ -16,7 +16,7 @@
     <command detect_errors="exit_code"><![CDATA[
 Rscript '$__tool_directory__/methylit_evaluate_dimp_class.R'
 #if str($center_cond.center) == "yes":
-    --center 'center_cond.center'
+    --center '$center_cond.center'
 #end if
 --classifier '$classifier'
 --column '$column'
