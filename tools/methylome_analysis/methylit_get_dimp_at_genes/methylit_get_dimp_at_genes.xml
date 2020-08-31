@@ -61,8 +61,8 @@ Rscript '$__tool_directory__/methylit_get_dimp_at_genes.R'
             </when>
         </conditional>
         <param name="output_type" type="select" display="radio" label="Select class of object to be output" help="--output">
-            <option value="list" selected="true">list</option>
-            <option value="GRanges">GRanges</option>
+            <option value="GRanges" selected="true">GRanges</option>
+            <option value="list">list</option>
         </param>
         <param name="ignore_strand" type="select" label="Ignore strand?" help="--ignore.strand">
             <option value="yes" selected="true">Yes</option>
