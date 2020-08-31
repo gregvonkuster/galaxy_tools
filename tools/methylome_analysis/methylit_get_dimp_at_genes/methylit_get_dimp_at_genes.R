@@ -45,6 +45,7 @@ cat("\n\n");
 genes <- gene_annot[ gene_annot$type == "gene", c( "gene_id", "biotype", "Name" ) ];
 genes <- genes[ genes$biotype == "protein_coding", "gene_id" ];
 seqlevels(genes) <- "chr13";
+gr <- readRDS(opt$input);
 
 ############
 # Debugging.
@@ -54,51 +55,37 @@ cat("\n\n");
 cat("\nclass(genes):\n");
 class(genes);
 cat("\n\n");
-############
-
-gr <- readRDS(opt$input);
-############
-# Debugging.
 cat("\n\ngr:\n");
 gr
 cat("\n\n");
 cat("\nclass(gr):\n");
 class(gr);
 cat("\n\n");
-############
-
-num_granges <- length(gr);
-grange_names <- names(gr);
-dmp_pat_genes_list <- list();
-
-############
-# Debugging.
-cat("\nnum_granges: ", num_granges, "\n");
 cat("\nignore_strand: ", ignore_strand, "\n");
 cat("\nopt$output_type: ", opt$output_type, "\n");
 cat("\nopt$overlap_type: ", opt$overlap_type, "\n");
-cat("\ngrange_names: ", toString(grange_names), "\n");
 ############
 
-for (i in 1:num_granges) {
-    name <- grange_names[[i]];
-    grange <- gr[[name]];
-    dmp_pat_genes_list[[i]]  <- getDIMPatGenes(GR=grange,
-                                               GENES=genes,
-                                               type=opt$overlap_type,
-                                               ignore.strand=ignore_strand);
-#  TODO: the output value is not correct here  output=opt$output_type);
+if (is(gr, "GrRanges")) {
+    # The getDIMPatGenes.GRanges function signature
+    # does not include the output parameter.
+    # The ret_val object will be a GRanges or a list
+    # depending on the value of the opt$output_type
+    # parameter.
+    ret_val <- getDIMPatGenes(GR=gr, GENES=genes, type=opt$overlap_type, ignore.strand=ignore_strand);
+} else {
+    ret_val <- getDIMPatGenes(GR=gr, GENES=genes, type=opt$overlap_type, ignore.strand=ignore_strand, output=opt$output_type);
 }
-
-names(dmp_pat_genes_list) <- grange_names;
 
 ############
 # Debugging.
-cat("\ndmp_pat_genes_list:\n");
-dmp_pat_genes_list
+cat("\nret_val:\n");
+ret_val
+cat("\nclass(ret_val):\n");
+class(ret_val)
 cat("\n\n");
 ############
 
-# Save the dmp_pat_genes_list.
-saveRDS(dmp_pat_genes_list, file=opt$output_rdata, compress=TRUE);
+# Save the GRanges.
+saveRDS(ret_val, file=opt$output_rdata, compress=TRUE);
 
