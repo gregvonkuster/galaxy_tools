@@ -41,6 +41,7 @@ class EnsureSynced(object):
         rows = cur.fetchall()
         for row in rows:
             self.affy_ids_from_db.append(row[0])
+        self.affy_ids_from_db.sort()
 
     def get_affy_ids_from_file(self, f):
         with open(f) as fh:
