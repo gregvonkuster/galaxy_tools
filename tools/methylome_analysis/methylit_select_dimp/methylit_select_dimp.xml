@@ -19,7 +19,7 @@ Rscript '$__tool_directory__/methylit_select_dimp.R'
     --div_col $specify_div_col_cond.div_col
 #end if
 --input_cutpoints '$input_cutpoints'
---input_pdmp '$input_pdmp'
+--input_potdimp '$input_potdimp'
 --output_crc '$output_crc'
 --output_pdmpdmp '$output_pdmpdmp'
 #if str($specify_pval_column_cond.specify_pval_column) == "yes":
@@ -43,7 +43,7 @@ Rscript '$__tool_directory__/methylit_select_dimp.R'
 #end if
 ]]></command>
     <inputs>
-        <param name="input_pdmp" type="data" format="pdmp" label="File containing GRange objects that include selected cytosine sites and specified divergence probabilities" help="Typically produced by the MethylIT: Select cytosine sites carrying the potential methylation signal tool"/>
+        <param name="input_potdimp" type="data" format="potdimp" label="File containing GRange objects that include selected cytosine sites and specified divergence probabilities" help="Typically produced by the MethylIT: Select cytosine sites carrying the potential methylation signal tool"/>
         <param name="input_cutpoints" type="data" format="cutpoints" label="File containing an estimated cutpoint" help="Typically produced by the MethylIT: Estimate cutpoint tool"/>
         <conditional name="specify_div_col_cond">
             <param name="specify_div_col" type="select" label="Specify GRange column number containing the divergence variable for which the estimation of the cutpoint will be performed?" help="--div.col">
