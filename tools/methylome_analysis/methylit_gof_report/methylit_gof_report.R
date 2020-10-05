@@ -15,7 +15,7 @@ option_list <- list(
     make_option(c("--model"), action="store", dest="model", help="A comma-separated string naming the models to fit"),
     make_option(c("--npoints"), action="store", dest="npoints", type="integer", help="Number of points to be used in the fit"),
     make_option(c("--num_cores"), action="store", dest="num_cores", type="integer", help="The number of cores to use"),
-    make_option(c("--output_gof"), action="store", dest="output_gof", help="Output rdata file"),
+    make_option(c("--output_gof"), action="store", dest="output_gof", help="Output gofreport file"),
     make_option(c("--output_txt"), action="store", dest="output_txt", help="Output txt file"),
     make_option(c("--output_spec"), action="store", dest="output_spec", help="Output specifications"),
     make_option(c("--script_dir"), action="store", dest="script_dir", help="R script source directory")

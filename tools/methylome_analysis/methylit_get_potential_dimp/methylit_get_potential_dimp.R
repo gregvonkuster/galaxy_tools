@@ -16,7 +16,7 @@ option_list <- list(
     make_option(c("--hdiv_cut"), action="store", dest="hdiv_cut", type="double", default=NULL, help="Hellinger distance for filtering cytosince positions cutoff"),
     make_option(c("--input"), action="store", dest="input", help="File containing an information divergence estimator or a GRange object that includes Fisher's columns"),
     make_option(c("--min_coverage"), action="store", dest="min_coverage", type="integer", default=NULL, help="Minimum coverage for cysosine sites"),
-    make_option(c("--output_rdata"), action="store", dest="output_rdata", help="Output rdata file"),
+    make_option(c("--output_potdimp"), action="store", dest="output_potdimp", help="Output potdimp file"),
     make_option(c("--padjustmethod"), action="store", dest="padjustmethod", default=NULL, help="Method for adjusting the p-values"),
     make_option(c("--pval_column"), action="store", dest="pval_column", type="integer", default=NULL, help="Index of the GRanges column containing the p-values"),
     make_option(c("--script_dir"), action="store", dest="script_dir", help="R script source directory"),
@@ -59,7 +59,7 @@ cat("\ndist_name: ", dist_name, "\n");
 cat("\nopt$div_column: ", opt$div_column, "\n");
 cat("\nopt$gof_report: ", opt$gof_report, "\n");
 cat("\nopt$hdiv_col: ", opt$hdiv_col, "\n");
-cat("\njopt$hdiv_cut: ", opt$hdiv_cut, "\n");
+cat("\nopt$hdiv_cut: ", opt$hdiv_cut, "\n");
 cat("\nnlms:\n");
 nlms
 cat("\n\n");
@@ -94,5 +94,5 @@ cat("\n\n");
 ############
 
 # Save the potential_methylation_signal.
-saveRDS(potential_methylation_signal, file=opt$output_rdata, compress=TRUE);
+saveRDS(potential_methylation_signal, file=opt$output_potdimp, compress=TRUE);
 

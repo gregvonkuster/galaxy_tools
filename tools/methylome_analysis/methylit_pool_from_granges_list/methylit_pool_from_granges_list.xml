@@ -1,6 +1,8 @@
 <tool id="methylit_pool_from_granges_list" name="MethylIT: pool from GRanges list" version="1.0.0">
     <description></description>
-    <expand macro="citations"/>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
     <requirements>
         <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
         <requirement type="package" version="1.22.0">bioconductor-biocparallel</requirement>
@@ -43,7 +45,7 @@ Rscript '$__tool_directory__/methylit_pool_from_granges_list.R'
     fi
 #end if]]></command>
     <inputs>
-        <param name="lr" type="data_collection" format="rdata" collection_type="list" label="Collection of GRanges files"/>
+        <param name="lr" type="data_collection" format="grange" collection_type="list" label="Collection of GRanges files"/>
         <conditional name="stat_cond">
             <param name="stat" type="select" label="Select statistic used to estimate the methylation pool">
                 <option value="mean" selected="true">mean</option>
@@ -85,7 +87,7 @@ Rscript '$__tool_directory__/methylit_pool_from_granges_list.R'
         <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}">
             <filter>output_log_cond['output_log'] == 'yes'</filter>
         </data>
-        <data name="output" format="rdata"/>
+        <data name="output" format="grange"/>
     </outputs>
     <tests>
     </tests>

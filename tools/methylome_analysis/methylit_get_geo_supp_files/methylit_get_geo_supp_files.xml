@@ -47,6 +47,7 @@ Rscript '$__tool_directory__/methylit_get_geo_supp_files.R'
             <sanitizer invalid_char="">
                 <valid initial="string.ascii_letters,string.digits">
                     <add value=","/>
+                    <add value="_"/>
                 </valid>
             </sanitizer>
         </param>

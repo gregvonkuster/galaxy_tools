@@ -43,7 +43,7 @@ Rscript '$__tool_directory__/methylit_get_potential_dimp.R'
 #if str($specify_padjustmethod_cond.specify_padjustmethod) == "yes":
     --padjustmethod '$specify_padjustmethod_cond.padjustmethod'
 #end if
---output_rdata '$output_rdata'
+--output_potdimp '$output_potdimp'
 --script_dir '$__tool_directory__'
 #if str($output_log_cond.output_log) == 'yes':
     &>'$output_log';
@@ -56,14 +56,14 @@ Rscript '$__tool_directory__/methylit_get_potential_dimp.R'
 #end if
 ]]></command>
     <inputs>
-        <param name="input" type="data" format="rdata" label="File containing an information divergence estimator or a GRange object that includes Fisher's columns"/>
+        <param name="input" type="data" format="infdiv" label="File containing an information divergence estimator or a GRange object that includes Fisher's columns"/>
         <conditional name="specify_model_and_nlms_cond">
             <param name="specify_model_and_nlms" type="select" label="Retrieve the name of the fitted distribution and the list of distribution fitted models from a Goodness of Fit report?">
                 <option value="yes" selected="true">Yes</option>
                 <option value="no">No</option>
             </param>
             <when value="yes">
-                <param name="gof_report" type="data" format="rdata" label="File containing a Goodness of Fit (GOF) report"/>
+                <param name="gof_report" type="data" format="gofreport" label="File containing a Goodness of Fit (GOF) report"/>
             </when>
             <when value="no">
                 <conditional name="specify_model_cond">
@@ -161,7 +161,7 @@ Rscript '$__tool_directory__/methylit_get_potential_dimp.R'
         <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}">
             <filter>output_log_cond['output_log'] == 'yes'</filter>
         </data>
-        <data name="output_rdata" format="rdata"/>
+        <data name="output_potdimp" format="potdimp"/>
     </outputs>
     <tests>
     </tests>

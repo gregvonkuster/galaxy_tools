@@ -13,7 +13,7 @@ option_list <- list(
     make_option(c("--input_cutpoint"), action="store", dest="input_cutpoint", help="File containing an estimated cutpoint"),
     make_option(c("--input_pdmp"), action="store", dest="input_pdmp", help="File containing GRange objects that include selected cytosine sites and specified divergence probabilities"),
     make_option(c("--output_crc"), action="store", dest="output_crc", help="Output cytosince read counts file"),
-    make_option(c("--output_rdata"), action="store", dest="output_rdata", help="Output rdata file"),
+    make_option(c("--output_pdmpdmp"), action="store", dest="output_pdmpdmp", help="Output pdmp file"),
     make_option(c("--pval_col"), action="store", dest="pval_col", type="integer", default=NULL, help="Index of the GRanges column containing the p-values"),
     make_option(c("--script_dir"), action="store", dest="script_dir", help="R script source directory"),
     make_option(c("--tv_col"), action="store", dest="tv_col", type="integer", default=NULL, help="Index of the GRanges column containing the total variation for filtering cytosine positions"),
@@ -61,7 +61,7 @@ cat("\n\n");
 ############
 
 # Save the potential_methylation_signal.
-saveRDS(pDMP, file=opt$output_rdata, compress=TRUE);
+saveRDS(pDMP, file=opt$output_pdmpdmp, compress=TRUE);
 
 # Output statistics.
 mrs_df <- get_methylated_read_statistics(pDMP);

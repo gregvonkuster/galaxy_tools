@@ -1,8 +1,5 @@
 <tool id="methylit_estimate_cutpoint" name="MethylIT: Estimate cutpoints" version="1.0.0">
     <description>to distinguish treatment methylation signal from control</description>
-    <macros>
-        <import>macros.xml</import>
-    </macros>
     <requirements>
         <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
         <requirement type="package" version="1.40.0">bioconductor-genomicranges</requirement>
@@ -56,7 +53,7 @@ Rscript '$__tool_directory__/methylit_estimate_cutpoint.R'
     --tv_col $specify_tv_col_cond.tv_col
 #end if
 --tv_cut $tv_cut
---output_rdata '$output_rdata'
+--output_cutpoints '$output_cutpoints'
 #if str($output_log_cond.output_log) == "yes":
     &>'$output_log';
 #else:
@@ -68,7 +65,7 @@ Rscript '$__tool_directory__/methylit_estimate_cutpoint.R'
 #end if
 ]]></command>
     <inputs>
-        <param name="input" type="data" format="rdata" label="File containing GRange objects that include selected cytosine sites and specified divergence probabilities" help="Typically produced by the MethylIT: Select cytosine sites carrying the potential methylation signal tool"/>
+        <param name="input" type="data" format="potdimp" label="File containing GRange objects that include selected cytosine sites and specified divergence probabilities" help="Typically produced by the MethylIT: Select cytosine sites carrying the potential methylation signal tool"/>
         <param name="control_names" type="text" value="" label="Names of the control sample columns in the input GRange objects" help="Enter a comma-separated list if more than one item">
             <validator type="empty_field"/>
             <sanitizer invalid_char="">
@@ -209,7 +206,7 @@ Rscript '$__tool_directory__/methylit_estimate_cutpoint.R'
         <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}">
             <filter>output_log_cond['output_log'] == 'yes'</filter>
         </data>
-        <data name="output_rdata" format="rdata"/>
+        <data name="output_cutpoints" format="cutpoints"/>
     </outputs>
     <tests>
     </tests>

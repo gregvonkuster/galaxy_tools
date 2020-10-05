@@ -1,8 +1,5 @@
 <tool id="methylit_estimate_divergence" name="MethylIT: Estimate divergence" version="1.0.0">
     <description></description>
-    <macros>
-        <import>macros.xml</import>
-    </macros>
     <requirements>
         <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
         <requirement type="package" version="0.34.0">bioconductor-biocgenerics</requirement>
@@ -92,8 +89,8 @@ Rscript '$__tool_directory__/methylit_estimate_divergence.R'
 #end if
 ]]></command>
     <inputs>
-        <param name="ref" type="data" format="rdata" label="GRange reference file" help="The reference individual that will be used in the estimation of the information divergence"/>
-        <param name="indiv" type="data_collection" format="rdata" collection_type="list" label="Collection of GRange files" help="The individuals that will be used in the estimation of the information divergence"/>
+        <param name="ref" type="data" format="grange" label="GRange reference file" help="The reference individual that will be used in the estimation of the information divergence"/>
+        <param name="indiv" type="data_collection" format="grange" collection_type="list" label="Collection of GRange files" help="The individuals that will be used in the estimation of the information divergence"/>
         <param name="bayesian" type="select" label="Perform the estimations based on posterior estimations of methylation levels?" help="--bayesian">
             <option value="no" selected="true">No</option>
             <option value="yes">Yes</option>
@@ -207,7 +204,7 @@ Rscript '$__tool_directory__/methylit_estimate_divergence.R'
             <filter>output_log_cond['output_log'] == 'yes'</filter>
         </data>
         <data name="output_crc" format="html" label="${tool.name} (statistics) on ${on_string}"/>
-        <data name="output_infdiv" format="rdata" label="${tool.name} (infDiv) on ${on_string}"/>
+        <data name="output_infdiv" format="infdiv" label="${tool.name} (infDiv) on ${on_string}"/>
     </outputs>
     <tests>
     </tests>

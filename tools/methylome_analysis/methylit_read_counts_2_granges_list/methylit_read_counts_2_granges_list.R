@@ -138,7 +138,7 @@ for (i in 1:num_granges) {
     if (single_input) {
         saveRDS(grange, file=opt$output, compress=TRUE);
     } else {
-        file_name <- paste(sample_id[[i]], ".rdata", sep="");
+        file_name <- paste(sample_id[[i]], ".grange", sep="");
         file_path <- paste(opt$output_data_dir, file_name, sep="/");
         saveRDS(grange, file=file_path, compress=TRUE);
     }

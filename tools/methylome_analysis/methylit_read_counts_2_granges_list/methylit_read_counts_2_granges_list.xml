@@ -157,11 +157,11 @@ Rscript '$__tool_directory__/methylit_read_counts_2_granges_list.R'
         <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}">
             <filter>output_log_cond['output_log'] == 'yes'</filter>
         </data>
-        <data name="output_single" format="rdata">
+        <data name="output_single" format="grange">
             <filter>input_type_cond['input_type'] == "single"</filter>
         </data>
         <collection name="output_collection" type="list">
-            <discover_datasets pattern="__name__" directory="output_data_dir" format="rdata"/>
+            <discover_datasets pattern="__name__" directory="output_data_dir" format="grange"/>
             <filter>input_type_cond['input_type'] == "collection"</filter>
         </collection>
     </outputs>

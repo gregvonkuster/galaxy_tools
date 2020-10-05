@@ -18,10 +18,10 @@ Rscript '$__tool_directory__/methylit_select_dimp.R'
 #if str($specify_div_col_cond.specify_div_col) == "yes":
     --div_col $specify_div_col_cond.div_col
 #end if
---input_cutpoint '$input_cutpoint'
+--input_cutpoints '$input_cutpoints'
 --input_pdmp '$input_pdmp'
 --output_crc '$output_crc'
---output_rdata '$output_rdata'
+--output_pdmpdmp '$output_pdmpdmp'
 #if str($specify_pval_column_cond.specify_pval_column) == "yes":
     --pval_column '$specify_pval_column_cond.pval_column'
 #end if
@@ -43,8 +43,8 @@ Rscript '$__tool_directory__/methylit_select_dimp.R'
 #end if
 ]]></command>
     <inputs>
-        <param name="input_pdmp" type="data" format="rdata" label="File containing GRange objects that include selected cytosine sites and specified divergence probabilities" help="Typically produced by the MethylIT: Select cytosine sites carrying the potential methylation signal tool"/>
-        <param name="input_cutpoint" type="data" format="rdata" label="File containing an estimated cutpoint" help="Typically produced by the MethylIT: Estimate cutpoint tool"/>
+        <param name="input_pdmp" type="data" format="pdmp" label="File containing GRange objects that include selected cytosine sites and specified divergence probabilities" help="Typically produced by the MethylIT: Select cytosine sites carrying the potential methylation signal tool"/>
+        <param name="input_cutpoints" type="data" format="cutpoints" label="File containing an estimated cutpoint" help="Typically produced by the MethylIT: Estimate cutpoint tool"/>
         <conditional name="specify_div_col_cond">
             <param name="specify_div_col" type="select" label="Specify GRange column number containing the divergence variable for which the estimation of the cutpoint will be performed?" help="--div.col">
                 <option value="no" selected="true">No</option>
@@ -71,8 +71,8 @@ Rscript '$__tool_directory__/methylit_select_dimp.R'
         </param>
         <conditional name="specify_tv_col_cond">
             <param name="specify_tv_col" type="select" label="Specify GRange column number for total variation?" help="--tv.col">
-                <option value="no" selected="true">No</option>
-                <option value="yes">Yes</option>
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
             </param>
             <when value="yes">
                 <param name="tv_col" type="integer" value="8" min="1" label="Index of the GRanges column containing the total variation for filtering cytosine positions"/>
@@ -81,8 +81,8 @@ Rscript '$__tool_directory__/methylit_select_dimp.R'
         </conditional>
         <conditional name="specify_tv_cut_cond">
             <param name="specify_tv_cut" type="select" label="Specify cutoff for the total variation distance to be applied to each site/range?" help="--tv.cut">
-                <option value="no" selected="true">No</option>
-                <option value="yes">Yes</option>
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
             </param>
             <when value="yes">
                 <param name="tv_cut" type="float" value="0.25" min="0" label="Cutoff for the total variation distance"/>
@@ -103,7 +103,7 @@ Rscript '$__tool_directory__/methylit_select_dimp.R'
             <filter>output_log_cond['output_log'] == 'yes'</filter>
         </data>
         <data name="output_crc" format="html" label="${tool.name} (statistics) on ${on_string}"/>
-        <data name="output_rdata" format="rdata" label="${tool.name} (pDMP) on ${on_string}"/>
+        <data name="output_pdmpdmp" format="pdmpdmp" label="${tool.name} (PDMPDMP) on ${on_string}"/>
     </outputs>
     <tests>
     </tests>

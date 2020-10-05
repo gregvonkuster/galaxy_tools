@@ -15,7 +15,7 @@ option_list <- list(
     make_option(c("--gene_annot"), action="store", dest="gene_annot", help="Data Manager installed gene annotation file"),
     make_option(c("--ignore_strand"), action="store", dest="ignore_strand", help="Ignore strand"),
     make_option(c("--input"), action="store", dest="input", help="File containing any of the following objects: pDMP, InfDiv, GRangesList, GRanges or a list of GRanges"),
-    make_option(c("--output_rdata"), action="store", dest="output_rdata", help="Output rdata file"),
+    make_option(c("--output_grangelist"), action="store", dest="output_grangelist", help="Output grangelist file"),
     make_option(c("--output_type"), action="store", dest="output_type", help="Output type"),
     make_option(c("--overlap_type"), action="store", dest="overlap_type", help="Overlap type"),
     make_option(c("--script_dir"), action="store", dest="script_dir", help="R script source directory")
@@ -87,5 +87,5 @@ cat("\n\n");
 ############
 
 # Save the GRanges.
-saveRDS(ret_val, file=opt$output_rdata, compress=TRUE);
+saveRDS(ret_val, file=opt$output_grangelist, compress=TRUE);
 

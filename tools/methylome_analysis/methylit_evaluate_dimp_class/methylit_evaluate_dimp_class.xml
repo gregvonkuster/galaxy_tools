@@ -53,7 +53,7 @@ Rscript '$__tool_directory__/methylit_evaluate_dimp_class.R'
 #end if
 ]]></command>
     <inputs>
-        <param name="input" type="data" format="rdata" label="File containing a pDMP object" help="Typically produced by the MethylIT: Select cytosine positions tool"/>
+        <param name="input" type="data" format="pdmp,pdmpdmp" label="File containing a pDMP object" help="Typically produced by the MethylIT: Select cytosine positions tool"/>
         <param name="control_names" type="text" value="" label="Names of the control sample columns in the input GRange objects" help="Enter a comma-separated list if more than one item">
             <validator type="empty_field"/>
             <sanitizer invalid_char="">

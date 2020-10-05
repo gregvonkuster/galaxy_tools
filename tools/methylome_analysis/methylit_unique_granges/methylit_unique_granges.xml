@@ -51,7 +51,7 @@ Rscript '$__tool_directory__/methylit_unique_granges.R'
 #end if
 ]]></command>
     <inputs>
-        <param name="input" type="data" format="rdata" label="Information divergence estimator file" help="Produced by the MethylIT estimate divergence tool"/>
+        <param name="input" type="data" format="infdiv,potdimp" label="Information divergence estimator file" help="Produced by the MethylIT estimate divergence tool"/>
         <param name="ncols" type="integer" value="0" min="0" label="Number of columns to use from the metadata of each GRange" help="--ncols: if set to 0, all columns from each GRange will be included in the output"/>
         <conditional name="specify_columns_cond">
             <param name="specify_columns" type="select" label="Specify columns to use from the meta-column of each GRange object?">
@@ -128,7 +128,7 @@ Rscript '$__tool_directory__/methylit_unique_granges.R'
             <filter>output_log_cond['output_log'] == 'yes'</filter>
         </data>
         <data name="output_data_frame" format="tabular" label="${tool.name} (data frame) on ${on_string}"/>
-        <data name="output_grange" format="rdata"/>
+        <data name="output_grange" format="grange"/>
     </outputs>
     <tests>
     </tests>

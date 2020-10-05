@@ -27,7 +27,7 @@ Rscript '$__tool_directory__/methylit_get_dimp_at_genes.R'
 #end if
 --input '$input'
 --ignore_strand '$ignore_strand'
---output_rdata '$output_rdata'
+--output_grangelist '$output_grangelist'
 --output_type '$output_type'
 --script_dir '$__tool_directory__'
 #if str($output_log_cond.output_log) == "yes":
@@ -41,7 +41,7 @@ Rscript '$__tool_directory__/methylit_get_dimp_at_genes.R'
 #end if
 ]]></command>
     <inputs>
-        <param name="input" type="data" format="rdata" label="File containing any of the following objects: pDMP, InfDiv, GRangesList, GRanges or a list of GRanges" help="--GR: Typically produced by the MethylIT: Evaluate DMPs classificatio tool"/>
+        <param name="input" type="data" format="grange,grangelist,infdiv,pdmp,pdmpdmp" label="File containing any of the following objects: pDMP, InfDiv, GRangesList, GRanges or a list of GRanges" help="--GR: Typically produced by the MethylIT: Evaluate DMPs classification tool"/>
         <conditional name="gene_annot_cond">
             <param name="gene_annot_source" type="select" label="Choose the source for the gene annotations">
                 <option value="cached" selected="true">locally cached</option>
@@ -61,8 +61,8 @@ Rscript '$__tool_directory__/methylit_get_dimp_at_genes.R'
             </when>
         </conditional>
         <param name="output_type" type="select" display="radio" label="Select class of object to be output" help="--output">
-            <option value="GRanges" selected="true">GRanges</option>
-            <option value="list">list</option>
+            <option value="list" selected="true">list</option>
+            <option value="GRanges">GRanges</option>
         </param>
         <param name="ignore_strand" type="select" label="Ignore strand?" help="--ignore.strand">
             <option value="yes" selected="true">Yes</option>
@@ -88,7 +88,7 @@ Rscript '$__tool_directory__/methylit_get_dimp_at_genes.R'
         <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}">
             <filter>output_log_cond['output_log'] == 'yes'</filter>
         </data>
-        <data name="output_rdata" format="rdata" label="${tool.name} (DMPPatGenes) on ${on_string}"/>
+        <data name="output_grangelist" format="grangelist" label="${tool.name} (DMPPatGenes) on ${on_string}"/>
     </outputs>
     <tests>
     </tests>

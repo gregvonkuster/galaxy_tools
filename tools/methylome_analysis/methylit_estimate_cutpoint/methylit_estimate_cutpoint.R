@@ -22,7 +22,7 @@ option_list <- list(
     make_option(c("--interactions"), action="store", dest="interactions", default=NULL, help="Interactions to consider in the logistics regression model"),
     make_option(c("--n_pc"), action="store", dest="n_pc", type="integer", help="Number of principal components to use if the classifier is not 'logistic'"),
     make_option(c("--num_cores"), action="store", dest="num_cores", type="integer", help="Number of processors to use"),
-    make_option(c("--output_rdata"), action="store", dest="output_rdata", help="Output rdata file"),
+    make_option(c("--output_cutpoints"), action="store", dest="output_cutpoints", help="Output cutpoints file"),
     make_option(c("--post_cut"), action="store", dest="post_cut", type="double", default=0.5, help="Posterior probability to decide whether a DMP belongs to treatment group"),
     make_option(c("--prop"), action="store", dest="prop", type="double", help="Proportion to split the dataset used in the logistic regression into two subsets, training and testing"),
     make_option(c("--script_dir"), action="store", dest="script_dir", help="R script source directory"),
@@ -117,47 +117,11 @@ l <- estimateCutPoint(LR,
 
 ############
 # Debugging.
-cat("l$cutpoint:\n");
-l$cutpoint
-cat("\n\n");
-cat("l$testSetPerformance:\n");
-l$testSetPerformance
-cat("\n\n");
-cat("l$testSetModel.FDR:\n");
-l$testSetModel.FDR
-cat("\n\n");
-cat("l$model:\n");
-l$model
-cat("\n\n");
-cat("l$modelConfMatrix:\n");
-l$modelConfMatrix
-cat("\n\n");
-cat("l$initModel:\n");
-l$initModel
-cat("\n\n");
-cat("l$postProbCut:\n");
-l$postProbCut
-cat("\n\n");
-cat("l$postCut:\n");
-l$postCut
-cat("\n\n");
-cat("l$classifier:\n");
-l$classifier
-cat("\n\n");
-cat("l$classifier:\n");
-l$classifier
-cat("\n\n");
-cat("l$statistic:\n");
-l$statistic
-cat("\n\n");
-cat("l$optStatVal:\n");
-l$optStatVal
-cat("\n\n");
-cat("l$cutpData:\n");
-l$ocutpData
-cat("\n\n");
+cat("\nl:\n");
+l
+cat("typeof(l): ", typeof(l), "\n");
 ############
 
 # Save the potential_methylation_signal.
-saveRDS(l, file=opt$output_rdata, compress=TRUE);
+saveRDS(l, file=opt$output_cutpoints, compress=TRUE);
 
