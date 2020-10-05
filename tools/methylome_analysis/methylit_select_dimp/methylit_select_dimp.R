@@ -10,7 +10,7 @@ suppressPackageStartupMessages(library("xtable"))
 option_list <- list(
     make_option(c("--absolute"), action="store", dest="absolute", help="Flag to transform total variation (TV) to |TV|"),
     make_option(c("--div_col"), action="store", dest="div_col", type="integer", default=NULL, help="GRange column number containing the divergence variable for which the estimation of the cutpoint will be performed"),
-    make_option(c("--input_cutpoint"), action="store", dest="input_cutpoint", help="File containing an estimated cutpoint"),
+    make_option(c("--input_cutpoints"), action="store", dest="input_cutpoints", help="File containing an estimated cutpoint"),
     make_option(c("--input_pdmp"), action="store", dest="input_pdmp", help="File containing GRange objects that include selected cytosine sites and specified divergence probabilities"),
     make_option(c("--output_crc"), action="store", dest="output_crc", help="Output cytosince read counts file"),
     make_option(c("--output_pdmpdmp"), action="store", dest="output_pdmpdmp", help="Output pdmp file"),
@@ -29,7 +29,7 @@ utils_path <- paste(opt$script_dir, "utils.R", sep="/");
 source(utils_path);
 
 absolute <- string_to_boolean(opt$absolute, default=FALSE);
-l <- readRDS(opt$input_cutpoint);
+l <- readRDS(opt$input_cutpoints);
 cutpoint <- l$cutpoint;
 LR <- readRDS(opt$input_pdmp);
 
