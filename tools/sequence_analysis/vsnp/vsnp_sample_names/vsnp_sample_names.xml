@@ -4,7 +4,7 @@
 #import os
 #import re
 #set output_dir = 'output'
-mkdir -p $output_dir &&
+mkdir -p $output_dir
 #if str($input_type_cond.input_type) == "single":
     ## We may have a single read or a pair, but in
     ## either case we want the same base file name.
