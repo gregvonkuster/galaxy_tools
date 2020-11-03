@@ -17,14 +17,25 @@ mkdir -p $output_dir
     #end if
     && echo '$sample_name' > '$output'
 #else:
-    #for $i in $input_type_cond.reads_collection:
-        #set sample_name = $os.path.basename($i.element_identifier)
-        #if $sample_name.find(".") > 0:
-            #set sample_name = $sample_name.split(".")[0]
-        #end if
-        #set output_file = $os.path.join($output_dir, $sample_name)
-        && echo '$sample_name' > '$output_file'
-    #end for
+    #set collection_type = $input_type_cond.collection_type_cond.collection_type
+    #if str($collection_type) == 'single_reads':
+        #for $i in $input_type_cond.collection_type_cond.reads_collection:
+            #set sample_name = $os.path.basename($i.element_identifier)
+            #if $sample_name.find(".") > 0:
+                #set sample_name = $sample_name.split(".")[0]
+            #end if
+            #set output_file = $os.path.join($output_dir, $sample_name)
+            && echo '$sample_name' > '$output_file'
+        #end for
+    #else:
+        #for $i in $input_type_cond.collection_type_cond.reads_collection:
+            #set sample_name = re.sub('[^\w_]', '_', $input_type_cond.collection_type_cond.reads_collection.name)
+            #if $sample_name.find(".") > 0:
+                #set sample_name = $sample_name.split(".")[0]
+            #end if
+            && echo '$sample_name' > '$output'
+        #end for
+    #end if
 #end if
 ]]></command>
     <inputs>
@@ -37,17 +48,28 @@ mkdir -p $output_dir
                 <param name="read" type="data" format="fastqsanger.gz,fastqsanger" label="Sample file"/>
             </when>
             <when value="collection">
-                <param name="reads_collection" type="data_collection" format="fastqsanger,fastqsanger.gz" collection_type="list" label="Collection of sample files"/>
+                <conditional name="collection_type_cond">
+                    <param name="collection_type" type="select" label="Collections of single reads or paired reads?">
+                        <option value="single_reads" selected="true">Single reads</option>
+                        <option value="paired_reads">Paired reads</option>
+                    </param>
+                    <when value="single_reads">
+                        <param name="reads_collection" type="data_collection" format="fastqsanger,fastqsanger.gz" collection_type="list" label="Collection of fastqsanger files"/>
+                    </when>
+                    <when value="paired_reads">
+                        <param name="reads_collection" type="data_collection" format="fastqsanger,fastqsanger.gz" collection_type="paired" label="Collection of fastqsanger files"/>
+                    </when>
+                </conditional>
             </when>
         </conditional>
     </inputs>
     <outputs>
         <data name="output" format="txt">
-            <filter>input_type_cond['input_type'] == 'single'</filter>
+            <filter>input_type_cond['input_type'] == 'single' or (input_type_cond['input_type'] == 'collection' and input_type_cond['collection_type_cond']['collection_type'] == 'paired_reads')</filter>
         </data>
-        <collection name="output__collection" type="list">
+        <collection name="output_collection" type="list">
             <discover_datasets pattern="__name__" directory="output" format="txt" />
-            <filter>input_type_cond['input_type'] == 'collection'</filter>
+            <filter>input_type_cond['input_type'] == 'collection' and input_type_cond['collection_type_cond']['collection_type'] == 'single_reads'</filter>
         </collection>
     </outputs>
     <tests>
@@ -60,7 +82,7 @@ mkdir -p $output_dir
                     <element name="Mbov_Cattle_NI_SRR10993937.fastq" value="Mbov_Cattle_NI_SRR10993937.fastq" dbkey="89"/>
                 </collection>
             </param>
-            <output_collection name="output__collection" type="list">
+            <output_collection name="output_collection" type="list">
                 <element name="BCG_Danish_Human_UK_SRR9596061" file="BCG_Danish_Human_UK_SRR9596061" ftype="txt"/>
                 <element name="Dassie_Dassie_ZA_SRR3745455" file="Dassie_Dassie_ZA_SRR3745455" ftype="txt"/>
                 <element name="Mbov_Cattle_NI_SRR10993937" file="Mbov_Cattle_NI_SRR10993937" ftype="txt"/>
