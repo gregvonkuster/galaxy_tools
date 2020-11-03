@@ -37,14 +37,30 @@ mkdir -p $input_reads_dir &&
     #end if
     #set dbkey = $input_type_cond.vsnp_azc.metadata.dbkey
 #else:
-    #for $i in $input_type_cond.reads_collection:
-        #if $i.is_of_type('fastqsanger.gz'):
+    #set collection_type = $input_type_cond.collection_type_cond.collection_type
+    #if str($collection_type) == 'single_reads':
+        #for $i in $input_type_cond.collection_type_cond.reads_collection:
+            #if $i.is_of_type('fastqsanger.gz'):
+                #set gzipped = 'true'
+            #end if
+            #set filename = $i.file_name
+            #set identifier = re.sub('[^\s\w\-]', '_', str($i.element_identifier))
+            ln -s '$filename' '$input_reads_dir/$identifier' &&
+        #end for
+    #else:
+        #if $input_type_cond.collection_type_cond.reads_collection.forward.is_of_type('fastqsanger.gz'):
             #set gzipped = 'true'
+            #set ext = 'fastq.gz'
+        #else:
+            #set ext = 'fastq'
         #end if
-        #set filename = $i.file_name
-        #set identifier = re.sub('[^\s\w\-]', '_', str($i.element_identifier))
-        ln -s '$filename' '$input_reads_dir/$identifier' &&
-    #end for
+        #set $read1 = $input_type_cond.collection_type_cond.reads_collection.forward
+        #set $read2 = $input_type_cond.collection_type_cond.reads_collection.reverse
+        #set $read1_identifier = re.sub('[^\w\-\s]', '_', "%s_R1.%s" % (str($input_type_cond.collection_type_cond.reads_collection.name), $ext))
+        #set $read2_identifier = re.sub('[^\w\-\s]', '_', "%s_R2.%s" % (str($input_type_cond.collection_type_cond.reads_collection.name), $ext))
+        ln -s '$read1' '$input_reads_dir/$read1_identifier' &&
+        ln -s '$read2' '$input_reads_dir/$read2_identifier' &&
+    #end if
     #for $i in $input_type_cond.samtools_idxstats_collection:
         #set filename = $i.file_name
         #set identifier = re.sub('[^\s\w\-]', '_', str($i.element_identifier))
@@ -100,7 +116,18 @@ python '$__tool_directory__/vsnp_statistics.py'
                 </param>
             </when>
             <when value="collection">
-                <param name="reads_collection" type="data_collection" format="fastqsanger,fastqsanger.gz" collection_type="list" label="Collection of fastqsanger files"/>
+                <conditional name="collection_type_cond">
+                    <param name="collection_type" type="select" label="Collections of single reads or paired reads?">
+                        <option value="single_reads" selected="true">Single reads</option>
+                        <option value="paired_reads">Paired reads</option>
+                    </param>
+                    <when value="single_reads">
+                        <param name="reads_collection" type="data_collection" format="fastqsanger,fastqsanger.gz" collection_type="list" label="Collection of fastqsanger files"/>
+                    </when>
+                    <when value="paired_reads">
+                        <param name="reads_collection" type="data_collection" format="fastqsanger,fastqsanger.gz" collection_type="paired" label="Collection of fastqsanger paired read files"/>
+                    </when>
+                </conditional>
                 <param name="samtools_idxstats_collection" type="data_collection" format="tabular" collection_type="list" label="Collection of samtools idxstats files"/>
                 <param name="azc_metrics_collection" type="data_collection" format="tabular" collection_type="list" label="Collection of vSNP zero-coverage metrics files"/>
             </when>
@@ -129,7 +156,7 @@ reference with coverage, average depth of coverage and good SNP count.
 
 **Required options**
 
- * **Choose the type for files to be analyzed** - select "Single files" or "Collections of files", then select the appropriate history items (single or paired fastqsanger reads or collections of fastqsanger reads and associated idxstats and vSNP zero coverage metrics files) based on the selected option..
+ * **Choose the type for files to be analyzed** - select "Single files" or "Collections of files", then select the appropriate history items (single or paired fastqsanger reads or collections of fastqsanger reads and associated idxstats and vSNP zero coverage metrics files) based on the selected option.
     </help>
     <citations>
         <citation type="bibtex">
