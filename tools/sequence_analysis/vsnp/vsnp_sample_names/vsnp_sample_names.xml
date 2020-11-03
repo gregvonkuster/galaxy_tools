@@ -68,13 +68,14 @@ mkdir -p $output_dir
             <filter>input_type_cond['input_type'] == 'single' or (input_type_cond['input_type'] == 'collection' and input_type_cond['collection_type_cond']['collection_type'] == 'paired_reads')</filter>
         </data>
         <collection name="output_collection" type="list">
-            <discover_datasets pattern="__name__" directory="output" format="txt" />
+            <discover_datasets pattern="__name__" directory="output" format="txt"/>
             <filter>input_type_cond['input_type'] == 'collection' and input_type_cond['collection_type_cond']['collection_type'] == 'single_reads'</filter>
         </collection>
     </outputs>
     <tests>
         <test>
             <param name="input_type" value="collection"/>
+            <param name="collection_type" value="single_reads"/>
             <param name="reads_collection">
                 <collection type="list">
                     <element name="BCG_Danish_Human_UK_SRR9596061.fastq" value="BCG_Danish_Human_UK_SRR9596061.fastq" dbkey="89"/>
@@ -87,6 +88,17 @@ mkdir -p $output_dir
                 <element name="Dassie_Dassie_ZA_SRR3745455" file="Dassie_Dassie_ZA_SRR3745455" ftype="txt"/>
                 <element name="Mbov_Cattle_NI_SRR10993937" file="Mbov_Cattle_NI_SRR10993937" ftype="txt"/>
             </output_collection>
+        </test>
+        <test>
+            <param name="input_type" value="collection"/>
+            <param name="collection_type" value="paired_reads"/>
+            <param name="reads_collection">
+                <collection type="paired">
+                    <element name="forward" value="DRX036147.forward.fastq"/>
+                    <element name="reverse" value="DRX036147.reverse.fastq"/>
+                </collection>
+            </param>
+            <output name="output" file="DRX036147" ftype="txt"/>
         </test>
     </tests>
     <help>
