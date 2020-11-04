@@ -160,8 +160,10 @@ PartitionName=debug Nodes=gol Default=YES MaxTime=INFINITE State=UP
 mkdir /var/spool/slurmctld
 chown slurm /var/spool/slurmctld
 chmod 755 /var/spool/slurmctld
-touch /var/log/slurmctld.log
-chown slurm /var/log/slurmctld.log
+touch /var/log/slurm-llnl/slurmd.log
+chown slurm /var/log/slurm-llnl/slurmd.log
+touch /var/log/slurm-llnl/slurmctld.log
+chown slurm /var/log/slurm-llnl/slurmctld.log
 touch /var/spool/slurmctld/job_state
 chown slurm /var/spool/slurmctld/job_state
 touch /var/log/slurm_jobacct.log
