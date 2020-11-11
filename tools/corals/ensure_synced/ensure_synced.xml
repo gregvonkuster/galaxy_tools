@@ -27,14 +27,7 @@ in the affy_id column of the sample table in the corals (stag) database for all 
 sets are equivalent, the file and the database are considered to be in sync with each other.
     </help>
     <citations>
-        <citation type="bibtex">
-            @misc{None,
-            journal = {None},
-            author = {Baums I},
-            title = {Manuscript in preparation},
-            year = {None},
-            url = {http://baumslab.org}
-        </citation>
+        <citation type="doi">https://doi.org/10.1038/s41598-020-69101-z</citation>
     </citations>
 </tool>
 

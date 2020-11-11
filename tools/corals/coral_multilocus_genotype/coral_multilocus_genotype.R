@@ -418,8 +418,8 @@ i <- i[!apply(i== "", 1, all), ];
 
 # Subset VCF to the user samples.
 start_time <- time_start("Subsetting vcf to the user samples");
-l <- length(i) + 1;
-svcf <- vcf[, 1:l];
+affy_list <- append(stag_db_report$affy_id,"FORMAT");
+svcf <- vcf[,colnames(vcf@gt) %in% affy_list];
 write.vcf(svcf, "subset.vcf.gz");
 vcf.fn <- "subset.vcf.gz";
 snpgdsVCF2GDS(vcf.fn, "test3.gds", method="biallelic.only");

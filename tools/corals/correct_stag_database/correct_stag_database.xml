@@ -70,14 +70,7 @@ The first line of the tabular file must be the header, and the file must have th
  40. collection date
     </help>
     <citations>
-        <citation type="bibtex">
-            @misc{None,
-            journal = {None},
-            author = {Baums I},
-            title = {Manuscript in preparation},
-            year = {None},
-            url = {http://baumslab.org}
-        </citation>
+        <citation type="doi">https://doi.org/10.1038/s41598-020-69101-z</citation>
     </citations>
 </tool>
 

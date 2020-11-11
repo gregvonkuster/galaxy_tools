@@ -62,14 +62,7 @@ The tool will output the input file if it is valid.
  * plate_barcode
     </help>
     <citations>
-        <citation type="bibtex">
-            @misc{None,
-            journal = {None},
-            author = {Baums I},
-            title = {Manuscript in preparation},
-            year = {None},
-            url = {http://baumslab.org}
-        </citation>
+        <citation type="doi">https://doi.org/10.1038/s41598-020-69101-z</citation>
     </citations>
 </tool>
 
