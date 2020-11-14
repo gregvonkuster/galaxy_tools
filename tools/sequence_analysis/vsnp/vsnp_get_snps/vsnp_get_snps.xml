@@ -50,7 +50,7 @@ mkdir -p $output_snps_dir &&
     #end if
 #end if
 python '$__tool_directory__/vsnp_get_snps.py'
---processes \${GALAXY_SLOTS:-4}
+--processes $processes
 --reference '$reference'
 #if str($excel_grouper_cond.excel_grouper) == "yes":
     --excel_grouper_file '$excel_file'
@@ -110,6 +110,7 @@ python '$__tool_directory__/vsnp_get_snps.py'
             <option value="No" selected="true">No</option>
             <option value="Yes">Yes</option>
         </param>
+        <param name="processes" type="integer" min="1" max="20" value="8" label="Number of processes for job splitting"/>
     </inputs>
     <outputs>
         <collection name="snps" type="list" label="${tool.name} (SNPs) on ${on_string}">
@@ -163,6 +164,7 @@ select a locally cached Excel spreadsheet or one from their current history.
 
  * **Use Excel file for grouping and filtering?** - select Yes to filter desired SNP positions by group.  A cached Excel spreadsheet provides the most widely used SNP positions for grouping, but a custom spreadhseet can be selected from the current history.
  * **Job Resource Parameters** - an administrator for the Galaxy instance must configure this tool to display this option, so it may not be available.  If it is, you can choose the number of processors to use for tool execution.
+ * **Number of processes for job splitting** - Select the number of processes for splitting the job to shorten execution time.
 </help>
     <citations>
         <citation type="bibtex">
