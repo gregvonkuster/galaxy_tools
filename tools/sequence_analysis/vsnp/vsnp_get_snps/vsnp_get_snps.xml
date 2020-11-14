@@ -35,6 +35,7 @@ mkdir -p $output_snps_dir &&
     #end for
 #end if
 #if str($excel_grouper_cond.excel_grouper) == "yes":
+    #set excel_file = 'No genome specified for input VCF (database) file(s)'
     #set excel_grouper_source = $excel_grouper_cond.excel_grouper_source_cond.excel_grouper_source
     #if str($excel_grouper_source) == "cached":
         #set excel_fields = $__app__.tool_data_tables['vsnp_excel'].get_fields()
