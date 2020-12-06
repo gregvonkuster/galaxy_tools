@@ -266,4 +266,5 @@ alter user galaxy password 'galaxy';
 # Activate the Galaxy virtual env (.venv)
 # Make sure using correct Python 3 and pip
 pip install supervisor
+pip install drmaa
 
