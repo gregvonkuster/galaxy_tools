@@ -2,14 +2,12 @@
 
 import argparse
 import gzip
-import numpy
 import os
-import pandas
 import shutil
 
-INPUT_IDXSTATS_DIR = 'input_idxstats'
-INPUT_METRICS_DIR = 'input_metrics'
-INPUT_READS_DIR = 'input_reads'
+import numpy
+import pandas
+
 QUALITYKEY = {'!': '0', '"': '1', '#': '2', '$': '3', '%': '4', '&': '5', "'": '6', '(': '7',
               ')': '8', '*': '9', '+': '10', ',': '11', '-': '12', '.': '13', '/': '14', '0': '15',
               '1': '16', '2': '17', '3': '18', '4': '19', '5': '20', '6': '21', '7': '22',
@@ -26,24 +24,9 @@ QUALITYKEY = {'!': '0', '"': '1', '#': '2', '$': '3', '%': '4', '&': '5', "'": '
 
 
 def fastq_to_df(fastq_file, gzipped):
-    if gzipped.lower() == "true":
+    if gzipped:
         return pandas.read_csv(gzip.open(fastq_file, "r"), header=None, sep="^")
-    else:
-        return pandas.read_csv(open(fastq_file, "r"), header=None, sep="^")
-
-
-def get_base_file_name(file_path):
-    base_file_name = os.path.basename(file_path)
-    if base_file_name.find(".") > 0:
-        # Eliminate the extension.
-        return os.path.splitext(base_file_name)[0]
-    elif base_file_name.find("_") > 0:
-        # The dot extension was likely changed to
-        # the " character.
-        items = base_file_name.split("_")
-        return "_".join(items[0:-1])
-    else:
-        return base_file_name
+    return pandas.read_csv(open(fastq_file, "r"), header=None, sep="^")
 
 
 def nice_size(size):
@@ -67,14 +50,14 @@ def nice_size(size):
     return '??? bytes'
 
 
-def output_statistics(reads_files, idxstats_files, metrics_files, output_file, gzipped, dbkey):
+def output_statistics(fastq_files, idxstats_files, metrics_files, output_file, gzipped, dbkey):
     # Produce an Excel spreadsheet that
     # contains a row for each sample.
     columns = ['Reference', 'File Size', 'Mean Read Length', 'Mean Read Quality', 'Reads Passing Q30',
                'Total Reads', 'All Mapped Reads', 'Unmapped Reads', 'Unmapped Reads Percentage of Total',
                'Reference with Coverage', 'Average Depth of Coverage', 'Good SNP Count']
     data_frames = []
-    for i, fastq_file in enumerate(reads_files):
+    for i, fastq_file in enumerate(fastq_files):
         idxstats_file = idxstats_files[i]
         metrics_file = metrics_files[i]
         file_name_base = os.path.basename(fastq_file)
@@ -171,44 +154,48 @@ def process_metrics_file(metrics_file):
     return ref_with_coverage, avg_depth_of_coverage, good_snp_count
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser()
 
-    parser.add_argument('--read1', action='store', dest='read1', required=False, default=None, help='Required: single read')
-    parser.add_argument('--read2', action='store', dest='read2', required=False, default=None, help='Optional: paired read')
-    parser.add_argument('--dbkey', action='store', dest='dbkey', help='Reference dbkey')
-    parser.add_argument('--gzipped', action='store', dest='gzipped', help='Input files are gzipped')
-    parser.add_argument('--samtools_idxstats', action='store', dest='samtools_idxstats', required=False, default=None, help='Output of samtools_idxstats')
-    parser.add_argument('--output', action='store', dest='output', help='Output Excel statistics file')
-    parser.add_argument('--vsnp_azc', action='store', dest='vsnp_azc', required=False, default=None, help='Output of vsnp_add_zero_coverage')
+parser.add_argument('--dbkey', action='store', dest='dbkey', help='Reference dbkey')
+parser.add_argument('--gzipped', action='store_true', dest='gzipped', required=False, default=False, help='Input files are gzipped')
+parser.add_argument('--input_idxstats_dir', action='store', dest='input_idxstats_dir', required=False, default=None, help='Samtools idxstats input directory')
+parser.add_argument('--input_metrics_dir', action='store', dest='input_metrics_dir', required=False, default=None, help='vSNP add zero coverage metrics input directory')
+parser.add_argument('--input_reads_dir', action='store', dest='input_reads_dir', required=False, default=None, help='Samples input directory')
+parser.add_argument('--list_paired', action='store_true', dest='list_paired', required=False, default=False, help='Input samples is a list of paired reads')
+parser.add_argument('--output', action='store', dest='output', help='Output Excel statistics file')
+parser.add_argument('--read1', action='store', dest='read1', help='Required: single read')
+parser.add_argument('--read2', action='store', dest='read2', required=False, default=None, help='Optional: paired read')
+parser.add_argument('--samtools_idxstats', action='store', dest='samtools_idxstats', help='Output of samtools_idxstats')
+parser.add_argument('--vsnp_azc', action='store', dest='vsnp_azc', help='Output of vsnp_add_zero_coverage')
 
-    args = parser.parse_args()
-    print("args:\n%s\n" % str(args))
+args = parser.parse_args()
 
-    reads_files = []
-    idxstats_files = []
-    metrics_files = []
-    # Accumulate inputs.
-    if args.read1 is not None:
-        # The inputs are not dataset collections, so
-        # read1, read2 (possibly) and vsnp_azc will also
-        # not be None.
-        reads_files.append(args.read1)
+fastq_files = []
+idxstats_files = []
+metrics_files = []
+# Accumulate inputs.
+if args.read1 is not None:
+    # The inputs are not dataset collections, so
+    # read1, read2 (possibly) and vsnp_azc will also
+    # not be None.
+    fastq_files.append(args.read1)
+    idxstats_files.append(args.samtools_idxstats)
+    metrics_files.append(args.vsnp_azc)
+    if args.read2 is not None:
+        fastq_files.append(args.read2)
         idxstats_files.append(args.samtools_idxstats)
         metrics_files.append(args.vsnp_azc)
-        if args.read2 is not None:
-            reads_files.append(args.read2)
-            idxstats_files.append(args.samtools_idxstats)
-            metrics_files.append(args.vsnp_azc)
-    else:
-        for file_name in sorted(os.listdir(INPUT_READS_DIR)):
-            file_path = os.path.abspath(os.path.join(INPUT_READS_DIR, file_name))
-            reads_files.append(file_path)
-            base_file_name = get_base_file_name(file_path)
-        for file_name in sorted(os.listdir(INPUT_IDXSTATS_DIR)):
-            file_path = os.path.abspath(os.path.join(INPUT_IDXSTATS_DIR, file_name))
-            idxstats_files.append(file_path)
-        for file_name in sorted(os.listdir(INPUT_METRICS_DIR)):
-            file_path = os.path.abspath(os.path.join(INPUT_METRICS_DIR, file_name))
-            metrics_files.append(file_path)
-    output_statistics(reads_files, idxstats_files, metrics_files, args.output, args.gzipped, args.dbkey)
+else:
+    for file_name in sorted(os.listdir(args.input_reads_dir)):
+        fastq_files.append(os.path.join(args.input_reads_dir, file_name))
+    for file_name in sorted(os.listdir(args.input_idxstats_dir)):
+        idxstats_files.append(os.path.join(args.input_idxstats_dir, file_name))
+        if args.list_paired:
+            # Add the idxstats file for reverse.
+            idxstats_files.append(os.path.join(args.input_idxstats_dir, file_name))
+    for file_name in sorted(os.listdir(args.input_metrics_dir)):
+        metrics_files.append(os.path.join(args.input_metrics_dir, file_name))
+        if args.list_paired:
+            # Add the metrics file for reverse.
+            metrics_files.append(os.path.join(args.input_metrics_dir, file_name))
+output_statistics(fastq_files, idxstats_files, metrics_files, args.output, args.gzipped, args.dbkey)
