@@ -42,9 +42,12 @@ head(gene_annot);
 cat("\n\n");
 ############
 
-genes <- gene_annot[ gene_annot$type == "gene", c( "gene_id", "biotype", "Name" ) ];
-genes <- genes[ genes$biotype == "protein_coding", "gene_id" ];
-seqlevels(genes) <- "chr13";
+## Tom commented out so that TAIR10/arabidopsis can work (TAIR10.gff3 has no "biotype" nor chr13:
+#genes <- gene_annot[ gene_annot$type == "gene", c( "gene_id", "biotype", "Name" ) ];
+#genes <- genes[ genes$biotype == "protein_coding", "gene_id" ];
+#seqlevels(genes) <- "chr13";
+## Tom added in so that object "genes" exists:/citation>
+genes <- gene_annot;
 gr <- readRDS(opt$input);
 
 ############
