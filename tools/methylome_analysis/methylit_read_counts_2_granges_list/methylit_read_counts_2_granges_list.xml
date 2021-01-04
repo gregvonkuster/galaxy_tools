@@ -22,8 +22,8 @@ mkdir output_data_dir &&
 #if str($input_type) == "collection":
     #for $i in $input_type_cond.input_collection:
         #set file_name = $i.file_name
-        ## We likely have an identiefier that is a URL,
-        ## so eliminate everything but the base file name..
+        ## We likely have an identifier that is a URL,
+        ## so eliminate everything but the base file name.
         #set base_file_name = $i.element_identifier.split("/")[-1]
         #set identifier = re.sub('[^\s\w\-\\.]', '_', str($base_file_name))
         ln -s '$file_name' '$input_data_dir/$identifier' &&
@@ -133,6 +133,10 @@ Rscript '$__tool_directory__/methylit_read_counts_2_granges_list.R'
                     <add value=","/>
                     <add value="_"/>
                     <add value="^"/>
+                    <add value="["/>
+                    <add value="]"/>
+                    <add value="."/>
+                    <add value="*"/>
                 </valid>
             </sanitizer>
         </param>

@@ -72,6 +72,7 @@ Rscript '$__tool_directory__/methylit_estimate_cutpoint.R'
                 <valid initial="string.ascii_letters,string.digits">
                     <add value=","/>
                     <add value="_"/>
+                    <add value="-"/>
                 </valid>
             </sanitizer>
         </param>
