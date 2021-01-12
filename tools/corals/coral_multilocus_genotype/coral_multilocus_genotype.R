@@ -114,6 +114,8 @@ cat("\ngenind_clone:\n");
 genind_clone
 cat("\n\n");
 time_elapsed(start_time);
+# Remove genind object from memory.
+rm(genind_obj);
 
 # Calculate the bitwise distance between individuals.
 start_time <- time_start("Calculating the bitwise distance between individuals");
@@ -409,6 +411,8 @@ id_data_table <- data.table(id_rep, keep.rownames=TRUE);
 # Rename the id_rep column.
 setnames(id_data_table, c("id_rep"), c("affy_id"));
 time_elapsed(start_time);
+# Remove clonecorrect genind from memory.
+rm(no_dup_genotypes_genind);
 
 # Table of alleles for the new samples subset to new plate data.
 # Create vector indicating number of individuals desired from
@@ -421,6 +425,12 @@ start_time <- time_start("Subsetting vcf to the user samples");
 affy_list <- append(stag_db_report$affy_id,"FORMAT");
 svcf <- vcf[,colnames(vcf@gt) %in% affy_list];
 write.vcf(svcf, "subset.vcf.gz");
+
+# Remove original and subset VCFs written to file from R memory.
+rm(svcf);
+rm(vcf);
+
+# Load in subset VCF.
 vcf.fn <- "subset.vcf.gz";
 snpgdsVCF2GDS(vcf.fn, "test3.gds", method="biallelic.only");
 genofile <- snpgdsOpen(filename="test3.gds", readonly=FALSE);
