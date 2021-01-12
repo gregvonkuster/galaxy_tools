@@ -27,8 +27,12 @@ Rscript '$__tool_directory__/methylit_get_dimp_at_genes.R'
 #end if
 --input '$input'
 --ignore_strand '$ignore_strand'
---output_grangelist '$output_grangelist'
 --output_type '$output_type'
+#if str($output_type) == 'list':`
+    --output_grangelist '$output_grangelist'
+#else:
+    --output_granges '$output_granges'
+#end if
 --script_dir '$__tool_directory__'
 #if str($output_log_cond.output_log) == "yes":
     &>'$output_log';
@@ -61,8 +65,8 @@ Rscript '$__tool_directory__/methylit_get_dimp_at_genes.R'
             </when>
         </conditional>
         <param name="output_type" type="select" display="radio" label="Select class of object to be output" help="--output">
-            <option value="list" selected="true">list</option>
-            <option value="GRanges">GRanges</option>
+            <option value="GRanges" selected="true">GRanges</option>
+            <option value="list">list of GRanges</option>
         </param>
         <param name="ignore_strand" type="select" label="Ignore strand?" help="--ignore.strand">
             <option value="yes" selected="true">Yes</option>
@@ -88,7 +92,12 @@ Rscript '$__tool_directory__/methylit_get_dimp_at_genes.R'
         <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}">
             <filter>output_log_cond['output_log'] == 'yes'</filter>
         </data>
-        <data name="output_grangelist" format="grangelist" label="${tool.name} (DMPPatGenes) on ${on_string}"/>
+        <data name="output_granges" format="granges" label="${tool.name} (DMPPatGenes) on ${on_string}">
+            <filter>output_type == 'GRanges'</filter>
+        </data>
+        <data name="output_grangelist" format="grangelist" label="${tool.name} (DMPPatGenes) on ${on_string}">
+            <filter>output_type == 'list'</filter>
+        </data>
     </outputs>
     <tests>
     </tests>

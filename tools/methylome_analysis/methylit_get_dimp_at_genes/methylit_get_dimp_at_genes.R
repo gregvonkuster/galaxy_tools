@@ -69,7 +69,7 @@ cat("\nopt$output_type: ", opt$output_type, "\n");
 cat("\nopt$overlap_type: ", opt$overlap_type, "\n");
 ############
 
-if (is(gr, "GrRanges")) {
+if (is(gr, "GRanges")) {
     # The getDIMPatGenes.GRanges function signature
     # does not include the output parameter.
     # The ret_val object will be a GRanges or a list
