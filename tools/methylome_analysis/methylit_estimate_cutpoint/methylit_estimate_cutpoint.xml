@@ -44,7 +44,7 @@ Rscript '$__tool_directory__/methylit_estimate_cutpoint.R'
     --stat $specify_simple_cond.stat
 #end if
 --n_pc $n_pc
---num_cores \${GALAXY_SLOTS:-4}
+--num_cores \${GALAXY_SLOTS:-1}
 --prop $prop
 --script_dir '$__tool_directory__'
 --simple '$specify_simple_cond.simple'
