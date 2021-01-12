@@ -1,0 +1,52 @@
+<tool id="methylit_glm_dataset" name="MethylIT: construct glm dataset" version="1.0.0">
+    <description></description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <requirements>
+        <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
+        <requirement type="package" version="1.40.0">bioconductor-genomicranges</requirement>
+        <requirement type="package" version="1.12.8">r-data.table</requirement>
+        <requirement type="package" version="0.3.2.1">r-methylit</requirement>
+        <requirement type="package" version="1.6.6">r-optparse</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+Rscript '$__tool_directory__/methylit_glm_dataset.R'
+--input_grange '$input_grange'
+--output_glm '$output_glm'
+#if str($output_log_cond.output_log) == 'yes':
+    &>'$output_log';
+#else:
+    &>output_log.txt;
+    if [[ $? -ne 0 ]]; then
+        cp output_log.txt '$output';
+    fi
+#end if
+]]></command>
+    <inputs>
+        <param name="input_grange" type="data" format="grange" label="File containing a GRange"/>
+        <conditional name="output_log_cond">
+            <param name="output_log" type="select" label="Output process log?">
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
+            </param>
+            <when value="yes"/>
+            <when value="no"/>
+        </conditional>
+    </inputs>
+    <outputs>
+        <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}">
+            <filter>output_log_cond['output_log'] == 'yes'</filter>
+        </data>
+        <data name="output_glm" format="glm"/>
+    </outputs>
+    <tests>
+    </tests>
+    <help>
+**What it does**
+
+Builds a object suitable to be used as input to the MethylIT: count test 2 tool.
+    </help>
+    <expand macro="citations"/>
+</tool>
+
