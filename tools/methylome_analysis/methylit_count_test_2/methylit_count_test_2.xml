@@ -1,0 +1,106 @@
+<tool id="methylit_count_test_2" name="MethylIT: compare the counts" version="1.0.0">
+    <description>from different groups, treatment and control</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <requirements>
+        <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
+        <requirement type="package" version="1.70.0">bioconductor-genefilter</requirement>
+        <requirement type="package" version="0.34.0">bioconductor-biocgenerics</requirement>
+        <requirement type="package" version="1.22.0">bioconductor-biocparallel</requirement>>
+        <requirement type="package" version="2.22.1">bioconductor-iranges</requirement>
+        <requirement type="package" version="0.26.0">bioconductor-s4vectors</requirement>
+        <requirement type="package" version="1.12.8">r-data.table</requirement>
+        <requirement type="package" version="0.56.0">r-matrixstats</requirement>
+        <requirement type="package" version="0.3.2.1">r-methylit</requirement>
+        <requirement type="package" version="1.6.6">r-optparse</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+Rscript '$__tool_directory__/methylit_count_test_2.R'
+--input_glm '$input_glm'
+--count_filter '$count_filter'
+--filter_log_2_fc '$filter_log_2_fc'
+--min_count_per_indiv $min_count_per_indiv
+--min_log_2_fc $min_log_2_fc
+--mv_rate $mv_rate
+--num_cores \${GALAXY_SLOTS:-1}
+#if str($maxgrpcv_cond.maxgrpcv) == 'yes':
+    --maxgrpcv1 $maxgrpcv1
+    --maxgrpcv2 $maxgrpcv2
+#end if
+--output '$output'
+--p_adjust_method '$p_adjust_method'
+--pval_cutoff $pval_cutoff
+--save_all '$save_all'
+--scaling $scaling
+--test '$test'
+#if str($output_log_cond.output_log) == 'yes':
+    &>'$output_log';
+#else:
+    &>output_log.txt;
+    if [[ $? -ne 0 ]]; then
+        cp output_log.txt '$output';
+    fi
+#end if
+]]></command>
+    <inputs>
+        <param name="input_glm" type="data" format="glm" label="File containing a glmDataset"/>
+        <param argument="count_filter" type="boolean" truevalue="TRUE" falsevalue="FALSE" checked="true" label="Filter counts according to the minimum count per region per each sample?"/>
+        <!-- TODO: handle count_per_bp when it should be set to NULL -->
+        <param name="count_per_bp" type="integer" value="1" min="1" label="Count per bp threshold" help="The count per bp for each group must be greater than or equal to this value"/>
+        <param name="min_count_per_indiv" type="integer" value="3" min="1" label="Threshold for average group count for each gene or region per individual" help="--minCountPerIndiv"/>
+        <conditional name="maxgrpcv_cond">
+            <param name="maxgrpcv" type="select" label="Specify the maximum coefficient of variance for each group?">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no"/>
+            <when value="yes">
+                <param name="maxgrpcv1" type="integer" value="1" min="1" label="Low threshold of variance" help="maxGrpCV1"/>
+                <param name="maxgrpcv2" type="integer" value="1" min="1" label="High threshold of variance" help="maxGrpCV2"/>
+            </when>
+        </conditional>
+        <param argument="filter_log_2_fc" type="boolean" truevalue="TRUE" falsevalue="FALSE" checked="true" label="Filter results using the minimum absolute value of log2FoldChanges observed?" help="--FilterLog2FC"/>
+        <param name="p_adjust_method" type="select" label="Specify the method used to adjust the results">
+            <!-- FIXME: the MethylIT R code shows no additional options, so shouod this NOT be set by the user? -->
+            <option value="BH" selected="true">BH</option>
+        </param>
+        <param name="pval_cutoff" type="float" value="0.05" min="0" max="1" label="Cutoff used when a p-value adjustment is performed" help="--pvalCutOff"/>
+        <param name="mv_rate" type="float" value="0.98" min="0" max="1" label="Minimum Mean/Variance rate" help="--MVrate"/>
+        <param name="min_log_2_fc" type="float" value="0.5" min="0" max="1" label="Minimum logarithm base 2 of fold changes" help="--Minlog2FC"/>
+        <param name="test" type="select" label="Specify the test">
+            <option value="Wald" selected="true">Wald</option>
+            <option value="LRT" selected="true">LRT</option>
+        </param>
+        <param name="scaling" type="integer" value="1" min="1" label="Scaling factor to estimate the signal density"/>
+        <param argument="save_all" type="boolean" truevalue="TRUE" falsevalue="FALSE" checked="false" label="Include all temporal results in the output?" help="--saveAll"/>
+        <conditional name="output_log_cond">
+            <param name="output_log" type="select" label="Output process log?">
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
+            </param>
+            <when value="yes"/>
+            <when value="no"/>
+        </conditional>
+    </inputs>
+    <outputs>
+        <data name="output_log" format="txt" label="${tool.name} (process log) on ${on_string}">
+            <filter>output_log_cond['output_log'] == 'yes'</filter>
+        </data>
+        <!-- Since countTest2 returtns either a data frame or a GRange, we need to use the rdata format,
+                          TODO: this needs to be fixed... -->
+        <data name="output" format="rdata"/>
+    </outputs>
+    <tests>
+    </tests>
+    <help>
+**What it does**
+
+Performs Poisson and Negative Binomial regression analysis to compare the counts from different groups,
+treatment and control. The difference between functions 'countTest2' and 'countTest' resides in the
+estimation of the prior weights used in Negative Binomial generalized linear model.  A pairwise group
+comparison, control versus treatment, is performed.
+    </help>
+    <expand macro="citations"/>
+</tool>
+
