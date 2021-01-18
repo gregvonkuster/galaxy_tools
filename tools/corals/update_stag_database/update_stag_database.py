@@ -310,7 +310,7 @@ class StagDatabaseUpdater(object):
                 except Exception:
                     # Insert a row into the colony table.
                     cmd = "INSERT INTO colony VALUES (nextval('colony_id_seq'), %s, %s, %s, %s, %s, %s) RETURNING id;"
-                    args = ['NOW()', 'NOW()', longitude, latitude, depth, reef_id]
+                    args = ['NOW()', 'NOW()', latitude, longitude, depth, reef_id]
                     cur = self.update(cmd, args)
                     self.flush()
                     colony_id = cur.fetchone()[0]
