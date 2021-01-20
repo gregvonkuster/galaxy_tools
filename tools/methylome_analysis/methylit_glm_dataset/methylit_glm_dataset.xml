@@ -7,12 +7,14 @@
         <requirement type="package" version="2.48.0">bioconductor-biobase</requirement>
         <requirement type="package" version="1.40.0">bioconductor-genomicranges</requirement>
         <requirement type="package" version="1.12.8">r-data.table</requirement>
+        <requirement type="package" version="0.2.20">r-rjson</requirement>
         <requirement type="package" version="0.3.2.1">r-methylit</requirement>
         <requirement type="package" version="1.6.6">r-optparse</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
 Rscript '$__tool_directory__/methylit_glm_dataset.R'
 --input_grange '$input_grange'
+--input_json '$input_json'
 --output_glm '$output_glm'
 #if str($output_log_cond.output_log) == 'yes':
     &>'$output_log';
@@ -25,6 +27,7 @@ Rscript '$__tool_directory__/methylit_glm_dataset.R'
 ]]></command>
     <inputs>
         <param name="input_grange" type="data" format="grange" label="File containing a GRange"/>
+        <param name="input_json" type="data" format="json" label="JSON file containing a the names of the control and treatment sample columns used by the MethylIT: estimate cutpoints tool"/>
         <conditional name="output_log_cond">
             <param name="output_log" type="select" label="Output process log?">
                 <option value="yes" selected="true">Yes</option>

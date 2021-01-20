@@ -6,6 +6,7 @@ suppressPackageStartupMessages(library("caret"))
 suppressPackageStartupMessages(library("GenomicRanges"))
 suppressPackageStartupMessages(library("MethylIT"))
 suppressPackageStartupMessages(library("optparse"))
+suppressPackageStartupMessages(library("rjson"))
 
 option_list <- list(
     make_option(c("--clas_perf"), action="store", dest="clas_perf", help="Flag to evaluate the classification performance for the estimated cutpoint using a model classifier"),
@@ -23,6 +24,7 @@ option_list <- list(
     make_option(c("--n_pc"), action="store", dest="n_pc", type="integer", help="Number of principal components to use if the classifier is not 'logistic'"),
     make_option(c("--num_cores"), action="store", dest="num_cores", type="integer", help="Number of processors to use"),
     make_option(c("--output_cutpoints"), action="store", dest="output_cutpoints", help="Output cutpoints file"),
+    make_option(c("--output_json"), action="store", dest="output_json", help="Output json file containing control_names and treatment_names for use by downstream tools"),
     make_option(c("--post_cut"), action="store", dest="post_cut", type="double", default=0.5, help="Posterior probability to decide whether a DMP belongs to treatment group"),
     make_option(c("--prop"), action="store", dest="prop", type="double", help="Proportion to split the dataset used in the logistic regression into two subsets, training and testing"),
     make_option(c("--script_dir"), action="store", dest="script_dir", help="R script source directory"),
@@ -94,6 +96,13 @@ cat("\nopt$tv_col: ", opt$tv_col, "\n");
 cat("\nopt$tv_cut: ", opt$tv_cut, "\n");
 cat("\n\n");
 ############
+
+# Save control_names and treatment_names
+# as json for use by downstream tools.
+jl <- vector(mode="list", length=2);
+jl[[1]] <- control_names;
+jl[[2]] <- treatment_names;
+write(toJSON(jl), opt$output_json);
 
 l <- estimateCutPoint(LR,
                       control.names=control_names,

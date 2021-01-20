@@ -5,9 +5,11 @@ suppressPackageStartupMessages(library("data.table"))
 suppressPackageStartupMessages(library("GenomicRanges"))
 suppressPackageStartupMessages(library("MethylIT"))
 suppressPackageStartupMessages(library("optparse"))
+suppressPackageStartupMessages(library("rjson"))
 
 option_list <- list(
     make_option(c("--input_grange"), action="store", dest="input_grange", help="GRanges file"),
+    make_option(c("--input_json"), action="store", dest="input_json", help="JSON file containing a the names of the control and treatment sample columns used by the MethylIT: estimate cutpoints tool"),
     make_option(c("--output_glm"), action="store", dest="output_glm", help="Output glmDataset file")
 )
 
@@ -29,10 +31,24 @@ cat("\ngr_names: ", toString(gr_names), "\n\n");
 cat("\n\n");
 ############
 
+# Here json_file will contain the names of the treatment
+# and control sample columns used by the MethylIT:
+# estimate cutpoint tool.  Hopefully these are in this
+# expected order (the order should be required).  These
+# will now be used to create the colData data frame.
+json_data <- fromJSON(file=opt$input_json);
+tc_names <- sapply(json_data, paste0, collapse="")
+
+############
+# Debugging.
+cat("\ntc_names: ",toString(tc_names), "\n");
+cat("\n\n");
+############
+
 # Create the colData data frame, which must have 1 column
 # named "condition", which must be a factor with 2 levels.
 colData <- data.frame(condition=factor(c(gr_names), levels=c(1, 2)),
-                      gr_names,
+                      tc_names,
                       row.names=2);
 
 ############
