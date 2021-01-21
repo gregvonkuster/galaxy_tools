@@ -85,6 +85,14 @@ string_to_integer_or_vector <- function(s) {
     }
 }
 
+val_to_null_or_cvector <- function(val) {
+    if (is.null(val)) {
+        return (NULL);
+    } else {
+        return (string_to_character_vector(val));
+    }
+}
+
 zero_to_null <- function(n) {
     if (n==0) {
         return (NULL);

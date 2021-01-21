@@ -1,0 +1,22 @@
+chromosomes:   
+chromosome_names:   
+columns:  1, 2, 3, 4, 6, 5 
+sample_id:  test23 
+grange_list: 
+GRanges object with 10 ranges and 3 metadata columns:
+       seqnames    ranges strand |        mC          uC   context
+          <Rle> <IRanges>  <Rle> | <integer> <character> <integer>
+   [1]     Chr1       109      + |         3          CG         0
+   [2]     Chr1       110      - |         1          CG         0
+   [3]     Chr1       115      + |         4          CG         0
+   [4]     Chr1       116      - |         1          CG         0
+   [5]     Chr1       161      + |         4          CG         2
+   [6]     Chr1       162      - |         2          CG         1
+   [7]     Chr1       310      + |         5          CG         2
+   [8]     Chr1       311      - |         2          CG         1
+   [9]     Chr1       500      + |         8          CG         5
+  [10]     Chr1       501      - |         1          CG         2
+  -------
+  seqinfo: 1 sequence from an unspecified genome; no seqlengths
+
+
