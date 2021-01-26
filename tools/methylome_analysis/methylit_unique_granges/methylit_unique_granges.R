@@ -173,6 +173,7 @@ colnames(df) <- c("Category", "HellingerDivergence")
 df <- df[df$HellingerDivergence > 0, ]
 
 ############
+
 # Debugging.
 cat("\nData frame after melting: \n");
 cat("dim(df):\n");
