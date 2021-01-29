@@ -1,0 +1,143 @@
+<tool id="relion_import" name="Relion: import" version="1.0.0">
+    <description></description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <requirements>
+        <requirement type="package" version="3.1.1">relion</requirement>
+ </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+#import re
+
+mkdir '${output.extra_files_path}' &&
+
+#if str($input_type_cond.input_type) == 'single':
+    #set ext = $input_type_cond.input.ext
+    #set input_identifier = re.sub('[^\s\w\-\\.]', '_', str($input_type_cond.input.name))
+    ln -s '${input_type_cond.input}' '${input_identifier}' &&
+    cp '${input_identifier}' '${output.extra_files_path}' &&
+#else:
+    #set ext = None
+    #for $i in $input_type_cond.input_collection:
+        #if $ext == None:
+            #set ext = $i.ext
+        #end if
+        #set input_identifier = re.sub('[^\s\w\-\\.]', '_', str($i.element_identifier))
+        ln -s '${i}' '${input_identifier}' &&
+        cp '${input_identifier}' '${output.extra_files_path}' &&
+    #end for
+#end if
+
+## This version of Relioon contains a bug where the
+## name of the ofile parameter is ignored, so we'll
+## use thie work-around.
+#if str($node_type) == '--do_movies':
+    #set ofile = '.movies.star'
+#else if str($node_type) == '--do_micrographs':
+    #set ofile = '.micrographs.star'
+#else if str($node_type) == '--do_coordinates':
+    ## FIXME: this option doesn't seem to work,
+    #set ofile = '.' +  $input_identifier
+#else if str($node_type) == '--do_halfmaps':
+    ## FIXME: this option doesn't seem to work,
+    #set ofile = '.' +  $input_identifier
+#else if str($node_type) == '--do_particles':
+    ## FIXME: only single star files seem to wor with this option.
+    #set ofile = '.' + $input_identifier
+#else if str($node_type) == '--do_other':
+    ## FIXME: input collections don't work here.
+    #set ofile = '.' +  $input_identifier
+#end if
+
+relion_import
+#if str($input_type_cond.input_type) == 'single':
+    --i '${input_identifier}'
+#else:
+    --i '*.${ext}'
+#end if
+--odir .
+--ofile '$ofile'
+$node_type
+#if str($particles_optics_group_name) != '':
+    --particles_optics_group_name '$particles_optics_group_name'
+#end if
+#if str($optics_group_name) != '':
+    --optics_group_name '$optics_group_name'
+#end if
+#if str($optics_group_mtf) != '':
+    --optics_group_mtf '$optics_group_mtf'
+#end if
+--angpix $angpix
+--kV $kv
+--Cs $cs
+--Q0 $q0
+--beamtilt_x $beamtilt_x
+--beamtilt_y $beamtilt_y
+&>'$output_log';
+if [[ $? -ne 0 ]]; then
+    exit 1;
+else
+    mv '$ofile' '$output';
+fi
+]]></command>
+    <inputs>
+        <conditional name="input_type_cond">
+            <param name="input_type" type="select" label="Choose the category of the files to be analyzed">
+                <option value="single" selected="true">Single dataset</option>
+                <option value="collection">Dataset collection</option>
+            </param>
+            <when value="single">
+                <param name="input" type="data" format="mrc2014,star,tif,tiff" label="Image file"/>
+            </when>
+            <when value="collection">
+                <param name="input_collection" format="mrc2014,star,tif,tiff" type="data_collection" collection_type="list" label="Collection of image files"/>
+            </when>
+        </conditional>
+        <param name="node_type" type="select" label="Select the node type">
+            <option value="--do_movies" selected="true">Movies</option>
+            <option value="--do_micrographs">Micrographs</option>
+            <!--  FIXME: these options don't seem to work,
+            <option value="do_coordinates">Particle coordinates</option>
+            <option value="do_halfmaps">Import unfiltered half maps</option>
+             -->
+            <!--  FIXME: this option only works for star files -->
+            <option value="--do_particles">Import particle STAR files</option>
+            <option value="--do_other">Import anything else</option>
+        </param>
+        <param name="particles_optics_group_name" type="text" value="" label="Rename optics group for all imported particles" help="Leave blank to not change">
+            <sanitizer invalid_char="">
+                <valid initial="string.ascii_letters,string.digits"/>
+            </sanitizer>
+        </param>
+        <param name="optics_group_name" type="text" value="" label="Name for this optics group" help="Leave blank to not change">
+            <sanitizer invalid_char="">
+                <valid initial="string.ascii_letters,string.digits"/>
+            </sanitizer>
+        </param>
+        <param name="optics_group_mtf" type="text" value="" label="Name for this optics group's MTF" help="Leave blank to not change">
+            <sanitizer invalid_char="">
+                <valid initial="string.ascii_letters,string.digits"/>
+            </sanitizer>
+        </param>
+        <param name="angpix" type="float" value="1.0" label="Pixel size (Angstrom)"/>
+        <param name="kv" type="integer" value="300" label="Voltage (kV)"/>
+        <param name="cs" type="float" value="2.7" label="Spherical aberration (mm)"/>
+        <param name="q0" type="float" value="0.1" label="Amplitude contrast"/>
+        <param name="beamtilt_x" type="float" value="0.0" label="Beam tilt (X; mrad)"/>
+        <param name="beamtilt_y" type="float" value="0.0" label="Beam tilt (Y; mrad)"/>
+    </inputs>
+    <outputs>
+        <data name="output_log" format="txt" label="${tool.name} on ${on_string} (process log)"/>
+        <!-- FIXME: output datatype is not always STAR -->
+        <data name="output" format="star"/>
+    </outputs>
+    <tests>
+    </tests>
+    <help>
+**What it does**
+
+Imports an image file.
+    </help>
+    <expand macro="citations"/>
+</tool>
+
