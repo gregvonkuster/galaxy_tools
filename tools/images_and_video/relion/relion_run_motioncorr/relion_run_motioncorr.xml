@@ -16,39 +16,19 @@ mkdir '${output_star.files_path}' &&
 ## dataset_xxx.dat name).  STAR files keep these
 ## named inputs in the files_path associated with
 ## the dataset.
-#if str($input_type_cond.input_type) == 'single':
-    ## Process the STAR file which uses the
-    ## Galaxy naming convention of dataset_x.dat.
-    #set star_identifier = $os.path.splitext($os.path.basename($input_type_cond.input.file_name))[0] + '.star'
-    ln -s '${input_type_cond.input}' '${star_identifier}' &&
+## Process the STAR file which uses the
+## Galaxy naming convention of dataset_x.dat.
+#set star_identifier = $os.path.splitext($os.path.basename($input.file_name))[0] + '.star'
+ln -s '${input}' '${star_identifier}' &&
 
-    ## Process the image (e.g., tiff) files that
-    ## are located in the extra_files_path.
-    #for $i in $os.listdir($input_type_cond.input.extra_files_path):
-        ln -s '$os.path.join($input_type_cond.input.extra_files_path, $i)' '$i' &&
-    #end for
-#else:
-    ## Process a collection of STAR file which
-    ## use the Galaxy naming convention of dataset_x.dat.
-
-    #for $i in $input_type_cond.input_collection:
-        #set star_identifier = $os.path.splitext($i.element_identifier)[0] + '.star'
-        ln -s '${i}' '${star_identifier}' &&
-
-        ## Process the image (e.g., tiff) files that
-        ## are located in the extra_files_path.
-        #for $j in $os.listdir($i.files_path):
-            ln -s '${j}' . &&
-        #end for
-    #end for
-#end if
+## Process the image (e.g., tiff) files that
+## are located in the extra_files_path.
+#for $i in $os.listdir($input.extra_files_path):
+    ln -s '$os.path.join($input.extra_files_path, $i)' '$i' &&
+#end for
 
 relion_run_motioncorr
-#if str($input_type_cond.input_type) == 'single':
-    --i '${star_identifier}'
-#else:
-    --i '*.star'
-#end if
+--i '${star_identifier}'
 --o .
 --j \${GALAXY_SLOTS:-1}
 $only_do_unfinished
@@ -92,18 +72,7 @@ else
 fi
 ]]></command>
     <inputs>
-        <conditional name="input_type_cond">
-            <param name="input_type" type="select" label="Choose the category of the files to be analyzed">
-                <option value="single" selected="true">Single dataset</option>
-                <option value="collection">Dataset collection</option>
-            </param>
-            <when value="single">
-                <param name="input" type="data" format="star" label="Relion STAR file"/>
-            </when>
-            <when value="collection">
-                <param name="input_collection" format="star" type="data_collection" collection_type="list" label="Collection of Relion STAR files"/>
-            </when>
-        </conditional>
+        <param name="input" type="data" format="star" label="Relion STAR file"/>
         <param argument="only_do_unfinished" type="boolean" truevalue="--only_do_unfinished" falsevalue="" checked="false" label="Only run motion correction for those micrographs for which there is not yet an output micrograph"/>
         <param name="do_at_most" type="integer" value="-1" min="-1" label="Only process at most this number of (unprocessed) micrographs" help="-1 value will process all"/>
         <param name="ps_size" type="integer" value="512" min="0" label="Output size of power spectrum"/>
