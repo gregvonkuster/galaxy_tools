@@ -1,0 +1,49 @@
+ Using our own implementation based on MOTIONCOR2 algorithm
+ to correct beam-induced motion for the following micrographs: 
+  * frame1.tiff
+  * frame2.tiff
+ Correcting beam-induced motions using our own implementation ...
+000/??? sec ~~(,_,">                                                          [oo]   0/   0 sec ..............................~~(,_,">   0/   0 sec ............................................................~~(,_,">
+ Generating logfile.pdf ... 
+000/??? sec ~~(,_,">                                                          [oo]   1/   1 sec ............................................................~~(,_,">
+ Done! Written: ./logfile.pdf and ./corrected_micrographs.star
+Working on frame1.tiff with 1 thread(s).
+
+Movie size: X = 6 Y = 6 N = 24
+Frames to be used: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
+Frame grouping: n_frames = 24, requested group size = 1
+ | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 
+interpolate_shifts = 0
+
+In unaligned sum, Mean = 24 Std = 0 Hotpixel threshold = 24
+Detected 0 hot pixels to be corrected.
+Fixed hot pixels.
+
+Global alignment:
+ Iteration 1: RMSD = 0 px
+
+Local alignments:
+Patches: X = 1 Y = 1
+Too few patches to do local alignments. Local alignment is skipped.
+Summing frames before dose weighting: ........................ done
+Written aligned but non-dose weighted sum to ./frame1.mrc
+Working on frame2.tiff with 1 thread(s).
+
+Movie size: X = 6 Y = 6 N = 24
+Frames to be used: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
+Frame grouping: n_frames = 24, requested group size = 1
+ | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 
+interpolate_shifts = 0
+
+In unaligned sum, Mean = 24 Std = 0 Hotpixel threshold = 24
+Detected 0 hot pixels to be corrected.
+Fixed hot pixels.
+
+Global alignment:
+ Iteration 1: RMSD = 0 px
+
+Local alignments:
+Patches: X = 1 Y = 1
+Too few patches to do local alignments. Local alignment is skipped.
+Summing frames before dose weighting: ........................ done
+Written aligned but non-dose weighted sum to ./frame2.mrc

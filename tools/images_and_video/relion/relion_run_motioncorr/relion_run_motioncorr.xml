@@ -8,7 +8,6 @@
  </requirements>
     <command detect_errors="exit_code"><![CDATA[
 #import os
-#import re
 
 mkdir '${output_star.files_path}' &&
 
@@ -29,7 +28,7 @@ mkdir '${output_star.files_path}' &&
         ln -s '$os.path.join($input_type_cond.input.extra_files_path, $i)' '$i' &&
     #end for
 #else:
-    ## Process a collection of  STAR file which
+    ## Process a collection of STAR file which
     ## use the Galaxy naming convention of dataset_x.dat.
 
     #for $i in $input_type_cond.input_collection:
@@ -51,7 +50,35 @@ relion_run_motioncorr
     --i '*.star'
 #end if
 --o .
---use_own
+--j \${GALAXY_SLOTS:-1}
+$only_do_unfinished
+--do_at_most $do_at_most
+--grouping_for_ps $grouping_for_ps
+--ps_size $ps_size
+--first_frame_sum $first_frame_sum
+--last_frame_sum $last_frame_sum
+--eer_grouping $eer_grouping
+--eer_upsampling $eer_upsampling
+#if str($dose_weighting_cond.dose_weighting) != '':
+    $dose_weighting_cond.dose_weighting
+    --angpix $angpix
+    --voltage $voltage
+    --dose_per_frame $dose_per_frame
+    --preexposure $preexposure
+#end if
+#if str($use_own_cond.use_own) != '':
+    $use_own_cond.use_own
+    $use_own_cond.skip_defect
+    $use_own_cond.save_noDW
+    --max_iter $use_own_cond.max_iter
+    $use_own_cond.interpolate_shifts
+    --ccf_downsample $use_own_cond.ccf_downsample
+    $use_own_cond.early_binning
+    --dose_motionstats_cutoff $use_own_cond.dose_motionstats_cutoff
+#else:
+    ## TODO: add option for GPU...
+    --use_own
+#end if
 &>'$output_log';
 if [[ $? -ne 0 ]]; then
     exit 1;
@@ -71,12 +98,43 @@ fi
                 <option value="collection">Dataset collection</option>
             </param>
             <when value="single">
-                <param name="input" type="data" format="star" label="Image file"/>
+                <param name="input" type="data" format="star" label="Relion STAR file"/>
             </when>
             <when value="collection">
-                <param name="input_collection" format="mrc2014,star,tif,tiff" type="data_collection" collection_type="list" label="Collection of image files"/>
+                <param name="input_collection" format="star" type="data_collection" collection_type="list" label="Collection of Relion STAR files"/>
             </when>
         </conditional>
+        <param argument="only_do_unfinished" type="boolean" truevalue="--only_do_unfinished" falsevalue="" checked="false" label="Only run motion correction for those micrographs for which there is not yet an output micrograph"/>
+        <param name="do_at_most" type="integer" value="-1" min="-1" label="Only process at most this number of (unprocessed) micrographs" help="-1 value will process all"/>
+        <param name="ps_size" type="integer" value="512" min="0" label="Output size of power spectrum"/>
+        <param name="grouping_for_ps" type="integer" value="-1" min="-1" label="Group this number of frames and write summed power spectrum" help="-1 value will not write"/>
+        <param name="first_frame_sum" type="integer" value="1" min="1" label="First movie frame used in output sum" help="Start at 1"/>
+        <param name="last_frame_sum" type="integer" value="-1" min="-1" label="Last movie frame used in output sum" help="0 or negative will use all"/>
+        <param name="eer_grouping" type="integer" value="40" min="1" label="EER grouping"/>
+        <param name="eer_upsampling" type="integer" value="1" min="1" label="EER upsampling" help="1=4K, 2=8K"/>
+        <conditional name="dose_weighting_cond">
+            <param argument="dose_weighting" type="boolean" truevalue="--dose_weighting" falsevalue="" checked="false" label="Use dose-weighting scheme"/>
+             <when value="--dose_weighting">
+                <param name="angpix" type="integer" value="-1" min="-1" label="Pixel size in Angstroms"/>
+                <param name="voltage" type="integer" value="-1" min="-1" label="Voltage (in kV) for dose-weighting"/>
+                <param name="dose_per_frame" type="integer" value="1" min="1" label="Electron dose (in electrons/A2/frame) for dose-weighting"/>
+                <param name="preexposure" type="integer" value="0" min="0" label="Pre-exposure (in electrons/A2) for dose-weighting"/>
+             </when>
+             <when value=""/>
+         </conditional>
+        <conditional name="use_own_cond">
+            <param argument="use_own" type="boolean" truevalue="--use_own" falsevalue="" checked="true" label="Use our own implementation of motion correction"/>
+             <when value="--use_own">
+                <param argument="skip_defect" type="boolean" truevalue="--skip_defect" falsevalue="" checked="false" label="Skip hot pixel detection"/>
+                <param argument="save_noDW" type="boolean" truevalue="--save_noDW" falsevalue="" checked="false" label="Save aligned but non dose weighted micrograph"/>
+                <param name="max_iter" type="integer" value="5" min="1" label="Maximum number of iterations for alignment"/>
+                <param argument="interpolate_shifts" type="boolean" truevalue="--interpolate_shifts" falsevalue="" checked="false" label="Interpolate shifts"/>
+                <param name="ccf_downsample" type="integer" value="0" min="0" label="Downsampling rate of CC map" help="0 = automatic based on B factor"/>
+                <param argument="early_binning" type="boolean" truevalue="--early_binning" falsevalue="" checked="false" label="Do binning before alignment to reduce memory usage" help="This might dampen signal near Nyquist"/>
+                <param name="dose_motionstats_cutoff" type="float" value="4.0" min="0" label="Electron dose (in electrons/A2) at which to distinguish early/late global accumulated motion in output statistics"/>
+             </when>
+             <when value=""/>
+         </conditional>
     </inputs>
     <outputs>
         <data name="output_log" format="txt" label="${tool.name} on ${on_string} (process log)"/>
@@ -85,9 +143,10 @@ fi
     </outputs>
     <tests>
         <test expect_num_outputs="3">
-            <param name="input" value="1.star" ftype="tiff"/>
-            <output name="output_star" value="output_star.star" ftype="star"/>
-            <output name="output_log" file="output_log2.txt" ftype="txt"/>
+            <param name="input" value="run_motioncorr_in1.star" ftype="star"/>
+            <output name="output_log" value="run_motioncorr_log1.txt" ftype="txt"/>
+            <output name="output_star" value="run_motioncorr_out1.star" ftype="star"/>
+            <output name="output_pdf" value="run_motioncorr_out1.pdf" ftype="pdf" compare="sim_size"/>
         </test>
     </tests>
     <help>
