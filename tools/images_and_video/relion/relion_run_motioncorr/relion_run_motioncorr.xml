@@ -63,16 +63,16 @@ $only_do_unfinished
 if [[ $? -ne 0 ]]; then
     exit 1;
 else
+    rm '$star_identifier';
     mv 'corrected_micrographs.star' '$output_star';
     mv 'logfile.pdf' '$output_pdf';
     mv *.mrc '$output_star.files_path';
-    rm '$star_identifier';
     mv *.star '$output_star.files_path';
     cat *.log >> '$output_log';
 fi
 ]]></command>
     <inputs>
-        <param name="input" type="data" format="star" label="Relion STAR file"/>
+        <param name="input" type="data" format="star" label="Relion STAR file with all input micrographs"/>
         <param argument="only_do_unfinished" type="boolean" truevalue="--only_do_unfinished" falsevalue="" checked="false" label="Only run motion correction for those micrographs for which there is not yet an output micrograph"/>
         <param name="do_at_most" type="integer" value="-1" min="-1" label="Only process at most this number of (unprocessed) micrographs" help="-1 value will process all"/>
         <param name="ps_size" type="integer" value="512" min="0" label="Output size of power spectrum"/>
@@ -84,10 +84,10 @@ fi
         <conditional name="dose_weighting_cond">
             <param argument="dose_weighting" type="boolean" truevalue="--dose_weighting" falsevalue="" checked="false" label="Use dose-weighting scheme"/>
              <when value="--dose_weighting">
-                <param name="angpix" type="integer" value="-1" min="-1" label="Pixel size in Angstroms"/>
-                <param name="voltage" type="integer" value="-1" min="-1" label="Voltage (in kV) for dose-weighting"/>
-                <param name="dose_per_frame" type="integer" value="1" min="1" label="Electron dose (in electrons/A2/frame) for dose-weighting"/>
-                <param name="preexposure" type="integer" value="0" min="0" label="Pre-exposure (in electrons/A2) for dose-weighting"/>
+                <param name="angpix" type="float" value="-1.0" min="-1" label="Pixel size in Angstroms"/>
+                <param name="voltage" type="float" value="-1.0" min="-1" label="Voltage (in kV) for dose-weighting"/>
+                <param name="dose_per_frame" type="float" value="1.0" min="1" label="Electron dose (in electrons/A2/frame) for dose-weighting"/>
+                <param name="preexposure" type="float" value="0.0" min="0" label="Pre-exposure (in electrons/A2) for dose-weighting"/>
              </when>
              <when value=""/>
          </conditional>
@@ -98,7 +98,7 @@ fi
                 <param argument="save_noDW" type="boolean" truevalue="--save_noDW" falsevalue="" checked="false" label="Save aligned but non dose weighted micrograph"/>
                 <param name="max_iter" type="integer" value="5" min="1" label="Maximum number of iterations for alignment"/>
                 <param argument="interpolate_shifts" type="boolean" truevalue="--interpolate_shifts" falsevalue="" checked="false" label="Interpolate shifts"/>
-                <param name="ccf_downsample" type="integer" value="0" min="0" label="Downsampling rate of CC map" help="0 = automatic based on B factor"/>
+                <param name="ccf_downsample" type="float" value="0.0" min="0" label="Downsampling rate of CC map" help="0 = automatic based on B factor"/>
                 <param argument="early_binning" type="boolean" truevalue="--early_binning" falsevalue="" checked="false" label="Do binning before alignment to reduce memory usage" help="This might dampen signal near Nyquist"/>
                 <param name="dose_motionstats_cutoff" type="float" value="4.0" min="0" label="Electron dose (in electrons/A2) at which to distinguish early/late global accumulated motion in output statistics"/>
              </when>

@@ -1,0 +1,149 @@
+<tool id="relion_run_ctffind" name="Relion: CTF estimation" version="1.0.0">
+    <description>for corrected micrographs</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <requirements>
+        <requirement type="package" version="3.1.1">relion</requirement>
+        <requirement type="package" version="4.1.13">ctffind4</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+#import os
+
+mkdir '$output_star.files_path' &&
+
+## Symlink the STAR file.
+#set star_identifier = $os.path.splitext($os.path.basename($input.file_name))[0] + '.star'
+ln -s '${input}' '${star_identifier}' &&
+
+## Symlink the files that are
+## located in the extra_files_path.
+#for $i in $os.listdir($input.extra_files_path):
+    ln -s '$os.path.join($input.extra_files_path, $i)' '$i' &&
+#end for
+
+export RELION_CTFFIND_EXECUTABLE=\$( dirname `which ctffind` )/ctffind &&
+
+relion_run_ctffind
+--i '${star_identifier}'
+'$use_noDW'
+--o .
+'$only_make_star'
+'$only_do_unfinished'
+--do_at_most $do_at_most
+--ctfWin $ctfWin
+--CS $CS
+--HT $HT
+--AmpCnst $AmpCnst
+--angpix $angpix
+--Box $Box
+--ResMin $ResMin
+--ResMax $ResMax
+--dFMin $dFMin
+--dFMax $dFMax
+--FStep $FStep
+--dAst $dAst
+#if str($is_ctffind4_cond.is_ctffind4) == '--is_ctffind4':
+    $is_ctffind4_cond.is_ctffind4
+    $is_ctffind4_cond.use_given_ps
+    $is_ctffind4_cond.do_movie_thon_rings
+    --avg_movie_frames $is_ctffind4_cond.avg_movie_frames
+    --movie_rootname '$is_ctffind4_cond.movie_rootname'
+    #if str($is_ctffind4_cond.do_phaseshift_cond.do_phaseshift) == '--do_phaseshift':
+        $is_ctffind4_cond.do_phaseshift_cond.do_phaseshift
+        --phase_min $is_ctffind4_cond.do_phaseshift_cond.phase_min
+        --phase_max $is_ctffind4_cond.do_phaseshift_cond.phase_max
+        --phase_step $is_ctffind4_cond.do_phaseshift_cond.phase_step
+    #end if
+    --j \${GALAXY_SLOTS:-1}
+    $is_ctffind4_cond.fast_search
+#end if
+#if str($use_gctf_cond.use_gctf) == '--use_gctf':
+    $use_gctf_cond.use_gctf
+#end if
+
+&>'$output_log';
+if [[ $? -ne 0 ]]; then
+    exit 1;
+else
+    mv 'micrographs_ctf.star' '$output_star';
+    cp *.mrc '$output_star.files_path';
+    mv *.ctf '$output_star.files_path';
+    mv 'logfile.pdf' '$output_pdf';
+    cat *.log >> '$output_log';
+fi
+]]></command>
+    <inputs>
+        <param name="input" type="data" format="star" label="Relion STAR file with all input micrographs"/>
+        <param argument="use_noDW" type="boolean" truevalue="--use_noDW" falsevalue="" checked="false" label="Estimate CTFs from rlnMicrographNameNoDW instead of rlnMicrographName"/>
+        <param argument="only_make_star" type="boolean" truevalue="--only_make_star" falsevalue="" checked="false" label="Don't estimate any CTFs, only join all logfile results in a STAR file"/>
+        <param argument="only_do_unfinished" type="boolean" truevalue="--only_do_unfinished" falsevalue="" checked="false" label="Only estimate CTFs for those micrographs for which there is not yet a logfile with Final values"/>
+        <param name="do_at_most" type="integer" value="-1" min="-1" label="Only process at most this number of (unprocessed) micrographs" help="-1 value will process all"/>
+        <param name="ctfWin" type="integer" value="-1" min="-1" label="Size (in pixels) of a centered, squared window to use for CTF-estimation"/>
+        <param name="CS" type="float" value="-1.0" min="-1" label="Spherical Aberration (mm)"/>
+        <param name="HT" type="float" value="-1.0" min="-1" label="Voltage (kV)"/>
+        <param name="AmpCnst" type="float" value="-1.0" min="-1" label="Amplitude constrast"/>
+        <param name="angpix" type="integer" value="-1" min="-1" label="Pixel size in the input micrographs (A)"/>
+        <param name="Box" type="integer" value="512" min="0" label="Size of the boxes to calculate FFTs"/>
+        <param name="ResMin" type="float" value="100.0" min="0" label="Minimum resolution (in A) to include in calculations"/>
+        <param name="ResMax" type="float" value="7.0" min="0" label="Maximum resolution (in A) to include in calculations"/>
+        <param name="dFMin" type="integer" value="10000" min="0" label="Minimum defocus value (in A) to search"/>
+        <param name="dFMax" type="integer" value="50000" min="0"  label="Maximum defocus value (in A) to search"/>
+        <param name="FStep" type="integer" value="250" min="0" label="Defocus step size (in A) for search"/>
+        <param name="dAst" type="integer" value="0" min="0" label="Amount of astigmatism (in A)"/>
+        <conditional name="is_ctffind4_cond">
+            <param argument="is_ctffind4" type="boolean" truevalue="--is_ctffind4" falsevalue="" checked="true" label="The provided CTFFIND executable is CTFFIND4" help="(version 4.1+)"/>
+            <when value="--is_ctffind4">
+                <param argument="use_given_ps" type="boolean" truevalue="--use_given_ps" falsevalue="" checked="false" label="Use pre-calculated power spectra?"/>
+                <param argument="do_movie_thon_rings" type="boolean" truevalue="--do_movie_thon_rings" falsevalue="" checked="false" label="Calculate Thon rings from movie frames?"/>
+                <param name="avg_movie_frames" type="integer" value="1" min="1" label="Average over how many movie frames" help="Try to get 4 e-/A2"/>
+                <param name="movie_rootname" type="text" value="_movie.mrcs" label="Rootname plus extension for movies">
+                    <sanitizer invalid_char="">
+                      <valid initial="string.ascii_letters,string.digits">
+                          <add value="."/>
+                          <add value="_"/>
+                      </valid>
+                    </sanitizer>
+                </param>
+                <conditional name="do_phaseshift_cond">
+                    <param argument="do_phaseshift" type="boolean" truevalue="--do_phaseshift" falsevalue="" checked="false" label="Estimate the phase shift in the images" help="From a phase-plate, for example"/>
+                    <when value="--do_phaseshift">
+                        <param name="phase_min" type="float" value="0.0" min="0" max="180" label="Minimum phase shift (in degrees)"/>
+                        <param name="phase_max" type="float" value="180.0" min="0" max="180" label="Maximum phase shift (in degrees)"/>
+                        <param name="phase_step" type="float" value="10.0" min="0" max="180" label="Step in phase shift (in degrees)"/>
+                    </when>
+                    <when value=""/>
+                </conditional>
+                <param argument="fast_search" type="boolean" truevalue="--fast_search" falsevalue="" checked="false" label="Disable Slower, more exhaustive search in CTFFIND4.1" help="Faster but less accurate"/>
+            </when>
+            <when value=""/>
+        </conditional>
+        <conditional name="use_gctf_cond">
+            <param argument="use_gctf" type="boolean" truevalue="--use_gctf" falsevalue="" checked="false" label="Use Gctf instead of CTFFIND to estimate the CTF parameters"/>
+            <when value="--use_gctf"/>
+            <when value=""/>
+        </conditional>
+    </inputs>
+    <outputs>
+        <data name="output_log" format="txt" label="${tool.name} on ${on_string} (process log)"/>
+        <data name="output_pdf" format="pdf" label="${tool.name} on ${on_string} (pdf)"/>
+        <data name="output_star" format="star" label="${tool.name} on ${on_string} (star)"/>
+        <collection name="output_text" type="list" label="${tool.name} on ${on_string} (text files)">
+            <discover_datasets pattern="(?P&lt;designation&gt;.+)\.(?P&lt;ext&gt;txt)"/>
+        </collection>
+    </outputs>
+    <tests>
+        <test expect_num_outputs="3">
+            <param name="input" value="run_ctffind_in1.star" ftype="star"/>
+            <output name="output_log" value="run_ctffind_log1.txt" ftype="txt"/>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+iAccepts a STAR file with all input micrographs, or a Linux wildcard with all micrographs to operate on and outputs a
+whole-frame movie alignment.
+    </help>
+    <expand macro="citations"/>
+</tool>
+

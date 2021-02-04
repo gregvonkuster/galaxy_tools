@@ -87,10 +87,10 @@ fi
                 <option value="collection">Dataset collection</option>
             </param>
             <when value="single">
-                <param name="input" type="data" format="mrc2014,star,tif,tiff" label="Image file"/>
+                <param name="input" type="data" format="mrc,star,tif,tiff" label="Image file"/>
             </when>
             <when value="collection">
-                <param name="input_collection" format="mrc2014,star,tif,tiff" type="data_collection" collection_type="list" label="Collection of image files"/>
+                <param name="input_collection" format="mrc,star,tif,tiff" type="data_collection" collection_type="list" label="Collection of image files"/>
             </when>
         </conditional>
         <param name="node_type" type="select" label="Select the node type">
