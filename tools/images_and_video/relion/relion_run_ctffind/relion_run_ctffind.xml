@@ -83,14 +83,14 @@ fi
         <param name="CS" type="float" value="-1.0" min="-1" label="Spherical Aberration (mm)"/>
         <param name="HT" type="float" value="-1.0" min="-1" label="Voltage (kV)"/>
         <param name="AmpCnst" type="float" value="-1.0" min="-1" label="Amplitude constrast"/>
-        <param name="angpix" type="integer" value="-1" min="-1" label="Pixel size in the input micrographs (A)"/>
-        <param name="Box" type="integer" value="512" min="0" label="Size of the boxes to calculate FFTs"/>
+        <param name="angpix" type="float" value="-1.0" min="-1" label="Pixel size in the input micrographs (A)"/>
+        <param name="Box" type="float" value="512.0" min="0" label="Size of the boxes to calculate FFTs"/>
         <param name="ResMin" type="float" value="100.0" min="0" label="Minimum resolution (in A) to include in calculations"/>
         <param name="ResMax" type="float" value="7.0" min="0" label="Maximum resolution (in A) to include in calculations"/>
-        <param name="dFMin" type="integer" value="10000" min="0" label="Minimum defocus value (in A) to search"/>
-        <param name="dFMax" type="integer" value="50000" min="0"  label="Maximum defocus value (in A) to search"/>
-        <param name="FStep" type="integer" value="250" min="0" label="Defocus step size (in A) for search"/>
-        <param name="dAst" type="integer" value="0" min="0" label="Amount of astigmatism (in A)"/>
+        <param name="dFMin" type="float" value="10000.0" min="0" label="Minimum defocus value (in A) to search"/>
+        <param name="dFMax" type="float" value="50000.0" min="0"  label="Maximum defocus value (in A) to search"/>
+        <param name="FStep" type="float" value="250.0" min="0" label="Defocus step size (in A) for search"/>
+        <param name="dAst" type="float" value="0.0" min="0" label="Amount of astigmatism (in A)"/>
         <conditional name="is_ctffind4_cond">
             <param argument="is_ctffind4" type="boolean" truevalue="--is_ctffind4" falsevalue="" checked="true" label="The provided CTFFIND executable is CTFFIND4" help="(version 4.1+)"/>
             <when value="--is_ctffind4">
