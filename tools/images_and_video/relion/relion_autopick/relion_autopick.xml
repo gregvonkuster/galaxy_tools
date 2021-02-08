@@ -1,0 +1,190 @@
+<tool id="relion_autopick" name="Relion: Auto-pick particles" version="1.0.0">
+    <description>based on a Laplacian-of-Gaussian filter</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <requirements>
+        <requirement type="package" version="3.1.1">relion</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+#import os
+
+mkdir '$output_star.files_path' &&
+
+## Symlink the STAR file.
+#set star_identifier = $os.path.splitext($os.path.basename($input.file_name))[0] + '.star'
+ln -s '${input}' '${star_identifier}' &&
+
+## Symlink the files that are
+## located in the extra_files_path.
+#for $i in $os.listdir($input.extra_files_path):
+    ln -s '$os.path.join($input.extra_files_path, $i)' '$i' &&
+#end for
+
+## Symlink the selection STAR file.
+## #set selection_star_identifier = $os.path.splitext($os.path.basename($selection.file_name))[0] + '.star'
+## ln -s '${selection}' '${selection_star_identifier}' &&
+
+## Symlink the files that are
+## located in the extra_files_path.
+## #for $i in $os.listdir($selection.extra_files_path):
+##     ln -s '$os.path.join($selection.extra_files_path, $i)' '$i' &&
+## #end for
+
+relion_autopick
+--i '${star_identifier}'
+--pickname '$pickname'
+--odir .
+--angpix $angpix
+--particle_diameter $particle_diameter
+--shrink_particle_mask $shrink_particle_mask
+--outlier_removal_zscore $outlier_removal_zscore
+'$write_fom_maps'
+'$no_fom_limit'
+'$read_fom_maps'
+'$skip_optimise_scale'
+'$only_do_unfinished'
+'$gpu'
+#if str($picking_option_cond.picking_option) == 'LoG':
+    --LoG
+    --LoG_diam_min $picking_option_cond.LoG_diam_min
+    --LoG_diam_max $picking_option_cond.LoG_diam_max
+    --LoG_neighbour $picking_option_cond.LoG_neighbour
+    '$picking_option_cond.Log_invert'
+    --LoG_adjust_threshold $picking_option_cond.LoG_adjust_threshold
+    --LoG_upper_threshold $picking_option_cond.LoG_upper_threshold
+    '$picking_option_cond.LoG_use_ctf'
+#else:
+    #if str($picking_option_cond.ref_star_gauss_cond.ref_star_gauss) == 'ref_star':
+        --ref '$picking_option_cond.ref_star_gauss_cond.ref'
+    #else:
+        --ref 'gauss'
+    #end if
+    --angpix_ref $picking_option_cond.angpix_ref
+    '$picking_option_cond.invert'
+    --ang $picking_option_cond.ang
+    --lowpass $picking_option_cond.lowpass
+    --highpass $picking_option_cond.highpass
+    '$picking_option_cond.ctf'
+    '$picking_option_cond.ctf_intact_first_peak'
+    --gauss_max $picking_option_cond.gauss_max
+    --healpix_order $picking_option_cond.healpix_order
+    --sym '$picking_option_cond.sym'
+#end if
+#if str($helix_cond.helix) == '--helix':
+    '$helix_cond.helix'
+    --helical_tube_kappa_max $helix_cond.helical_tube_kappa_max
+    --helical_tube_outer_diameter $helix_cond.helical_tube_outer_diameter
+    --helical_tube_length_min $helix_cond.helical_tube_length_min
+    '$helix_cond.amyloid'
+    --max_diam_local_avg $helix_cond.max_diam_local_avg
+#end if
+
+&>'$output_log';
+if [[ $? -ne 0 ]]; then
+    exit 1;
+else
+    rm '${star_identifier}';
+    mv '.summary.star' '$output_star';
+    cp *.mrc '$output_star.files_path';
+    mv '.logfile.pdf' '$output_pdf';
+    cat *.log >> '$output_log';
+fi
+]]></command>
+    <inputs>
+        <param name="input" type="data" format="star" label="Relion STAR file with all input micrographs"/>
+        <param name="pickname" type="text" value="autopick" label="Rootname for coordinate STAR files">
+            <sanitizer invalid_char="">
+              <valid initial="string.ascii_letters,string.digits">
+                  <add value="."/>
+                  <add value="_"/>
+              </valid>
+            </sanitizer>
+        </param>
+        <param name="angpix" type="float" value="-1.0" min="-1" label="Pixel size of the micrographs in Angstroms"/>
+        <param name="particle_diameter" type="float" value="-1.0" min="-1" label="Diameter of the circular mask that will be applied to the experimental images)" help="(in Angstroms, default=automatic)"/>
+        <param name="shrink_particle_mask" type="integer" value="2" min="0" label="Shrink the particle mask by this many pixels to detect Einstein-from-noise classes"/>
+        <param name="outlier_removal_zscore" type="float" value="8.0" label="Remove pixels that are this many sigma away from the mean"/>
+        <param argument="write_fom_maps" type="boolean" truevalue="--write_fom_maps" falsevalue="" checked="false" label="Write calculated probability-ratio maps to disc for re-reading in subsequent runs"/>
+        <param argument="no_fom_limit" type="boolean" truevalue="--no_fom_limit" falsevalue="" checked="false" label="Ignore default maximum limit of 30 fom maps being written"/>
+        <param argument="read_fom_maps" type="boolean" truevalue="--read_fom_maps" falsevalue="" checked="false" label="Skip probability calculations, re-read precalculated maps from disc"/>
+        <param argument="skip_optimise_scale" type="boolean" truevalue="--skip_optimise_scale" falsevalue="" checked="false" label="Skip the optimisation of the micrograph scale for better prime factors in the FFTs" help="Runs slower, but at exactly the requested resolution"/>
+        <param argument="only_do_unfinished" type="boolean" truevalue="--only_do_unfinished" falsevalue="" checked="false" label="Only autopick those micrographs for which the coordinate file does not yet exist"/>
+        <param argument="gpu" type="boolean" truevalue="--gpu" falsevalue="" checked="false" label="Use GPU acceleration when availiable"/>
+        <conditional name="picking_option_cond">
+            <param argument="picking_option" type="select" label="Selection process for picking particles">
+                <option value="LoG" selected="true">Use Laplacian-of-Gaussian filter-based picking instead of template matching</option>
+                <option value="ref_star_or_gauss">Use a selected STAR file with the reference names or gauss for blob picking</option>
+            </param>
+            <when value="LoG">
+                <param name="LoG_diam_min" type="float" value="-1.0" min="-1" label="Smallest particle diameter in Angstroms for blob-detection by Laplacian-of-Gaussian filter"/>
+                <param name="LoG_diam_max" type="float" value="-1.0" min="-1" label="Largest particle diameter in Angstroms for blob-detection by Laplacian-of-Gaussian filter"/>
+                <param name="LoG_neighbour" type="float" value="100.0" min="0" label="Avoid neighbouring particles within the detected diameter plus the minimum diameter times this percent"/>
+                <param argument="Log_invert" type="boolean" truevalue="--Log_invert" falsevalue="" checked="false" label="Are the particles white instead of black"/>
+                <param name="LoG_adjust_threshold" type="float" value="0.0" min="0" label="Picking threshold" help="Positive for less particles, negative for more"/>
+                <param name="LoG_upper_threshold" type="float" value="99999.0" min="0" label="Upper limit of the picking threshold"/>
+                <param argument="LoG_use_ctf" type="boolean" truevalue="--LoG_use_ctf" falsevalue="" checked="false" label="Use CTF until the first peak in Laplacian-of-Gaussian picker"/>
+            </when>
+            <when value="ref_star_or_gauss">
+                <conditional name="ref_star_gauss_cond">
+                    <param argument="ref_star_gause" type="select" label="Selection process for picking particles">
+                        <option value="ref_star" selected="true">Use a selected STAR file with the reference names</option>
+                        <option value="gauss">Use "gauss" for blob picking</option>
+                    </param>
+                    <when value="ref_star">
+                        <param name="ref" type="data" format="star" label="STAR file with the reference names"/>
+                    </when>
+                    <when value="gauss"/>
+                </conditional>
+                <param name="angpix_ref" type="float" value="-1.0" min="-1" label="Pixel size of the references in Angstroms" help="Default is same as micrographs"/>
+                <param argument="invert" type="boolean" truevalue="--invert" falsevalue="" checked="false" label="Density in micrograph is inverted with respect to density in template"/>
+                <param name="ang" type="float" value="10.0" min="1" max="360" label="Angular sampling in degrees" help="Use 360 for no rotations"/>
+                <param name="lowpass" type="float" value="-1.0" min="-1" label="Lowpass filter in Angstroms for the references" help="Prevent Einstein-from-noise"/>
+                <param name="highpass" type="float" value="-1.0" min="-1" label="Highpass filter in Angstroms for the micrographs"/>
+                <param argument="ctf" type="boolean" truevalue="--ctf" falsevalue="" checked="false" label="Perform CTF correction on the references?"/>
+                <param name="gauss_max" type="float" value="0.1" min="0" label="Value of the peak in the Gaussian blob reference"/>
+                <param name="healpix_order" type="integer" value="1" label="Healpix order for projecting a 3D reference" help="hp0=60deg; hp1=30deg; hp2=15deg"/>
+                <param name="sym" type="text" value="C1" label="Symmetry point group for a 3D reference">
+                    <sanitizer invalid_char="">
+                      <valid initial="string.ascii_letters,string.digits">
+                          <add value="."/>
+                          <add value="_"/>
+                      </valid>
+                    </sanitizer>
+                </param>
+            </when>
+        </conditional>
+        <conditional name="helix_cond">
+            <param argument="helix" type="boolean" truevalue="--helix" falsevalue="" checked="false" label="Are the references 2D helical segments?" help="If Yes, in-plane rotation angles (psi) are estimated for the references"/>
+            <when value="--helix">
+                <param name="helical_tube_kappa_max" type="float" value="0.25" min="0" label="Factor of maximum curvature relative to that of a circle"/>
+                <param name="helical_tube_outer_diameter" type="float" value="-1.0" min="-1.0" label="Tube diameter in Angstroms"/>
+                <param name="helical_tube_length_min" type="float" value="-1.0" min="-1.0" label="Minimum tube length in Angstroms"/>
+                <param argument="amyloid" type="boolean" truevalue="--helix" falsevalue="" checked="false" label="Activate specific algorithm for amyloid picking?"/>
+                <param name="max_diam_local_avg" type="float" value="-1.0" min="-1.0" label="Maximum diameter to calculate local average density in Angstroms"/>
+            </when>
+            <when value=""/>
+        </conditional>
+    </inputs>
+    <outputs>
+        <data name="output_log" format="txt" label="${tool.name} on ${on_string} (process log)"/>
+        <data name="output_pdf" format="pdf" label="${tool.name} on ${on_string} (pdf)"/>
+        <data name="output_star" format="star" label="${tool.name} on ${on_string} (star)"/>
+    </outputs>
+    <tests>
+        <test expect_num_outputs="3">
+            <param name="input" value="autoppick_in1.star" ftype="star"/>
+            <output name="output_log" value="autopick_log1.txt" ftype="txt"/>
+            <output name="output_pdf" value="autopick_pdf1.txt" ftype="pdf" compare="sim_size"/>
+            <output name="output_star" value="autopick_star1.txt" ftype="star"/>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+iAccepts a STAR file with all input micrographs, or a Linux wildcard with all micrographs to operate on and outputs a
+whole-frame movie alignment.
+    </help>
+    <expand macro="citations"/>
+</tool>
+
