@@ -41,10 +41,10 @@ $only_do_unfinished
 --eer_upsampling $eer_upsampling
 #if str($dose_weighting_cond.dose_weighting) != '':
     $dose_weighting_cond.dose_weighting
-    --angpix $angpix
-    --voltage $voltage
-    --dose_per_frame $dose_per_frame
-    --preexposure $preexposure
+    --angpix $dose_weighting_cond.angpix
+    --voltage $dose_weighting_cond.voltage
+    --dose_per_frame $dose_weighting_cond.dose_per_frame
+    --preexposure $dose_weighting_cond.preexposure
 #end if
 #if str($use_own_cond.use_own) != '':
     $use_own_cond.use_own

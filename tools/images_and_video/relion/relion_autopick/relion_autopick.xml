@@ -79,6 +79,17 @@ relion_autopick
     '$helix_cond.amyloid'
     --max_diam_local_avg $helix_cond.max_diam_local_avg
 #end if
+--threshold $threshold
+--min_distance $min_distance
+--max_stddev_noise $max_stddev_noise
+--min_avg_noise $min_avg_noise
+--skip_side $skip_side
+--verb $verb
+--pad $pad
+--random_seed $random_seed
+--shrink $shrink
+--Log_max_search $Log_max_search
+--extra_pad $extra_pad
 
 &>'$output_log';
 if [[ $? -ne 0 ]]; then
@@ -86,12 +97,14 @@ if [[ $? -ne 0 ]]; then
 else
     rm '${star_identifier}';
     mv '.summary.star' '$output_star';
+    cp *.ctf '$output_star.files_path';
     cp *.mrc '$output_star.files_path';
     mv '.logfile.pdf' '$output_pdf';
     cat *.log >> '$output_log';
 fi
 ]]></command>
     <inputs>
+        <!-- General options -->
         <param name="input" type="data" format="star" label="Relion STAR file with all input micrographs"/>
         <param name="pickname" type="text" value="autopick" label="Rootname for coordinate STAR files">
             <sanitizer invalid_char="">
@@ -116,6 +129,8 @@ fi
                 <option value="LoG" selected="true">Use Laplacian-of-Gaussian filter-based picking instead of template matching</option>
                 <option value="ref_star_or_gauss">Use a selected STAR file with the reference names or gauss for blob picking</option>
             </param>
+
+            <!-- Laplacian-of-Gaussian options -->
             <when value="LoG">
                 <param name="LoG_diam_min" type="float" value="-1.0" min="-1" label="Smallest particle diameter in Angstroms for blob-detection by Laplacian-of-Gaussian filter"/>
                 <param name="LoG_diam_max" type="float" value="-1.0" min="-1" label="Largest particle diameter in Angstroms for blob-detection by Laplacian-of-Gaussian filter"/>
@@ -125,6 +140,8 @@ fi
                 <param name="LoG_upper_threshold" type="float" value="99999.0" min="0" label="Upper limit of the picking threshold"/>
                 <param argument="LoG_use_ctf" type="boolean" truevalue="--LoG_use_ctf" falsevalue="" checked="false" label="Use CTF until the first peak in Laplacian-of-Gaussian picker"/>
             </when>
+
+            <!-- Reference options -->
             <when value="ref_star_or_gauss">
                 <conditional name="ref_star_gauss_cond">
                     <param argument="ref_star_gause" type="select" label="Selection process for picking particles">
@@ -154,6 +171,8 @@ fi
                 </param>
             </when>
         </conditional>
+
+        <!-- Helix options -->
         <conditional name="helix_cond">
             <param argument="helix" type="boolean" truevalue="--helix" falsevalue="" checked="false" label="Are the references 2D helical segments?" help="If Yes, in-plane rotation angles (psi) are estimated for the references"/>
             <when value="--helix">
@@ -165,6 +184,21 @@ fi
             </when>
             <when value=""/>
         </conditional>
+
+        <!-- Peak-search options -->
+        <param name="threshold" type="float" value="0.25" label="Fraction of expected probability ratio in order to consider peaks"/>
+        <param name="min_distance" type="float" value="-1.0" min="-1.0" label="Minimum distance between any two particles" help="Default is half the box size"/>
+        <param name="max_stddev_noise" type="float" value="-1.0" min="-1.0" label="Maximum standard deviation in the noise area to use for picking peaks" help="Default is no maximum"/>
+        <param name="min_avg_noise" type="float" value="-999.0" label="Minimum average in the noise area to use for picking peaks" help="Default is no minimum"/>
+        <param name="skip_side" type="integer" value="0" min="0" label="Keep this many extra pixels, apart from particle_size/2, away from the edge of the micrograph"/>
+
+        <!-- Expert options -->
+        <param name="verb" type="integer" value="1" min="0" label="Verbosity"/>
+        <param name="pad" type="integer" value="2" min="0" label="Padding factor for Fourier transforms"/>
+        <param name="random_seed" type="integer" value="1" min="0" label="Number for the random seed generator"/>
+        <param name="shrink" type="float" value="1.0" min="0" label="Reduce micrograph to this fraction size, during correlation calc" help="Saves memory and time"/>
+        <param name="Log_max_search" type="float" value="5.0" min="0" label="Maximum diameter in LoG-picking multi-scale approach is this many times the min/max diameter"/>
+        <param name="extra_pad" type="integer" value="0" min="0" label="Number of pixels for additional padding of the original micrograph"/>
     </inputs>
     <outputs>
         <data name="output_log" format="txt" label="${tool.name} on ${on_string} (process log)"/>
