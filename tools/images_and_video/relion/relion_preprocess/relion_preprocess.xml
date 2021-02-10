@@ -1,0 +1,190 @@
+<tool id="relion_preprocess" name="Relion: preprocess" version="1.0.0">
+    <description>to extract particles with CTF information</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <requirements>
+        <requirement type="package" version="3.1.1">relion</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+#import os
+
+mkdir '$output_star.files_path' &&
+
+## Symlink the STAR file (the same input
+## selected by the relion_autopick tool).
+#set star_identifier = $os.path.splitext($os.path.basename($input.file_name))[0] + '.star'
+ln -s '${input}' '${star_identifier}' &&
+
+## Symlink the files that are located in
+## the extra_files_path.  These should
+## include micrograph (.mrc) and coordinate
+## (.ctf) files.
+#for $i in $os.listdir($input.extra_files_path):
+    ln -s '$os.path.join($input.extra_files_path, $i)' '$i' &&
+#end for
+
+relion_preprocess
+
+## General options
+--i '${star_identifier}'
+#if str($coord_suffix) != '':
+    --coord_suffix  '$coord_suffix'
+#end if
+--coord_dir .
+--part_dir .
+#if str($reextract_cond.reextract) != '':
+    --reextract_data_star '$reextract_cond.reextract_data_star'
+    '$reextract_cond.keep_ctfs_micrographs'
+    '$reextract_cond.reset_offsets'
+    #if str($reextract_cond.recenter_cond.recenter) != '':
+        '$reextract_cond.recenter_cond.recenter'
+        --recenter_x $reextract_cond.recenter_cond.recenter_x
+        --recenter_y $reextract_cond.recenter_cond.recenter_y
+        --recenter_z $reextract_cond.recenter_cond.recenter_z
+        --ref_angpix $reextract_cond.recenter_cond.ref_angpix
+    #end if
+#end if
+
+## Particle extraction
+#if str($extract_cond.extract) != '':
+    '$extract_cond.extract'
+    --extract_size $extract_cond.extract_size
+    #if str($extract_cond.premultiply_ctf_cond.premultiply_ctf) != '':
+        '$extract_cond.premultiply_ctf_cond.premultiply_ctf'
+        --premultiply_extract_size $extract_cond.premultiply_ctf_cond.premultiply_extract_size
+       '$extract_cond.ctf_intact_first_peak'
+       '$extract_cond.phase_flip'
+       --extract_bias_x $extract_cond.extract_bias_x
+       --extract_bias_y $extract_cond.extract_bias_y
+       '$extract_cond.only_do_unfinished'
+    #end if
+#end if
+
+## Particle operation
+'$project3d'
+--scale $scale
+--window $window
+'$norm'
+'$no_ramp'
+--bg_radius $bg_radius
+--white_dust $white_dust
+--black_dust $black_dust
+'$invert_contrast'
+
+## Helix extraction
+#if str($helix_cond.helix) != '':
+    '$helix_cond.helix'
+    --helical_outer_diameter $helix_cond.helical_outer_diameter
+    '$helix_cond.helix_tubes'
+    --helical_nr_asu $helix_cond.helical_nr_asu
+    --helical_rise $helix_cond.helical_rise
+    '$helix_cond.helical_bimodal_angular_priors'
+    '$helix_cond.helical_cut_into_segments'
+#end if
+
+&>'$output_log';
+if [[ $? -ne 0 ]]; then
+    exit 1;
+fi
+]]></command>
+    <inputs>
+        <!-- General options -->
+        <param name="input" type="data" format="star" label="Relion STAR file with all selected micrographs from which to extract particles"/>
+        <param name="coord_suffix" type="text" value="" label="The suffix for the coordinate files">
+            <sanitizer invalid_char="">
+              <valid initial="string.ascii_letters,string.digits">
+                  <add value="."/>
+                  <add value="_"/>
+              </valid>
+            </sanitizer>
+        </param>
+        <conditional name="reextract_cond">
+            <param argument="reextract" type="boolean" truevalue="--reextract" falsevalue="" checked="false" label="Specify a STAR file from a refinement to re-extract?"/>
+            <when value="--reextract">
+                <param name="reextract_data_star" type="data" format="star" label="STAR file from a refinement to re-extract" help="For example, with different binning or re-centered"/>
+                <param argument="keep_ctfs_micrographs" type="boolean" truevalue="--keep_ctfs_micrographs" falsevalue="" checked="false" label="Keep CTFs from input micrographs STAR file?"/>
+                <param argument="reset_offsets" type="boolean" truevalue="--reset_offsets" falsevalue="" checked="false" label="Reset the origin offsets from the selected STAR file from a refinement to zero?"/>
+                <conditional name="recenter_cond">
+                    <param argument="recenter" type="boolean" truevalue="--recenter" falsevalue="" checked="false" label="Re-center particle according to rlnOriginX/Y in the selected STAR file from a refinement?"/>
+                    <when value=""/>
+                    <when value="--recenter">
+                        <param name="recenter_x" type="float" value="0.0" min="0" label="X-coordinate, in pixel inside the reference, on which to recenter re-extracted data"/>
+                        <param name="recenter_y" type="float" value="0.0" min="0" label="Y-coordinate, in pixel inside the reference, on which to recenter re-extracted data"/>
+                        <param name="recenter_z" type="float" value="0.0" min="0" label="Z-coordinate, in pixel inside the reference, on which to recenter re-extracted data"/>
+                        <param name="ref_angpix" type="float" value="-1.0" min="-1" label="Pixel size of the reference used for recentering" help="-1 uses the pixel size of particles"/>
+                    </when>
+                </conditional>
+            </when>
+            <when value=""/>
+        </conditional>
+
+        <!-- Particle extraction -->
+        <conditional name="extract_cond">
+            <param argument="extract" type="boolean" truevalue="--extract" falsevalue="" checked="false" label="Extract all particles from the micrographs?"/>
+            <when value="--extract">
+                <param name="extract_size" type="integer" value="-1" min="-1" label="Size of the box, in pixels, to extract the particles"/>
+                <conditional name="premultiply_ctf_cond">
+                    <param argument="premultiply_ctf" type="boolean" truevalue="--premultiply_ctf" falsevalue="" checked="false" label="Premultiply the micrograph/frame with its CTF prior to particle extraction?"/>
+                    <when value="--premultiply_ctf">
+                        <param name="premultiply_extract_size" type="integer" value="-1" min="-1" label="Size of the box to extract the particles in, in pixels, before CTF premultiplication"/>
+                    </when>
+                    <when value=""/>
+                </conditional>
+                <param argument="ctf_intact_first_peak" type="boolean" truevalue="--ctf_intact_first_peak" falsevalue="" checked="false" label="When premultiplying with the CTF, leave frequencies intact until the first peak?"/>
+                <param argument="phase_flip" type="boolean" truevalue="--phase_flip" falsevalue="" checked="false" label="Flip CTF-phases in the micrograph/frame prior to particle extraction?"/>
+                <param name="extract_bias_x" type="integer" value="0" min="0" label="Bias in X-direction of picked particles" help="This value in pixels will be added to the coords"/>
+                <param name="extract_bias_y" type="integer" value="0" min="0" label="Bias in Y-direction of picked particles" help="This value in pixels will be added to the coords"/>
+                <param argument="only_do_unfinished" type="boolean" truevalue="--only_do_unfinished" falsevalue="" checked="false" label="Extract only particles if the STAR file for that micrograph does not yet exist?"/>
+            </when>
+            <when value=""/>
+        </conditional>
+
+        <!-- Particle operations -->
+        <param argument="project3d" type="boolean" truevalue="--project3d" falsevalue="" checked="false" label="Project sub-tomograms along Z to generate 2D particles?"/>
+        <param name="scale" type="integer" value="-1" min="-1" label="Re-scale the particles to this size in pixels"/>
+        <param name="window" type="integer" value="-1" min="-1" label="Re-window the particles to this size in pixels"/>
+        <param argument="norm" type="boolean" truevalue="--norm" falsevalue="" checked="false" label="Normalise the background to average zero and stddev one?"/>
+        <param argument="no_ramp" type="boolean" truevalue="--no_ramp" falsevalue="" checked="false" label="Subtract the background mean in the normalisation instead of subtracting a fitted ramping background?"/>
+        <param name="bg_radius" type="integer" value="-1" min="-1" label="Radius in pixels of the circular mask that will be used to define the background area"/>
+        <param name="white_dust" type="integer" value="-1" min="-1" label="Sigma-values above which white dust will be removed" help="Negative value means no dust removal"/>
+        <param name="black_dust" type="integer" value="-1" min="-1" label="Sigma-values above which black dust will be removed" help="Negative value means no dust removal"/>
+        <param argument="invert_contrast" type="boolean" truevalue="--invert_contrast" falsevalue="" checked="false" label="Invert the contrast in the input images?"/>
+        <!-- TODO: add the operate_on and operate_out options here -->
+
+        <!-- Helix extraction -->
+        <conditional name="helix_cond">
+            <param argument="helix" type="boolean" truevalue="--helix" falsevalue="" checked="false" label="Extract helical segments?"/>
+            <when value="--helix">
+                <param name="helical_outer_diameter" type="float" value="-1.0" min="-1" label="Outer diameter of helical tubes in Angstroms for masks of helical segments"/>
+                <param argument="helical_tubes" type="boolean" truevalue="--helical_tubes" falsevalue="" checked="false" label="Extract helical segments from tube coordinates?"/>
+                <param name="helical_nr_asu" type="integer" value="1" min="0" label="Number of helical asymmetrical units"/>
+                <param name="helical_rise" type="float" value="0.0" min="0" label="Helical rise in Angstroms"/>
+                <param argument="helical_bimodal_angular_priors" type="boolean" truevalue="--helical_bimodal_angular_priors" falsevalue="" checked="false" label="Add bimodal angular priors for helical segments?"/>
+                <param argument="helical_cut_into_segments" type="boolean" truevalue="--helical_cut_into_segments" falsevalue="" checked="false" label="Cut helical tubes into segments?"/>
+            </when>
+            <when value=""/>
+        </conditional>
+    </inputs>
+    <outputs>
+        <data name="output_log" format="txt" label="${tool.name} on ${on_string} (process log)"/>
+        <data name="output_pdf" format="pdf" label="${tool.name} on ${on_string} (pdf)"/>
+        <data name="output_star" format="star" label="${tool.name} on ${on_string} (star)"/>
+    </outputs>
+    <tests>
+        <test expect_num_outputs="3">
+            <param name="input" value="autoppick_in1.star" ftype="star"/>
+            <output name="output_log" value="autopick_log1.txt" ftype="txt"/>
+            <output name="output_pdf" value="autopick_pdf1.txt" ftype="pdf" compare="sim_size"/>
+            <output name="output_star" value="autopick_star1.txt" ftype="star"/>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+iAccepts a STAR file with all input micrographs, or a Linux wildcard with all micrographs to operate on and outputs a
+whole-frame movie alignment.
+    </help>
+    <expand macro="citations"/>
+</tool>
+
