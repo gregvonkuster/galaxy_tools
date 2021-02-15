@@ -1,0 +1,409 @@
+<tool id="relion_refine" name="Relion: refine" version="1.0.0">
+    <description>to extract particles with CTF information</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <requirements>
+        <requirement type="package" version="3.1.1">relion</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+#import os
+
+mkdir '$output_star.files_path' &&
+
+## Symlink the STAR file (the same input
+## selected by the relion_autopick tool).
+#set star_identifier = $os.path.splitext($os.path.basename($input.file_name))[0] + '.star'
+ln -s '${input}' '${star_identifier}' &&
+
+## Symlink the files that are located in
+## the extra_files_path.  These should
+## include micrograph (.mrc) and coordinate
+## (.ctf) files.
+#for $i in $os.listdir($input.extra_files_path):
+    ln -s '$os.path.join($input.extra_files_path, $i)' '$i' &&
+#end for
+
+relion_refine
+
+## General options
+--i '${star_identifier}'
+--o .
+--iter $iter
+--tau2_fudge $tau2_fudge
+--K $K
+--particle_diameter $particle_diameter
+$zero_mask
+#if str($flatten_solvent_cond.flatten_solvent) != '':
+    $flatten_solvent_cond.flatten_solvent
+    --solvent_mask '$flatten_solvent_cond.solvent_mask'
+    --solvent_mask2 '$flatten_solvent_cond.solvent_mask2'
+#end if
+#if str($apply_lowpass_mask_cond.apply_lowpass_mask) != '':
+    $apply_lowpass_mask_cond.apply_lowpass_mask
+    --lowpass $apply_lowpass_mask_cond.lowpass
+#end if
+--tau  'tau'
+--local_symmetry  'local_symmetry'
+$split_random_halves
+--low_resol_join_halves $low_resol_join_halves
+
+## Initialisation
+#if str($ddd_refinement_cond.ddd_refinement) != '':
+    --ref '$ddd_refinement_cond.ref'
+    $ddd_refinement_cond.denovo_3dref
+    --offset $ddd_refinement_cond.offset
+    $ddd_refinement_cond.firstiter_cc
+    --ini_high $ddd_refinement_cond.ini_high
+#end if
+
+## Orientations
+--oversampling $oversampling
+--healpix_order $healpix_order
+--psi_step $psi_step
+--limit_tilt $limit_tilt
+--sym '$sym'
+--relax_sym '$relax_sym'
+--offset_range $offset_range
+--offset_step $offset_step
+--helical_offset_step $helical_offset_step
+--perturb $perturb
+$auto_refine
+--auto_local_healpix_order $auto_local_healpix_order
+--sigma_ang $sigma_ang
+--sigma_rot $sigma_rot
+--sigma_tilt $sigma_tilt
+--sigma_psi $sigma_psi
+$skip_align
+$skip_rotate
+$bimodal_psi
+
+## Helical reconstruction
+#if str($helix_cond.helix) != '':
+    $helix_cond.helix
+    $helix_cond.ignore_helical_symmetry
+    --helical_nr_asu $helix_cond.helical_nr_asu
+    --helical_twist_initial $helix_cond.helical_twist_initial
+    --helical_twist_min $helix_cond.helical_twist_min
+    --helical_twist_max $helix_cond.helical_twist_max
+    --helical_twist_inistep $helix_cond.helical_twist_inistep
+    --helical_rise_initial $helix_cond.helical_rise_initial
+    --helical_rise_min $helix_cond.helical_rise_min
+    --helical_rise_max $helix_cond.helical_rise_max
+    --helical_rise_inistep $helix_cond.helical_rise_inistep
+    --helical_nstart $helix_cond.helical_nstart
+    --helical_z_percentage $helix_cond.helical_z_percentage
+    --helical_inner_diameter $helix_cond.helical_inner_diameter
+    --helical_outer_diameter $helix_cond.helical_outer_diameter
+    $helix_cond.helical_symmetry_search
+    --helical_sigma_distance $helix_cond.helical_sigma_distance
+    $helix_cond.helical_keep_tilt_prior_fixed
+    --helical_exclude_resols '$helix_cond.helical_exclude_resols'
+    --fourier_mask '$helix_cond.fourier_mask'
+#end if
+
+## Corrections
+#if str($ctf_cond.ctf) != '':
+    $ctf_cond.ctf
+    $ctf_cond.pad_ctf
+    $ctf_cond.ctf_intact_first_peak
+    $ctf_cond.ctf_corrected_ref
+    $ctf_cond.ctf_phase_flipped
+    $ctf_cond.only_flip_phases
+    $ctf_cond.norm
+    $ctf_cond.scale
+    $ctf_cond.no_norm
+    $ctf_cond.no_scale
+#end if
+
+## Stochastic Gradient Descent
+#if str($sgd_cond.sgd) != '':
+    '$sgd_cond.sgd'
+    '$sgd_cond.stochastic_em'
+    --sgd_ini_iter $sgd_ciond.sgd_ini_iter
+    --sgd_fin_iter $sgd_ciond.sgd_fin_iter
+    --sgd_inbetween_iter $sgd_ciond.sgd_inbetween_iter
+    --sgd_ini_resol $sgd_ciond.sgd_ini_resol
+    --sgd_fin_resol $sgd_ciond.sgd_fin_resol
+    --sgd_ini_subset $sgd_ciond.sgd_ini_subset
+    --sgd_fin_subset $sgd_ciond.sgd_fin_subset
+    --mu $sgd_ciond.mu
+    --sgd_stepsize $sgd_ciond.sgd_stepsize
+    --sgd_sigma2fudge_initial $sgd_ciond.sgd_sigma2fudge_initial
+    --sgd_sigma2fudge_halflife $sgd_ciond.sgd_sigma2fudge_halflife
+    '$sgd_ciond.sgd_skip_anneal'
+    --sgd_write_iter $sgd_ciond.ssgd_write_iter
+#end if
+
+## Computation
+--pool $pool
+--j \${GALAXY_SLOTS:-1}
+'$dont_combine_weights_via_disc'
+'$onthefly_shifts'
+'$no_parallel_disc_io'
+'$preread_images'
+'$fast_subsets'
+
+## Expert options
+--pad $pad
+--ref_angpix $ref_angpix
+'$NN'
+--r_min_nn $r_min_nn
+--verb $verb
+--random_seed $random_seed
+--coarse_size $coarse_size
+--adaptive_fraction $adaptive_fraction
+--maskedge $maskedge
+'$fix_sigma_noise'
+'$fix_sigma_offset'
+--incr_size $incr_size
+'$print_metadata_labels'
+'$print_symmetry_ops'
+--strict_highres_exp $strict_highres_exp
+--strict_lowres_exp $strict_lowres_exp
+--dont_check_norm $dont_check_norm
+'$always_cc'
+'$solvent_correct_fsc'
+'$skip_maximize'
+--failsafe_threshold $failsafe_threshold
+'$external_reconstruct'
+--auto_iter_max $auto_iter_max
+'$auto_ignore_angles'
+'$auto_resol_angles'
+'$allow_coarser_sampling'
+'$trust_ref_size'
+--maxsig $maxsig
+'$skip_gridding'
+
+&>'$output_log';
+if [[ $? -ne 0 ]]; then
+    exit 1;
+fi
+]]></command>
+    <inputs>
+        <!-- General options -->
+        <param name="input" type="data" format="star" label="Relion STAR file with all selected micrographs from which to extract particles"/>
+        <param name="output_rootname" type="text" value="" label="Output rootname">
+            <sanitizer invalid_char="">
+              <valid initial="string.ascii_letters,string.digits">
+                  <add value="."/>
+                  <add value="_"/>
+              </valid>
+            </sanitizer>
+        </param>
+        <param name="iter" type="integer" value="50" min="1" label="Maximum number of iterations to perform"/>
+        <param name="tau2_fudge" type="float" value="1.0" min="1" label="Regularisation parameter" help="Values higher than 1 give more weight to the data"/>
+        <param name="K" type="integer" value="1" min="1" label="Number of references to be refined"/>
+        <param name="particle_diameter" type="float" value="-1.0" min="-1" label="Diameter, in Angstroms, of the circular mask that will be applied to the experimental images"/>
+        <param argument="--zero_mask" type="boolean" truevalue="--zero_mask" falsevalue="" checked="false" label="Mask surrounding background in particles to zero?" help="By default the solvent area is filled with random noise"/>
+        <conditional name="flatten_solvent_cond">
+            <param argument="--flatten_solvent" type="boolean" truevalue="--flatten_solvent" falsevalue="" checked="false" label="Perform masking on the references as well?"/>
+            <when value="--flatten_solvent">
+                <!-- TODO: the Relion code does not clarify what these mask objects are.  I assume they are image files, but not sure. -->
+                <param name="solvent_mask" type="data" format="star" label="Mask for the references" help="Default is to use spherical mask with particle_diameter"/>
+                <param name="solvent_mask2" type="data" format="star" label="Secondary mask"/>
+            </when>
+            <when value=""/>
+        </conditional>
+        <conditional name="apply_lowpass_mask_cond">
+            <param argument="--apply_lowpass_mask" type="boolean" truevalue="--apply_lowpass_mask" falsevalue="" checked="false" label="Select a mask for low-pass filtering?"/>
+            <when value="--apply_lowpass_mask">
+                <param name="lowpass_mask" type="data" format="star" label="Mask for the low-pass filtering"/>
+                <param name="lowpass" type="integer" value="0" min="0" label="Cutoff for the region specified above"/>
+            </when>
+            <when value=""/>
+        </conditional>
+        <param name="tau" type="data" format="star" label="Relion STAR file with input tau2-spectrum to be kept constant"/>
+        <!-- TODO: no idea what format this local_symmetry description file is. -->
+        <param name="local_symmetry" type="data" format="star" label="Local symmetry description file containing list of masks and their operators"/>
+        <param argument="--split_random_halves" type="boolean" truevalue="--asplit_random_halvespply_lowpass_mask" falsevalue="" checked="false" label="Refine two random halves of the data completely separately?"/>
+        <param name="low_resol_join_halves" type="float" value="-1.0" min="-1" label="Resolution, in Angstroms, up to which the two random half-reconstructions will not be independent to prevent diverging orientations"/>
+
+        <!-- Initialisation -->
+        <conditional name="ddd_refinement_cond">
+            <param argument="--ddd_refinement" type="boolean" truevalue="--3d_refinement" falsevalue="" checked="false" label="Perform 3D refinement?"/>
+            <when value="--3d_refinement">
+                <param name="ref" type="data" format="star" label="Relion STAR file with the references" help="Compulsory for 3D refinement"/>
+                <param argument="--denovo_3dref" type="boolean" truevalue="--denovo_3dref" falsevalue="" checked="false" label="Make an initial 3D model from randomly oriented 2D particles?"/>
+                <param name="offset" type="float" value="10.0" min="0" label="Initial estimated stddev in Angstroms for the origin offsets"/>
+                <param argument="--firstiter_cc" type="boolean" truevalue="--firstiter_cc" falsevalue="" checked="false" label="Perform CC-calculation in the first iteration?" help="Use this if references are not on the absolute intensity scale"/>
+                <param name="ini_high" type="float" value="-1.0" min="-1" label="Resolution in Angstroms to which to limit refinement in the first iteration"/>
+            </when>
+            <when value=""/>
+        </conditional>
+
+        <!-- Orientations -->
+        <param name="oversampling" type="integer" value="1" min="0" label="Adaptive oversampling order to speed-up calculations" help="0=no oversampling, 1=2x, 2=4x, etc."/>
+        <param name="healpix_order" type="integer" value="2" min="0" label="Healpix order for the angular sampling before oversampling on the 3D sphere" help="hp2=15deg, hp3=7.5deg, etc."/>
+        <param name="psi_step" type="float" value="-1.0" min="-1" label="Sampling rate before oversampling for the in-plane angle" help="Default=10deg for 2D, hp sampling for 3D"/>
+        <param name="limit_tilt" type="float" value="-91.0" min="-360" max="360" label="Limited tilt angle" help="Positive for keeping side views, negative for keeping top views"/>
+        <param name="sym" type="text" value="c1" label="Symmetry group">
+            <sanitizer invalid_char="">
+              <valid initial="string.ascii_letters,string.digits">
+                  <add value="."/>
+                  <add value="_"/>
+                  <add value=","/>
+              </valid>
+            </sanitizer>
+        </param>
+        <param name="relax_sym" type="text" value="" label="Symmetry to be relaxed">
+            <sanitizer invalid_char="">
+              <valid initial="string.ascii_letters,string.digits">
+                  <add value="."/>
+                  <add value="_"/>
+                  <add value=","/>
+              </valid>
+            </sanitizer>
+        </param>
+        <param name="offset_range" type="float" value="6.0" min="0" label="Search range in pixels for origin offset"/>
+        <param name="offset_step" type="float" value="2.0" min="0" label="Sampling rate, in pixels, before oversampling for origin offsets"/>
+        <param name="helical_offset_step" type="float" value="-1.0" min="-1" label="Sampling rate, in Angstroms, before oversampling for offsets along helical axis"/>
+        <param name="perturb" type="float" value="0.5" min="0" max="0.5" label="Perturbation factor for the angular sampling" help="0=no perturb; 0.5=perturb"/>
+        <param argument="--auto_refine" type="boolean" truevalue="--auto_refine" falsevalue="" checked="false" label="Perform 3D auto-refine procedure?"/>
+        <param name="auto_local_healpix_order" type="integer" value="4" min="0" label="Minimum healpix order, before oversampling, from which autosampling procedure will use local searches"/>
+        <param name="sigma_ang" type="float" value="-1.0" min="-1" label="Stddev on all three Euler angles for local angular searches" help="Of +/- 3 stddev"/>
+        <param name="sigma_rot" type="float" value="-1.0" min="-1" label="Stddev on on the first Euler angle for local angular searches" help="Of +/- 3 stddev"/>
+        <param name="sigma_tilt" type="float" value="-1.0" min="-1" label="Stddev on on the second Euler angle for local angular searches" help="Of +/- 3 stddev"/>
+        <param name="sigma_psi" type="float" value="-1.0" min="-1" label="Stddev on on the in-plane angle for local angular searches" help="Of +/- 3 stddev"/>
+        <param argument="--skip_align" type="boolean" truevalue="--skip_align" falsevalue="" checked="false" label="Skip orientational assignment?" help="Only classify"/>
+        <param argument="--skip_rotate" type="boolean" truevalue="--skip_rotate" falsevalue="" checked="false" label="Skip rotational assignment?" help="Only translate and classify"/>
+        <param argument="--bimodal_psi" type="boolean" truevalue="--bimodal_psi" falsevalue="" checked="false" label="Skip bimodal searches of psi angle?" help="Only translate and classify"/>
+
+        <!-- Helical reconstruction -->
+        <conditional name="helix_cond">
+            <param argument="--helix" type="boolean" truevalue="--helix" falsevalue="" checked="false" label="Perform 3D classification or refinement for helices?"/>
+            <when value="--helix">
+                <param argument="--ignore_helical_symmetry" type="boolean" truevalue="--ignore_helical_symmetry" falsevalue="" checked="false" label="Ignore helical symmetry?"/>
+                <param name="helical_nr_asu" type="integer" value="1" min="1" label="Number of new helical asymmetric units per box" help="1 means no helical symmetry is present"/>
+                <param name="helical_twist_initial" type="float" value="0.0" min="0" label="Helical twist un degrees" help="Positive values for right-handedness"/>
+                <param name="helical_twist_min" type="float" value="0.0" min="0" label="Minimum helical twist in degrees" help="Positive values for right-handedness"/>
+                <param name="helical_twist_max" type="float" value="0.0" min="0" label="Maximum helical twist in degrees" help="Positive values for right-handedness"/>
+                <param name="helical_twist_inistep" type="float" value="0.0" min="0" label="Initial step of helical twist search in degrees"/>
+                <param name="helical_rise_initial" type="float" value="0.0" min="0" label="Helical rise in Angstroms"/>
+                <param name="helical_rise_min" type="float" value="0.0" min="0" label="Minimum helical rise in Angstroms"/>
+                <param name="helical_rise_max" type="float" value="0.0" min="0" label="Maximum helical rise in Angstroms"/>
+                <param name="helical_rise_inistep" type="float" value="0.0" min="0" label="Initial step of helical rise search in Angstroms"/>
+                <param name="helical_nstart" type="integer" value="1" min="0" label="N-number for the N-start helix" help="Only useful for rotational priors"/>
+                <param name="helical_z_percentage" type="float" value="0.3" label="Box length along the center of the Z axis containing good information of the helix" help="Important in imposing and refining symmetry"/>
+                <param name="helical_inner_diameter" type="float" value="-1.0" min="-1" label="Inner diameter of helical tubes in Angstroms" help="For masks of helical references and particles"/>
+                <param name="helical_outer_diameter" type="float" value="-1.0" min="-1" label="Outer diameter of helical tubes in Angstroms" help="For masks of helical references and particles"/>
+                <param argument="--helical_symmetry_search" type="boolean" truevalue="--helical_symmetry_search" falsevalue="" checked="false" label="Perform local refinement of helical symmetry?"/>
+                <param name="helical_sigma_distance" type="float" value="-1.0" min="-1" label="Sigma of distance along the helical tracks"/>
+                <param argument="--helical_keep_tilt_prior_fixed" type="boolean" truevalue="--helical_keep_tilt_prior_fixed" falsevalue="" checked="false" label="Keep helical tilt priors fixed at 90 degrees in global angular searches?"/>
+                <param name="helical_exclude_resols" type="text" value="" label="Resolutions, in A, along helical axis to exclude from refinement" help="Comma-separated pairs, e.g. 50-5">
+                    <sanitizer invalid_char="">
+                      <valid initial="string.ascii_letters,string.digits">
+                          <add value="."/>
+                          <add value="_"/>
+                          <add value=","/>
+                      </valid>
+                    </sanitizer>
+                </param>
+                <!-- TODO: the Relion code does not clarify what this mask object is.  I assume it is an image files, but not sure. -->
+                <param name="fourier_mask" type="data" format="star" label="Originally-sized, FFTW-centred image with Fourier mask for Projector"/>
+            </when>
+            <when value=""/>
+        </conditional>
+
+        <!-- Corrections -->
+        <conditional name="ctf_cond">
+            <param argument="--ctf" type="boolean" truevalue="--ctf" falsevalue="" checked="false" label="Perform CTF corrections?"/>
+            <when value="--ctf">
+                <param argument="--pad_ctf" type="boolean" truevalue="--pad_ctf" falsevalue="" checked="false" label="Perform CTF padding to treat CTF aliaising better?"/>
+                <param argument="--ctf_intact_first_peak" type="boolean" truevalue="--ctf_intact_first_peak" falsevalue="" checked="false" label="Ignore CTFs until their first peak?"/>
+                <param argument="--ctf_corrected_ref" type="boolean" truevalue="--ctf_corrected_ref" falsevalue="" checked="false" label="Have the input references been CTF-amplitude corrected?"/>
+                <param argument="--ctf_phase_flipped" type="boolean" truevalue="--ctf_phase_flipped" falsevalue="" checked="false" label="Have the data been CTF phase-flipped?"/>
+                <param argument="--only_flip_phases" type="boolean" truevalue="--only_flip_phases" falsevalue="" checked="false" label="Only perform CTF phase-flipping?" help="Default is full amplitude-correction"/>
+                <param argument="--norm" type="boolean" truevalue="--norm" falsevalue="" checked="false" label="Perform normalisation-error correction?"/>
+                <param argument="--scale" type="boolean" truevalue="--scale" falsevalue="" checked="false" label="Perform intensity-scale corrections on image groups?"/>
+                <param argument="--no_norm" type="boolean" truevalue="--no_norm" falsevalue="" checked="false" label="Switch off normalisation-error correction?"/>
+                <param argument="--no_scale" type="boolean" truevalue="--no_scale" falsevalue="" checked="false" label="Switch off intensity-scale corrections on image groups?"/>
+            </when>
+            <when value=""/>
+        </conditional>
+
+        <!-- Stochastic Gradient Descent -->
+        <conditional name="sgd_cond">
+            <param argument="--sgd" type="boolean" truevalue="--sgd" falsevalue="" checked="false" label="Perform stochastic gradient descent instead of default expectation-maximization?"/>
+            <when value="--sgd">
+                <param argument="--stochastic_em" type="boolean" truevalue="--stochastic_em" falsevalue="" checked="false" label="Perform stochastic EM instead of SGD to avoid patent problems for initial model generation by commercial users?"/>
+                <param name="sgd_ini_iter" type="integer" value="50" min="1" label="Number of initial SGD iterations"/>
+                <param name="sgd_fin_iter" type="integer" value="50" min="1" label="Number of final SGD iterations"/>
+                <param name="sgd_inbetween_iter" type="integer" value="200" min="1" label="Number of SGD iterations between the initial and final ones"/>
+                <param name="sgd_ini_resol" type="float" value="35.0" min="0" label="Resolution cutoff during the initial SGD iterations"/>
+                <param name="sgd_fin_resol" type="float" value="15.0" min="0" label="Resolution cutoff during the final SGD iterations"/>
+                <param name="sgd_ini_subset" type="integer" value="100" min="0" label="Mini-batch size during the initial SGD iterations"/>
+                <param name="sgd_fin_subset" type="integer" value="500" min="0" label="Mini-batch size during the final SGD iterations"/>
+                <param name="mu" type="float" value="0.9" min="0" label="Momentum parameter for SGD updates"/>
+                <param name="sgd_stepsize" type="float" value="0.5" min="0" label="Step size parameter for SGD updates"/>
+                <param name="sgd_sigma2fudge_initial" type="float" value="8.0" min="0" label="Initial factor by which the noise variance will be multiplied for SGD" help="Not used if halftime is negative"/>
+                <param name="sgd_sigma2fudge_halflife" type="integer" value="-1" min="-1" label="Initialise SGD with 8x higher noise-variance, and reduce with this half-life in number of particles" help="Default is keep normal variance"/>
+                <param argument="--sgd_skip_anneal" type="boolean" truevalue="--sgd_skip_anneal" falsevalue="" checked="false" label="Switch annealing off?" help="By default, multiple references are annealed during the in_between iterations"/>
+                <param name="sgd_write_iter" type="integer" value="1" min="1" label="Write out model every so many iterations in SGD" help="Default is writing out all iters"/>
+            </when>
+            <when value=""/>
+        </conditional>
+
+        <!-- Computation -->
+        <param name="pool" type="integer" value="1" min="1" label="Number of images to pool for each thread task"/>
+        <param argument="--dont_combine_weights_via_disc" type="boolean" truevalue="--dont_combine_weights_via_disc" falsevalue="" checked="false" label="Send the large arrays of summed weights through the MPI network, instead of writing large files to disc?"/>
+        <param argument="--onthefly_shifts" type="boolean" truevalue="--onthefly_shifts" falsevalue="" checked="false" label="Calculate shifted images on-the-fly, do not store precalculated ones in memory?"/>
+        <param argument="--no_parallel_disc_io" type="boolean" truevalue="--no_parallel_disc_io" falsevalue="" checked="false" label="Do NOT let parallel processes access the disc simultaneously?" help="Use this option with NFS"/>
+        <param argument="--preread_images" type="boolean" truevalue="--preread_images" falsevalue="" checked="false" label="Let the master process read all particles into memory?"/>
+        <!-- TODO: handle scratch_dir, keep_free_scratch, reuse_scratch, keep_scratch -->
+        <param argument="--fast_subsets" type="boolean" truevalue="--fast_subsets" falsevalue="" checked="false" label="Use faster optimisation by using subsets of the data in the first 15 iterations?"/>
+        <!-- TODO: handle gpu, free_gpu_memory -->
+
+        <!-- Expert options -->
+        <param name="pad" type="integer" value="2" min="1" label="Oversampling factor for the Fourier transforms of the references"/>
+        <param argument="--NN" type="boolean" truevalue="--NN" falsevalue="" checked="false" label="Perform nearest-neighbour instead of linear Fourier-space interpolation?"/>
+        <param name="ref_angpix" type="float" value="1.0" min="1" label="Pixel size in Angstroms for the input reference" help="Default is to read from header"/>
+        <param name="r_min_nn" type="integer" value="10" min="1" label="Minimum number of Fourier shells to perform linear Fourier-space interpolation"/>
+        <param name="verb" type="integer" value="1" min="0" max="1" label="Verbosity" help="1=normal, 0=silent"/>
+        <param name="random_seed" type="integer" value="-1" min="-1" label="Number for the random seed generator"/>
+        <param name="coarse_size" type="integer" value="-1" min="-1" label="Maximum image size for the first pass of the adaptive sampling approach"/>
+        <param name="adaptive_fraction" type="float" value="0.999" min="0" label="Fraction of the weights to be considered in the first pass of adaptive oversampling"/>
+        <param name="maskedge" type="integer" value="5" min="1" label="Width in pixels of the soft edge of the spherical mask"/>
+        <param argument="--fix_sigma_noise" type="boolean" truevalue="--fix_sigma_noise" falsevalue="" checked="false" label="Fix the experimental noise spectra?"/>
+        <param argument="--fix_sigma_offset" type="boolean" truevalue="--fix_sigma_offset" falsevalue="" checked="false" label="Fix the stddev in the origin offsets?"/>
+        <param name="incr_size" type="integer" value="10" min="1" label="Number of Fourier shells beyond the current resolution to be included in refinement"/>
+        <param argument="--print_metadata_labels" type="boolean" truevalue="--print_metadata_labels" falsevalue="" checked="false" label="Print a table with definitions of all metadata labels and exit?"/>
+        <param argument="--print_symmetry_ops" type="boolean" truevalue="--print_symmetry_ops" falsevalue="" checked="false" label="Print all symmetry transformation matrices and exit?"/>
+        <param name="strict_highres_exp" type="float" value="-1" min="-1" label="High resolution limit in Angstroms to restrict probability calculations in the expectation step"/>
+        <param name="strict_lowres_exp" type="float" value="-1" min="-1" label="Low resolution limit in Angstroms to restrict probability calculations in the expectation step"/>
+        <param argument="--dont_check_norm" type="boolean" truevalue="--dont_check_norm" falsevalue="" checked="false" label="Skip the check whether the images are normalised correctly?"/>
+        <param argument="--always_cc" type="boolean" truevalue="--always_cc" falsevalue="" checked="false" label="Perform CC-calculation in all iterations?" help="Useful for faster denovo model generation"/>
+        <param argument="--solvent_correct_fsc" type="boolean" truevalue="--solvent_correct_fsc" falsevalue="" checked="false" label="Correct FSC curve for the effects of the solvent mask?"/>
+        <param argument="--skip_maximize" type="boolean" truevalue="--skip_maximize" falsevalue="" checked="false" label="Skip maximization step?"/>
+        <param name="failsafe_threshold" type="integer" value="40" min="0" label="Maximum number of particles permitted to be handled by fail-safe mode, due to zero sum of weights, before exiting with an error" help="GPU only"/>
+        <param argument="--external_reconstruct" type="boolean" truevalue="--external_reconstruct" falsevalue="" checked="false" label="Perform the reconstruction step outside relion_refine?" help="For example, for learned priors"/>
+        <param name="auto_iter_max" type="integer" value="999" min="1" label="Stop at this iteration in auto-refinement"/>
+        <param argument="--auto_ignore_angles" type="boolean" truevalue="--auto_ignore_angles" falsevalue="" checked="false" label="Update angular sampling regardless of changes in orientations for convergence in auto-refinement" help="This makes convergence faster"/>
+        <param argument="--auto_resol_angles" type="boolean" truevalue="--auto_resol_angles" falsevalue="" checked="false" label="Update angular sampling based on resolution-based required sampling in auto-refinement" help="This makes convergence faster"/>
+        <param argument="--allow_coarser_sampling" type="boolean" truevalue="--allow_coarser_sampling" falsevalue="" checked="false" label="Allow coarser angular and translational samplings if accuracies are bad in 2D/3D classification?" help="Typically in earlier iterations"/>
+        <param argument="--trust_ref_size" type="boolean" truevalue="--trust_ref_size" falsevalue="" checked="false" label="Trust the pixel and box size of the input reference?" help="By default the program will die if these are different from the first optics group of the data"/>
+        <param name="maxsig" type="integer" value="-1" min="-1" label="Maximum number of poses and translations to consider"/>
+        <param argument="--skip_gridding" type="boolean" truevalue="--skip_gridding" falsevalue="" checked="false" label="Skip gridding in the M step"/>
+    </inputs>
+    <outputs>
+        <data name="output_log" format="txt" label="${tool.name} on ${on_string} (process log)"/>
+        <data name="output_pdf" format="pdf" label="${tool.name} on ${on_string} (pdf)"/>
+        <data name="output_star" format="star" label="${tool.name} on ${on_string} (star)"/>
+    </outputs>
+    <tests>
+        <test expect_num_outputs="3">
+            <param name="input" value="autoppick_in1.star" ftype="star"/>
+            <output name="output_log" value="autopick_log1.txt" ftype="txt"/>
+            <output name="output_pdf" value="autopick_pdf1.txt" ftype="pdf" compare="sim_size"/>
+            <output name="output_star" value="autopick_star1.txt" ftype="star"/>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+iAccepts a STAR file with all input micrographs, or a Linux wildcard with all micrographs to operate on and outputs a
+whole-frame movie alignment.
+    </help>
+    <expand macro="citations"/>
+</tool>
+

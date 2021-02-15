@@ -73,7 +73,7 @@ fi
 ]]></command>
     <inputs>
         <param name="input" type="data" format="star" label="Relion STAR file with all input micrographs"/>
-        <param argument="only_do_unfinished" type="boolean" truevalue="--only_do_unfinished" falsevalue="" checked="false" label="Only run motion correction for those micrographs for which there is not yet an output micrograph"/>
+        <param argument="--only_do_unfinished" type="boolean" truevalue="--only_do_unfinished" falsevalue="" checked="false" label="Only run motion correction for those micrographs for which there is not yet an output micrograph"/>
         <param name="do_at_most" type="integer" value="-1" min="-1" label="Only process at most this number of (unprocessed) micrographs" help="-1 value will process all"/>
         <param name="ps_size" type="integer" value="512" min="0" label="Output size of power spectrum"/>
         <param name="grouping_for_ps" type="integer" value="-1" min="-1" label="Group this number of frames and write summed power spectrum" help="-1 value will not write"/>
@@ -82,7 +82,7 @@ fi
         <param name="eer_grouping" type="integer" value="40" min="1" label="EER grouping"/>
         <param name="eer_upsampling" type="integer" value="1" min="1" label="EER upsampling" help="1=4K, 2=8K"/>
         <conditional name="dose_weighting_cond">
-            <param argument="dose_weighting" type="boolean" truevalue="--dose_weighting" falsevalue="" checked="false" label="Use dose-weighting scheme"/>
+            <param argument="--dose_weighting" type="boolean" truevalue="--dose_weighting" falsevalue="" checked="false" label="Use dose-weighting scheme"/>
              <when value="--dose_weighting">
                 <param name="angpix" type="float" value="-1.0" min="-1" label="Pixel size in Angstroms"/>
                 <param name="voltage" type="float" value="-1.0" min="-1" label="Voltage (in kV) for dose-weighting"/>
@@ -92,14 +92,14 @@ fi
              <when value=""/>
          </conditional>
         <conditional name="use_own_cond">
-            <param argument="use_own" type="boolean" truevalue="--use_own" falsevalue="" checked="true" label="Use our own implementation of motion correction"/>
+            <param argument="--use_own" type="boolean" truevalue="--use_own" falsevalue="" checked="true" label="Use our own implementation of motion correction"/>
              <when value="--use_own">
-                <param argument="skip_defect" type="boolean" truevalue="--skip_defect" falsevalue="" checked="false" label="Skip hot pixel detection"/>
-                <param argument="save_noDW" type="boolean" truevalue="--save_noDW" falsevalue="" checked="false" label="Save aligned but non dose weighted micrograph"/>
+                <param argument="--skip_defect" type="boolean" truevalue="--skip_defect" falsevalue="" checked="false" label="Skip hot pixel detection"/>
+                <param argument="--save_noDW" type="boolean" truevalue="--save_noDW" falsevalue="" checked="false" label="Save aligned but non dose weighted micrograph"/>
                 <param name="max_iter" type="integer" value="5" min="1" label="Maximum number of iterations for alignment"/>
-                <param argument="interpolate_shifts" type="boolean" truevalue="--interpolate_shifts" falsevalue="" checked="false" label="Interpolate shifts"/>
+                <param argument="--interpolate_shifts" type="boolean" truevalue="--interpolate_shifts" falsevalue="" checked="false" label="Interpolate shifts"/>
                 <param name="ccf_downsample" type="float" value="0.0" min="0" label="Downsampling rate of CC map" help="0 = automatic based on B factor"/>
-                <param argument="early_binning" type="boolean" truevalue="--early_binning" falsevalue="" checked="false" label="Do binning before alignment to reduce memory usage" help="This might dampen signal near Nyquist"/>
+                <param argument="--early_binning" type="boolean" truevalue="--early_binning" falsevalue="" checked="false" label="Do binning before alignment to reduce memory usage" help="This might dampen signal near Nyquist"/>
                 <param name="dose_motionstats_cutoff" type="float" value="4.0" min="0" label="Electron dose (in electrons/A2) at which to distinguish early/late global accumulated motion in output statistics"/>
              </when>
              <when value=""/>

@@ -26,10 +26,10 @@ export RELION_CTFFIND_EXECUTABLE=\$( dirname `which ctffind` )/ctffind &&
 
 relion_run_ctffind
 --i '${star_identifier}'
-'$use_noDW'
+$use_noDW
 --o .
-'$only_make_star'
-'$only_do_unfinished'
+$only_make_star
+$only_do_unfinished
 --do_at_most $do_at_most
 --ctfWin $ctfWin
 --CS $CS
@@ -75,9 +75,9 @@ fi
 ]]></command>
     <inputs>
         <param name="input" type="data" format="star" label="Relion STAR file with all input micrographs"/>
-        <param argument="use_noDW" type="boolean" truevalue="--use_noDW" falsevalue="" checked="false" label="Estimate CTFs from rlnMicrographNameNoDW instead of rlnMicrographName"/>
-        <param argument="only_make_star" type="boolean" truevalue="--only_make_star" falsevalue="" checked="false" label="Don't estimate any CTFs, only join all logfile results in a STAR file"/>
-        <param argument="only_do_unfinished" type="boolean" truevalue="--only_do_unfinished" falsevalue="" checked="false" label="Only estimate CTFs for those micrographs for which there is not yet a logfile with Final values"/>
+        <param argument="--use_noDW" type="boolean" truevalue="--use_noDW" falsevalue="" checked="false" label="Estimate CTFs from rlnMicrographNameNoDW instead of rlnMicrographName"/>
+        <param argument="--only_make_star" type="boolean" truevalue="--only_make_star" falsevalue="" checked="false" label="Don't estimate any CTFs, only join all logfile results in a STAR file"/>
+        <param argument="--only_do_unfinished" type="boolean" truevalue="--only_do_unfinished" falsevalue="" checked="false" label="Only estimate CTFs for those micrographs for which there is not yet a logfile with Final values"/>
         <param name="do_at_most" type="integer" value="-1" min="-1" label="Only process at most this number of (unprocessed) micrographs" help="-1 value will process all"/>
         <param name="ctfWin" type="integer" value="-1" min="-1" label="Size (in pixels) of a centered, squared window to use for CTF-estimation"/>
         <param name="CS" type="float" value="-1.0" min="-1" label="Spherical Aberration (mm)"/>
@@ -92,10 +92,10 @@ fi
         <param name="FStep" type="float" value="250.0" min="0" label="Defocus step size (in A) for search"/>
         <param name="dAst" type="float" value="0.0" min="0" label="Amount of astigmatism (in A)"/>
         <conditional name="is_ctffind4_cond">
-            <param argument="is_ctffind4" type="boolean" truevalue="--is_ctffind4" falsevalue="" checked="true" label="The provided CTFFIND executable is CTFFIND4" help="(version 4.1+)"/>
+            <param argument="--is_ctffind4" type="boolean" truevalue="--is_ctffind4" falsevalue="" checked="true" label="The provided CTFFIND executable is CTFFIND4" help="(version 4.1+)"/>
             <when value="--is_ctffind4">
-                <param argument="use_given_ps" type="boolean" truevalue="--use_given_ps" falsevalue="" checked="false" label="Use pre-calculated power spectra?"/>
-                <param argument="do_movie_thon_rings" type="boolean" truevalue="--do_movie_thon_rings" falsevalue="" checked="false" label="Calculate Thon rings from movie frames?"/>
+                <param argument="--use_given_ps" type="boolean" truevalue="--use_given_ps" falsevalue="" checked="false" label="Use pre-calculated power spectra?"/>
+                <param argument="--do_movie_thon_rings" type="boolean" truevalue="--do_movie_thon_rings" falsevalue="" checked="false" label="Calculate Thon rings from movie frames?"/>
                 <param name="avg_movie_frames" type="integer" value="1" min="1" label="Average over how many movie frames" help="Try to get 4 e-/A2"/>
                 <param name="movie_rootname" type="text" value="_movie.mrcs" label="Rootname plus extension for movies">
                     <sanitizer invalid_char="">
@@ -106,7 +106,7 @@ fi
                     </sanitizer>
                 </param>
                 <conditional name="do_phaseshift_cond">
-                    <param argument="do_phaseshift" type="boolean" truevalue="--do_phaseshift" falsevalue="" checked="false" label="Estimate the phase shift in the images" help="From a phase-plate, for example"/>
+                    <param argument="--do_phaseshift" type="boolean" truevalue="--do_phaseshift" falsevalue="" checked="false" label="Estimate the phase shift in the images" help="From a phase-plate, for example"/>
                     <when value="--do_phaseshift">
                         <param name="phase_min" type="float" value="0.0" min="0" max="180" label="Minimum phase shift (in degrees)"/>
                         <param name="phase_max" type="float" value="180.0" min="0" max="180" label="Maximum phase shift (in degrees)"/>
@@ -114,12 +114,12 @@ fi
                     </when>
                     <when value=""/>
                 </conditional>
-                <param argument="fast_search" type="boolean" truevalue="--fast_search" falsevalue="" checked="false" label="Disable Slower, more exhaustive search in CTFFIND4.1" help="Faster but less accurate"/>
+                <param argument="--fast_search" type="boolean" truevalue="--fast_search" falsevalue="" checked="false" label="Disable Slower, more exhaustive search in CTFFIND4.1" help="Faster but less accurate"/>
             </when>
             <when value=""/>
         </conditional>
         <conditional name="use_gctf_cond">
-            <param argument="use_gctf" type="boolean" truevalue="--use_gctf" falsevalue="" checked="false" label="Use Gctf instead of CTFFIND to estimate the CTF parameters"/>
+            <param argument="--use_gctf" type="boolean" truevalue="--use_gctf" falsevalue="" checked="false" label="Use Gctf instead of CTFFIND to estimate the CTF parameters"/>
             <when value="--use_gctf"/>
             <when value=""/>
         </conditional>
