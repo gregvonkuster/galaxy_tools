@@ -97,9 +97,13 @@ if [[ $? -ne 0 ]]; then
 else
     rm '${star_identifier}';
     mv '.summary.star' '$output_star';
-    cp *.ctf '$output_star.files_path';
-    cp *.mrc '$output_star.files_path';
     mv '.logfile.pdf' '$output_pdf';
+    if [[ `ls -1 *.ctf 2>/dev/null | wc -l` != 0 ]]; then
+        cp *.ctf '$output_star.files_path';
+    fi;
+    if [[ `ls -1 *.mrc 2>/dev/null | wc -l` != 0 ]]; then
+        cp *.mrc '$output_star.files_path';
+    fi;
     cat *.log >> '$output_log';
 fi
 ]]></command>
