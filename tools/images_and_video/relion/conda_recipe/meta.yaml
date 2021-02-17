@@ -1,0 +1,44 @@
+{% set version = "3.1.1" %}
+{% set sha256 = "481c773418fc6a0c71c33d733a65da0783fe8056cebd964dcfb7fbe630f5b601" %}
+package:
+  name: relion
+  version: '{{version}}'
+
+source:
+  url: https://github.com/3dem/relion/archive/3.1.1.tar.gz
+  sha256: '{{sha256}}'
+
+build:
+  number: 0
+
+requirements:
+  build:
+    - {{ compiler('cxx') }}
+    - cmake
+  host:
+    - fltk
+    - fftw
+    - libtiff
+    - mpich
+    - xorg-libx11
+    - xorg-libxft
+    - xorg-libxinerama
+  run:
+    - fltk
+    - fftw
+    - libtiff
+    - mpich
+    - xorg-libx11
+    - xorg-libxft
+    - xorg-libxinerama
+
+test:
+  commands:
+    - relion_display --help
+    - relion_refine --help
+
+about:
+  home: https://github.com/3dem/relion
+  license: GPL-2
+  summary: RELION (for REgularised LIkelihood OptimisatioN) is a stand-alone computer program for Maximum A Posteriori refinement of (multiple) 3D reconstructions or 2D class averages in cryo-electron microscopy.
+
