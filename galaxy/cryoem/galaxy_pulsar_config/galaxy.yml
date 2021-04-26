@@ -1421,8 +1421,7 @@ galaxy:
   # header in the request. Enabling remote user disables regular logins.
   # For more information, see:
   # https://docs.galaxyproject.org/en/master/admin/special_topics/apache.html
-  #use_remote_user: true
-  use_remote_user: false
+  use_remote_user: true
 
   # If use_remote_user is enabled and your external authentication
   # method just returns bare usernames, set a default mail domain to be
