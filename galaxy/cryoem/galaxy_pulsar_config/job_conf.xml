@@ -24,7 +24,8 @@
         <!-- Pulsar runners (see more at https://pulsar.readthedocs.io/) -->
         <plugin id="pulsar_runner" type="runner" load="galaxy.jobs.runners.pulsar:PulsarMQJobRunner">
           <!-- AMQP URL to connect to. -->
-	  <param id="amqp_url">pyamqp://galaxy:sCoYMPG2nbZSTT7UqkyqtAHv8@galaxy.cryoem.psu.edu:5672/galaxy</param>
+	  <!-- <param id="amqp_url">pyamqp://galaxy:sCoYMPG2nbZSTT7UqkyqtAHv8@galaxy.cryoem.psu.edu:5672/galaxy</param> -->
+	  <param id="amqp_url">pyamqp://galaxy:sCoYMPG2nbZSTT7UqkyqtAHv8@127.0.0.1:5671/galaxy?ssl=1</param>
           <!-- URL remote Pulsar apps should transfer files to this Galaxy
                instance to/from. This can be unspecified/empty if
                galaxy_infrastructure_url is set in galaxy.yml.
@@ -53,11 +54,11 @@
                (see for reference:
                  https://kombu.readthedocs.io/en/latest/reference/kombu.connection.html
                ). If you simply want to use SSL but not use/validate a client
-               cert, just use the ?ssl=1 query on the amqp URL instead. 
+               cert, just use the ?ssl=1 query on the amqp URL instead. -->
 	  <param id="amqp_connect_ssl_ca_certs">/etc/ssl/certs/incommon-ca.crt</param> 
 	  <param id="amqp_connect_ssl_keyfile">/etc/ssl/private/galaxy.key</param> 
 	  <param id="amqp_connect_ssl_certfile">/etc/ssl/certs/galaxy.crt</param>
-           <param id="amqp_connect_ssl_cert_reqs">cert_required</param> -->
+          <!--  <param id="amqp_connect_ssl_cert_reqs">cert_required</param> -->
           <!-- By default, the AMQP consumer uses a nonblocking connection with
                a 0.2 second timeout. In testing, this works fine for
                unencrypted AMQP connections, but with SSL it will cause the
@@ -246,14 +247,14 @@
                 Amount of time a job can run (in any destination) before it
                 will be terminated by Galaxy.
          -->
-        <limit type="walltime">24:00:00</limit>
+        <!-- <limit type="walltime">24:00:00</limit> -->
         <!-- total_walltime:
                 Total walltime that jobs may not exceed during a set period.
                 If total walltime of finished jobs exceeds this value, any
                 new jobs are paused.  `window` is a number in days,
                 representing the period.
          -->
-        <limit type="total_walltime" window="30">24:00:00</limit>
+        <!-- <limit type="total_walltime" window="30">24:00:00</limit> -->
         <!-- output_size:
                 Size that any defined tool output can grow to before the job
                 will be terminated. This does not include temporary files

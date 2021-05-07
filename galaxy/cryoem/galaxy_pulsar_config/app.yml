@@ -53,7 +53,7 @@ assign_ids: id
 ## Bind the Pulsar to an AMQP endpoint. Ensure kombu
 ## Python library is available and start the Pulsar normally.
 # mzc5001 removed
-message_queue_url: pyamqp://galaxy:sCoYMPG2nbZSTT7UqkyqtAHv8@galaxy.cryoem.psu.edu:5672/galaxy #gitignore
+message_queue_url: pyamqp://galaxy:sCoYMPG2nbZSTT7UqkyqtAHv8@galaxy.cryoem.psu.edu:5671/galaxy?ssl=1 #gitignore
 #message_queue_url: amqp://guest:guest@localhost:5672//
 
 conda_auto_init: True 
@@ -79,9 +79,9 @@ amqp_ack_republish_time: 30
 ##   http://kombu.readthedocs.org/en/latest/reference/kombu.connection.html
 ## ). If you simply want to use SSL but not use/validate a client
 ## cert, just use the ?ssl=1 query on the amqp URL instead.
-#amqp_connect_ssl_ca_certs: /etc/ssl/certs/incommon-ca.pem
-#amqp_connect_ssl_keyfile: /etc/ssl/private/huck-quadgtx.key
-#amqp_connect_ssl_certfile: /etc/ssl/certs/huck-quadgtx.crt
+amqp_connect_ssl_ca_certs: /etc/ssl/certs/incommon-ca.pem
+amqp_connect_ssl_keyfile: /etc/ssl/private/huck-quadgtx.key
+amqp_connect_ssl_certfile: /etc/ssl/certs/huck-quadgtx.crt
 #amqp_connect_ssl_cert_reqs: cert_required
 
 ## AMQP Reconnection Parameters. Control if, and how often messages are re-sent
