@@ -702,7 +702,9 @@ galaxy:
   # particular, if the name of the directory set in <file_path> is
   # `objects`, the default will be set to 'uuid', otherwise it will be
   # 'id'.
+  # mzc5001
   #object_store_store_by: null
+  object_store_store_by: id
 
   # Galaxy sends mail for various things: subscribing users to the
   # mailing list if they request it, password resets, reporting dataset

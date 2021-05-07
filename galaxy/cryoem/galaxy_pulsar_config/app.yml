@@ -70,8 +70,8 @@ conda_auto_install: True
 # server, so Pulsar can request that the consumer acknowledge messages and will
 # resend them if acknowledgement is not received after a configurable timeout
 # (in seconds).
-#amqp_acknowledge: false
-#amqp_ack_republish_time: 30
+amqp_acknowledge: true
+amqp_ack_republish_time: 30
 
 ## The AMQP client can provide an SSL client certificate (e.g. for
 ## validation), the following options configure that certificate
