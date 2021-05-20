@@ -692,7 +692,7 @@ galaxy:
   # it overrides any other objectstore settings.
   # The value of this option will be resolved with respect to
   # <config_dir>.
-  #object_store_config_file: object_store_conf.xml
+  object_store_config_file: object_store_conf.xml
 
   # What Dataset attribute is used to reference files in an ObjectStore
   # implementation, this can be 'uuid' or 'id'. The default will depend
@@ -703,7 +703,6 @@ galaxy:
   # `objects`, the default will be set to 'uuid', otherwise it will be
   # 'id'.
   # mzc5001
-  #object_store_store_by: null
   object_store_store_by: id
 
   # Galaxy sends mail for various things: subscribing users to the
