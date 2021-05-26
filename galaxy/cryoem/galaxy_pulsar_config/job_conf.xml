@@ -103,7 +103,13 @@
              handlers, this is the value of the `server-name` argument to `galaxy-main`.
          -->
         <handler id="handler0"/>
-        <!-- <handler id="handler1"/> -->
+        <handler id="handler1"/>
+        <handler id="handler2"/>
+        <handler id="handler3"/>
+        <handler id="handler4"/>
+        <handler id="handler5"/>
+        <handler id="handler6"/>
+        <handler id="handler7"/>
         <!-- Handlers will load all plugins defined in the <plugins> collection
              above by default, but can be limited to a subset using <plugin>
              tags. This is useful for heterogenous environments where the DRMAA
@@ -191,6 +197,7 @@
              a tag, a handler or destination that matches that tag will be
              chosen at random.
          -->
+        <!--
         <tool id="Show tail1" destination="pulsar"/>
         <tool id="Count1" destination="pulsar"/>
         <tool id="upload1" destination="local"/>
@@ -198,6 +205,7 @@
         </tool>
         <tool id="bowtie" handler="handler1">
         </tool>
+        -->
         <tool id="bar" destination="dynamic"/>
         <!-- Next example defines resource group to insert into tool interface
              and pass to dynamic destination (as resource_params argument). -->
