@@ -1,0 +1,27 @@
+<tool id="unique_mlg_id" name="Unique MLG IDs" version="1.0.0">
+    <description></description>
+    <command detect_errors="exit_code"><![CDATA[
+python $__tool_directory__/unique_mlg_id.py
+--database_connection_string '$__app__.config.corals_database_connection'
+--output '$output'
+]]></command>
+    <inputs>
+    </inputs>
+    <outputs>
+        <data name="output" format="tabular"/>
+    </outputs>
+    <tests>
+        <test>
+            <!--Testing this tool is a bit difficult at the current time.-->
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+Queries the  corals (stag) database to retrieve the unique corals multi-locus genotype representative sample ids.
+    </help>
+    <citations>
+        <citation type="doi">https://doi.org/10.1038/s41598-020-69101-z</citation>
+    </citations>
+</tool>
+
