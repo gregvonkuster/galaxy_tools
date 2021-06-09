@@ -1,0 +1,13 @@
+tools/chipseq/
+tools/convert_formats/
+tools/corals/
+tools/dada2/
+tools/dada2/
+tools/data_managers/
+tools/entomology/
+tools/epigenetics/
+tools/images_and_video/
+tools/methylome_analysis/
+tools/phenomics/
+tools/phylogenetics/
+tools/sequence_analysis/

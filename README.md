@@ -1,3 +1,6 @@
+[![Galaxy Tool Linting and Tests for push and PR](https://github.com/gregvonkuster/galaxy_tools/actions/workflows/pr.yaml/badge.svg?branch=main)](https://github.com/gregvonkuster/galaxy_tools/actions/workflows/pr.yaml/badge.svg)
+[![Weekly global Tool Linting and Tests](https://github.com/gregvonkuster/galaxy_tools/actions/workflows/ci.yaml/badge.svg?branch=master)](https://github.com/gregvonkuster/galaxy_tools/actions/workflows/ci.yaml/badge.svg)
+
 Galaxy Tools maintained by [Greg Von Kuster](https://github.com/gregvonkuster)
 ==========================================
 

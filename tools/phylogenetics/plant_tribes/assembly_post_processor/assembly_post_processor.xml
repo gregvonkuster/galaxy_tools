@@ -11,10 +11,7 @@
 #set output_dir = 'assemblyPostProcessing_dir'
 AssemblyPostProcessor
 --transcripts '$input'
---prediction_method $prediction_method_cond.prediction_method
-#if str($prediction_method_cond.prediction_method) == 'estscan':
-    --score_matrices '$score_matrices'
-#end if
+--prediction_method 'transdecoder'
 #if str($options_type.options_type_selector) == 'advanced':
     #set target_gene_family_assembly_cond = $options_type.target_gene_family_assembly_cond
     #if str($target_gene_family_assembly_cond.target_gene_family_assembly) == 'yes':
@@ -68,16 +65,6 @@ else
 fi]]></command>
     <inputs>
         <param name="input" format="fasta" type="data" label="Transcriptome assembly fasta file"/>
-        <conditional name="prediction_method_cond">
-            <param name="prediction_method" type="select" label="Coding regions prediction method">
-                <option value="transdecoder" selected="true">TransDecoder</option>
-                <option value="estscan">ESTScan</option>
-            </param>
-            <when value="transdecoder" />
-            <when value="estscan">
-                <param name="score_matrices" format="smat" type="data" label="Scores matrices"/>
-            </when>
-        </conditional>
         <conditional name="options_type">
             <param name="options_type_selector" type="select" label="Options configuration">
                 <option value="basic" selected="true">Basic</option>
@@ -133,28 +120,13 @@ fi]]></command>
     <tests>
         <test>
             <param name="input" value="assembly.fasta" ftype="fasta"/>
-            <param name="prediction_method" value="transdecoder"/>
             <output name="output_cds" file="transcripts.cds" ftype="fasta"/>
             <output name="output_cleaned_cds" file="transcripts.cleaned.cds" ftype="fasta"/>
             <output name="output_cleaned_pep" file="transcripts.cleaned.pep" ftype="fasta"/>
             <output name="output_pep" file="transcripts.pep" ftype="fasta"/>
         </test>
         <test>
-            <param name="input" value="assembly.fasta" ftype="fasta"/>
-            <param name="prediction_method" value="estscan"/>
-            <param name="score_matrices" value="arabidopsis_thaliana.smat" ftype="smat"/>
-            <param name="options_type_selector" value="advanced"/>
-            <param name="dereplicate" value="yes"/>
-            <output name="output_cds" file="transcripts2.cds" ftype="fasta"/>
-            <output name="output_cleaned_cds" file="transcripts.cleaned.nr.cds" ftype="fasta"/>
-            <output name="output_cleaned_nr_cds" file="transcripts.cleaned.nr.cds" ftype="fasta"/>
-            <output name="output_cleaned_nr_pep" file="transcripts.cleaned.nr.pep" ftype="fasta"/>
-            <output name="output_cleaned_pep" file="transcripts.cleaned.nr.pep" ftype="fasta"/>
-            <output name="output_pep" file="transcripts2.pep" ftype="fasta"/>
-        </test>
-        <test>
             <param name="input" value="assembly_tgf.fasta" ftype="fasta"/>
-            <param name="prediction_method" value="transdecoder"/>
             <param name="options_type_selector" value="advanced"/>
             <param name="target_gene_family_assembly" value="yes"/>
             <param name="orthogroups" value="target_orthos.ids"/>
@@ -185,7 +157,6 @@ de novo assembly.
 
  * **Transcriptome assembly fasta file** - either de novo or reference-guided transcriptome assembly fasta file selected from your history.
  * **Coding regions prediction method** - method for finding coding regions within transcripts.  Available methods are TransDecoder[3] and ESTScan[4].
- * **Scores matrices** - scores matrices, based on a related species, are required when ESTScan is used to find coding regions.  Details of how to create species-specific scores matrices can be found on the ESTScan website (http://estscan.sourceforge.net).  Matrices of some organisms are also available to download.
 
 **Other options**
 
@@ -223,16 +194,6 @@ de novo assembly.
             volume = {8},
             number = {8},
             pages = {1494-1512},}
-        </citation>
-        <citation type="bibtex">
-            @article{Iseli1999,
-            journal = {ISMB},
-            author = {4. Iseli C, Jongeneel CV, Bucher P},
-            title = {ESTScan: a program for detecting, evaluating, and reconstructing potential coding regions in EST sequences},
-            year = {1999},
-            volume = {99},
-            pages = {138-148},
-            url = {http://estscan.sourceforge.net},}
         </citation>
         <citation type="bibtex">
             @article{Huang1999,
