@@ -16,4 +16,8 @@ tools/phylogenetics/plant_tribes/gene_family_aligner/
 tools/phylogenetics/plant_tribes/gene_family_scaffold_loader/
 tools/phylogenetics/plant_tribes/gene_family_scaffold_updater/
 tools/phylogenetics/plant_tribes/kaks_analysis/
-tools/sequence_analysis/
+tools/sequence_analysis/vsnp/vsnp_build_tables/
+tools/sequence_analysis/vsnp/vsnp_determine_ref_from_data/
+tools/sequence_analysis/vsnp/get_snps/
+tools/sequence_analysis/vsnp/sample_names/
+tools/sequence_analysis/vsnp/statistics/
