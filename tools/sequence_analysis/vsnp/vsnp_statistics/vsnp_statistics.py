@@ -1,32 +1,14 @@
 #!/usr/bin/env python
 
 import argparse
+import csv
 import gzip
 import os
-import shutil
+from functools import partial
 
 import numpy
 import pandas
-
-QUALITYKEY = {'!': '0', '"': '1', '#': '2', '$': '3', '%': '4', '&': '5', "'": '6', '(': '7',
-              ')': '8', '*': '9', '+': '10', ',': '11', '-': '12', '.': '13', '/': '14', '0': '15',
-              '1': '16', '2': '17', '3': '18', '4': '19', '5': '20', '6': '21', '7': '22',
-              '8': '23', '9': '24', ':': '25', ';': '26', '<': '27', '=': '28', '>': '29',
-              '?': '30', '@': '31', 'A': '32', 'B': '33', 'C': '34', 'D': '35', 'E': '36',
-              'F': '37', 'G': '38', 'H': '39', 'I': '40', 'J': '41', 'K': '42', 'L': '43',
-              'M': '44', 'N': '45', 'O': '46', 'P': '47', 'Q': '48', 'R': '49', 'S': '50',
-              'T': '51', 'U': '52', 'V': '53', 'W': '54', 'X': '55', 'Y': '56', 'Z': '57',
-              '_': '1', ']': '1', '[': '1', '\\': '1', '\n': '1', '`': '1', 'a': '1', 'b': '1',
-              'c': '1', 'd': '1', 'e': '1', 'f': '1', 'g': '1', 'h': '1', 'i': '1', 'j': '1',
-              'k': '1', 'l': '1', 'm': '1', 'n': '1', 'o': '1', 'p': '1', 'q': '1', 'r': '1',
-              's': '1', 't': '1', 'u': '1', 'v': '1', 'w': '1', 'x': '1', 'y': '1', 'z': '1',
-              ' ': '1'}
-
-
-def fastq_to_df(fastq_file, gzipped):
-    if gzipped:
-        return pandas.read_csv(gzip.open(fastq_file, "r"), header=None, sep="^")
-    return pandas.read_csv(open(fastq_file, "r"), header=None, sep="^")
+from Bio import SeqIO
 
 
 def nice_size(size):
@@ -62,7 +44,20 @@ def output_statistics(fastq_files, idxstats_files, metrics_files, output_file, g
         metrics_file = metrics_files[i]
         file_name_base = os.path.basename(fastq_file)
         # Read fastq_file into a data frame.
-        fastq_df = fastq_to_df(fastq_file, gzipped)
+        _open = partial(gzip.open, mode='rt') if gzipped else open
+        with _open(fastq_file) as fh:
+            identifiers = []
+            seqs = []
+            letter_annotations = []
+            for seq_record in SeqIO.parse(fh, "fastq"):
+                identifiers.append(seq_record.id)
+                seqs.append(seq_record.seq)
+                letter_annotations.append(seq_record.letter_annotations["phred_quality"])
+        # Convert lists to Pandas series.
+        s1 = pandas.Series(identifiers, name='id')
+        s2 = pandas.Series(seqs, name='seq')
+        # Gather Series into a data frame.
+        fastq_df = pandas.DataFrame(dict(id=s1, seq=s2)).set_index(['id'])
         total_reads = int(len(fastq_df.index) / 4)
         current_sample_df = pandas.DataFrame(index=[file_name_base], columns=columns)
         # Reference
@@ -76,19 +71,18 @@ def output_statistics(fastq_files, idxstats_files, metrics_files, output_file, g
         fastq_df = fastq_df.iloc[3::4].sample(sampling_size)
         dict_mean = {}
         list_length = []
-        for index, row in fastq_df.iterrows():
-            base_qualities = []
-            for base in list(row.array[0]):
-                base_qualities.append(int(QUALITYKEY[base]))
-            dict_mean[index] = numpy.mean(base_qualities)
-            list_length.append(len(row.array[0]))
-        current_sample_df.at[file_name_base, 'Mean Read Length'] = "%.1f" % numpy.mean(list_length)
+        i = 0
+        for id, seq, in fastq_df.iterrows():
+            dict_mean[id] = numpy.mean(letter_annotations[i])
+            list_length.append(len(seq.array[0]))
+            i += 1
+        current_sample_df.at[file_name_base, 'Mean Read Length'] = '%.1f' % numpy.mean(list_length)
         # Mean Read Quality
         df_mean = pandas.DataFrame.from_dict(dict_mean, orient='index', columns=['ave'])
-        current_sample_df.at[file_name_base, 'Mean Read Quality'] = "%.1f" % df_mean['ave'].mean()
+        current_sample_df.at[file_name_base, 'Mean Read Quality'] = '%.1f' % df_mean['ave'].mean()
         # Reads Passing Q30
         reads_gt_q30 = len(df_mean[df_mean['ave'] >= 30])
-        reads_passing_q30 = "{:10.2f}".format(reads_gt_q30 / sampling_size)
+        reads_passing_q30 = '{:10.2f}'.format(reads_gt_q30 / sampling_size)
         current_sample_df.at[file_name_base, 'Reads Passing Q30'] = reads_passing_q30
         # Total Reads
         current_sample_df.at[file_name_base, 'Total Reads'] = total_reads
@@ -99,7 +93,7 @@ def output_statistics(fastq_files, idxstats_files, metrics_files, output_file, g
         current_sample_df.at[file_name_base, 'Unmapped Reads'] = unmapped_reads
         # Unmapped Reads Percentage of Total
         if unmapped_reads > 0:
-            unmapped_reads_percentage = "{:10.2f}".format(unmapped_reads / total_reads)
+            unmapped_reads_percentage = '{:10.2f}'.format(unmapped_reads / total_reads)
         else:
             unmapped_reads_percentage = 0
         current_sample_df.at[file_name_base, 'Unmapped Reads Percentage of Total'] = unmapped_reads_percentage
@@ -111,12 +105,8 @@ def output_statistics(fastq_files, idxstats_files, metrics_files, output_file, g
         # Good SNP Count
         current_sample_df.at[file_name_base, 'Good SNP Count'] = good_snp_count
         data_frames.append(current_sample_df)
-    excel_df = pandas.concat(data_frames)
-    excel_file_name = "output.xlsx"
-    writer = pandas.ExcelWriter(excel_file_name, engine='xlsxwriter')
-    excel_df.to_excel(writer, sheet_name='Sheet1')
-    writer.save()
-    shutil.move(excel_file_name, output_file)
+    output_df = pandas.concat(data_frames)
+    output_df.to_csv(output_file, sep='\t', quoting=csv.QUOTE_NONE, escapechar='\\')
 
 
 def process_idxstats_file(idxstats_file):
@@ -124,6 +114,7 @@ def process_idxstats_file(idxstats_file):
     unmapped_reads = 0
     with open(idxstats_file, "r") as fh:
         for i, line in enumerate(fh):
+            line = line.rstrip('\r\n')
             items = line.split("\t")
             if i == 0:
                 # NC_002945.4 4349904 213570 4047
@@ -143,6 +134,7 @@ def process_metrics_file(metrics_file):
             if i == 0:
                 # Skip comments.
                 continue
+            line = line.rstrip('\r\n')
             items = line.split("\t")
             if i == 1:
                 # MarkDuplicates 10.338671 98.74%
