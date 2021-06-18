@@ -1,4 +1,4 @@
-<tool id="vsnp_get_snps" name="vSNP: get SNPs" version="@WRAPPER_VERSION@.0" profile="@PROFILE@">
+<tool id="vsnp_get_snps" name="vSNP: get SNPs" version="@WRAPPER_VERSION@.1" profile="@PROFILE@">
     <description></description>
     <macros>
         <import>macros.xml</import>
