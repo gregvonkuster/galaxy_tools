@@ -109,7 +109,6 @@ $all_isolates
                     <when value="cached">
                         <param name="input_excel" type="select" label="Excel file">
                             <options from_data_table="vsnp_excel">
-                                <filter type="data_meta" column="0" key="dbkey" ref="input_vcf_collection"/>
                                 <validator type="no_options" message="No built-in Excel grouping and filtering datasets are available"/>
                             </options>
                         </param>
