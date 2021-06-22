@@ -4,9 +4,7 @@
 # and output alignment files in fasta format.
 
 import argparse
-import multiprocessing
 import os
-import queue
 import shutil
 import sys
 import time
@@ -19,18 +17,6 @@ import vcf
 
 def get_time_stamp():
     return datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H-%M-%S')
-
-
-def set_num_cpus(num_files, processes):
-    num_cpus = int(multiprocessing.cpu_count())
-    if num_files < num_cpus and num_files < processes:
-        return num_files
-    if num_cpus < processes:
-        half_cpus = int(num_cpus / 2)
-        if num_files < half_cpus:
-            return num_files
-        return half_cpus
-    return processes
 
 
 def setup_all_vcfs(vcf_files, vcf_dirs):
@@ -340,43 +326,37 @@ class SnpFinder:
         except ValueError:
             return []
 
-    def get_snps(self, task_queue, timeout):
-        while True:
-            try:
-                group_dir = task_queue.get(block=True, timeout=timeout)
-            except queue.Empty:
-                break
-            # Parse all vcf files to accumulate
-            # the SNPs into a data frame.
-            positions_dict = {}
-            group_files = []
-            for file_name in os.listdir(os.path.abspath(group_dir)):
-                file_path = os.path.abspath(os.path.join(group_dir, file_name))
-                group_files.append(file_path)
-            for file_name in group_files:
-                found_positions, found_positions_mix = self.find_initial_positions(file_name)
-                positions_dict.update(found_positions)
-            # Order before adding to file to match
-            # with ordering of individual samples.
-            # all_positions is abs_pos:REF
-            self.all_positions = OrderedDict(sorted(positions_dict.items()))
-            ref_positions_df = pandas.DataFrame(self.all_positions, index=['root'])
-            all_map_qualities = {}
-            df_list = []
-            for file_name in group_files:
-                sample_df, file_name_base, sample_map_qualities = self.decide_snps(file_name)
-                df_list.append(sample_df)
-                all_map_qualities.update({file_name_base: sample_map_qualities})
-            all_sample_df = pandas.concat(df_list)
-            # All positions have now been selected for each sample,
-            # so select parisomony informative SNPs.  This removes
-            # columns where all fields are the same.
-            # Add reference to top row.
-            prefilter_df = pandas.concat([ref_positions_df, all_sample_df], join='inner')
-            all_mq_df = pandas.DataFrame.from_dict(all_map_qualities)
-            mq_averages = all_mq_df.mean(axis=1).astype(int)
-            self.gather_and_filter(prefilter_df, mq_averages, group_dir)
-            task_queue.task_done()
+    def get_snps(self, group_dir):
+        # Parse all vcf files to accumulate
+        # the SNPs into a data frame.
+        positions_dict = {}
+        group_files = []
+        for file_name in os.listdir(os.path.abspath(group_dir)):
+            file_path = os.path.abspath(os.path.join(group_dir, file_name))
+            group_files.append(file_path)
+        for file_name in group_files:
+            found_positions, found_positions_mix = self.find_initial_positions(file_name)
+            positions_dict.update(found_positions)
+        # Order before adding to file to match
+        # with ordering of individual samples.
+        # all_positions is abs_pos:REF
+        self.all_positions = OrderedDict(sorted(positions_dict.items()))
+        ref_positions_df = pandas.DataFrame(self.all_positions, index=['root'])
+        all_map_qualities = {}
+        df_list = []
+        for file_name in group_files:
+            sample_df, file_name_base, sample_map_qualities = self.decide_snps(file_name)
+            df_list.append(sample_df)
+            all_map_qualities.update({file_name_base: sample_map_qualities})
+        all_sample_df = pandas.concat(df_list)
+        # All positions have now been selected for each sample,
+        # so select parisomony informative SNPs.  This removes
+        # columns where all fields are the same.
+        # Add reference to top row.
+        prefilter_df = pandas.concat([ref_positions_df, all_sample_df], join='inner')
+        all_mq_df = pandas.DataFrame.from_dict(all_map_qualities)
+        mq_averages = all_mq_df.mean(axis=1).astype(int)
+        self.gather_and_filter(prefilter_df, mq_averages, group_dir)
 
     def group_vcfs(self, vcf_files):
         # Parse an excel file to produce a
@@ -461,13 +441,7 @@ if __name__ == '__main__':
     for file_name in os.listdir(args.input_vcf_dir):
         file_path = os.path.abspath(os.path.join(args.input_vcf_dir, file_name))
         vcf_files.append(file_path)
-
-    multiprocessing.set_start_method('spawn')
-    queue1 = multiprocessing.JoinableQueue()
     num_files = len(vcf_files)
-    cpus = set_num_cpus(num_files, args.processes)
-    # Set a timeout for get()s in the queue.
-    timeout = 0.05
 
     # Initialize the snp_finder object.
     snp_finder = SnpFinder(num_files, args.dbkey, args.input_excel, args.all_isolates, args.ac, args.min_mq, args.quality_score_n_threshold, args.min_quality_score, args.input_vcf_dir, args.output_json_avg_mq_dir, args.output_json_snps_dir, args.output_snps_dir, args.output_summary)
@@ -490,17 +464,8 @@ if __name__ == '__main__':
         group_dirs = [d for d in os.listdir(os.getcwd()) if os.path.isdir(d) and d in snp_finder.groups]
         vcf_dirs.extend(group_dirs)
 
-    # Populate the queue for job splitting.
     for vcf_dir in vcf_dirs:
-        queue1.put(vcf_dir)
-
-    # Complete the get_snps task.
-    processes = [multiprocessing.Process(target=snp_finder.get_snps, args=(queue1, timeout, )) for _ in range(cpus)]
-    for p in processes:
-        p.start()
-    for p in processes:
-        p.join()
-    queue1.join()
+        snp_finder.get_snps(vcf_dir)
 
     # Finish summary log.
     snp_finder.append_to_summary("<br/><b>Time finished:</b> %s<br/>\n" % get_time_stamp())
