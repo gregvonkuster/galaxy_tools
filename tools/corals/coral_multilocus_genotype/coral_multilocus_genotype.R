@@ -129,9 +129,12 @@ mlg.filter(genind_clone, distance=bitwise_distance) <- 0.032;
 # Create list of MLGs.
 cat("\nCreating list of mlg_ids...\n\n");
 mlg_ids <- mlg.id(genind_clone);
+cat("\nCreated list of mlg_ids...\n\n");
 
 # Read user's Affymetrix 96 well plate tabular file.
+cat("\nCreating affy_metadata_data_frame...\n\n");
 affy_metadata_data_frame <- read.table(opt$input_affy_metadata, header=FALSE, stringsAsFactors=FALSE, sep="\t", na.strings=c("", "NA"), quote="");
+cat("\nCreated affy_metadata_data_frame...\n\n");
 colnames(affy_metadata_data_frame) <- c("user_specimen_id", "field_call", "bcoral_genet_id", "bsym_genet_id", "reef",
                                         "region", "latitude", "longitude", "geographic_origin", "colony_location",
                                         "depth", "disease_resist", "bleach_resist", "mortality","tle",
@@ -762,10 +765,18 @@ prep_genotype_tibble <- id_data_table %>%
     group_by(row_number()) %>%
     dplyr::rename(group='row_number()') %>%
     unnest(affy_id) %>%
-    left_join(smlg_data_frame %>%
-        select("affy_id", "coral_mlg_rep_sample_id", "coral_mlg_clonal_id", "user_specimen_id",
-               "genetic_coral_species_call", "bcoral_genet_id"),
-        by='affy_id');
+    left_join(sample_mlg_match_tibble %>%
+        select("affy_id", "coral_mlg_rep_sample_id", "coral_mlg_clonal_id",
+               "genetic_coral_species_call", "bcoral_genet_id", "db_match"),
+        by='affy_id') %>%
+    right_join(sample_mlg_match_tibble %>%
+        select("coral_mlg_rep_sample_id", "coral_mlg_clonal_id"),
+        by='coral_mlg_clonal_id') %>%
+        mutate(coral_mlg_rep_sample_id=ifelse(is.na(coral_mlg_rep_sample_id.x),coral_mlg_rep_sample_id.y,coral_mlg_rep_sample_id.x)) %>%
+    ungroup() %>%
+    dplyr::select(-coral_mlg_rep_sample_id.x,-coral_mlg_rep_sample_id.y, -group.x,-group.y) %>%
+    distinct();
+
 # Confirm that the representative mlg is the same between runs.
 uniques2 <- unique(prep_genotype_tibble[c("group", "coral_mlg_rep_sample_id")]);
 uniques2 <- uniques2[!is.na(uniques2$coral_mlg_rep_sample_id),];
@@ -782,9 +793,10 @@ prep_genotype_tibble$coral_mlg_rep_sample_id[na.mlg3] <- uniques2$coral_mlg_rep_
 # <chr>                      <chr>
 # A.palmata                  C1651
 representative_mlg_tibble <- prep_genotype_tibble %>%
-    mutate(coral_mlg_rep_sample_id=ifelse(is.na(coral_mlg_rep_sample_id), affy_id, coral_mlg_rep_sample_id)) %>%
+    mutate(coral_mlg_rep_sample_id=ifelse(is.na(coral_mlg_rep_sample_id) & (db_match =="no_match"), affy_id, coral_mlg_rep_sample_id)) %>%
     ungroup() %>%
-    select(-group);
+    select(-group)%>%
+    distinct();
 # prep_genotype_table_tibble looks like this:
 # affy_id       coral_mlg_clonal_id user_specimen_id db_match
 # a550962...CEL HG0120              1090             match
@@ -803,7 +815,8 @@ prep_genotype_table_tibble <- stag_db_report %>%
 genotype_table_tibble <- prep_genotype_table_tibble %>%
     left_join(affy_metadata_data_frame %>%
         select("user_specimen_id", "bcoral_genet_id"),
-        by='user_specimen_id');
+        by='user_specimen_id') %>%
+    drop_na(coral_mlg_rep_sample_id);
 write_data_frame(output_data_dir, "genotype.tabular", genotype_table_tibble);
 
 # Output the file needed for populating the person table.
