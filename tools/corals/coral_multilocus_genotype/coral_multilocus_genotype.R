@@ -322,7 +322,8 @@ sample_mlg_tibble <- mlg_ids_data_table %>%
     unnest (affy_id) %>%
     # Join with mlg table.
     left_join(smlg_data_frame %>%
-              select("affy_id","coral_mlg_clonal_id", "coral_mlg_rep_sample_id"),
+              select("affy_id","coral_mlg_clonal_id", "coral_mlg_rep_sample_id",
+                     "genetic_coral_species_call", "bcoral_genet_id"),
               by="affy_id");
 
 # If found in database, group members on previous mlg id.
