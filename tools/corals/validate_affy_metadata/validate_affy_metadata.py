@@ -59,7 +59,7 @@ def validate_email(line_no, email, accumulated_msgs):
     if not (VALID_EMAIL_RE.match(email)):
         return add_error_msg(accumulated_msgs, "Line %d contains an invalid email address (%s).  " % (line_no, email))
     elif len(email) > EMAIL_MAX_LEN:
-        return add_error_msg(accumulated_msgs, "Line %d contains an email address (%) that is longer than the maximum length, %d characters." % (line_no, email))
+        return add_error_msg(accumulated_msgs, "Line %d contains an email address (%s) that is longer than the maximum length, %d characters." % (line_no, email, EMAIL_MAX_LEN))
     return accumulated_msgs
 
 
