@@ -6,6 +6,7 @@ import datetime
 import os
 import subprocess
 import sys
+import threading
 
 import dateutil.parser
 
@@ -700,5 +701,15 @@ class StagDatabaseUpdater(object):
 
 if __name__ == '__main__':
     sdu = StagDatabaseUpdater()
-    sdu.run()
+    lock = threading.Lock()
+    lock.acquire(True)
+    try:
+        sdu.run()
+    except Exception as e:
+        print("Exception updating the stag database:\n%s\n" % str(e))
+        print("\nProcessing ended in error...\n")
+        lock.release()
+        sys.exit(1)
+    finally:
+        lock.release()
     sdu.shutdown()
