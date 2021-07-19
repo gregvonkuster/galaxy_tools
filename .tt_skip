@@ -1,6 +1,7 @@
 tools/chipseq/
 tools/convert_formats/
 tools/corals/coral_multilocus_genotype/
+tools/corals/correct_stag_database/
 tools/corals/ensure_synced/
 tools/corals/export_all_sample_data/
 tools/corals/genotype_population_info/
