@@ -94,7 +94,7 @@ fi
             </param>
             <param name="tree_inference" value="fasttree"/>
             <output_collection name="tree" type="list">
-                <element name="3722.faa.aln.tree" file="3722.faa.aln.tree" ftype="newick"/>
+                <element name="3722.faa.aln.tree" file="3722.faa.aln.tree" ftype="newick" compare="contains"/>
             </output_collection>
         </test>
     </tests>
