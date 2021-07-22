@@ -84,7 +84,6 @@ python '$__tool_directory__/vsnp_build_tables.py'
                 <element name="input_newick_newick_sort_table" file="sort_table.xlsx" ftype="xlsx" compare="sim_size"/>
             </output_collection>
         </test>
-<!--
         <test>
             <param name="input_snps_json" value="Mbovis-01_snps.json" ftype="json" dbkey="89"/>
             <param name="input_newick" value="Mbovis-01_snps.newick" ftype="newick" dbkey="89"/>
@@ -115,7 +114,6 @@ python '$__tool_directory__/vsnp_build_tables.py'
                 <element name="Mbovis-01D6_snps_newick_sort_table" file="Mbovis-01D6_sort_table.xlsx" ftype="xlsx" compare="sim_size"/>
             </output_collection>
         </test>
--->
     </tests>
     <help>
 **What it does**
