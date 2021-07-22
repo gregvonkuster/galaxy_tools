@@ -1,0 +1,11 @@
+name: vsnp_get_snps
+owner: greg
+description: |
+  Contains a tool that collects quality parsimonious SNPs from vcf files and outputs alignment files in fasta format.
+homepage_url: https://github.com/USDA-VS/vSNP
+long_description: |
+  Contains a tool that collects quality parsimonious SNPs from vcf files and outputs alignment files in fasta format.
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/sequence_analysis/vsnp/vsnp_get_snps
+type: unrestricted
+categories:
+  - Sequence Analysis
