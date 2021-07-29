@@ -212,7 +212,7 @@ $all_isolates
             <param name="input_excel_param" value="yes"/>
             <param name="input_excel" value="89"/>
             <output_collection name="snps" type="list" count="1">
-                <element name="Mbovis-17" file="Mbovis-17_snps.fasta" ftype="fasta"/>
+                <element name="Mbovis-17" file="Mbovis-17_snps.fasta" ftype="fasta" compare="contains"/>
             </output_collection>
             <output_collection name="json_avg_mq" type="list" count="1">
                 <element name="Mbovis-17" file="Mbovis-17_avg_mq_json.json" ftype="json" compare="contains"/>
@@ -242,7 +242,7 @@ $all_isolates
             <param name="input_excel" value="89"/>
             <param name="all_isolates" value="--all_isolates"/>
             <output_collection name="snps" type="list" count="2">
-                <element name="Mbovis-17" file="Mbovis-17_snps.fasta" ftype="fasta"/>
+                <element name="Mbovis-17" file="Mbovis-17_snps.fasta" ftype="fasta" compare="contains"/>
                 <element name="all_vcf" file="all_vcf2.fasta" ftype="fasta" compare="contains"/>
             </output_collection>
             <output_collection name="json_avg_mq" type="list" count="2">
