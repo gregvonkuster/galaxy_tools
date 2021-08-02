@@ -4,9 +4,9 @@
         <import>macros.xml</import>
     </macros>
     <requirements>
-        <requirement type="package" version="3.0.7">openpyxl</requirement>
-        <requirement type="package" version="1.79">biopython</requirement>
-        <requirement type="package" version="1.3.0">pandas</requirement>
+        <expand macro="biopython_requirement"/>
+        <expand macro="openpyxl_requirement"/>
+        <expand macro="pandas_requirement"/>
         <requirement type="package" version="0.16.0.1">pysam</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
@@ -85,6 +85,6 @@ coverage percentage.
 
  * **Choose the source for the reference genome** - select "locally cached" if the reference associated with the BAM and VCF files is available within the Galaxy environment or "from history" to select the reference from the current history.
     </help>
-    <expand macro="citations" />
+    <expand macro="citations"/>
 </tool>
 
