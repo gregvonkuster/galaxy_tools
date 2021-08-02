@@ -15,7 +15,7 @@
         <requirement type="package" version="1.3.0">pandas</requirement>
     </xml>
     <xml name="pysam_requirement">
-        <requirement type="package" version="0.15.4">pysam</requirement>
+        <requirement type="package" version="0.16.0.1">pysam</requirement>
     </xml>
     <xml name="pyyaml_requirement">
         <requirement type="package" version="5.3">pyyaml</requirement>
