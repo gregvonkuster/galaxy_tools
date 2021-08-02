@@ -26,10 +26,10 @@
     #end if
 #else:
     #set read1 = $input_type_cond.reads_collection['forward']
-    #set read1_identifier = re.sub('[^\s\w\-]', '_', str($read1.name))
+    #set read1_identifier = re.sub('[^\s\w\-]', '_', str($read1.element_identifier))
     ln -s '${read1}' '${read1_identifier}' &&
     #set read2 = $input_type_cond.reads_collection['reverse']
-    #set read2_identifier = re.sub('[^\s\w\-]', '_', str($read2.name))
+    #set read2_identifier = re.sub('[^\s\w\-]', '_', str($read2.element_identifier))
     ln -s '${read2}' '${read2_identifier}' &&
 #end if
 
