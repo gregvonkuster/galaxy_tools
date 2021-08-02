@@ -1,4 +1,4 @@
-a#!/usr/bin/env python
+#!/usr/bin/env python
 
 import argparse
 import gzip
@@ -207,4 +207,4 @@ idxstats_files = []
 metrics_files = []
 # Accumulate inputs.
 read1_stats, read2_stats = accrue_statistics(args.dbkey, args.read1, args.read2, args.gzipped)
-output_statistics(read1_stats, read2_stats, args.samtools_idxstats, args.vsnp_azc_metrics, args.output
+output_statistics(read1_stats, read2_stats, args.samtools_idxstats, args.vsnp_azc_metrics, args.output)
