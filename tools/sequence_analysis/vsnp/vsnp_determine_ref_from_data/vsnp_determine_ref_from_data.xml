@@ -4,8 +4,8 @@
         <import>macros.xml</import>
     </macros>
     <requirements>
-        <requirement type="package" version="1.79">biopython</requirement>
-        <requirement type="package" version="5.4.1">pyyaml</requirement>
+        <expand macro="biopython_requirement"/>
+        <expand macro="pyyaml_requirement"/>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
 #import re
