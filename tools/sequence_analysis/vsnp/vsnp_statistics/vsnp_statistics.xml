@@ -1,4 +1,4 @@
-<tool id="vsnp_statistics" name="vSNP: statistics" version="@WRAPPER_VERSION@.1+galaxy0" profile="@PROFILE@">
+<tool id="vsnp_statistics" name="vSNP: statistics" version="@WRAPPER_VERSION@.2+galaxy0" profile="@PROFILE@">
     <description></description>
     <macros>
         <import>macros.xml</import>
@@ -21,21 +21,19 @@
         #set read2 = $input_type_cond.read2
         #set read2_identifier = re.sub('[^\s\w\-]', '_', str($read2.element_identifier))
         ln -s '${read2}' '${read2_identifier}' &&
-    #else:
-        #set read2 = None 
     #end if
 #else:
-    #set read1 = $input_type_cond.reads_collection['forward']
+    #set read1 = $input_type_cond.reads_collection.forward
     #set read1_identifier = re.sub('[^\s\w\-]', '_', str($read1.element_identifier))
     ln -s '${read1}' '${read1_identifier}' &&
-    #set read2 = $input_type_cond.reads_collection['reverse']
+    #set read2 = $input_type_cond.reads_collection.reverse
     #set read2_identifier = re.sub('[^\s\w\-]', '_', str($read2.element_identifier))
     ln -s '${read2}' '${read2_identifier}' &&
 #end if
 
 python '$__tool_directory__/vsnp_statistics.py'
 --read1 '${read1_identifier}'
-#if $read2 is not None
+#if $input_type_cond.input_type in ["pair", "paired"]:
   --read2 '${read2_identifier}'
 #end if
 #if $read1.is_of_type('fastqsanger.gz'):
