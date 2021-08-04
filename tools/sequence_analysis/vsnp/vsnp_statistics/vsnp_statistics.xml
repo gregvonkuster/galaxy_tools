@@ -23,11 +23,12 @@
         ln -s '${read2}' '${read2_identifier}' &&
     #end if
 #else:
+    #set identifier = re.sub('[^\s\w\-]', '_', str($input_type_cond.reads_collection.element_identifier))
     #set read1 = $input_type_cond.reads_collection.forward
-    #set read1_identifier = re.sub('[^\s\w\-]', '_', str($read1.element_identifier))
+    #set read1_identifier = $identifier + '_R1'
     ln -s '${read1}' '${read1_identifier}' &&
     #set read2 = $input_type_cond.reads_collection.reverse
-    #set read2_identifier = re.sub('[^\s\w\-]', '_', str($read2.element_identifier))
+    #set read2_identifier = $identifier + '_R2'
     ln -s '${read2}' '${read2_identifier}' &&
 #end if
 
