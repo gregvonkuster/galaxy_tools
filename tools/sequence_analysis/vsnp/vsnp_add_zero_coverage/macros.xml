@@ -17,6 +17,9 @@
     <xml name="pysam_requirement">
         <requirement type="package" version="0.15.4">pysam</requirement>
     </xml>
+    <xml name="pyvcf_requirement">
+        <requirement type="package" version="0.6.8">pyvcf</requirement>
+    </xml>
     <xml name="pyyaml_requirement">
         <requirement type="package" version="5.4.1">pyyaml</requirement>
     </xml>
