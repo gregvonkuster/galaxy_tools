@@ -14,6 +14,7 @@ tools/images_and_video/
 tools/methylome_analysis/
 tools/phenomics/
 tools/phylogenetics/plant_tribes/gene_family_aligner/
+tools/phylogenetics/plant_tribes/gene_family_classifier/
 tools/phylogenetics/plant_tribes/gene_family_scaffold_loader/
 tools/phylogenetics/plant_tribes/gene_family_scaffold_updater/
 tools/phylogenetics/plant_tribes/kaks_analysis/
