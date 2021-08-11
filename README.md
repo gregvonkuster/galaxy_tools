@@ -48,3 +48,11 @@ Highlights
    * IDEAS - an Integrateive and Discriminitive Epigenome Annotation System that identifies de novo regulatory functions from epigenetic data in multiple cell types jointly.
    * IDEAS Genome Tracks - creates [UCSC Genome Browser Track Hubs](https://genome.ucsc.edu/goldenpath/help/hgTrackHubHelp.html) for vizualizing IDEAS outputs.
 
+ * Sequence Analysis - [USDA vSNP](https://github.com/USDA-VS/vSNP)
+
+   * vSNP sample names - accepts fastqsanger sample files, extracts a unique portion of the file name as the sample name, and writes it to the output.  The output text file can be consumed by the Parse parameter value expression tool to provide workflow parameter values to the Read group identifier (ID) and the Sample name identifier (SM)  parameters in the Map with BWA-MEM tool.
+   * vSNP add zero coverafge - accepts a combination of single BAM and associated VCF files (or associated collections of each) to produce a VCF file for each combination whose positions with no coverage are represented as "N".  These outputs are restricted to SNPs and those regions along the reference with no coverage.
+   * vSNP determine reference from data - accepts a single fastqsanger read, a set of paired reads, or a collection of single or paired reads (bacterial samples) and inspects the data to discover the best reference genome for aligning the reads.
+   * vSNP statistics - accepts associated fastq files, SAMtools idxstats files and vSNP add zero coverage metrics files and extracts information from them to produce an Excel spreadsheet containing statistics for each sample.
+   * vSNP get SNPs - accepts a zero coverage VCF file produced by the vSNP: add zero coverage tool (or a collection of them) along with a collection of zero coverage VCF files that have been aligned with the same reference and contain SNPs called between closely related isolate groups.  The tool produces fasta files containing SNP alignments, json files containing the SNP positions and additional json files containing the average map quality values.
+   * vSNP build tables - accepts a combination of single SNPs json, average MQ json and newick files (or associated collections of each) to produce annotated SNPs tables in the form of Excel spreadsheets.
