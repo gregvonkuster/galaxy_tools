@@ -105,8 +105,8 @@ python '$__tool_directory__/vsnp_statistics.py'
 **What it does**
 
 Accepts associated fastq files, SAMtools idxstats files and **vSNP: add zero coverage** metrics files and extracts information from them
-to produce an Excel spreadsheet containing statistics for each sample.  The samples can be a single read, a single set of paired reads in
-separate datasets or  collection of paired reads.  The output statistics include reference, file size, mean read length, mean read quality,
+to produce a tabular file containing statistics for each sample.  The samples can be a single read, a single set of paired reads in
+separate datasets or a collection of paired reads.  The output statistics include reference, file size, mean read length, mean read quality,
 reads passing Q30, total reads, all mapped reads, unmapped reads, unmapped reads percentage of total, reference with coverage, average depth
 of coverage and good SNP count.
     </help>
