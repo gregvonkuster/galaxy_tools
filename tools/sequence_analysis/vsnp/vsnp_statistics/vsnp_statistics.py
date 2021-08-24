@@ -110,7 +110,9 @@ def output_statistics(read1_stats, read2_stats, idxstats_file, metrics_file, out
                    'Total Reads', 'All Mapped Reads', 'Unmapped Reads', 'Unmapped Reads Percentage of Total',
                    'Reference with Coverage', 'Average Depth of Coverage', 'Good SNP Count']
     with open(output_file, "w") as outfh:
-        outfh.write("%s\n" % "\t".join(columns))
+        # Make sure the header starts with a # so
+        # MultiQC can properly handle the output.
+        outfh.write("# %s\n" % "\t".join(columns))
         line_items = []
         # Get the current stats and associated files.
         # Get and output the statistics.

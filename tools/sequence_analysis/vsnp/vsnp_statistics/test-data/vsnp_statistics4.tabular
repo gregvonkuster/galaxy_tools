@@ -1,2 +1,2 @@
-Reference	Read1 FASTQ	File Size	Reads	Mean Read Length	Mean Read Quality	Reads Passing Q30	Read2 FASTQ	File Size	Reads	Mean Read Length	Mean Read Quality	Reads Passing Q30	Total Reads	All Mapped Reads	Unmapped Reads	Unmapped Reads Percentage of Total	Reference with Coverage	Average Depth of Coverage	Good SNP Count
+# Reference	Read1 FASTQ	File Size	Reads	Mean Read Length	Mean Read Quality	Reads Passing Q30	Read2 FASTQ	File Size	Reads	Mean Read Length	Mean Read Quality	Reads Passing Q30	Total Reads	All Mapped Reads	Unmapped Reads	Unmapped Reads Percentage of Total	Reference with Coverage	Average Depth of Coverage	Good SNP Count
 89	Unnamed Collection_R1	8.7 KB	25	100.0	65.7	      1.00	Unnamed Collection_R2	8.5 KB	25	100.0	66.3	      1.00	50	46	4	      0.08	0.16%	0.002146	0
