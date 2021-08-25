@@ -22,18 +22,20 @@ mkdir -p $output_json_avg_mq_dir &&
 mkdir -p $output_json_snps_dir &&
 mkdir -p $output_snps_dir &&
 
-#set dbkey = '?'
-#for $i in $input_vcf_collection:
+#if str($input_additional_zc_vcf_collection_cond.input_additional_zc_vcf_collection) =='yes':
+    #set dbkey = '?'
+    #for $i in $input_additional_zc_vcf_collection_cond.input_vcf_collection:
+        #if str($dbkey) == '?':
+            #set dbkey = $i.metadata.dbkey
+        #else if str($dbkey) != $i.metadata.dbkey:
+            >&2 echo "The dbkeys associated with the zero coverage VCF files with SNPs found in closely related isolate groups are not unique" && exit 1
+        #end if
+        #set vcf_identifier = re.sub('[^\s\w\-]', '_', str($i.element_identifier))
+        ln -s '${i}' '$input_vcf_dir/${vcf_identifier}' &&
+    #end for
     #if str($dbkey) == '?':
-        #set dbkey = $i.metadata.dbkey
-    #else if str($dbkey) != $i.metadata.dbkey:
-        >&2 echo "The dbkeys associated with the zero coverage VCF files with SNPs found in closely related isolate groups are not unique" && exit 1
+        >&2 echo "The dbkey must be set for the zero coverage VCF files with SNPs found in closely related isolate groups" && exit 1
     #end if
-    #set vcf_identifier = re.sub('[^\s\w\-]', '_', str($i.element_identifier))
-    ln -s '${i}' '$input_vcf_dir/${vcf_identifier}' &&
-#end for
-#if str($dbkey) == '?':
-    >&2 echo "The dbkey must be set for the zero coverage VCF files with SNPs found in closely related isolate groups" && exit 1
 #end if
 #if str($input_zc_vcf_type_cond.input_zc_vcf_type) == "single":
     #set zc_vcf_identifier = re.sub('[^\s\w\-]', '_', str($input_zc_vcf.element_identifier))
@@ -90,7 +92,16 @@ $all_isolates
                 <param name="input_zc_vcf_collection" format="vcf" type="data_collection" collection_type="list" label="Collection of zero coverage VCF files"/>
             </when>
         </conditional>
-        <param name="input_vcf_collection" format="vcf" type="data_collection" collection_type="list" label="Collection of zero coverage VCF files with SNPs found in closely related isolate groups"/>
+        <conditional name="input_additional_zc_vcf_collection_cond">
+            <param name="input_additional_zc_vcf_collection" type="select" label="Include an additional collection of curated zero-coverage VCF files?">
+                <option value="no" selected="true">No</option>
+                <option value="yes">Yes</option>
+            </param>
+            <when value="no"/>
+            <when value="yes">
+                <param name="input_vcf_collection" format="vcf" type="data_collection" collection_type="list" label="Collection of zero coverage VCF files with SNPs found in closely related isolate groups"/>
+            </when>
+        </conditional>
         <param name="ac" type="integer" min="0" value="2" label="Allele count threshold" help="At least 1 position must have this value for a SNP to be added to a group"/>
         <param name="min_mq" type="integer" min="0" value="56" label="Map quality threshold" help="At least 1 position must have a higher MQ value for a SNP to be added to a group"/>
         <param name="min_quality_score" type="integer" min="0" value="150" label="Quality score threshold" help="At least 1 position must have a higher quality score for a SNP to be added to a group"/>
@@ -145,6 +156,7 @@ $all_isolates
         <test expect_num_outputs="4">
             <param name="input_zc_vcf_type" value="single"/>
             <param name="input_zc_vcf" value="input_zc_vcf.vcf" ftype="vcf" dbkey="89"/>
+            <param name="input_additional_zc_vcf_collection" value="yes"/>
             <param name="input_vcf_collection">
                 <collection type="list">
                     <element name="SRR8073662_zc.vcf" value="SRR8073662_zc.vcf" dbkey="89"/>
@@ -173,6 +185,7 @@ $all_isolates
                     <element name="BCG_Tokyo_Unknown_JP_DRR029468.vcf" value="BCG_Tokyo_Unknown_JP_DRR029468.vcf" dbkey="89"/>
                 </collection>
             </param>
+            <param name="input_additional_zc_vcf_collection" value="yes"/>
             <param name="input_vcf_collection">
                 <collection type="list">
                     <element name="01_1787_FL_Zoo_Jaguar.vcf" value="01_1787_FL_Zoo_Jaguar.vcf" dbkey="89"/>
@@ -202,6 +215,7 @@ $all_isolates
                     <element name="BCG_Tokyo_Unknown_JP_DRR029468.vcf" value="BCG_Tokyo_Unknown_JP_DRR029468.vcf" dbkey="89"/>
                 </collection>
             </param>
+            <param name="input_additional_zc_vcf_collection" value="yes"/>
             <param name="input_vcf_collection">
                 <collection type="list">
                     <element name="01_1787_FL_Zoo_Jaguar.vcf" value="01_1787_FL_Zoo_Jaguar.vcf" dbkey="89"/>
@@ -232,6 +246,7 @@ $all_isolates
                     <element name="BCG_Tokyo_Unknown_JP_DRR029468.vcf" value="BCG_Tokyo_Unknown_JP_DRR029468.vcf" dbkey="89"/>
                 </collection>
             </param>
+            <param name="input_additional_zc_vcf_collection" value="yes"/>
             <param name="input_vcf_collection">
                 <collection type="list">
                     <element name="01_1787_FL_Zoo_Jaguar.vcf" value="01_1787_FL_Zoo_Jaguar.vcf" dbkey="89"/>
