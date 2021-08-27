@@ -100,23 +100,22 @@ def accrue_statistics(dbkey, read1, read2, gzipped):
 def output_statistics(read1_stats, read2_stats, idxstats_file, metrics_file, output_file):
     paired_reads = read2_stats is not None
     if paired_reads:
-        columns = ['Reference', 'Read1 FASTQ', 'File Size', 'Reads', 'Mean Read Length', 'Mean Read Quality',
+        columns = ['Read1 FASTQ', 'File Size', 'Reads', 'Mean Read Length', 'Mean Read Quality',
                    'Reads Passing Q30', 'Read2 FASTQ', 'File Size', 'Reads', 'Mean Read Length', 'Mean Read Quality',
                    'Reads Passing Q30', 'Total Reads', 'All Mapped Reads', 'Unmapped Reads',
                    'Unmapped Reads Percentage of Total', 'Reference with Coverage', 'Average Depth of Coverage',
-                   'Good SNP Count']
+                   'Good SNP Count', 'Reference']
     else:
-        columns = ['Reference', 'FASTQ', 'File Size', 'Mean Read Length', 'Mean Read Quality', 'Reads Passing Q30',
+        columns = ['FASTQ', 'File Size', 'Mean Read Length', 'Mean Read Quality', 'Reads Passing Q30',
                    'Total Reads', 'All Mapped Reads', 'Unmapped Reads', 'Unmapped Reads Percentage of Total',
-                   'Reference with Coverage', 'Average Depth of Coverage', 'Good SNP Count']
+                   'Reference with Coverage', 'Average Depth of Coverage', 'Good SNP Count', 'Reference']
     with open(output_file, "w") as outfh:
         # Make sure the header starts with a # so
         # MultiQC can properly handle the output.
-        outfh.write("# %s\n" % "\t".join(columns))
+        outfh.write("%s\n" % "\t".join(columns))
         line_items = []
         # Get the current stats and associated files.
         # Get and output the statistics.
-        line_items.append(read1_stats.reference)
         line_items.append(read1_stats.fastq_file)
         line_items.append(read1_stats.file_size)
         if paired_reads:
@@ -152,6 +151,7 @@ def output_statistics(read1_stats, read2_stats, idxstats_file, metrics_file, out
         line_items.append(ref_with_coverage)
         line_items.append(avg_depth_of_coverage)
         line_items.append(good_snp_count)
+        line_items.append(read1_stats.reference)
         outfh.write('%s\n' % '\t'.join(str(x) for x in line_items))
 
 
