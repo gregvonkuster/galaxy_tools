@@ -5,12 +5,11 @@
     </macros>
     <command detect_errors="exit_code"><![CDATA[
 #import difflib
-#import os
 #import re
 
 #if $input_type_cond.input_type == 'single':
     #set read1 = $input_type_cond.read1
-    #set sample_name = re.sub('[^\s\w\-\\.]', '_', str($read1.element_identifier))
+    #set sample_name = re.sub('[^\s\w\-]', '_', str($read1.element_identifier))
 #else if $input_type_cond.input_type == 'pair':
     #set read1 = $input_type_cond.read1
     #set read1_identifier = re.sub('[^\s\w\-]', '_', str($read1.element_identifier))
@@ -20,30 +19,13 @@
     #set match = $matches[0]
     #set sample_name = re.sub('[^\s\w\-]', '_', str($read1_identifier[match.a:match.a + match.size]))
 #else:
-    #set read1 = $input_type_cond.reads_collection['forward']
-    #set read1_filename = $read1.name
-    #set sample_name = re.sub('[^\s\w\-]', '_', str($read1_filename))
-#end if
-
-#if $sample_name.find('_R1') >0:
-    ## Something like CMC_20E1_R1.fastq.gz
-    #set sample_name = $sample_name.split('_R1')[0]
-#else if $sample_name.find(".") > 0:
-    #if $read1.is_of_type('fastqsanger.gz') and $sample_name.endswith('gz'):
-        ## Something like my_sample.fastq.gz
-        #set sample_name = '.'.join($sample_name.split('.')[0:-2])
-    #else:
-        ## Something like my_sample.fastq
-        #set sample_name = $os.path.splitext($sample_name)[0]
-    #end if
-#else if $sample_name.find("_") > 0:
-    #if $read1.is_of_type('fastqsanger.gz') and $sample_name.endswith('gz'):
-        ## Something like my_sample_fastq_gz
-        #set sample_name = '_'.join($sample_name.split('_')[0:-2])
-    #else:
-        ## Something like my_sample_fastq
-        #set sample_name = "_".join($sample_name.split("_")[0:-1])
-    #end if
+    #set read1_name = $input_type_cond.reads_collection['forward'].name
+    #set read1_identifier = re.sub('[^\s\w\-]', '_', str($read1_name))
+    #set read2_name = $input_type_cond.reads_collection['reverse'].name
+    #set read2_identifier = re.sub('[^\s\w\-]', '_', str($read2_name))
+    #set matches = difflib.SequenceMatcher(None, read1_identifier, read2_identifier).get_matching_blocks()
+    #set match = $matches[0]
+    #set sample_name = re.sub('[^\s\w\-]', '_', str($read1_identifier[match.a:match.a + match.size]))
 #end if
 
 echo '$sample_name' > '$output'
@@ -82,7 +64,7 @@ echo '$sample_name' > '$output'
             <param name="input_type" value="pair"/>
             <param name="read1" value="CMC_20E1_R1.fastq.gz" dbkey="89"/>
             <param name="read2" value="CMC_20E1_R2.fastq.gz" dbkey="89"/>
-            <output name="output" file="sample_names.txt" ftype="txt"/>
+            <output name="output" file="sample_names2.txt" ftype="txt"/>
         </test>
         <!-- Collection of Paired reads -->
         <test>
@@ -93,7 +75,7 @@ echo '$sample_name' > '$output'
                     <element name="reverse" value="CMC_20E1_R2.fastq.gz"/>
                 </collection>
             </param>
-            <output name="output" file="sample_names.txt" ftype="txt"/>
+            <output name="output" file="sample_names3.txt" ftype="txt"/>
         </test>
         <!-- Collection of Paired reads -->
         <test>
@@ -104,7 +86,7 @@ echo '$sample_name' > '$output'
                     <element name="reverse" value="SRR14085881_reverse"/>
                 </collection>
             </param>
-            <output name="output" file="sample_names2.txt" ftype="txt"/>
+            <output name="output" file="sample_names4.txt" ftype="txt"/>
         </test>
     </tests>
     <help>
