@@ -64,11 +64,14 @@ def get_statistics(dbkey, fastq_file, gzipped):
     # Starting at row 3, keep every 4 row
     # random sample specified number of rows.
     file_size = nice_size(os.path.getsize(fastq_file))
-    total_reads = int(len(fastq_df.index) / 4)
+    total_reads = len(seqs)
     # Mean Read Length
     if sampling_size > total_reads:
         sampling_size = total_reads
-    fastq_df = fastq_df.iloc[3::4].sample(sampling_size)
+    try:
+        fastq_df = fastq_df.iloc[3::4].sample(sampling_size)
+    except ValueError:
+        fastq_df = fastq_df.iloc[3::4].sample(sampling_size, replace=True)
     dict_mean = {}
     list_length = []
     i = 0
