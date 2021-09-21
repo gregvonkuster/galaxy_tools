@@ -28,7 +28,7 @@ mkdir -p $output_snps_dir &&
         #if str($dbkey) == '?':
             #set dbkey = $i.metadata.dbkey
         #else if str($dbkey) != $i.metadata.dbkey:
-            >&2 echo "The dbkeys associated with the zero coverage VCF files with SNPs found in closely related isolate groups are not unique" && exit 1
+            >&2 echo "The dbkeys associated with the zero coverage VCF files with SNPs found in closely related isolate groups are not unique, check ${i.name}" && exit 1
         #end if
         #set vcf_identifier = re.sub('[^\s\w\-]', '_', str($i.element_identifier))
         ln -s '${i}' '$input_vcf_dir/${vcf_identifier}' &&
