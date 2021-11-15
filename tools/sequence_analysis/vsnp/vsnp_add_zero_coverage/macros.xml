@@ -9,7 +9,7 @@
         <requirement type="package" version="1.21.1">numpy</requirement>
     </xml>
     <xml name="openpyxl_requirement">
-        <requirement type="package" version="3.0.7">openpyxl</requirement>
+        <requirement type="package" version="3.0.9">openpyxl</requirement>
     </xml>
     <xml name="pandas_requirement">
         <requirement type="package" version="1.3.0">pandas</requirement>
