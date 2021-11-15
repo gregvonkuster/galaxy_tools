@@ -108,8 +108,16 @@ python '$__tool_directory__/vsnp_build_tables.py'
             <param name="input_avg_mq_json" value="input_avg_mq_json.json" ftype="json" dbkey="89"/>
             <param name="gbk_param" value="no"/>
             <output_collection name="excel" type="list" count="2">
-                <element name="cascade_table" file="cascade_table.xlsx" ftype="xlsx" compare="sim_size"/>
-                <element name="sort_table" file="sort_table.xlsx" ftype="xlsx" compare="sim_size"/>
+                <element name="cascade_table" ftype="xlsx">
+                    <assert_contents>
+                        <has_size value="6853" delta="100"/>
+                    </assert_contents>
+                </element>
+                <element name="sort_table" ftype="xlsx">
+                    <assert_contents>
+                        <has_size value="6847" delta="100"/>
+                    </assert_contents>
+                </element>
             </output_collection>
         </test>
         <test>
@@ -137,12 +145,36 @@ python '$__tool_directory__/vsnp_build_tables.py'
             </param>
             <param name="gbk_param" value="no"/>
             <output_collection name="excel" type="list" count="6">
-                <element name="Mbovis-01D6_snps_cascade_table" file="Mbovis-01D6_cascade_table.xlsx" ftype="xlsx" compare="sim_size"/>
-                <element name="Mbovis-01D6_snps_sort_table" file="Mbovis-01D6_sort_table.xlsx" ftype="xlsx" compare="sim_size"/>
-                <element name="Mbovis-01D_snps_cascade_table" file="Mbovis-01D_cascade_table.xlsx" ftype="xlsx" compare="sim_size"/>
-                <element name="Mbovis-01D_snps_sort_table" file="Mbovis-01D_sort_table.xlsx" ftype="xlsx" compare="sim_size"/>
-                <element name="Mbovis-01_snps_cascade_table" file="Mbovis-01_cascade_table.xlsx" ftype="xlsx" compare="sim_size"/>
-                <element name="Mbovis-01_snps_sort_table" file="Mbovis-01_sort_table.xlsx" ftype="xlsx" compare="sim_size"/>
+                <element name="Mbovis-01D6_snps_cascade_table" ftype="xlsx">
+                    <assert_contents>
+                        <has_size value="6854" delta="100"/>
+                    </assert_contents>
+                </element>
+                <element name="Mbovis-01D6_snps_sort_table" ftype="xlsx">
+                    <assert_contents>
+                        <has_size value="6847" delta="100"/>
+                    </assert_contents>
+                </element>
+                <element name="Mbovis-01D_snps_cascade_table" ftype="xlsx">
+                    <assert_contents>
+                        <has_size value="6854" delta="100"/>
+                    </assert_contents>
+                </element>
+                <element name="Mbovis-01D_snps_sort_table" ftype="xlsx">
+                    <assert_contents>
+                        <has_size value="6847" delta="100"/>
+                    </assert_contents>
+                </element>
+                <element name="Mbovis-01_snps_cascade_table" ftype="xlsx">
+                    <assert_contents>
+                        <has_size value="6853" delta="100"/>
+                    </assert_contents>
+                </element>
+                <element name="Mbovis-01_snps_sort_table" ftype="xlsx">
+                    <assert_contents>
+                        <has_size value="6847" delta="100"/>
+                    </assert_contents>
+                </element>
             </output_collection>
         </test>
     </tests>
