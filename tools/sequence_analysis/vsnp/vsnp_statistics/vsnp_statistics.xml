@@ -76,7 +76,11 @@ python '$__tool_directory__/vsnp_statistics.py'
             <param name="read1" value="Mcap_Deer_DE_SRR650221.fastq.gz" ftype="fastqsanger.gz" dbkey="89"/>
             <param name="samtools_idxstats" value="samtools_idxstats1.tabular" ftype="tabular" dbkey="89"/>
             <param name="vsnp_azc_metrics" value="add_zc_metrics1.tabular" ftype="tabular" dbkey="89"/>
-            <output name="output" file="vsnp_statistics1.tabular" ftype="tabular" compare="contains"/>
+            <output name="output" ftype="tabular">
+                <assert_contents>
+                    <has_size value="332"/>
+                </assert_contents>
+            </output>
         </test>
         <!-- A set of paired fastq files -->
         <test expect_num_outputs="1">
@@ -85,7 +89,11 @@ python '$__tool_directory__/vsnp_statistics.py'
             <param name="read2" value="13-1941-6_S4_L001_R2_600000.fastq.gz" ftype="fastqsanger.gz" dbkey="89"/>
             <param name="samtools_idxstats" value="samtools_idxstats2.tabular" ftype="tabular" dbkey="89"/>
             <param name="vsnp_azc_metrics" value="add_zc_metrics2.tabular" ftype="tabular" dbkey="89"/>
-            <output name="output" file="vsnp_statistics2.tabular" ftype="tabular" compare="contains"/>
+            <output name="output" ftype="tabular">
+                <assert_contents>
+                    <has_size value="500"/>
+                </assert_contents>
+            </output>
         </test>
         <!-- A collection of paired fastq files -->
         <test expect_num_outputs="1">
@@ -98,7 +106,11 @@ python '$__tool_directory__/vsnp_statistics.py'
             </param>
             <param name="samtools_idxstats" value="samtools_idxstats5.tabular" ftype="tabular" dbkey="89"/>
             <param name="vsnp_azc_metrics" value="add_zc_metrics5.tabular" ftype="tabular" dbkey="89"/>
-            <output name="output" file="vsnp_statistics4.tabular" ftype="tabular" compare="contains"/>
+            <output name="output" ftype="tabular">
+                <assert_contents>
+                    <has_size value="466"/>
+                </assert_contents>
+            </output>
         </test>
     </tests>
     <help>
