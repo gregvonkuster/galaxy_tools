@@ -1,0 +1,14 @@
+name: sample_names
+owner: greg
+description: |
+  Contains a tool that extracts a unique portion of the file name as the sample name, and writes it to the output.
+homepage_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/misc/sample_names
+long_description: |
+  Accepts fastqsanger sample files, extracts a unique portion of the file name as the sample name, and writes it to
+  the output.  The output text file can be consumed by the Parse parameter value expression tool to provide workflow
+  parameter values to the Read group identifier (ID) and the Sample name identifier (SM)  parameters in the
+  Map with BWA-MEM tool.
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/misc/sample_names
+type: unrestricted
+categories:
+- Sequence Analysis
