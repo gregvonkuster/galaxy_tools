@@ -1,1 +1,0 @@
-CMC_20E1_R1_fastq_gz
