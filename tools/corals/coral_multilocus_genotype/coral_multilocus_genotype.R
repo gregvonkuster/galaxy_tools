@@ -175,7 +175,7 @@ smlg <- sample_table_columns %>%
 # Name the columns.
 smlg_data_frame <- as.data.frame(smlg);
 colnames(smlg_data_frame) <- c("user_specimen_id", "affy_id", "bcoral_genet_id", "genotype_id",
-		               "coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "genetic_coral_species_call");
+                               "coral_mlg_clonal_id", "coral_mlg_rep_sample_id", "genetic_coral_species_call");
 log_data_frame("smlg_data_frame", smlg_data_frame);
 # Missing GT in samples submitted.
 start_time <- time_start("Discovering missing GT in samples");
@@ -776,7 +776,9 @@ prep_genotype_tibble <- id_data_table %>%
         mutate(coral_mlg_rep_sample_id=ifelse(is.na(coral_mlg_rep_sample_id.x),coral_mlg_rep_sample_id.y,coral_mlg_rep_sample_id.x)) %>%
     ungroup() %>%
     dplyr::select(-coral_mlg_rep_sample_id.x,-coral_mlg_rep_sample_id.y, -group.x,-group.y) %>%
-    distinct();
+    group_by(coral_mlg_clonal_id) %>%
+    arrange(coral_mlg_rep_sample_id) %>%
+    slice(1);
 
 # Confirm that the representative mlg is the same between runs.
 uniques2 <- unique(prep_genotype_tibble[c("group", "coral_mlg_rep_sample_id")]);
@@ -796,8 +798,7 @@ prep_genotype_tibble$coral_mlg_rep_sample_id[na.mlg3] <- uniques2$coral_mlg_rep_
 representative_mlg_tibble <- prep_genotype_tibble %>%
     mutate(coral_mlg_rep_sample_id=ifelse(is.na(coral_mlg_rep_sample_id) & (db_match =="no_match"), affy_id, coral_mlg_rep_sample_id)) %>%
     ungroup() %>%
-    select(-group)%>%
-    distinct();
+    select(-group);
 # prep_genotype_table_tibble looks like this:
 # affy_id       coral_mlg_clonal_id user_specimen_id db_match
 # a550962...CEL HG0120              1090             match
@@ -806,8 +807,8 @@ representative_mlg_tibble <- prep_genotype_tibble %>%
 prep_genotype_table_tibble <- stag_db_report %>%
     select("affy_id", "coral_mlg_clonal_id", "user_specimen_id", "db_match", "genetic_coral_species_call") %>%
     left_join(representative_mlg_tibble %>%
-        select("affy_id", "coral_mlg_rep_sample_id"),
-        by='affy_id');
+        select("coral_mlg_rep_sample_id", "coral_mlg_clonal_id"),
+        by='coral_mlg_clonal_id');
 # genotype_table_tibble looks like this:
 # affy_id         coral_mlg_clonal_id user_specimen_id db_match
 # a550962-436.CEL HG0120              1090             match
@@ -816,8 +817,7 @@ prep_genotype_table_tibble <- stag_db_report %>%
 genotype_table_tibble <- prep_genotype_table_tibble %>%
     left_join(affy_metadata_data_frame %>%
         select("user_specimen_id", "bcoral_genet_id"),
-        by='user_specimen_id') %>%
-    drop_na(coral_mlg_rep_sample_id);
+        by='user_specimen_id');
 write_data_frame(output_data_dir, "genotype.tabular", genotype_table_tibble);
 
 # Output the file needed for populating the person table.
@@ -902,7 +902,7 @@ for (i in 1:num_rows) {
     sample_table_data_frame$percent_heterozygous_coral[i] <- sample_prep_data_frame$percent_heterozygous_coral[i];
     sample_table_data_frame$percent_heterozygous_sym[i] <- DEFAULT_MISSING_NUMERIC_VALUE;
     sample_table_data_frame$field_call[i] <- sample_prep_data_frame$field_call[i];
-	sample_table_data_frame$bcoral_genet_id[i] <- sample_prep_data_frame$bcoral_genet_id[i];
+    sample_table_data_frame$bcoral_genet_id[i] <- sample_prep_data_frame$bcoral_genet_id[i];
 }
 write_data_frame(output_data_dir, "sample.tabular", sample_table_data_frame);
 
