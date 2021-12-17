@@ -35,7 +35,7 @@ class EnsureSynced(object):
         self.conn = psycopg2.connect(**args)
 
     def get_affy_ids_from_db(self):
-        cmd = "SELECT affy_id FROM sample WHERE genotype_id NOT IN (SELECT id FROM genotype WHERE coral_mlg_clonal_id = 'failed') ORDER BY affy_id;"
+        cmd = "SELECT coral_mlg_rep_sample_id, coral_mlg_clonal_id FROM genotype WHERE coral_mlg_rep_sample_id IS NOT NULL AND coral_mlg_rep_sample_id != '' AND coral_mlg_clonal_id != 'failed' ORDER BY coral_mlg_rep_sample_id;”
         cur = self.conn.cursor()
         cur.execute(cmd)
         rows = cur.fetchall()
