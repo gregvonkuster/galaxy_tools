@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 import argparse
 import sys
 
@@ -23,7 +22,7 @@ class EnsureSynced(object):
         self.connect_db()
         self.engine = create_engine(self.args.database_connection_string)
         self.metadata = MetaData(self.engine)
-        self.affy_ids_from_db = []
+        self.coral_mlg_rep_sample_ids_from_db = []
         self.affy_ids_from_file = []
 
     def connect_db(self):
@@ -33,14 +32,14 @@ class EnsureSynced(object):
         assert url.get_dialect().name == 'postgresql', 'This script can only be used with PostgreSQL.'
         self.conn = psycopg2.connect(**args)
 
-    def get_affy_ids_from_db(self):
+    def get_coral_mlg_rep_sample_ids_from_db(self):
         cmd = "SELECT coral_mlg_rep_sample_id, coral_mlg_clonal_id FROM genotype WHERE coral_mlg_rep_sample_id IS NOT NULL AND coral_mlg_rep_sample_id != '' AND coral_mlg_clonal_id != 'failed' ORDER BY coral_mlg_rep_sample_id;"
         cur = self.conn.cursor()
         cur.execute(cmd)
         rows = cur.fetchall()
         for row in rows:
-            self.affy_ids_from_db.append(row[0])
-        self.affy_ids_from_db.sort()
+            self.coral_mlg_rep_sample_ids_from_db.append(row[0])
+        self.coral_mlg_rep_sample_ids_from_db.sort()
 
     def get_affy_ids_from_file(self, f):
         with open(f) as fh:
@@ -68,24 +67,24 @@ class EnsureSynced(object):
         self.args = parser.parse_args()
 
     def run(self):
-        self.get_affy_ids_from_db()
+        self.get_coral_mlg_rep_sample_ids_from_db()
         self.get_affy_ids_from_file(self.args.affy_ids_from_file)
-        if self.affy_ids_from_db == self.affy_ids_from_file:
+        if self.coral_mlg_rep_sample_ids_from_db == self.affy_ids_from_file:
             in_sync = True
             self.log("The selected file is in sync with the database.\n\n")
         else:
             in_sync = False
             self.log("The selected file is not in sync with the database.\n\n")
-        num_affy_ids_from_db = len(self.affy_ids_from_db)
-        self.log("Number of Affymetrix ids in the database: %d\n" % num_affy_ids_from_db)
+        num_coral_mlg_rep_sample_ids_from_db = len(self.coral_mlg_rep_sample_ids_from_db)
+        self.log("Number of coral mlg rep sample ids in the database: %d\n" % num_coral_mlg_rep_sample_ids_from_db)
         num_affy_ids_from_file = len(self.affy_ids_from_file)
         self.log("Number of Affymetrix ids in the file: %d\n" % num_affy_ids_from_file)
         if not in_sync:
-            if num_affy_ids_from_db > num_affy_ids_from_file:
+            if num_coral_mlg_rep_sample_ids_from_db > num_affy_ids_from_file:
                 self.log("The database contains the following Affymetrix ids that are not in the file.\n")
             else:
                 self.log("The file contains the following Affymetrix ids that are not in the database.\n")
-            diff_list = self.get_difference(self.affy_ids_from_db, self.affy_ids_from_file)
+            diff_list = self.get_difference(self.coral_mlg_rep_sample_ids_from_db, self.affy_ids_from_file)
             for affy_id in diff_list:
                 self.log("%s\n" % affy_id)
             self.outfh.flush()
