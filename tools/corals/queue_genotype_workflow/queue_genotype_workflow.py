@@ -427,6 +427,7 @@ try:
             outputfh.write("\nFilterAllGenotypedSamples workflow id: %s\n" % str(fags_workflow_id))
             # Map the history datasets to the input datasets for
             # the FilterAllGenotypedSamples workflow.
+            history_datasets = get_history_datasets(gi, args.history_id)
             fags_workflow_input_datasets = get_workflow_input_datasets(gi, history_datasets, fags_workflow_name, fags_workflow_dict, outputfh)
             # Start the FilterAllGenotypedSamples workflow.
             start_workflow(gi, fags_workflow_id, fags_workflow_name, fags_workflow_input_datasets, None, args.history_id, outputfh)
