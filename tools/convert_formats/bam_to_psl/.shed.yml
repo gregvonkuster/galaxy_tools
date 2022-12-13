@@ -1,0 +1,9 @@
+name: bam_to_psl
+owner: greg
+description: Converts a BAM or SAM dataset to PSL format
+long_description: Converts a BAM or SAM dataset to PSL format
+categories: 
+- Convert Formats
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/convert_formats/bam_to_psl
+homepage_url: https://github.com/gregvonkuster/galaxy_tools
+type: unrestricted
