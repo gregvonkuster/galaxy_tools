@@ -1,0 +1,9 @@
+name: filter_contigs
+owner: greg
+description: Filters contigs from an assembled fasta file that are longer than the specified length
+long_description: Filters contigs from an assembled fasta file that are longer than the specified length
+categories: 
+- Sequence Analysis
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/pima/filter_contigs
+homepage_url: https://github.com/gregvonkuster/galaxy_tools
+type: unrestricted
