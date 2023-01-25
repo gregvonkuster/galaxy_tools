@@ -1,0 +1,9 @@
+name: draw_features
+owner: greg
+description: Plots contigs and features of high-quality annotated assemblies
+long_description: Plots contigs and features of high-quality annotated assemblies
+categories: 
+- Visualization
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/pima/draw_features
+homepage_url: https://github.com/gregvonkuster/galaxy_tools
+type: unrestricted

@@ -1,0 +1,16 @@
+contig_1	484392	485921	62550724|AAX88798.1|AY818309.1|1|1|alo|alo|anthrolysin_O/cereolysin_O_family_cholesterol-dependent_cytolysin_Alo	0.984	+
+contig_1	4673373	4675772	29894390|AAP07680.1|AE016877.1|1|1|inhA2|inhA2|M6_family_metalloprotease_immune_inhibitor_InhA2	1.000	-
+contig_1	4253739	4254749	29894808|AAP08097.1|AE016877.1|1|1|cytK2|cytK2|beta-channel_forming_cytolysin_CytK2	1.000	+
+contig_1	232577	233434	5305719|AAD41788.1|AF132087.1|1|1|plcR|plcR|transcriptional_regulator_PlcR	1.000	+
+contig_1	4667636	4668636	505581118|AGL98063.1|KC527544.1|1|1|cerB|cerB|sphingomyelinase_CerB	0.983	-
+contig_1	4095082	4097472	296323016|ADH05944.1|CP001903.1|1|1|inhA1|inhA1|M6_family_metalloprotease_immune_inhibitor_InhA1	0.998	-
+contig_1	2421494	2422813	29896770|AAP10048.1|AE016877.1|1|1|hblC|hblC|hemolytic_enterotoxin_HBL_lytic_component_L2	0.977	+
+contig_1	3520286	3521566	29895642|AAP08924.1|AE016877.1|1|1|entFM|entFM|enterotoxin_EntFM	0.988	-
+contig_1	2423992	2425119	29896768|AAP10046.1|AE016877.1|1|1|hblB|hblB|hemolytic_enterotoxin_HBL_binding_subunit_HblB	0.996	+
+contig_1	1750170	1751159	29897410|AAP10686.1|AE016877.1|1|1|plcA|plcA|phosphatidylinositol_diacylglycerol-lyase	1.000	+
+contig_1	3448511	3448927	446866507|WP_000943763.1|NG_050591.1|1|1|fosBx1|fosB_gen|fosfomycin_resistance_bacillithiol_transferase_FosBx1	0.998	-
+contig_1	1994015	1995253	29897180|AAP10457.1|AE016877.1|1|1|hlyII|hlyII|hemolysin_II_HlyII	1.000	+
+contig_1	2968066	2968986	1028083092|WP_063842248.1|NG_047482.1|1|1|bla1|bla1|class_A_beta-lactamase_Bla1	0.976	-
+contig_1	2079369	2080142	1028078998|WP_063839879.1|NG_056058.1|1|1|BcII|BcII|BcII_family_subclass_B1_metallo-beta-lactamase	0.963	+
+contig_1	3591341	3592420	29895498|AAP08785.1|AE016877.1|1|1|nheC|nheC|non-hemolytic_enterotoxin_NHE_subunit_C	0.999	-
+contig_1	2425495	2426895	6686906|CAB64770.1|AJ007794.1|1|1|hblA|hblA|hemolytic_enterotoxin_HBL_binding_subunit_HblA	0.988	+
