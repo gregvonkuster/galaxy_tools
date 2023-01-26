@@ -25,9 +25,9 @@ def draw_features(feature_hits_files, contigs, output_dir):
         # Make sure the file is not empty.
         if os.path.isfile(feature_hits_file) and os.path.getsize(feature_hits_file) > 0:
             best_hits = pandas.read_csv(filepath_or_buffer=feature_hits_file, sep='\t', header=None)
-            ofh.write("\nFeature file %s will be processed\n" % str(feature_hits_file))
+            ofh.write("\nFeature file %s will be processed\n" % os.path.basename(feature_hits_file))
         else:
-            ofh.write("\nEmpty feature file %s will NOT be processed\n" % str(feature_hits_file))
+            ofh.write("\nEmpty feature file %s will NOT be processed\n" % os.path.basename(feature_hits_file))
             best_hits = None
         feature_hits[feature_name] = best_hits
 
