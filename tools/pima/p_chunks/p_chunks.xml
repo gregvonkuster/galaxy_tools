@@ -1,0 +1,42 @@
+<tool id="p_chunks" name="PIMA: pChunks" version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="@PROFILE@">
+  <description>annotate plasmids</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <expand macro="requirements"/>
+    <command detect_errors="exit_code"><![CDATA[
+#import os
+
+#set plasmid_db_name = $os.path.join($plasmid_database.extra_files_path, 'blastdb')
+
+mkdir 'output_dir' &&
+
+export BLASTDB='$plasmid_database.extra_files_path' &&
+Rscript '${__tool_directory__}/p_chunks.R' 
+--plasmid_psl '$plasmid_psl'
+--plasmid_database '$plasmid_db_name'
+--no_amr
+--no_inc
+--output 'output_dir'
+--threads \${GALAXY_SLOTS:-4}
+&& cat `readlink output_dir/plasmids.tsv` > '$output_plasmids'
+    ]]></command>
+    <inputs>
+        <param argument="--plasmid_psl" type="data" format="psl" label="PSL file"/>
+        <param argument="--plasmid_database" type="data" format="blastdbn" label="BLAST database of the plasmid sequences" help="Plasmid sequences are typically contianed in file named plasmids_and_vectors.fasta"/>
+    </inputs>
+    <outputs>
+        <data name="output_plasmids" format="tsv" label="${tool.name} on ${on_string} (plasmids)"/>
+    </outputs>
+    <tests>
+        <!-- Tests are not possible due to file size requirements -->
+    </tests>
+    <help>
+**What it does**
+
+Accepts a PSL file and a BLAST database of the associated plasmid sequences and produces a tabular file containing query name,
+plasmid name, plasmid accession, query size, aligned bases, plasmid size and missing plasmids.
+    </help>
+    <expand macro="citations"/>
+</tool>
+

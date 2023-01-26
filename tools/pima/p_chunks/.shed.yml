@@ -1,0 +1,9 @@
+name: p_chunks
+owner: greg
+description: Annotates plasmids
+long_description: Annotates plasmids
+categories: 
+- Sequence Analysis
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/pima/p_chunks
+homepage_url: https://github.com/gregvonkuster/galaxy_tools
+type: unrestricted
