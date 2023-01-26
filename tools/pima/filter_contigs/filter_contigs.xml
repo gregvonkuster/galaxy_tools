@@ -1,4 +1,4 @@
-<tool id="filter_contigs" name="Filter contigs" version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="@PROFILE@">
+<tool id="filter_contigs" name="PIMA: filter contigs" version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="@PROFILE@">
   <description>from an assembled FASTA file</description>
     <macros>
         <import>macros.xml</import>
