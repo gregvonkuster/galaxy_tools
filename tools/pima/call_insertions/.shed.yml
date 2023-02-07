@@ -1,0 +1,9 @@
+name: call_insertions
+owner: greg
+description: Extracts aligned regions of 2 genomes and produces reference alignment and genome alignment BED files
+long_description: Extracts aligned regions of 2 genomes and produces reference alignment and genome alignment BED files
+categories: 
+- Nanopore
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/pima/call_insertions
+homepage_url: https://github.com/gregvonkuster/galaxy_tools
+type: unrestricted

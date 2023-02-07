@@ -1,0 +1,39 @@
+<tool id="call_insertions" name="PIMA: call insertions" version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="@PROFILE@">
+    <description></description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <expand macro="requirements"/>
+    <command detect_errors="exit_code"><![CDATA[
+grep AvgIdentity '$dnadiff_report' | head -1 | awk '{print $2}' > reference_identity &&
+grep AlignedBases '$dnadiff_report' | head -1 | awk '{sub(/\(.*/, "", $2); print $2 * 100}' > reference_aligned_bases &&
+cat '$dnadiff_1coords' | awk '{OFS = "\t"; if ($2 < $1){t = $2; $2 = $1; $1 = t} print $12,$1,$2}' | sort -k 1,1 -k 2,2n > '$reference_aligned' &&
+cat '$dnadiff_1coords' | awk '{OFS = "\t"; if ($4 < $3){t = $4; $4 = $3; $3 = t} print $13,$3,$4}' | sort -k 1,1 -k 2,2n > '$genome_aligned'
+]]></command>
+    <inputs>
+        <param argument="--dnadiff_report" type="data" format="txt" label="DNAdiff report file"/>
+        <param argument="--dnadiff_1coords" type="data" format="tabular" label="DNAdiff 1coords file"/>
+        <param argument="--reference_identity_min" type="float" value="98.0" min="0" label="Minimum reference identity"/>
+        <param argument="--reference_alignment_min" type="float" value="97.0" min="0" label="Minimum reference alignment"/>
+    </inputs>
+    <outputs>
+        <data name="reference_aligned" format="bed" label="${tool.name} on ${on_string} (reference alignment)"/>
+        <data name="genome_aligned" format="bed" label="${tool.name} on ${on_string} (genome alignment)"/>
+    </outputs>
+    <tests>
+        <test>
+            <param name="dnadiff_report" value="dnadiff_report.txt" ftype="txt"/>
+            <param name="dnadiff_1coords" value="dnadiff_1coords.tsv" ftype="tsv"/>
+            <output name="reference_aligned" value="reference_aligned.bed" ftype="bed"/>
+            <output name="genome_aligned" value="genome_aligned.bed" ftype="bed"/>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+Accepts DNAdiff report and DNAdiff 1coords files and extracts the aligned regions of the two genomes, producing reference alignment
+and genome alignment BED files.
+    </help>
+    <expand macro="citations"/>
+</tool>
+
