@@ -62,7 +62,8 @@ def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, amr_mutations_fi
             # The call_amr_mutations Galaxy tool will currently produce this VarScan VCF file, but we need a sample that
             # will produce a populated file.  After we find one, we'll need to figure out how to implement this loop
             # https://github.com/appliedbinf/pima_md/blob/main/pima.py#L2925 in a Galaxy tool so that the VarScan VCF
-            # file will be converted to the TSV amr_mutations_file that thsi tool expects. 
+            # file will be converted to the TSV amr_mutations_file that thsi tool expects.
+            amr_mutations = pandas.DataFrame()
             # Roll up potentially resistance conferring mutations.
             for mutation_region, mutation_hits in amr_mutations.iteritems():
                 for mutation_idx, mutation_hit in mutation_hits.iterrows():
@@ -74,7 +75,10 @@ def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, amr_mutations_fi
             # within the workflow to receive the amr_deletions_file here, although it is currently
             # always empty...
             # Roll up deletions that might confer resistance.
-            amr_deletions = pandas.read_csv(filepath_or_buffer=amr_deletions_file, sep='\t', header=None)
+            try:
+                amr_deletions = pandas.read_csv(filepath_or_buffer=amr_deletions_file, sep='\t', header=None)
+            except Exception:
+                amr_deletions = pandas.DataFrame()
             if amr_deletions.shape[0] > 0:
                 amr_deletions.columns = ['contig', 'start', 'stop', 'name', 'type', 'drug', 'note']
                 amr_deletions = amr_deletions.loc[amr_deletions['type'].isin(['large-deletion', 'any']), :]
