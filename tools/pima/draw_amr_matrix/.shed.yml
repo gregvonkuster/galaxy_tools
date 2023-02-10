@@ -1,0 +1,9 @@
+name: draw_amr_matrix
+owner: greg
+description: Accepts a collection of best AMR feature hits, an optional AMR deletions BED file, an optional AMR mutations TSV file and a AMR gene drug mappings file and draws an AMR matrix.
+long_description: Accepts a collection of best AMR feature hits, an optional AMR deletions BED file, an optional AMR mutations TSV file and a AMR gene drug mappings file and draws an AMR matrix.
+categories: 
+- Visualization
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/pima/draw_amr_matrix
+homepage_url: https://github.com/gregvonkuster/galaxy_tools
+type: unrestricted

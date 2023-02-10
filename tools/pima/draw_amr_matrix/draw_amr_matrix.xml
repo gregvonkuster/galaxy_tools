@@ -1,0 +1,71 @@
+<tool id="draw_amr_matrix" name="PIMA: draw AMR matrix" version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="@PROFILE@">
+    <description>of genes and drugs</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <expand macro="requirements"/>
+    <command detect_errors="exit_code"><![CDATA[
+#import re
+
+mkdir amr_feature_hits_dir &&
+mkdir output_dir &&
+
+#for $i in $amr_feature_hits:
+    #set file_name = $i.file_name
+    #set identifier = re.sub('[^\s\w\-\\.]', '_', str($i.element_identifier))
+    ln -s '$file_name' 'amr_feature_hits_dir/$identifier' &&
+#end for
+
+python '$__tool_directory__/draw_amr_matrix.py'
+--amr_gene_drug_file '$amr_gene_drug_file'
+--amr_deletions_file '$amr_deletions_file'
+--amr_feature_hits_dir 'amr_feature_hits_dir'
+--output_dir 'output_dir'
+#if str($output_process_log) == 'yes':
+    && mv 'process_log' '$process_log'
+#end if
+]]></command>
+    <inputs>
+        <param argument="--amr_feature_hits" format="bed" type="data_collection" collection_type="list" label="Collection of feature hits BED files"/>
+        <param argument="--amr_deletions_file" type="data" format="bed" optional="true" label="AMR deletions file" help="Optional, leave blank to ignore"/>
+        <param argument="--amr_mutations_file" type="data" format="tabular,tsv" optional="true" label="AMR mutations file" help="Optional, leave blank to ignore"/>
+        <param argument="--amr_gene_drug_file" type="data" format="tabular,tsv" label="AMR gene drugs file"/>
+        <param name="output_process_log" type="select" display="radio" label="Output process log file?">
+            <option value="no" selected="true">No</option>
+            <option value="yes">Yes</option>
+        </param>
+    </inputs>
+    <outputs>
+        <data name="process_log" format="txt" label="${tool.name} on ${on_string} (Process log)">
+            <filter>output_process_log == 'yes'</filter>
+        </data>
+        <collection name="amr_matrix_png" type="list" format="png">
+            <discover_datasets pattern="(?P&lt;designation&gt;.+)\.(?P&lt;ext&gt;png)" directory="output_dir"/>
+        </collection>
+    </outputs>
+    <tests>
+        <test>
+            <param name="amr_feature_hits">
+                <collection type="list">
+                    <element name="amr_cds.bed" value="amr_cds.bed"/>
+                </collection>
+            </param>
+            <param name="amr_gene_drug_file" value="amr_gene_drug.tsv" ftype="tsv"/>
+            <output_collection name="amr_matrix_png" type="list" count="1">
+                <element name="contig_1" ftype="png">
+                    <assert_contents>
+                        <has_size value="25383" delta="100"/>
+                    </assert_contents>
+                </element>
+            </output_collection>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+Accepts a collection of best AMR feature hits, an optional AMR deletions BED file, an optional AMR mutations TSV file and a AMR gene
+drug mappings file and draws an AMR matrix.
+    </help>
+    <expand macro="citations"/>
+</tool>
+
