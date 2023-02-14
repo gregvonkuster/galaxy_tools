@@ -1,0 +1,1038 @@
+{
+    "a_galaxy_workflow": "true",
+    "annotation": "PE list:pairs collection with reference Mycobacterium tuberculosis H37Rv",
+    "creator": [
+        {
+            "class": "Organization",
+            "name": "Kapur Lab",
+            "url": "https://www.huck.psu.edu/people/vivek-kapur"
+        }
+    ],
+    "format-version": "0.1",
+    "license": "MIT",
+    "name": "se_list_collection_Mycobacterium tuberculosis H37Rv (requires ZC VCF input)",
+    "steps": {
+        "0": {
+            "annotation": "A dataset collection of SE fastqsanger samples",
+            "content_id": null,
+            "errors": null,
+            "id": 0,
+            "input_connections": {},
+            "inputs": [
+                {
+                    "description": "A dataset collection of SE fastqsanger samples",
+                    "name": "1. fastqsanger samples"
+                }
+            ],
+            "label": "1. fastqsanger samples",
+            "name": "Input dataset collection",
+            "outputs": [],
+            "position": {
+                "bottom": 64.484375,
+                "height": 84,
+                "left": -535,
+                "right": -335,
+                "top": -19.515625,
+                "width": 200,
+                "x": -535,
+                "y": -19.515625
+            },
+            "tool_id": null,
+            "tool_state": "{\"optional\": false, \"tag\": \"\", \"collection_type\": \"list\"}",
+            "tool_version": null,
+            "type": "data_collection_input",
+            "uuid": "a86b82d8-1abd-4003-bafc-06eaeb3f1b56",
+            "workflow_outputs": []
+        },
+        "1": {
+            "annotation": "List dataset collection of zero-coverage VCF files previously produced by the vSNP: add zero coverage tool.",
+            "content_id": null,
+            "errors": null,
+            "id": 1,
+            "input_connections": {},
+            "inputs": [
+                {
+                    "description": "List dataset collection of zero-coverage VCF files previously produced by the vSNP: add zero coverage tool.",
+                    "name": "2. VCF reference datasets (database)"
+                }
+            ],
+            "label": "2. VCF reference datasets (database)",
+            "name": "Input dataset collection",
+            "outputs": [],
+            "position": {
+                "bottom": 317.265625,
+                "height": 84,
+                "left": -528.953125,
+                "right": -328.953125,
+                "top": 233.265625,
+                "width": 200,
+                "x": -528.953125,
+                "y": 233.265625
+            },
+            "tool_id": null,
+            "tool_state": "{\"optional\": false, \"tag\": \"\", \"collection_type\": \"list\"}",
+            "tool_version": null,
+            "type": "data_collection_input",
+            "uuid": "d3fd9a0e-a779-47e9-a761-1eed4691941b",
+            "workflow_outputs": []
+        },
+        "2": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/greg/sample_names/sample_names/1.0+galaxy2",
+            "errors": "Tool is not installed",
+            "id": 2,
+            "input_connections": {
+                "input_type_cond|read1": {
+                    "id": 0,
+                    "output_name": "output"
+                }
+            },
+            "inputs": [],
+            "label": null,
+            "name": "toolshed.g2.bx.psu.edu/repos/greg/sample_names/sample_names/1.0+galaxy2",
+            "outputs": [],
+            "position": {
+                "bottom": 263.578125,
+                "height": 116,
+                "left": -284.765625,
+                "right": -84.765625,
+                "top": 147.578125,
+                "width": 200,
+                "x": -284.765625,
+                "y": 147.578125
+            },
+            "post_job_actions": {
+                "HideDatasetActionoutput": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "output"
+                }
+            },
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/greg/sample_names/sample_names/1.0+galaxy2",
+            "tool_state": "{\"__page__\": null, \"__rerun_remap_job_id__\": null, \"input_type_cond\": {\"__current_case__\": 0, \"input_type\": \"single\", \"read1\": {\"__class__\": \"ConnectedValue\"}}}",
+            "tool_version": "1.0+galaxy2",
+            "type": "tool",
+            "uuid": "674b922f-252c-4691-8c93-c1fb0c32b52e",
+            "workflow_outputs": []
+        },
+        "3": {
+            "annotation": "",
+            "content_id": "param_value_from_file",
+            "errors": null,
+            "id": 3,
+            "input_connections": {
+                "input1": {
+                    "id": 2,
+                    "output_name": "output"
+                }
+            },
+            "inputs": [],
+            "label": null,
+            "name": "Parse parameter value",
+            "outputs": [
+                {
+                    "name": "text_param",
+                    "type": "expression.json"
+                }
+            ],
+            "position": {
+                "bottom": 504.828125,
+                "height": 158,
+                "left": -281.21875,
+                "right": -81.21875,
+                "top": 346.828125,
+                "width": 200,
+                "x": -281.21875,
+                "y": 346.828125
+            },
+            "post_job_actions": {
+                "HideDatasetActiontext_param": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "text_param"
+                }
+            },
+            "tool_id": "param_value_from_file",
+            "tool_state": "{\"input1\": {\"__class__\": \"ConnectedValue\"}, \"param_type\": \"text\", \"remove_newlines\": \"true\", \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "0.1.0",
+            "type": "tool",
+            "uuid": "0dd74c68-71bb-44ca-aa52-ddd4e342ec36",
+            "workflow_outputs": []
+        },
+        "4": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/devteam/bwa/bwa_mem/0.7.17.2",
+            "errors": null,
+            "id": 4,
+            "input_connections": {
+                "fastq_input|fastq_input1": {
+                    "id": 0,
+                    "output_name": "output"
+                },
+                "rg|read_group_id_conditional|ID": {
+                    "id": 3,
+                    "output_name": "text_param"
+                },
+                "rg|read_group_sm_conditional|SM": {
+                    "id": 3,
+                    "output_name": "text_param"
+                }
+            },
+            "inputs": [],
+            "label": null,
+            "name": "Map with BWA-MEM",
+            "outputs": [
+                {
+                    "name": "bam_output",
+                    "type": "bam"
+                }
+            ],
+            "position": {
+                "bottom": 304.890625,
+                "height": 241,
+                "left": 83.90625,
+                "right": 283.90625,
+                "top": 63.890625,
+                "width": 200,
+                "x": 83.90625,
+                "y": 63.890625
+            },
+            "post_job_actions": {},
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/bwa/bwa_mem/0.7.17.2",
+            "tool_shed_repository": {
+                "changeset_revision": "e188dc7a68e6",
+                "name": "bwa",
+                "owner": "devteam",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"analysis_type\": {\"analysis_type_selector\": \"full\", \"__current_case__\": 4, \"algorithmic_options\": {\"algorithmic_options_selector\": \"do_not_set\", \"__current_case__\": 1}, \"scoring_options\": {\"scoring_options_selector\": \"do_not_set\", \"__current_case__\": 1}, \"io_options\": {\"io_options_selector\": \"set\", \"__current_case__\": 0, \"five\": \"false\", \"q\": \"false\", \"T\": \"30\", \"h\": \"5\", \"a\": \"false\", \"C\": \"false\", \"V\": \"false\", \"Y\": \"false\", \"M\": \"true\"}}, \"fastq_input\": {\"fastq_input_selector\": \"single\", \"__current_case__\": 1, \"fastq_input1\": {\"__class__\": \"ConnectedValue\"}}, \"output_sort\": \"coordinate\", \"reference_source\": {\"reference_source_selector\": \"cached\", \"__current_case__\": 0, \"ref_file\": \"NC_000962\"}, \"rg\": {\"rg_selector\": \"set\", \"__current_case__\": 1, \"read_group_id_conditional\": {\"do_auto_name\": \"false\", \"__current_case__\": 1, \"ID\": {\"__class__\": \"ConnectedValue\"}}, \"read_group_sm_conditional\": {\"do_auto_name\": \"false\", \"__current_case__\": 1, \"SM\": {\"__class__\": \"ConnectedValue\"}}, \"PL\": \"ILLUMINA\", \"read_group_lb_conditional\": {\"do_auto_name\": \"false\", \"__current_case__\": 1, \"LB\": \"\"}, \"CN\": \"\", \"DS\": \"\", \"DT\": \"\", \"FO\": \"\", \"KS\": \"\", \"PG\": \"\", \"PI\": \"250\", \"PU\": \"\"}, \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "0.7.17.2",
+            "type": "tool",
+            "uuid": "de0f64aa-8b8b-4998-8501-cb136a04b594",
+            "workflow_outputs": [
+                {
+                    "label": "Aligned Reads",
+                    "output_name": "bam_output",
+                    "uuid": "2a03e22b-5039-4122-a27f-06dfd721ab8c"
+                }
+            ]
+        },
+        "5": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/devteam/picard/picard_MarkDuplicates/2.18.2.3",
+            "errors": null,
+            "id": 5,
+            "input_connections": {
+                "inputFile": {
+                    "id": 4,
+                    "output_name": "bam_output"
+                }
+            },
+            "inputs": [],
+            "label": null,
+            "name": "MarkDuplicates",
+            "outputs": [
+                {
+                    "name": "metrics_file",
+                    "type": "txt"
+                },
+                {
+                    "name": "outFile",
+                    "type": "bam"
+                }
+            ],
+            "position": {
+                "bottom": 689.71875,
+                "height": 231,
+                "left": -21.796875,
+                "right": 178.203125,
+                "top": 458.71875,
+                "width": 200,
+                "x": -21.796875,
+                "y": 458.71875
+            },
+            "post_job_actions": {
+                "HideDatasetActionmetrics_file": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "metrics_file"
+                },
+                "HideDatasetActionoutFile": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "outFile"
+                }
+            },
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/picard/picard_MarkDuplicates/2.18.2.3",
+            "tool_shed_repository": {
+                "changeset_revision": "b502c227b5e6",
+                "name": "picard",
+                "owner": "devteam",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"assume_sorted\": \"true\", \"barcode_tag\": \"\", \"comments\": [], \"duplicate_scoring_strategy\": \"SUM_OF_BASE_QUALITIES\", \"inputFile\": {\"__class__\": \"ConnectedValue\"}, \"optical_duplicate_pixel_distance\": \"100\", \"read_name_regex\": \"\", \"remove_duplicates\": \"false\", \"validation_stringency\": \"LENIENT\", \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "2.18.2.3",
+            "type": "tool",
+            "uuid": "a66d825c-2656-485d-85ee-458b07f9214f",
+            "workflow_outputs": []
+        },
+        "6": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/devteam/freebayes/freebayes/1.3.6+galaxy0",
+            "errors": null,
+            "id": 6,
+            "input_connections": {
+                "reference_source|batchmode|input_bams": {
+                    "id": 5,
+                    "output_name": "outFile"
+                }
+            },
+            "inputs": [],
+            "label": null,
+            "name": "FreeBayes",
+            "outputs": [
+                {
+                    "name": "output_vcf",
+                    "type": "vcf"
+                }
+            ],
+            "position": {
+                "bottom": 494.609375,
+                "height": 116,
+                "left": 304.203125,
+                "right": 504.203125,
+                "top": 378.609375,
+                "width": 200,
+                "x": 304.203125,
+                "y": 378.609375
+            },
+            "post_job_actions": {
+                "HideDatasetActionoutput_vcf": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "output_vcf"
+                }
+            },
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/freebayes/freebayes/1.3.6+galaxy0",
+            "tool_shed_repository": {
+                "changeset_revision": "a5937157062f",
+                "name": "freebayes",
+                "owner": "devteam",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"coverage_options\": {\"coverage_options_selector\": \"do_not_set\", \"__current_case__\": 1}, \"options_type\": {\"options_type_selector\": \"full\", \"__current_case__\": 0, \"optional_inputs\": {\"optional_inputs_selector\": \"do_not_set\", \"__current_case__\": 1}, \"reporting\": {\"reporting_selector\": \"do_not_set\", \"__current_case__\": 1}, \"population_model\": {\"population_model_selector\": \"do_not_set\", \"__current_case__\": 1}, \"reference_allele\": {\"reference_allele_selector\": \"do_not_set\", \"__current_case__\": 1}, \"allele_scope\": {\"allele_scope_selector\": \"set\", \"__current_case__\": 0, \"I\": \"false\", \"i\": \"false\", \"X\": \"false\", \"u\": \"true\", \"n\": \"0\", \"haplotype_length\": \"-1\", \"min_repeat_length\": \"5\", \"min_repeat_entropy\": \"1\", \"no_partial_observations\": \"false\"}, \"O\": \"false\", \"input_filters\": {\"input_filters_selector\": \"set\", \"__current_case__\": 0, \"standard_filters\": \"false\", \"use_duplicate_reads\": \"false\", \"min_mapping_quality\": \"1\", \"min_base_quality\": \"0\", \"min_supporting_allele_qsum\": \"0\", \"min_supporting_mapping_qsum\": \"0\", \"mismatch_filters\": {\"mismatch_filters_selector\": \"do_not_set\", \"__current_case__\": 1}, \"read_indel_limit\": \"1000\", \"min_alternate_fraction\": \"0.05\", \"min_alternate_qsum\": \"0\", \"min_alternate_count\": \"2\", \"min_alternate_total\": \"1\"}, \"population_mappability_priors\": {\"population_mappability_priors_selector\": \"do_not_set\", \"__current_case__\": 1}, \"genotype_likelihoods\": {\"genotype_likelihoods_selector\": \"do_not_set\", \"__current_case__\": 1}, \"algorithmic_features\": {\"algorithmic_features_selector\": \"do_not_set\", \"__current_case__\": 1}}, \"reference_source\": {\"reference_source_selector\": \"cached\", \"__current_case__\": 0, \"batchmode\": {\"processmode\": \"individual\", \"__current_case__\": 0, \"input_bams\": {\"__class__\": \"ConnectedValue\"}}, \"ref_file\": \"NC_000962\"}, \"target_limit_type\": {\"target_limit_type_selector\": \"do_not_limit\", \"__current_case__\": 0}, \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "1.3.6+galaxy0",
+            "type": "tool",
+            "uuid": "77b92d1c-b6db-4f1d-a890-e8175516370b",
+            "workflow_outputs": []
+        },
+        "7": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/devteam/samtools_idxstats/samtools_idxstats/2.0.4",
+            "errors": null,
+            "id": 7,
+            "input_connections": {
+                "input": {
+                    "id": 5,
+                    "output_name": "outFile"
+                }
+            },
+            "inputs": [],
+            "label": null,
+            "name": "Samtools idxstats",
+            "outputs": [
+                {
+                    "name": "output",
+                    "type": "tabular"
+                }
+            ],
+            "position": {
+                "bottom": 826.328125,
+                "height": 137,
+                "left": 222.78125,
+                "right": 422.78125,
+                "top": 689.328125,
+                "width": 200,
+                "x": 222.78125,
+                "y": 689.328125
+            },
+            "post_job_actions": {
+                "HideDatasetActionoutput": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "output"
+                },
+                "RenameDatasetActionoutput": {
+                    "action_arguments": {
+                        "newname": "Samtools idxstats"
+                    },
+                    "action_type": "RenameDatasetAction",
+                    "output_name": "output"
+                }
+            },
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/samtools_idxstats/samtools_idxstats/2.0.4",
+            "tool_shed_repository": {
+                "changeset_revision": "7def34e6cf4d",
+                "name": "samtools_idxstats",
+                "owner": "devteam",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"input\": {\"__class__\": \"ConnectedValue\"}, \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "2.0.4",
+            "type": "tool",
+            "uuid": "6b4bbca5-47b8-4575-95ea-adcc5fc8017e",
+            "workflow_outputs": []
+        },
+        "8": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/devteam/vcffilter/vcffilter2/1.0.0_rc3+galaxy3",
+            "errors": null,
+            "id": 8,
+            "input_connections": {
+                "input1": {
+                    "id": 6,
+                    "output_name": "output_vcf"
+                }
+            },
+            "inputs": [],
+            "label": null,
+            "name": "VCFfilter:",
+            "outputs": [
+                {
+                    "name": "out_file1",
+                    "type": "vcf"
+                }
+            ],
+            "position": {
+                "bottom": 268.609375,
+                "height": 95,
+                "left": 506.21875,
+                "right": 706.21875,
+                "top": 173.609375,
+                "width": 200,
+                "x": 506.21875,
+                "y": 173.609375
+            },
+            "post_job_actions": {},
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/vcffilter/vcffilter2/1.0.0_rc3+galaxy3",
+            "tool_shed_repository": {
+                "changeset_revision": "fa24bf0598f4",
+                "name": "vcffilter",
+                "owner": "devteam",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"allele_tag\": \"false\", \"append_filter\": \"false\", \"filter_repeat\": [{\"__index__\": 0, \"filter_type\": \"-f\", \"filter_value\": \"QUAL > 20\"}], \"filter_sites\": \"false\", \"input1\": {\"__class__\": \"ConnectedValue\"}, \"invert\": \"false\", \"or\": \"false\", \"region\": \"\", \"tag_fail\": \"false\", \"tag_pass\": \"false\", \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "1.0.0_rc3+galaxy3",
+            "type": "tool",
+            "uuid": "58b074f1-2d39-426d-9042-c4c08398bfdc",
+            "workflow_outputs": [
+                {
+                    "label": "VCFfilter",
+                    "output_name": "out_file1",
+                    "uuid": "049f31f0-b7d5-49d2-bb5f-6fd235a3823e"
+                }
+            ]
+        },
+        "9": {
+            "annotation": "Samtools idxstats (sorted)",
+            "content_id": "__SORTLIST__",
+            "errors": null,
+            "id": 9,
+            "input_connections": {
+                "input": {
+                    "id": 7,
+                    "output_name": "output"
+                }
+            },
+            "inputs": [],
+            "label": "Samtools idxstats (sorted)",
+            "name": "Sort collection",
+            "outputs": [
+                {
+                    "name": "output",
+                    "type": "input"
+                }
+            ],
+            "position": {
+                "bottom": 925.703125,
+                "height": 137,
+                "left": 477.734375,
+                "right": 677.734375,
+                "top": 788.703125,
+                "width": 200,
+                "x": 477.734375,
+                "y": 788.703125
+            },
+            "post_job_actions": {
+                "RenameDatasetActionoutput": {
+                    "action_arguments": {
+                        "newname": "Samtools idxstats (sorted)"
+                    },
+                    "action_type": "RenameDatasetAction",
+                    "output_name": "output"
+                }
+            },
+            "tool_id": "__SORTLIST__",
+            "tool_state": "{\"input\": {\"__class__\": \"ConnectedValue\"}, \"sort_type\": {\"sort_type\": \"alpha\", \"__current_case__\": 0}, \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "1.0.0",
+            "type": "tool",
+            "uuid": "b8490f2a-5a2e-4ae5-98d1-0eb3fc1a4deb",
+            "workflow_outputs": [
+                {
+                    "label": "Samtools idxstats (sorted)",
+                    "output_name": "output",
+                    "uuid": "f55b2865-a994-4113-8452-443f67df84e1"
+                }
+            ]
+        },
+        "10": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/iuc/vsnp_add_zero_coverage/vsnp_add_zero_coverage/1.0+galaxy2",
+            "errors": "Tool is not installed",
+            "id": 10,
+            "input_connections": {
+                "bam_input": {
+                    "id": 5,
+                    "output_name": "outFile"
+                },
+                "vcf_input": {
+                    "id": 8,
+                    "output_name": "out_file1"
+                }
+            },
+            "inputs": [],
+            "label": null,
+            "name": "toolshed.g2.bx.psu.edu/repos/iuc/vsnp_add_zero_coverage/vsnp_add_zero_coverage/1.0+galaxy2",
+            "outputs": [],
+            "position": {
+                "bottom": 824.671875,
+                "height": 262,
+                "left": 768.125,
+                "right": 968.125,
+                "top": 562.671875,
+                "width": 200,
+                "x": 768.125,
+                "y": 562.671875
+            },
+            "post_job_actions": {
+                "HideDatasetActionoutput_metrics": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "output_metrics"
+                },
+                "RenameDatasetActionoutput_metrics": {
+                    "action_arguments": {
+                        "newname": "vSNP: add zero coverage (metrics)"
+                    },
+                    "action_type": "RenameDatasetAction",
+                    "output_name": "output_metrics"
+                }
+            },
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/iuc/vsnp_add_zero_coverage/vsnp_add_zero_coverage/1.0+galaxy2",
+            "tool_state": "{\"__page__\": null, \"__rerun_remap_job_id__\": null, \"bam_input\": {\"__class__\": \"ConnectedValue\"}, \"reference_cond\": {\"__current_case__\": 0, \"reference\": \"NC_000962\", \"reference_source\": \"cached\"}, \"vcf_input\": {\"__class__\": \"ConnectedValue\"}}",
+            "tool_version": "1.0+galaxy2",
+            "type": "tool",
+            "uuid": "737426c3-df11-4b91-8dab-371551ed2fcb",
+            "workflow_outputs": [
+                {
+                    "label": "vSNP: add zero coverage",
+                    "output_name": "output_vcf",
+                    "uuid": "626e482a-fc75-4eb0-8417-f3eccbb393c5"
+                }
+            ]
+        },
+        "11": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/iuc/vsnp_get_snps/vsnp_get_snps/1.0+galaxy3",
+            "errors": "Tool is not installed",
+            "id": 11,
+            "input_connections": {
+                "input_additional_zc_vcf_collection_cond|input_vcf_collection": {
+                    "id": 1,
+                    "output_name": "output"
+                },
+                "input_zc_vcf_type_cond|input_zc_vcf_collection": {
+                    "id": 10,
+                    "output_name": "output_vcf"
+                }
+            },
+            "inputs": [],
+            "label": null,
+            "name": "toolshed.g2.bx.psu.edu/repos/iuc/vsnp_get_snps/vsnp_get_snps/1.0+galaxy3",
+            "outputs": [],
+            "position": {
+                "bottom": 703.828125,
+                "height": 429,
+                "left": 1137.25,
+                "right": 1337.25,
+                "top": 274.828125,
+                "width": 200,
+                "x": 1137.25,
+                "y": 274.828125
+            },
+            "post_job_actions": {
+                "HideDatasetActionjson_avg_mq": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "json_avg_mq"
+                },
+                "HideDatasetActionjson_snps": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "json_snps"
+                },
+                "HideDatasetActionsnps": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "snps"
+                }
+            },
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/iuc/vsnp_get_snps/vsnp_get_snps/1.0+galaxy3",
+            "tool_state": "{\"__page__\": null, \"__rerun_remap_job_id__\": null, \"ac\": \"2\", \"all_isolates\": \"true\", \"input_additional_zc_vcf_collection_cond\": {\"__current_case__\": 1, \"input_additional_zc_vcf_collection\": \"yes\", \"input_vcf_collection\": {\"__class__\": \"ConnectedValue\"}}, \"input_excel_cond\": {\"__current_case__\": 0, \"excel_source_cond\": {\"__current_case__\": 0, \"excel_source\": \"cached\", \"input_excel\": \"NC_000962\"}, \"input_excel_param\": \"yes\"}, \"input_zc_vcf_type_cond\": {\"__current_case__\": 1, \"input_zc_vcf_collection\": {\"__class__\": \"ConnectedValue\"}, \"input_zc_vcf_type\": \"collection\"}, \"min_mq\": \"56\", \"min_quality_score\": \"150\", \"quality_score_n_threshold\": \"150\"}",
+            "tool_version": "1.0+galaxy3",
+            "type": "tool",
+            "uuid": "b16f3a74-702a-47dc-8fa2-a656a28fabac",
+            "workflow_outputs": [
+                {
+                    "label": "vSNP get SNPs summary",
+                    "output_name": "output_summary",
+                    "uuid": "a82dee0c-d34f-447e-a980-a020d5c7098b"
+                }
+            ]
+        },
+        "12": {
+            "annotation": "vSNP: add zero coverage metrics (sorted)",
+            "content_id": "__SORTLIST__",
+            "errors": null,
+            "id": 12,
+            "input_connections": {
+                "input": {
+                    "id": 10,
+                    "output_name": "output_metrics"
+                }
+            },
+            "inputs": [],
+            "label": "vSNP: add zero coverage metrics (sorted)",
+            "name": "Sort collection",
+            "outputs": [
+                {
+                    "name": "output",
+                    "type": "input"
+                }
+            ],
+            "position": {
+                "bottom": 974.203125,
+                "height": 158,
+                "left": 1036.90625,
+                "right": 1236.90625,
+                "top": 816.203125,
+                "width": 200,
+                "x": 1036.90625,
+                "y": 816.203125
+            },
+            "post_job_actions": {
+                "RenameDatasetActionoutput": {
+                    "action_arguments": {
+                        "newname": "vSNP: add zero coverage (metrics sorted)"
+                    },
+                    "action_type": "RenameDatasetAction",
+                    "output_name": "output"
+                }
+            },
+            "tool_id": "__SORTLIST__",
+            "tool_state": "{\"input\": {\"__class__\": \"ConnectedValue\"}, \"sort_type\": {\"sort_type\": \"alpha\", \"__current_case__\": 0}, \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "1.0.0",
+            "type": "tool",
+            "uuid": "0323785c-fc4d-434d-a79d-98e782046c0c",
+            "workflow_outputs": [
+                {
+                    "label": "vSNP: add zero coverage (metrics sorted)",
+                    "output_name": "output",
+                    "uuid": "04ac4f15-918e-499e-8003-dea9e85123ed"
+                }
+            ]
+        },
+        "13": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/iuc/raxml/raxml/8.2.4+galaxy2",
+            "errors": null,
+            "id": 13,
+            "input_connections": {
+                "infile": {
+                    "id": 11,
+                    "output_name": "snps"
+                }
+            },
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Phyogenetic reconstruction with RAxML",
+                    "name": "selExtraOpts"
+                },
+                {
+                    "description": "runtime parameter for tool Phyogenetic reconstruction with RAxML",
+                    "name": "selExtraOpts"
+                },
+                {
+                    "description": "runtime parameter for tool Phyogenetic reconstruction with RAxML",
+                    "name": "selExtraOpts"
+                },
+                {
+                    "description": "runtime parameter for tool Phyogenetic reconstruction with RAxML",
+                    "name": "selExtraOpts"
+                },
+                {
+                    "description": "runtime parameter for tool Phyogenetic reconstruction with RAxML",
+                    "name": "selExtraOpts"
+                },
+                {
+                    "description": "runtime parameter for tool Phyogenetic reconstruction with RAxML",
+                    "name": "selExtraOpts"
+                },
+                {
+                    "description": "runtime parameter for tool Phyogenetic reconstruction with RAxML",
+                    "name": "selExtraOpts"
+                },
+                {
+                    "description": "runtime parameter for tool Phyogenetic reconstruction with RAxML",
+                    "name": "selExtraOpts"
+                },
+                {
+                    "description": "runtime parameter for tool Phyogenetic reconstruction with RAxML",
+                    "name": "selExtraOpts"
+                }
+            ],
+            "label": null,
+            "name": "Phyogenetic reconstruction with RAxML",
+            "outputs": [
+                {
+                    "name": "info",
+                    "type": "txt"
+                },
+                {
+                    "name": "bestTree",
+                    "type": "nhx"
+                },
+                {
+                    "name": "bestTreeMultipleModel",
+                    "type": "nhx"
+                },
+                {
+                    "name": "bestTreeMultipleModelPartitions",
+                    "type": "txt"
+                },
+                {
+                    "name": "resultMultipleModelPartitions",
+                    "type": "txt"
+                },
+                {
+                    "name": "parsimonyTree",
+                    "type": "nhx"
+                },
+                {
+                    "name": "bootstrap",
+                    "type": "nhx"
+                }
+            ],
+            "position": {
+                "bottom": 758.6875,
+                "height": 812,
+                "left": 1482.015625,
+                "right": 1682.015625,
+                "top": -53.3125,
+                "width": 200,
+                "x": 1482.015625,
+                "y": -53.3125
+            },
+            "post_job_actions": {
+                "HideDatasetActionbestTreeMultipleModel": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "bestTreeMultipleModel"
+                },
+                "HideDatasetActionbestTreeMultipleModelPartitions": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "bestTreeMultipleModelPartitions"
+                },
+                "HideDatasetActionbootstrap": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "bootstrap"
+                },
+                "HideDatasetActioninfo": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "info"
+                },
+                "HideDatasetActionparsimonyTree": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "parsimonyTree"
+                },
+                "HideDatasetActionresultMultipleModelPartitions": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "resultMultipleModelPartitions"
+                }
+            },
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/iuc/raxml/raxml/8.2.4+galaxy2",
+            "tool_shed_repository": {
+                "changeset_revision": "73a469f7dc96",
+                "name": "raxml",
+                "owner": "iuc",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"infile\": {\"__class__\": \"ConnectedValue\"}, \"random_seed\": \"456123\", \"search_model_selector\": {\"model_type\": \"nucleotide\", \"__current_case__\": 0, \"base_model\": \"GTRCATI\"}, \"selExtraOpts\": {\"extraOptions\": \"full\", \"__current_case__\": 1, \"number_of_runs_conditional\": {\"number_of_runs_selector\": \"by_number_of_runs\", \"__current_case__\": 0, \"number_of_runs\": \"1\"}, \"weightfile\": {\"__class__\": \"RuntimeValue\"}, \"secondary_structure_model\": null, \"bootseed\": null, \"rapid_bootstrap_random_seed\": null, \"cutoff_threshold\": \"0.03\", \"numofcats\": \"25\", \"search_complete_random_tree\": \"false\", \"ml_search_convergence\": \"false\", \"model_opt_precision\": null, \"excludefile\": {\"__class__\": \"RuntimeValue\"}, \"search_algorithm\": \"d\", \"save_memory_cat_model\": \"false\", \"groupingfile\": {\"__class__\": \"RuntimeValue\"}, \"enable_evol_heuristics\": null, \"initial_rearrangement_setting\": null, \"posterior_bootstopping_analysis\": null, \"majority_rule_consensus\": null, \"print_branch_lengths\": \"false\", \"multistate_sub_model\": \"GTR\", \"estimate_individual_branch_lengths\": \"false\", \"outgroup_name\": \"root\", \"disable_undetermined_seq_check\": \"false\", \"external_protein_model\": {\"__class__\": \"RuntimeValue\"}, \"multiple_model\": {\"__class__\": \"RuntimeValue\"}, \"constraint_file\": {\"__class__\": \"RuntimeValue\"}, \"bin_model_parameter_file\": {\"__class__\": \"RuntimeValue\"}, \"secondary_structure_file\": {\"__class__\": \"RuntimeValue\"}, \"start_tree_file\": {\"__class__\": \"RuntimeValue\"}, \"use_median_approximation\": \"false\", \"save_memory_gappy_alignments\": \"false\", \"disable_rate_heterogeneity\": \"false\", \"sliding_window_size\": \"100\", \"parsimony_starting_tree_only\": \"false\"}, \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "8.2.4+galaxy2",
+            "type": "tool",
+            "uuid": "c5a07ae6-1fda-4c88-8853-6de7e8831a23",
+            "workflow_outputs": [
+                {
+                    "label": "Best-scoring ML Tree",
+                    "output_name": "bestTree",
+                    "uuid": "94e13697-84da-4aeb-9dfb-9b7a42a91fdc"
+                }
+            ]
+        },
+        "14": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/iuc/vsnp_statistics/vsnp_statistics/1.0+galaxy2",
+            "errors": "Tool is not installed",
+            "id": 14,
+            "input_connections": {
+                "input_type_cond|read1": {
+                    "id": 0,
+                    "output_name": "output"
+                },
+                "samtools_idxstats": {
+                    "id": 9,
+                    "output_name": "output"
+                },
+                "vsnp_azc_metrics": {
+                    "id": 12,
+                    "output_name": "output"
+                }
+            },
+            "inputs": [],
+            "label": null,
+            "name": "toolshed.g2.bx.psu.edu/repos/iuc/vsnp_statistics/vsnp_statistics/1.0+galaxy2",
+            "outputs": [],
+            "position": {
+                "bottom": 119.5,
+                "height": 178,
+                "left": 773.09375,
+                "right": 973.09375,
+                "top": -58.5,
+                "width": 200,
+                "x": 773.09375,
+                "y": -58.5
+            },
+            "post_job_actions": {
+                "HideDatasetActionoutput": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "output"
+                },
+                "RenameDatasetActionoutput": {
+                    "action_arguments": {
+                        "newname": "vSNP: statistics"
+                    },
+                    "action_type": "RenameDatasetAction",
+                    "output_name": "output"
+                }
+            },
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/iuc/vsnp_statistics/vsnp_statistics/1.0+galaxy2",
+            "tool_state": "{\"__page__\": null, \"__rerun_remap_job_id__\": null, \"input_type_cond\": {\"__current_case__\": 0, \"input_type\": \"single\", \"read1\": {\"__class__\": \"ConnectedValue\"}}, \"samtools_idxstats\": {\"__class__\": \"ConnectedValue\"}, \"vsnp_azc_metrics\": {\"__class__\": \"ConnectedValue\"}}",
+            "tool_version": "1.0+galaxy2",
+            "type": "tool",
+            "uuid": "52224f4d-c67e-40a3-a883-8b5418982ee8",
+            "workflow_outputs": []
+        },
+        "15": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/iuc/vsnp_build_tables/vsnp_build_tables/1.0+galaxy2",
+            "errors": "Tool is not installed",
+            "id": 15,
+            "input_connections": {
+                "input_type_cond|input_avg_mq_json_collection": {
+                    "id": 11,
+                    "output_name": "json_avg_mq"
+                },
+                "input_type_cond|input_newick_collection": {
+                    "id": 13,
+                    "output_name": "bestTree"
+                },
+                "input_type_cond|input_snps_json_collection": {
+                    "id": 11,
+                    "output_name": "json_snps"
+                }
+            },
+            "inputs": [],
+            "label": null,
+            "name": "toolshed.g2.bx.psu.edu/repos/iuc/vsnp_build_tables/vsnp_build_tables/1.0+galaxy2",
+            "outputs": [],
+            "position": {
+                "bottom": 971.53125,
+                "height": 262,
+                "left": 1784.484375,
+                "right": 1984.484375,
+                "top": 709.53125,
+                "width": 200,
+                "x": 1784.484375,
+                "y": 709.53125
+            },
+            "post_job_actions": {
+                "DeleteIntermediatesActionexcel": {
+                    "action_arguments": {},
+                    "action_type": "DeleteIntermediatesAction",
+                    "output_name": "excel"
+                }
+            },
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/iuc/vsnp_build_tables/vsnp_build_tables/1.0+galaxy2",
+            "tool_state": "{\"__page__\": null, \"__rerun_remap_job_id__\": null, \"gbk_cond\": {\"__current_case__\": 0, \"gbk_param\": \"yes\", \"gbk_source_cond\": {\"__current_case__\": 0, \"gbk_file\": \"NC_000962\", \"gbk_source\": \"cached\"}}, \"input_type_cond\": {\"__current_case__\": 1, \"input_avg_mq_json_collection\": {\"__class__\": \"ConnectedValue\"}, \"input_newick_collection\": {\"__class__\": \"ConnectedValue\"}, \"input_snps_json_collection\": {\"__class__\": \"ConnectedValue\"}, \"input_type\": \"collection\"}}",
+            "tool_version": "1.0+galaxy2",
+            "type": "tool",
+            "uuid": "e4910664-5839-4ea8-ac91-8a2f51455900",
+            "workflow_outputs": [
+                {
+                    "label": "vSNP: build tables on input dataset(s)",
+                    "output_name": "excel",
+                    "uuid": "0c291b1d-d1b6-4517-bd1f-a1cc580eb6a0"
+                }
+            ]
+        },
+        "16": {
+            "annotation": "vSNP statistics (collapsed)",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/nml/collapse_collections/collapse_dataset/5.1.0",
+            "errors": null,
+            "id": 16,
+            "input_connections": {
+                "input_list": {
+                    "id": 14,
+                    "output_name": "output"
+                }
+            },
+            "inputs": [],
+            "label": "vSNP statistics",
+            "name": "Collapse Collection",
+            "outputs": [
+                {
+                    "name": "output",
+                    "type": "input"
+                }
+            ],
+            "position": {
+                "bottom": 76.9375,
+                "height": 137,
+                "left": 1008,
+                "right": 1208,
+                "top": -60.0625,
+                "width": 200,
+                "x": 1008,
+                "y": -60.0625
+            },
+            "post_job_actions": {
+                "RenameDatasetActionoutput": {
+                    "action_arguments": {
+                        "newname": "vSNP: statistics (collapsed)"
+                    },
+                    "action_type": "RenameDatasetAction",
+                    "output_name": "output"
+                }
+            },
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/nml/collapse_collections/collapse_dataset/5.1.0",
+            "tool_shed_repository": {
+                "changeset_revision": "90981f86000f",
+                "name": "collapse_collections",
+                "owner": "nml",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"filename\": {\"add_name\": \"false\", \"__current_case__\": 1}, \"input_list\": {\"__class__\": \"ConnectedValue\"}, \"one_header\": \"true\", \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "5.1.0",
+            "type": "tool",
+            "uuid": "8dc0a6f6-5637-4b66-ba53-3343078817e7",
+            "workflow_outputs": [
+                {
+                    "label": "vSNP: statistics (collapsed)",
+                    "output_name": "output",
+                    "uuid": "8363338d-7746-49b8-b00e-6b8172020c6b"
+                }
+            ]
+        },
+        "17": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/iuc/multiqc/multiqc/1.11+galaxy0",
+            "errors": null,
+            "id": 17,
+            "input_connections": {
+                "results_0|software_cond|input": {
+                    "id": 16,
+                    "output_name": "output"
+                }
+            },
+            "inputs": [],
+            "label": null,
+            "name": "MultiQC",
+            "outputs": [
+                {
+                    "name": "stats",
+                    "type": "input"
+                },
+                {
+                    "name": "html_report",
+                    "type": "html"
+                }
+            ],
+            "position": {
+                "bottom": 97,
+                "height": 168,
+                "left": 1231.890625,
+                "right": 1431.890625,
+                "top": -71,
+                "width": 200,
+                "x": 1231.890625,
+                "y": -71
+            },
+            "post_job_actions": {
+                "DeleteIntermediatesActionstats": {
+                    "action_arguments": {},
+                    "action_type": "DeleteIntermediatesAction",
+                    "output_name": "stats"
+                },
+                "HideDatasetActionstats": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "stats"
+                },
+                "RenameDatasetActionhtml_report": {
+                    "action_arguments": {
+                        "newname": "MultiQC on vSNP statistics (Webpage)"
+                    },
+                    "action_type": "RenameDatasetAction",
+                    "output_name": "html_report"
+                }
+            },
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/iuc/multiqc/multiqc/1.11+galaxy0",
+            "tool_shed_repository": {
+                "changeset_revision": "9a913cdee30e",
+                "name": "multiqc",
+                "owner": "iuc",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"comment\": \"\", \"export\": \"false\", \"flat\": \"false\", \"results\": [{\"__index__\": 0, \"software_cond\": {\"software\": \"custom_content\", \"__current_case__\": 32, \"plot_type\": \"table\", \"section_name\": \"vSNP Statistics\", \"title\": \"\", \"description\": \"\", \"xlab\": \"\", \"ylab\": \"\", \"input\": {\"__class__\": \"ConnectedValue\"}}}], \"saveLog\": \"false\", \"title\": \"\", \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "1.11+galaxy0",
+            "type": "tool",
+            "uuid": "a6f8e79b-d3b7-4026-9ccb-ae82a1630c05",
+            "workflow_outputs": [
+                {
+                    "label": "MultiQC on vSNP statistics (Webpage)",
+                    "output_name": "html_report",
+                    "uuid": "98c8b26e-09c9-4d00-93ca-4fc455935468"
+                }
+            ]
+        }
+    },
+    "tags": [],
+    "uuid": "8bb3b07f-9a1b-4ac0-979d-2c0f366b8523",
+    "version": 8
+}
