@@ -133,7 +133,14 @@ def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, amr_mutations_fi
                         os.mkdir(region_dir)
                         region_bed = os.path.join(region_dir, 'region.bed')
                         mutation_regions.loc[[region_i], ].to_csv(path_or_buf=region_bed, sep='\t', header=False, index=False)
-                        cmd = "bedtools intersect -nonamecheck -wb -a '%s' -b '%s' | awk '{BEGIN{getline < \"%s\" ;printf $0\"\t\";getline < \"%s\"; getline < \"%s\";print $0}{print}' > %s" % (region_bed, amr_mutations_file, amr_mutation_regions_file, amr_mutations_file, amr_mutations_file, region_mutations_output_file)
+                        cmd = ' '.join(['bedtools intersect -nonamecheck -wb -a',
+                                        region_bed,
+                                        '-b',
+                                        amr_mutations_file,
+                                        ' | awk \'BEGIN{getline < "' + amr_mutation_regions_file + '";printf $0"\\t";',
+                                        'getline < "' + amr_mutations_file + '"; getline < "' + amr_mutations_file + '";print $0}{print}\'',
+                                        '1>' + region_mutations_output_file])
+                        ofh.write("\ncmd:\n%s\n" % cmd)
                         run_command(cmd)
                         try:
                             region_mutations = pandas.read_csv(region_mutations_output_file, sep='\t', header=0, index_col=False)
@@ -158,9 +165,6 @@ def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, amr_mutations_fi
                     amr_to_draw = amr_to_draw.append(pandas.Series([mutation_name, mutation_hit['DRUG']], name=amr_to_draw.shape[0], index=amr_to_draw.columns))
 
         if amr_deletions_file not in [None, 'None'] and os.path.getsize(amr_deletions_file) > 0:
-            # TODO: So far, no samples have produced deletions, but we do have all the pices in place
-            # within the workflow to receive the amr_deletions_file here, although it is currently
-            # always empty...
             # Roll up deletions that might confer resistance.
             try:
                 amr_deletions = pandas.read_csv(filepath_or_buffer=amr_deletions_file, sep='\t', header=None)
@@ -182,6 +186,7 @@ def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, amr_mutations_fi
             amr_matrix_png = os.path.join(output_dir, 'amr_matrix.png')
             int_matrix = amr_matrix[amr_matrix.columns].astype(int)
             figure, axis = pyplot.subplots()
+            heatmap = axis.pcolor(int_matrix, cmap=pyplot.cm.Blues, linewidth=0)
             axis.invert_yaxis()
             axis.set_yticks(numpy.arange(0.5, len(amr_matrix.index)), minor=False)
             axis.set_yticklabels(int_matrix.index.values)
