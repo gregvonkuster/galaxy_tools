@@ -1,0 +1,10 @@
+name: mummer4_dnadiff
+owner: greg
+homepage_url: https://github.com/gregvonkuster/galaxy_tools
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/pima/mummer4_dnadiff
+description: Mummer4 dnadiff
+long_description: |
+  MUMmer is a system for rapidly aligning entire genomes. The current version (release 4.x) can find all 20 base pair maximal exact matches between two bacterial genomes of ~5 million base pairs each in 20 seconds, using 90 MB of memory, on a typical 1.8 GHz Linux desktop computer. 
+categories:
+  - Sequence Analysis
+type: unrestricted
