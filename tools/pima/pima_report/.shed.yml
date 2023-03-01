@@ -1,0 +1,9 @@
+name: pima_report
+owner: greg
+description: Generates the PIMA analysis summary report
+long_description: Generates the PIMA analysis summary report
+categories: 
+- Nanopore
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/pima/pima_report
+homepage_url: https://github.com/gregvonkuster/galaxy_tools
+type: unrestricted

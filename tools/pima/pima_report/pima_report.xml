@@ -1,0 +1,53 @@
+<tool id="pima_report" name="PIMA: summary report" version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="@PROFILE@">
+  <description></description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <expand macro="requirements"/>
+    <command detect_errors="exit_code"><![CDATA[
+#import re
+
+#set analysis_name = re.sub('[^\s\w\-]', '_', str($illumina_fastq_file.element_identifier))
+#set assembly_name = re.sub('[^\s\w\-]', '_', str($assembly_fasta_file.element_identifier))
+
+touch 'pima_report.pdf' &&
+
+python '${__tool_directory__}/pima_report.py' 
+--analysis_name '$analysis_name'
+--assembly_fasta_file '$assembly_fasta_file'
+--assembly_name '$assembly_name'
+--contig_coverage_file '$contig_coverage_file'
+--illumina_fastq_file '$illumina_fastq_file'
+#if $illumina_fastq_file.ext.endswith(".gz"):
+    --gzipped
+#end if
+--dbkey '$aligned_sample.metadata.dbkey'
+--pima_css '${__tool_directory__}/pima.css'
+&& mv 'pima_report.pdf' '$output'
+    ]]></command>
+    <inputs>
+        <param name="aligned_sample" type="data" format="bam" label="Aligned sample BAM file"/>
+        <param name="assembly_fasta_file" type="data" format="fasta" label="Assembly FASTA file"/>
+        <param name="contig_coverage_file" type="data" format="tabular,tsv" label="Contig coverage tabular/tsv file"/>
+        <param name="illumina_fastq_file" type="data" format="fastqsanger,fastqsanger.gz" label="Fastq sample file"/>
+    </inputs>
+    <outputs>
+        <data name="output" format="pdf"/>
+    </outputs>
+    <tests>
+        <test>
+            <param name="aligned_sample" value="aligned_sample.bam" ftype="bam"/>
+            <param name="assembly_fasta_file" value="assembly_fasta.fasta" ftype="fasta"/>
+            <param name="contig_coverage_file" value="contig_coverage.tabular" ftype="tabular"/>
+            <param name="illumina_fastq_file" value="illumina_fastq.fastq" ftype="fastq"/>
+            <output name="output" value="output.pdf" ftype="pdf"/>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+Generates the PIMA analysis summary report.
+    </help>
+    <expand macro="citations"/>
+</tool>
+
