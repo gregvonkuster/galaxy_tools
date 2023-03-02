@@ -39,10 +39,13 @@ python '$__tool_directory__/draw_features.py'
         </param>
     </inputs>
     <outputs>
-        <data name="process_log" format="txt" label="${tool.name} on ${on_string} (Process log)">
+        <data name="process_log" format="txt" label="${tool.name} on ${on_string} (process log)">
             <filter>output_process_log == 'yes'</filter>
         </data>
-        <collection name="features_png" type="list" format="png">
+        <collection name="features_bed" type="list" format="bed" label="${tool.name} on ${on_string} (best bed)">
+            <discover_datasets pattern="(?P&lt;designation&gt;.+)\.(?P&lt;ext&gt;bed)" directory="feature_hits_dir"/>
+        </collection>
+        <collection name="features_png" type="list" format="png" label="${tool.name} on ${on_string} (png)">
             <discover_datasets pattern="(?P&lt;designation&gt;.+)\.(?P&lt;ext&gt;png)" directory="output_dir"/>
         </collection>
     </outputs>
@@ -54,6 +57,13 @@ python '$__tool_directory__/draw_features.py'
                     <element name="amr_cds.bed" value="amr_cds.bed"/>
                 </collection>
             </param>
+            <output_collection name="features_bed" type="list" count="1">
+                <element name="amr_cds" ftype="bed">
+                    <assert_contents>
+                        <has_size value="129" delta="10"/>
+                    </assert_contents>
+                </element>
+            </output_collection>
             <output_collection name="features_png" type="list" count="1">
                 <element name="contig_1" ftype="png">
                     <assert_contents>
