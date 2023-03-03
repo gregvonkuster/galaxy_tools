@@ -9,23 +9,28 @@ import sys
 from Bio import SeqIO
 from datetime import date
 from mdutils.mdutils import MdUtils
-from mdutils.tools import TableOfContents
 
 CDC_ADVISORY = 'The analysis and report presented here should be treated as preliminary.  Please contact the CDC/BDRD with any results regarding _Bacillus anthracis_.'
 
 
 class PimaReport:
 
-    def __init__(self, analysis_name, assembly_fasta_file, assembly_name, contig_coverage_file, dbkey, illumina_fastq_file, gzipped, pima_css):
+    def __init__(self, analysis_name=None, assembly_fasta_file=None, assembly_name=None, feature_bed_files=None, feature_png_files=None,
+                 contig_coverage_file=None, dbkey=None, gzipped=None, illumina_fastq_file=None, mutation_regions_bed_file=None,
+                 mutation_regions_tsv_files=None, pima_css=None):
         self.ofh = open("process_log.txt", "w")
 
         self.ofh.write("analysis_name: %s\n" % str(analysis_name))
         self.ofh.write("assembly_fasta_file: %s\n" % str(assembly_fasta_file))
         self.ofh.write("assembly_name: %s\n" % str(assembly_name))
+        self.ofh.write("feature_bed_files: %s\n" % str(feature_bed_files))
+        self.ofh.write("feature_png_files: %s\n" % str(feature_png_files))
         self.ofh.write("contig_coverage_file: %s\n" % str(contig_coverage_file))
         self.ofh.write("dbkey: %s\n" % str(dbkey))
-        self.ofh.write("illumina_fastq_file: %s\n" % str(illumina_fastq_file))
         self.ofh.write("gzipped: %s\n" % str(gzipped))
+        self.ofh.write("illumina_fastq_file: %s\n" % str(illumina_fastq_file))
+        self.ofh.write("mutation_regions_bed_file: %s\n" % str(mutation_regions_bed_file))
+        self.ofh.write("mutation_regions_tsv_files: %s\n" % str(mutation_regions_tsv_files))
         self.ofh.write("pima_css: %s\n" % str(pima_css))
 
         # General
@@ -36,10 +41,14 @@ class PimaReport:
         self.analysis_name = analysis_name
         self.assembly_fasta_file = assembly_fasta_file
         self.assembly_name = assembly_name
+        self.feature_bed_files = feature_bed_files
+        self.feature_png_files = feature_png_files
         self.contig_coverage_file = contig_coverage_file
         self.dbkey = dbkey
-        self.illumina_fastq_file = illumina_fastq_file
         self.gzipped = gzipped
+        self.illumina_fastq_file = illumina_fastq_file
+        self.mutation_regions_bed_file = mutation_regions_bed_file
+        self.mutation_regions_tsv_files = mutation_regions_tsv_files
         self.read_type = 'Illumina'
         self.ont_bases = None
         self.ont_n50 = None
@@ -91,8 +100,7 @@ class PimaReport:
         self.contig_info = None
         self.did_flye_ont_fastq = False
         self.did_medaka_ont_assembly = False
-        self.feature_hits = pandas.Series(dtype=object)
-        self.feature_plots = pandas.Series(dtype=object)
+        self.feature_hits = pandas.Series(dtype='float64')
         self.illumina_length_mean = 0
         self.illumina_read_count = 0
         self.illumina_bases = 0
@@ -180,12 +188,6 @@ class PimaReport:
         #header_text = 'Analysis of %s' % self.analysis_name
         self.doc = MdUtils(file_name=self.report_md, title='')
 
-    def add_tableOfContents(self):
-        self.doc.create_marker(text_marker="TableOfContents")
-        self.doc.new_line()
-        self.doc.new_line('<div style="page-break-after: always;"></div>')
-        self.doc.new_line()
-
     def add_run_information(self):
         self.ofh.write("\nXXXXXX In add_run_information\n\n")
         self.doc.new_line()
@@ -209,7 +211,6 @@ class PimaReport:
         ]
         self.doc.new_table(columns=2, rows=7, text=Table_list, text_align='left')
         self.doc.new_line()
-        self.add_tableOfContents()
         self.doc.new_line()
 
     def add_ont_library_information(self):
@@ -370,6 +371,7 @@ class PimaReport:
 
     def add_alignment(self):
         self.ofh.write("\nXXXXXX In add_alignment\n\n")
+        # TODO: implement the draw_circos function for this.
         if len(self.contig_alignment) > 0:
             alignments = self.contig_alignment
         else:
@@ -408,12 +410,21 @@ class PimaReport:
 
     def add_features(self):
         self.ofh.write("\nXXXXXX In add_features\n\n")
+        if len(self.feature_bed_files) == 0:
+            return
+        for bbf in self.feature_bed_files:
+            if os.path.getsize(bbf) > 0:
+                best = pandas.read_csv(filepath_or_buffer=bbf, sep='\t', header=None)
+                self.feature_hits[os.path.basename(bbf)] = best
         if len(self.feature_hits) == 0:
             return
+        self.ofh.write("self.feature_hits: %s\n" % str(self.feature_hits))
         self.doc.new_line()
         self.doc.new_header(level=2, title=self.feature_title)
         for feature_name in self.feature_hits.index.tolist():
+            self.ofh.write("feature_name: %s\n" % str(feature_name))
             features = self.feature_hits[feature_name].copy()
+            self.ofh.write("features: %s\n" % str(features))
             if features.shape[0] == 0:
                 continue
             features.iloc[:, 1] = features.iloc[:, 1].apply(lambda x: '{:,}'.format(x))
@@ -423,43 +434,74 @@ class PimaReport:
             if (features.shape[0] == 0):
                 continue
             for contig in pandas.unique(features.iloc[:, 0]):
+                self.ofh.write("contig: %s\n" % str(contig))
                 self.doc.new_line(contig)
                 contig_features = features.loc[(features.iloc[:, 0] == contig), :]
+                self.ofh.write("contig_features: %s\n" % str(contig_features))
                 Table_List = ['Start', 'Stop', 'Feature', 'Identity (%)', 'Strand']
                 for i in range(contig_features.shape[0]):
+                    self.ofh.write("i: %s\n" % str(i))
                     feature = contig_features.iloc[i, :].copy(deep=True)
+                    self.ofh.write("feature: %s\n" % str(feature))
                     feature[4] = '{:.3f}'.format(feature[4])
                     Table_List = Table_List + feature[1:].values.tolist()
+                self.ofh.write("Table_List: %s\n" % str(Table_List))
                 row_count = int(len(Table_List) / 5)
+                self.ofh.write("row_count: %s\n" % str(row_count))
                 self.doc.new_line()
-                self.doc.new_table(columns=5, rows=row_count, text=Table_List, text_align='left')
+                self.doc.new_table(columns=7, rows=row_count, text=Table_List, text_align='left')
         blastn_version = 'The genome assembly was queried for features using blastn.'
         bedtools_version = 'Feature hits were clustered using bedtools and the highest scoring hit for each cluster was reported.'
         method = '%s  %s' % (blastn_version, bedtools_version)
         self.methods[self.feature_methods_title] = self.methods[self.feature_methods_title].append(pandas.Series(method))
-        self.methods[self.feature_methods_title] = self.methods[self.feature_methods_title].append([method])
 
     def add_feature_plots(self):
         self.ofh.write("\nXXXXXX In add_feature_plots\n\n")
-        if len(self.feature_plots) == 0:
+        if len(self.feature_png_files) == 0:
             return
         self.doc.new_line()
         self.doc.new_header(level=2, title='Feature Plots')
         self.doc.new_paragraph('Only contigs with features are shown')
-        for contig in self.feature_plots.index.tolist():
-            image_png = self.feature_plots[contig]
-            self.doc.new_line(self.doc.new_inline_image(text='Analysis', path=os.path.abspath(image_png)))
+        for feature_png_file in self.feature_png_files:
+            self.doc.new_line(self.doc.new_inline_image(text='Analysis', path=os.path.abspath(feature_png_file)))
 
     def add_mutations(self):
         self.ofh.write("\nXXXXXX In add_mutations\n\n")
-        # Make sure we looked for mutations
-        if not getattr(self, 'did_call_amr_mutations', False):
+        if len(self.mutation_regions_tsv_files) == 0:
             return
-        mutations = self.amr_mutations
+        try:
+            mutation_regions = pandas.read_csv(self.mutation_regions_bed_file, sep='\t', header=0, index_col=False)
+        except Exception:
+            # Likely an empty file.
+            return
+        amr_mutations = pandas.Series(dtype=object)
+        for region_i in range(mutation_regions.shape[0]):
+            region = mutation_regions.iloc[region_i, :]
+            region_name = str(region['name'])
+            self.ofh.write("Processing mutations for region %s\n" % region_name)
+            region_mutations_tsv_name = '%s_mutations.tsv' % region_name
+            if region_mutations_tsv_name not in self.mutation_regions_tsv_files:
+                continue
+            region_mutations_tsv = self.mutation_regions_tsv_files[region_mutations_tsv_name]
+            try:
+                region_mutations = pandas.read_csv(region_mutations_tsv, sep='\t', header=0, index_col=False)
+            except Exception:
+                region_mutations = pandas.DataFrame()
+            if region_mutations.shape[0] == 0:
+                continue
+            # Figure out what kind of mutations are in this region
+            region_mutation_types = pandas.Series(['snp'] * region_mutations.shape[0], name='TYPE', index=region_mutations.index)
+            region_mutation_types[region_mutations['REF'].str.len() != region_mutations['ALT'].str.len()] = 'small-indel'
+            region_mutation_drugs = pandas.Series(region['drug'] * region_mutations.shape[0], name='DRUG', index=region_mutations.index)
+            region_notes = pandas.Series(region['note'] * region_mutations.shape[0], name='NOTE', index=region_mutations.index)
+            region_mutations = pandas.concat([region_mutations, region_mutation_types, region_mutation_drugs, region_notes], axis=1)
+            region_mutations = region_mutations[['#CHROM', 'POS', 'TYPE', 'REF', 'ALT', 'DRUG', 'NOTE']]
+            amr_mutations[region['name']] = region_mutations
+        # Report the mutations.
         self.doc.new_line()
         self.doc.new_header(level=2, title=self.mutation_title)
-        for region_name in mutations.index.tolist():
-            region_mutations = mutations[region_name].copy()
+        for region_name in amr_mutations.index.tolist():
+            region_mutations = amr_mutations[region_name].copy()
             self.doc.new_line()
             self.doc.new_header(level=3, title=region_name)
             if (region_mutations.shape[0] == 0):
@@ -624,6 +666,7 @@ class PimaReport:
         self.add_features()
         self.add_feature_plots()
         self.add_mutations()
+        # TODO stuff working to here...
         self.add_large_indels()
         self.add_plasmids()
         self.add_amr_matrix()
@@ -647,13 +690,44 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--analysis_name', action='store', dest='analysis_name', help='Sample identifier')
 parser.add_argument('--assembly_fasta_file', action='store', dest='assembly_fasta_file', help='Assembly fasta file')
 parser.add_argument('--assembly_name', action='store', dest='assembly_name', help='Assembly identifier')
+parser.add_argument('--feature_bed_dir', action='store', dest='feature_bed_dir', help='Directory of best feature hits bed files')
+parser.add_argument('--feature_png_dir', action='store', dest='feature_png_dir', help='Directory of best feature hits png files')
 parser.add_argument('--contig_coverage_file', action='store', dest='contig_coverage_file', help='Contig coverage TSV file')
 parser.add_argument('--dbkey', action='store', dest='dbkey', help='Reference genome')
-parser.add_argument('--illumina_fastq_file', action='store', dest='illumina_fastq_file', help='Input sample')
 parser.add_argument('--gzipped', action='store_true', dest='gzipped', default=False, help='Input sample is gzipped')
-parser.add_argument('--pima_css', action='store', dest='pima_css', help='PIMM css stypesheet')
+parser.add_argument('--illumina_fastq_file', action='store', dest='illumina_fastq_file', help='Input sample')
+parser.add_argument('--mutation_regions_bed_file', action='store', dest='mutation_regions_bed_file', help='AMR mutation regions BRD file')
+parser.add_argument('--mutation_regions_dir', action='store', dest='mutation_regions_dir', help='Directory of mutation regions TSV files')
+parser.add_argument('--pima_css', action='store', dest='pima_css', help='PIMA css stypesheet')
 
 args = parser.parse_args()
 
-markdown_report = PimaReport(args.analysis_name, args.assembly_fasta_file, args.assembly_name, args.contig_coverage_file, args.dbkey, args.illumina_fastq_file, args.gzipped, args.pima_css)
+# Prepare the features BED files.
+feature_bed_files = []
+for file_name in sorted(os.listdir(args.feature_bed_dir)):
+    file_path = os.path.abspath(os.path.join(args.feature_bed_dir, file_name))
+    feature_bed_files.append(file_path)
+# Prepare the features PNG files.
+feature_png_files = []
+for file_name in sorted(os.listdir(args.feature_png_dir)):
+    file_path = os.path.abspath(os.path.join(args.feature_png_dir, file_name))
+    feature_png_files.append(file_path)
+# Prepare the mutation regions TSV files.
+mutation_regions_files = []
+for file_name in sorted(os.listdir(args.mutation_regions_dir)):
+    file_path = os.path.abspath(os.path.join(args.feature_png_dir, file_name))
+    mutation_regions_files.append(file_path)
+
+markdown_report = PimaReport(args.analysis_name,
+                             args.assembly_fasta_file,
+                             args.assembly_name,
+                             feature_bed_files,
+                             feature_png_files,
+                             args.contig_coverage_file,
+                             args.dbkey,
+                             args.gzipped,
+                             args.illumina_fastq_file,
+                             args.mutation_regions_bed_file,
+                             mutation_regions_files,
+                             args.pima_css)
 markdown_report.make_report()

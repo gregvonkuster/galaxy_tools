@@ -10,26 +10,53 @@
 #set analysis_name = re.sub('[^\s\w\-]', '_', str($illumina_fastq_file.element_identifier))
 #set assembly_name = re.sub('[^\s\w\-]', '_', str($assembly_fasta_file.element_identifier))
 
+mkdir feature_bed_dir &&
+mkdir feature_png_dir &&
+mkdir mutation_regions_dir &&
 touch 'pima_report.pdf' &&
+
+#for $i in $features_bed:
+    #set file_name = $i.file_name
+    #set identifier = re.sub('[^\s\w\-\\.]', '_', str($i.element_identifier))
+    ln -s $i 'feature_bed_dir/$identifier' &&
+#end for
+#for $i in $features_png:
+    #set file_name = $i.file_name
+    #set identifier = re.sub('[^\s\w\-\\.]', '_', str($i.element_identifier))
+    ln -s $i 'feature_png_dir/$identifier' &&
+#end for
+#for $i in $mutation_regions:
+    #set file_name = $i.file_name
+    #set identifier = re.sub('[^\s\w\-\\.]', '_', str($i.element_identifier))
+    ln -s $i 'mutation_regions_dir/$identifier' &&
+#end for
 
 python '${__tool_directory__}/pima_report.py' 
 --analysis_name '$analysis_name'
 --assembly_fasta_file '$assembly_fasta_file'
 --assembly_name '$assembly_name'
 --contig_coverage_file '$contig_coverage_file'
---illumina_fastq_file '$illumina_fastq_file'
+--dbkey '$aligned_sample.metadata.dbkey'
+--feature_bed_dir 'feature_bed_dir'
+--feature_png_dir 'feature_png_dir'
 #if $illumina_fastq_file.ext.endswith(".gz"):
     --gzipped
 #end if
---dbkey '$aligned_sample.metadata.dbkey'
+--illumina_fastq_file '$illumina_fastq_file'
+--mutation_regions_dir 'mutation_regions_dir'
+--mutation_regions_bed_file '$mutation_regions_bed_file'
 --pima_css '${__tool_directory__}/pima.css'
 && mv 'pima_report.pdf' '$output'
     ]]></command>
     <inputs>
         <param name="aligned_sample" type="data" format="bam" label="Aligned sample BAM file"/>
         <param name="assembly_fasta_file" type="data" format="fasta" label="Assembly FASTA file"/>
-        <param name="contig_coverage_file" type="data" format="tabular,tsv" label="Contig coverage tabular/tsv file"/>
+        <param name="features_bed" format="bed" type="data_collection" collection_type="list" label="Collection of best feature hits BED files"/>
+        <param name="features_png" format="png" type="data_collection" collection_type="list" label="Collection of best feature hits PNG files"/>
+        <param name="contig_coverage_file" type="data" format="tabular,tsv" label="Contig coverage tabular file"/>
         <param name="illumina_fastq_file" type="data" format="fastqsanger,fastqsanger.gz" label="Fastq sample file"/>
+        <param name="mutation_regions" format="tabular,tsv" type="data_collection" collection_type="list" label="Collection of mutation regions tabular files"/>
+        <param name="mutation_regions_bed_file" type="data" format="mutations_regions,bed" label="Mutation regions BED file"/>
     </inputs>
     <outputs>
         <data name="output" format="pdf"/>
