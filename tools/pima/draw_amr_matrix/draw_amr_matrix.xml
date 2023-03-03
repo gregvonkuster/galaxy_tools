@@ -8,8 +8,8 @@
 #import re
 
 mkdir amr_feature_hits_dir &&
-mkdir mutations_dir &&
-mkdir output_dir &&
+mkdir mutation_regions_dir &&
+mkdir amr_matrix_png_dir &&
 
 #if $reference_source.reference_source_selector == 'history':
     ln -f -s '$reference_source.ref_file' reference.fa &&
@@ -28,17 +28,16 @@ python '$__tool_directory__/draw_amr_matrix.py'
 #if str($amr_deletions_file) != 'None':
     --amr_deletions_file '$amr_deletions_file'
 #end if
-#if str($amr_mutations_file) != 'None':
-    --amr_mutations_file '$amr_mutations_file'
+#if str($varscan_vcf_file) != 'None':
+    --varscan_vcf_file '$varscan_vcf_file'
 #end if
-#if str($amr_mutation_regions_file) != 'None':
-    --amr_mutation_regions_file '$amr_mutation_regions_file'
-    --region_mutations_output_file '$region_mutations_output_file'
+#if str($amr_mutation_regions_bed_file) != 'None':
+    --amr_mutation_regions_bed_file '$amr_mutation_regions_bed_file'
+    --mutation_regions_dir 'mutation_regions_dir'
 #end if
 --amr_gene_drug_file '$amr_gene_drug_file'
 --reference_genome reference.fa
---mutations_dir 'mutations_dir'
---output_dir 'output_dir'
+--amr_matrix_png_dir 'amr_matrix_png_dir'
 #if str($output_process_log) == 'yes':
     && mv 'process_log' '$process_log'
 #end if
@@ -63,8 +62,8 @@ python '$__tool_directory__/draw_amr_matrix.py'
         </conditional>
         <param argument="--amr_feature_hits" format="bed" type="data_collection" collection_type="list" label="Collection of feature hits BED files"/>
         <param argument="--amr_deletions_file" type="data" format="bed" optional="true" label="AMR deletions file" help="Optional, leave blank to ignore"/>
-        <param argument="--amr_mutations_file" type="data" format="tabular,tsv" optional="true" label="AMR mutations file" help="Optional, leave blank to ignore"/>
-        <param argument="--amr_mutation_regions_file" type="data" format="bed" optional="true" label="AMR mutation regions BED file" help="Optional, leave blank to ignore"/>
+        <param argument="--varscan_vcf_file" type="data" format="vcf" optional="true" label="Varscan VCF file" help="Optional, leave blank to ignore"/>
+        <param argument="--amr_mutation_regions_bed_file" type="data" format="bed" optional="true" label="AMR mutation regions BED file" help="Optional, leave blank to ignore"/>
         <param argument="--amr_gene_drug_file" type="data" format="tabular,tsv" label="AMR gene drugs file"/>
         <param name="output_process_log" type="select" display="radio" label="Output process log file?">
             <option value="no" selected="true">No</option>
@@ -75,11 +74,12 @@ python '$__tool_directory__/draw_amr_matrix.py'
         <data name="process_log" format="txt" label="${tool.name} on ${on_string} (process log)">
             <filter>output_process_log == 'yes'</filter>
         </data>
-        <data name="region_mutations_output_file" format="tsv" label="${tool.name} on ${on_string} (region mutations)">
-            <filter>amr_mutation_regions_file not in [None, 'None']</filter>
-        </data>
+        <collection name="mutation_regions_tsv" type="list" format="tsv" label="${tool.name} on ${on_string} (mutation regions)">
+            <filter>amr_mutation_regions_bed_file not in [None, 'None']</filter>
+            <discover_datasets pattern="(?P&lt;designation&gt;.+)\.(?P&lt;ext&gt;tsv)" directory="mutation_regions_dir"/>
+        </collection>
         <collection name="amr_matrix_png" type="list" format="png">
-            <discover_datasets pattern="(?P&lt;designation&gt;.+)\.(?P&lt;ext&gt;png)" directory="output_dir"/>
+            <discover_datasets pattern="(?P&lt;designation&gt;.+)\.(?P&lt;ext&gt;png)" directory="amr_matrix_png_dir"/>
         </collection>
     </outputs>
     <tests>

@@ -58,7 +58,7 @@ def stop_err(msg):
     sys.exit(1)
 
 
-def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, amr_mutations_file, amr_mutation_regions_file, amr_gene_drug_file, reference, reference_size, region_mutations_output_file, mutations_dir, output_dir):
+def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, varscan_vcf_file, amr_mutation_regions_bed_file, amr_gene_drug_file, reference, reference_size, mutation_regions_dir, amr_matrix_png_dir):
     ofh = open('process_log', 'w')
 
     # Read amr_feature_hits_files.
@@ -98,21 +98,23 @@ def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, amr_mutations_fi
                     amr_to_draw = amr_to_draw.append(pandas.Series([gene_name, drug], name=amr_to_draw.shape[0], index=amr_to_draw.columns))
                     ofh.write("\amr_to_draw: %s\n" % str(amr_to_draw))
 
-        ofh.write("\namr_mutations_file si None: %s\n" % str(amr_mutations_file == 'None'))
-        if amr_mutations_file not in [None, 'None'] and os.path.getsize(amr_mutations_file) > 0:
+        ofh.write("\nvarscan_vcf_file si None: %s\n" % str(varscan_vcf_file == 'None'))
+        if varscan_vcf_file not in [None, 'None'] and os.path.getsize(varscan_vcf_file) > 0:
             amr_mutations = pandas.Series(dtype=object)
-            if amr_mutation_regions_file is not None:
-                mutation_regions = pandas.read_csv(amr_mutation_regions_file, header=0, sep='\t', index_col=False)
+            if amr_mutation_regions_bed_file is not None:
+                mutation_regions = pandas.read_csv(amr_mutation_regions_bed_file, header=0, sep='\t', index_col=False)
                 if mutation_regions.shape[1] != 7:
                     ofh.write("\nMutation regions should be a six column file.\n")
                 elif mutation_regions.shape[0] == 0:
                     ofh.write("\nNo rows in mutation regions file.\n")
                 else:
+                    """
+                    TODO: move this coder to the pima_report tool...
                     # Make sure the positions in the BED file fall within the chromosomes provided in the reference sequence.
                     for mutation_region in range(mutation_regions.shape[0]):
                         mutation_region = mutation_regions.iloc[mutation_region, :]
                         if not (mutation_region[0] in reference):
-                            ofh.write("\nMutation region :%s not found in reference genome.\n" % ' '.join(mutation_region.astype(str)))
+                            ofh.write("\nMutation region: %s not found in reference genome.\n" % ' '.join(mutation_region.astype(str)))
                             continue
                         if not isinstance(mutation_region[1], numpy.int64):
                             ofh.write("\nNon-integer found in mutation region start (column 2): %s.\n" % str(mutation_region[1]))
@@ -124,26 +126,28 @@ def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, amr_mutations_fi
                             ofh.write("\nMutation region %s starts before the reference sequence.\n" % ' '.join(mutation_region.astype(str)))
                         if mutation_region[1] > len(reference[mutation_region[0]].seq) or mutation_region[2] > len(reference[mutation_region[0]].seq):
                             ofh.write("\nMutation region %s ends after the reference sequence.\n" % ' '.join(mutation_region.astype(str)))
+                    """
                     for region_i in range(mutation_regions.shape[0]):
                         region = mutation_regions.iloc[region_i, :]
                         if not region.get('type', default='No Type') in ['snp', 'small-indel', 'any']:
                             continue
                         ofh.write("\nFinding AMR mutations for %s.\n" % str(region['name']))
-                        region_dir = os.path.join(mutations_dir, 'region_' + str(region_i))
-                        os.mkdir(region_dir)
-                        region_bed = os.path.join(region_dir, 'region.bed')
+                        region_bed = 'region_%s.bed' % region_i
                         mutation_regions.loc[[region_i], ].to_csv(path_or_buf=region_bed, sep='\t', header=False, index=False)
+                        region_mutations_tsv = os.path.join(mutation_regions_dir, 'region_%s_mutations.tsv' % region_i)
                         cmd = ' '.join(['bedtools intersect -nonamecheck -wb -a',
                                         region_bed,
                                         '-b',
-                                        amr_mutations_file,
-                                        ' | awk \'BEGIN{getline < "' + amr_mutation_regions_file + '";printf $0"\\t";',
-                                        'getline < "' + amr_mutations_file + '"; getline < "' + amr_mutations_file + '";print $0}{print}\'',
-                                        '1>' + region_mutations_output_file])
+                                        varscan_vcf_file,
+                                        ' | awk \'BEGIN{getline < "' + amr_mutation_regions_bed_file + '";printf $0"\\t";',
+                                        'getline < "' + varscan_vcf_file + '"; getline < "' + varscan_vcf_file + '";print $0}{print}\'',
+                                        '1>' + region_mutations_tsv])
                         ofh.write("\ncmd:\n%s\n" % cmd)
                         run_command(cmd)
+                        """
+                        TODO: move this coder to the pima_report tool...
                         try:
-                            region_mutations = pandas.read_csv(region_mutations_output_file, sep='\t', header=0, index_col=False)
+                            region_mutations = pandas.read_csv(region_mutations_tsv, sep='\t', header=0, index_col=False)
                         except Exception:
                             region_mutations = pandas.DataFrame()
                         if region_mutations.shape[0] == 0:
@@ -156,6 +160,7 @@ def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, amr_mutations_fi
                         region_mutations = pandas.concat([region_mutations, region_mutation_types, region_mutation_drugs, region_notes], axis=1)
                         region_mutations = region_mutations[['#CHROM', 'POS', 'TYPE', 'REF', 'ALT', 'DRUG', 'NOTE']]
                         amr_mutations[region['name']] = region_mutations
+                        """
             else:
                 ofh.write("\nMutation region BED not received.\n")
             # Roll up potentially resistance conferring mutations.
@@ -183,7 +188,7 @@ def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, amr_mutations_fi
             amr_matrix = pandas.DataFrame(0, index=present_genes, columns=present_drugs)
             for hit_idx, hit in amr_to_draw.iterrows():
                 amr_matrix.loc[hit[0], hit[1]] = 1
-            amr_matrix_png = os.path.join(output_dir, 'amr_matrix.png')
+            amr_matrix_png = os.path.join(amr_matrix_png_dir, 'amr_matrix.png')
             int_matrix = amr_matrix[amr_matrix.columns].astype(int)
             figure, axis = pyplot.subplots()
             heatmap = axis.pcolor(int_matrix, cmap=pyplot.cm.Blues, linewidth=0)
@@ -206,13 +211,12 @@ if __name__ == '__main__':
 
     parser.add_argument('--amr_feature_hits_dir', action='store', dest='amr_feature_hits_dir', help='Directory of tabular files containing feature hits')
     parser.add_argument('--amr_deletions_file', action='store', dest='amr_deletions_file', default=None, help='AMR deletions BED file')
-    parser.add_argument('--amr_mutations_file', action='store', dest='amr_mutations_file', default=None, help='AMR mutations TSV file')
-    parser.add_argument('--amr_mutation_regions_file', action='store', dest='amr_mutation_regions_file', default=None, help='AMR mutation regions BED file')
+    parser.add_argument('--varscan_vcf_file', action='store', dest='varscan_vcf_file', default=None, help='Varscan VCF file produced by the call_amr_mutations tool')
+    parser.add_argument('--amr_mutation_regions_bed_file', action='store', dest='amr_mutation_regions_bed_file', default=None, help='AMR mutation regions BED file')
     parser.add_argument('--amr_gene_drug_file', action='store', dest='amr_gene_drug_file', help='AMR_gene_drugs tsv file')
     parser.add_argument('--reference_genome', action='store', dest='reference_genome', help='Reference genome fasta file')
-    parser.add_argument('--region_mutations_output_file', action='store', dest='region_mutations_output_file', default=None, help='Region mutations TSV output file')
-    parser.add_argument('--mutations_dir', action='store', dest='mutations_dir', help='Mutations directory')
-    parser.add_argument('--output_dir', action='store', dest='output_dir', help='Output directory')
+    parser.add_argument('--mutation_regions_dir', action='store', dest='mutation_regions_dir', help='Directory for mutation regions TSV files produced by this tool')
+    parser.add_argument('--amr_matrix_png_dir', action='store', dest='amr_matrix_png_dir', help='Directory for PNG files produced by this tool')
 
     args = parser.parse_args()
 
@@ -231,4 +235,4 @@ if __name__ == '__main__':
     for i in reference:
         reference_size += len(i.seq)
 
-    draw_amr_matrix(amr_feature_hits_files, args.amr_deletions_file, args.amr_mutations_file, args.amr_mutation_regions_file, args.amr_gene_drug_file, reference, reference_size, args.region_mutations_output_file, args.mutations_dir, args.output_dir)
+    draw_amr_matrix(amr_feature_hits_files, args.amr_deletions_file, args.varscan_vcf_file, args.amr_mutation_regions_bed_file, args.amr_gene_drug_file, reference, reference_size, args.mutation_regions_dir, args.amr_matrix_png_dir)
