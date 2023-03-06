@@ -15,11 +15,15 @@ CDC_ADVISORY = 'The analysis and report presented here should be treated as prel
 
 class PimaReport:
 
-    def __init__(self, analysis_name=None, assembly_fasta_file=None, assembly_name=None, feature_bed_files=None, feature_png_files=None,
-                 contig_coverage_file=None, dbkey=None, gzipped=None, illumina_fastq_file=None, mutation_regions_bed_file=None,
-                 mutation_regions_tsv_files=None, pima_css=None):
+    def __init__(self, amr_deletions_file=None, amr_matrix_files=None, analysis_name=None, assembly_fasta_file=None,
+                 assembly_name=None, feature_bed_files=None, feature_png_files=None, contig_coverage_file=None, dbkey=None,
+                 dnadiff_snps_file=None, genome_insertions_file=None, gzipped=None, illumina_fastq_file=None,
+                 mutation_regions_bed_file=None, mutation_regions_tsv_files=None, pima_css=None, plasmids_file=None,
+                 reference_insertions_file=None):
         self.ofh = open("process_log.txt", "w")
 
+        self.ofh.write("amr_deletions_file: %s\n" % str(amr_deletions_file))
+        self.ofh.write("amr_matrix_files: %s\n" % str(amr_matrix_files))
         self.ofh.write("analysis_name: %s\n" % str(analysis_name))
         self.ofh.write("assembly_fasta_file: %s\n" % str(assembly_fasta_file))
         self.ofh.write("assembly_name: %s\n" % str(assembly_name))
@@ -27,17 +31,24 @@ class PimaReport:
         self.ofh.write("feature_png_files: %s\n" % str(feature_png_files))
         self.ofh.write("contig_coverage_file: %s\n" % str(contig_coverage_file))
         self.ofh.write("dbkey: %s\n" % str(dbkey))
+        self.ofh.write("dnadiff_snps_file: %s\n" % str(dnadiff_snps_file))
         self.ofh.write("gzipped: %s\n" % str(gzipped))
+        self.ofh.write("genome_insertions_file: %s\n" % str(genome_insertions_file))
         self.ofh.write("illumina_fastq_file: %s\n" % str(illumina_fastq_file))
         self.ofh.write("mutation_regions_bed_file: %s\n" % str(mutation_regions_bed_file))
         self.ofh.write("mutation_regions_tsv_files: %s\n" % str(mutation_regions_tsv_files))
         self.ofh.write("pima_css: %s\n" % str(pima_css))
+        self.ofh.write("plasmids_file: %s\n" % str(plasmids_file))
+        # self.ofh.write("reference_genome: %s\n" % str(reference_genome))
+        self.ofh.write("reference_insertions_file: %s\n" % str(reference_insertions_file))
 
         # General
         self.doc = None
         self.report_md = 'pima_report.md'
 
         # Inputs
+        self.amr_deletions_file = amr_deletions_file
+        self.amr_matrix_files = amr_matrix_files
         self.analysis_name = analysis_name
         self.assembly_fasta_file = assembly_fasta_file
         self.assembly_name = assembly_name
@@ -45,7 +56,9 @@ class PimaReport:
         self.feature_png_files = feature_png_files
         self.contig_coverage_file = contig_coverage_file
         self.dbkey = dbkey
+        self.dnadiff_snps_file = dnadiff_snps_file
         self.gzipped = gzipped
+        self.genome_insertions_file = genome_insertions_file
         self.illumina_fastq_file = illumina_fastq_file
         self.mutation_regions_bed_file = mutation_regions_bed_file
         self.mutation_regions_tsv_files = mutation_regions_tsv_files
@@ -54,6 +67,9 @@ class PimaReport:
         self.ont_n50 = None
         self.ont_read_count = None
         self.pima_css = pima_css
+        self.plasmids_file = plasmids_file
+        # self.reference_genome = reference_genome
+        self.reference_insertions_file = reference_insertions_file
 
         # Titles
         self.alignment_title = 'Comparison with reference'
@@ -72,10 +88,9 @@ class PimaReport:
         self.methods_title = 'Methods'
         self.mutation_title = 'Mutations found in the sample'
         self.mutation_methods_title = 'Mutation screening'
-        self.plasmid_methods_title = 'Plasmid annotation'
+        self.plasmid_title = 'Plasmid annotation'
         self.reference_methods_title = 'Reference comparison'
         self.snp_indel_title = 'SNPs and small indels'
-        #self.summary_title = 'Summary'
         self.summary_title = 'Analysis of %s' % analysis_name
 
         # Methods
@@ -106,6 +121,8 @@ class PimaReport:
         self.illumina_bases = 0
         self.mean_coverage = 0
         self.num_assembly_contigs = 0
+        self.self.quast_indels = 0
+        self.quast_mismatches = 0
 
         # Actions
         self.did_guppy_ont_fast5 = False
@@ -185,7 +202,6 @@ class PimaReport:
         self.illumina_bases = self.format_kmg(self.illumina_bases, decimals=1)
 
     def start_doc(self):
-        #header_text = 'Analysis of %s' % self.analysis_name
         self.doc = MdUtils(file_name=self.report_md, title='')
 
     def add_run_information(self):
@@ -347,8 +363,9 @@ class PimaReport:
         self.doc.new_line('<div style="page-break-after: always;"></div>')
         self.doc.new_line()
         self.doc.new_header(2, self.assembly_notes_title)
-        #for note in self.analysis.assembly_notes:
-        #    self.doc.new_line(note)
+        # TODO: may need to add assembly notes.
+        for note in self.analysis.assembly_notes:
+            self.doc.new_line(note)
 
     def add_contamination(self):
         self.ofh.write("\nXXXXXX In add_contamination\n\n")
@@ -384,11 +401,9 @@ class PimaReport:
             "Category",
             "Quantity",
             'SNPs',
-            #'{:,}'.format(self.analysis.quast_mismatches),
-            'NA'
+            '{:,}'.format(self.quast_mismatches),
             'Small indels',
-            #'{:,}'.format(self.analysis.quast_indels)
-            'NA'
+            '{:,}'.format(self.quast_indels)
         ]
         self.doc.new_table(columns=2, rows=3, text=Table_1, text_align='left')
         self.doc.new_line('<div style="page-break-after: always;"></div>')
@@ -444,12 +459,17 @@ class PimaReport:
                     feature = contig_features.iloc[i, :].copy(deep=True)
                     self.ofh.write("feature: %s\n" % str(feature))
                     feature[4] = '{:.3f}'.format(feature[4])
-                    Table_List = Table_List + feature[1:].values.tolist()
+                    # FIXME: Uncommenting the following line (which is
+                    # https://github.com/appliedbinf/pima_md/blob/main/MarkdownReport.py#L317)
+                    # will cause the job to fail with this exception:
+                    # ValueError: columns * rows is not equal to text length
+                    # Table_List = Table_List + feature[1:].values.tolist()
                 self.ofh.write("Table_List: %s\n" % str(Table_List))
                 row_count = int(len(Table_List) / 5)
                 self.ofh.write("row_count: %s\n" % str(row_count))
                 self.doc.new_line()
-                self.doc.new_table(columns=7, rows=row_count, text=Table_List, text_align='left')
+                self.ofh.write("Before new_table, len(Table_List):: %s\n" % str(len(Table_List)))
+                self.doc.new_table(columns=5, rows=row_count, text=Table_List, text_align='left')
         blastn_version = 'The genome assembly was queried for features using blastn.'
         bedtools_version = 'Feature hits were clustered using bedtools and the highest scoring hit for each cluster was reported.'
         method = '%s  %s' % (blastn_version, bedtools_version)
@@ -469,11 +489,34 @@ class PimaReport:
         self.ofh.write("\nXXXXXX In add_mutations\n\n")
         if len(self.mutation_regions_tsv_files) == 0:
             return
-        try:
+        try :
             mutation_regions = pandas.read_csv(self.mutation_regions_bed_file, sep='\t', header=0, index_col=False)
         except Exception:
             # Likely an empty file.
             return
+        # TODO: this is the only place where reference_genome is used,
+        # so I'm commenting it out for now.  We need to confirm if these
+        # errors that require the reference genmoe being passed are necessary.
+        # If so, we'll need to implement data tables in this tool.
+        # Make sure that the positions in the BED file fall within
+        # the chromosomes provided in the reference sequence.
+        """
+        for mutation_region in range(mutation_regions.shape[0]):
+            mutation_region = mutation_regions.iloc[mutation_region, :]
+            if not (mutation_region[0] in self.reference_genome):
+                self.ofh.write("\nMutation region: %s not found in reference genome.\n" % ' '.join(mutation_region.astype(str)))
+                continue
+            if not isinstance(mutation_region[1], int):
+                self.ofh.write("\nNon-integer found in mutation region start (column 2): %s.\n" % str(mutation_region[1]))
+                break
+            elif not isinstance(mutation_region[2], int):
+                self.ofh.write("\nNon-integer found in mutation region start (column 3): %s.\n" % str(mutation_region[2]))
+                break
+            if mutation_region[1] <= 0 or mutation_region[2] <= 0:
+                self.ofh.write("\nMutation region %s starts before the reference sequence.\n" % ' '.join(mutation_region.astype(str)))
+            if mutation_region[1] > len(self.reference_genome[mutation_region[0]].seq) or mutation_region[2] > len(self.reference_genome[mutation_region[0]].seq):
+                self.ofh.write("\nMutation region %s ends after the reference sequence.\n" % ' '.join(mutation_region.astype(str)))
+        """
         amr_mutations = pandas.Series(dtype=object)
         for region_i in range(mutation_regions.shape[0]):
             region = mutation_regions.iloc[region_i, :]
@@ -483,13 +526,13 @@ class PimaReport:
             if region_mutations_tsv_name not in self.mutation_regions_tsv_files:
                 continue
             region_mutations_tsv = self.mutation_regions_tsv_files[region_mutations_tsv_name]
-            try:
+            try :
                 region_mutations = pandas.read_csv(region_mutations_tsv, sep='\t', header=0, index_col=False)
             except Exception:
                 region_mutations = pandas.DataFrame()
             if region_mutations.shape[0] == 0:
                 continue
-            # Figure out what kind of mutations are in this region
+            # Figure out what kind of mutations are in this region.
             region_mutation_types = pandas.Series(['snp'] * region_mutations.shape[0], name='TYPE', index=region_mutations.index)
             region_mutation_types[region_mutations['REF'].str.len() != region_mutations['ALT'].str.len()] = 'small-indel'
             region_mutation_drugs = pandas.Series(region['drug'] * region_mutations.shape[0], name='DRUG', index=region_mutations.index)
@@ -521,78 +564,84 @@ class PimaReport:
     def add_amr_matrix(self):
         self.ofh.write("\nXXXXXX In add_amr_matrix\n\n")
         # Make sure that we have an AMR matrix to plot
-        #if not getattr(self.analysis, 'did_draw_amr_matrix', False):
-        #    return
-        #amr_matrix_png = self.analysis.amr_matrix_png
-        #self.doc.new_line()
-        #self.doc.new_header(level=2, title=self.amr_matrix_title)
-        #self.doc.new_line('AMR genes and mutations with their corresponding drugs.')
-        #self.doc.new_line(
-        #    self.doc.new_inline_image(
-        #        text='AMR genes and mutations with their corresponding drugs',
-        #        path=amr_matrix_png
-        #    )
-        #)
-        pass
+        if len(self.amr_matrix_files) == 0:
+            return
+        self.doc.new_line()
+        self.doc.new_header(level=2, title=self.amr_matrix_title)
+        self.doc.new_line('AMR genes and mutations with their corresponding drugs')
+        for amr_matrix_file in self.amr_matrix_files:
+            self.doc.new_line(self.doc.new_inline_image(text='AMR genes and mutations with their corresponding drugs',
+                                                        path=os.path.abspath(amr_matrix_file)))
 
     def add_large_indels(self):
         self.ofh.write("\nXXXXXX In add_large_indels\n\n")
-        # Make sure we looked for mutations
-        #if len(self.analysis.large_indels) == 0:
-        #    return
-        #large_indels = self.analysis.large_indels
-        #self.doc.new_line()
-        #self.doc.new_header(level=2, title=self.large_indel_title)
-        #for genome in ['Reference insertions', 'Query insertions']:
-        #    genome_indels = large_indels[genome].copy()
-        #    self.doc.new_line()
-        #    self.doc.new_header(level=3, title=genome)
-        #    if (genome_indels.shape[0] == 0):
-        #        continue
-        #    genome_indels.iloc[:, 1] = genome_indels.iloc[:, 1].apply(lambda x: '{:,}'.format(x))
-        #    genome_indels.iloc[:, 2] = genome_indels.iloc[:, 2].apply(lambda x: '{:,}'.format(x))
-        #    genome_indels.iloc[:, 3] = genome_indels.iloc[:, 3].apply(lambda x: '{:,}'.format(x))
-        #    Table_List = [
-        #        'Reference contig', 'Start', 'Stop', 'Size (bp)'
-        #    ]
-        #    for i in range(genome_indels.shape[0]):
-        #        Table_List = Table_List + genome_indels.iloc[i, :].values.tolist()
-        #    row_count = int(len(Table_List) / 4)
-        #    self.doc.new_table(columns=4, rows=row_count, text=Table_List, text_align='left')
-        #method = 'Large insertions or deletions were found as the complement of aligned regions using bedtools.'
-        #self.methods[self.reference_methods_title] = self.methods[self.reference_methods_title].append(
-        #    pandas.Series(method))
-        #self.doc.new_line()
-        #self.doc.new_line('<div style="page-break-after: always;"></div>')
-        #self.doc.new_line()
-        pass
+        large_indels = pandas.Series(dtype='float64')
+        # Pull in insertions.
+        try:
+            reference_insertions = pandas.read_csv(filepath_or_buffer=self.reference_insertions_file, sep='\t', header=None)
+        except Exception:
+            reference_insertions = pandas.DataFrame()
+        try:
+            genome_insertions = pandas.read_csv(filepath_or_buffer=self.genome_insertions_file, sep='\t', header=None)
+        except Exception:
+            genome_insertions = pandas.DataFrame()
+        large_indels['Reference insertions'] = reference_insertions
+        large_indels['Query insertions'] = genome_insertions
+        # TODO: we don't seem to be reporting snps and deletions for some reason...
+        # Pull in the number of SNPs and small indels.
+        try:
+            snps = pandas.read_csv(filepath_or_buffer=self.dnadiff_snps_file, sep='\t', header=None)
+            small_indels = snps.loc[(snps.iloc[:, 1] == '.') | (snps.iloc[:, 2] == '.'), :]
+            snps = snps.loc[(snps.iloc[:, 1] != '.') & (snps.iloc[:, 2] != '.'), :]
+        except Exception:
+            snps = pandas.DataFrame()
+        # Pull in deletions.
+        try:
+            amr_deletions = pandas.read_csv(filepath_or_buffer=self.amr_deletion_file, sep='\t', header=None)
+        except Exception:
+            amr_deletions = pandas.DataFrame()
+        if amr_deletions.shape[0] > 0:
+            amr_deletions.columns = ['contig', 'start', 'stop', 'name', 'type', 'drug', 'note']
+            amr_deletions = amr_deletions.loc[amr_deletions['type'].isin(['large-deletion', 'any']), :]
+        self.doc.new_line()
+        self.doc.new_header(level=2, title=self.large_indel_title)
+        for genome in ['Reference insertions', 'Query insertions']:
+            genome_indels = large_indels[genome].copy()
+            self.doc.new_line()
+            self.doc.new_header(level=3, title=genome)
+            if (genome_indels.shape[0] == 0):
+                continue
+            genome_indels.iloc[:, 1] = genome_indels.iloc[:, 1].apply(lambda x: '{:,}'.format(x))
+            genome_indels.iloc[:, 2] = genome_indels.iloc[:, 2].apply(lambda x: '{:,}'.format(x))
+            genome_indels.iloc[:, 3] = genome_indels.iloc[:, 3].apply(lambda x: '{:,}'.format(x))
+            Table_List = [
+                'Reference contig', 'Start', 'Stop', 'Size (bp)'
+            ]
+            for i in range(genome_indels.shape[0]):
+                Table_List = Table_List + genome_indels.iloc[i, :].values.tolist()
+            row_count = int(len(Table_List) / 4)
+            self.doc.new_table(columns=4, rows=row_count, text=Table_List, text_align='left')
+        method = 'Large insertions or deletions were found as the complement of aligned regions using bedtools.'
+        self.methods[self.reference_methods_title] = self.methods[self.reference_methods_title].append(pandas.Series(method))
+        self.doc.new_line()
+        self.doc.new_line('<div style="page-break-after: always;"></div>')
+        self.doc.new_line()
 
     def add_plasmids(self):
-        self.ofh.write("\nXXXXXX In add_plasmids\n\n")
-        """
-        if not getattr(self.analysis, 'did_call_plasmids', False):
-            return
-        # Make sure we looked for mutations
-        #plasmids = self.analysis.plasmids
-        if plasmids is None:
+        try :
+            plasmids = pandas.read_csv(filepath_or_buffer=self.plasmids_file, sep='\t', header=0)
+        except Exception:
             return
         plasmids = plasmids.copy()
         self.doc.new_line()
-        #self.doc.new_header(level=2, title=self.analysis.plasmid_title)
+        self.doc.new_header(level=2, title=self.plasmid_title)
         if (plasmids.shape[0] == 0):
             self.doc.new_line('None')
             return
         plasmids.iloc[:, 3] = plasmids.iloc[:, 3].apply(lambda x: '{:,}'.format(x))
         plasmids.iloc[:, 4] = plasmids.iloc[:, 4].apply(lambda x: '{:,}'.format(x))
         plasmids.iloc[:, 5] = plasmids.iloc[:, 5].apply(lambda x: '{:,}'.format(x))
-        Table_List = [
-            'Genome contig',
-            'Plasmid hit',
-            'Plasmid acc.',
-            'Contig size',
-            'Aliged',
-            'Plasmid size'
-        ]
+        Table_List = ['Genome contig', 'Plasmid hit', 'Plasmid acc.', 'Contig size', 'Aliged', 'Plasmid size']
         for i in range(plasmids.shape[0]):
             Table_List = Table_List + plasmids.iloc[i, 0:6].values.tolist()
         row_count = int(len(Table_List) / 6)
@@ -603,8 +652,6 @@ class PimaReport:
         self.methods[self.plasmid_methods_title] = self.methods[self.plasmid_methods_title].append(pandas.Series(method))
         method = 'Plasmid-to-genome hits were resolved using the pChunks algorithm.'
         self.methods[self.plasmid_methods_title] = self.methods[self.plasmid_methods_title].append(pandas.Series(method))
-        """
-        pass
 
     def add_methods(self):
         self.ofh.write("\nXXXXXX In add_methods\n\n")
@@ -614,7 +661,6 @@ class PimaReport:
             return
         self.doc.new_line()
         self.doc.new_header(level=2, title=self.methods_title)
-
         for methods_section in self.methods.index.tolist():
             if self.methods[methods_section] is None or len(self.methods[methods_section]) == 0:
                 continue
@@ -666,9 +712,9 @@ class PimaReport:
         self.add_features()
         self.add_feature_plots()
         self.add_mutations()
-        # TODO stuff working to here...
         self.add_large_indels()
         self.add_plasmids()
+        # TODO stuff working to here...
         self.add_amr_matrix()
         # self.add_snps()
         self.add_methods()
@@ -687,21 +733,33 @@ class PimaReport:
 
 parser = argparse.ArgumentParser()
 
+parser.add_argument('--amr_deletions_file', action='store', dest='amr_deletions_file', help='AMR deletions BED file')
+parser.add_argument('--amr_matrix_png_dir', action='store', dest='amr_matrix_png_dir', help='Directory of AMR matrix PNG files')
 parser.add_argument('--analysis_name', action='store', dest='analysis_name', help='Sample identifier')
 parser.add_argument('--assembly_fasta_file', action='store', dest='assembly_fasta_file', help='Assembly fasta file')
 parser.add_argument('--assembly_name', action='store', dest='assembly_name', help='Assembly identifier')
 parser.add_argument('--feature_bed_dir', action='store', dest='feature_bed_dir', help='Directory of best feature hits bed files')
 parser.add_argument('--feature_png_dir', action='store', dest='feature_png_dir', help='Directory of best feature hits png files')
 parser.add_argument('--contig_coverage_file', action='store', dest='contig_coverage_file', help='Contig coverage TSV file')
-parser.add_argument('--dbkey', action='store', dest='dbkey', help='Reference genome')
+parser.add_argument('--dbkey', action='store', dest='dbkey', help='Reference genome identifier')
+parser.add_argument('--dnadiff_snps_file', action='store', dest='dnadiff_snps_file', help='DNAdiff snps tabular file')
+parser.add_argument('--genome_insertions_file', action='store', dest='genome_insertions_file', help='Genome insertions BED file')
 parser.add_argument('--gzipped', action='store_true', dest='gzipped', default=False, help='Input sample is gzipped')
 parser.add_argument('--illumina_fastq_file', action='store', dest='illumina_fastq_file', help='Input sample')
 parser.add_argument('--mutation_regions_bed_file', action='store', dest='mutation_regions_bed_file', help='AMR mutation regions BRD file')
 parser.add_argument('--mutation_regions_dir', action='store', dest='mutation_regions_dir', help='Directory of mutation regions TSV files')
 parser.add_argument('--pima_css', action='store', dest='pima_css', help='PIMA css stypesheet')
+parser.add_argument('--plasmids_file', action='store', dest='plasmids_file', help='pChunks plasmids TSV file')
+parser.add_argument('--reference_insertions_file', action='store', dest='reference_insertions_file', help='Reference insertions BED file')
+# parser.add_argument('--reference_genome', action='store', dest='reference_genome', help='Reference genome fasta file')
 
 args = parser.parse_args()
 
+# Prepare the AMR matrix PNG files.
+amr_matrix_files = []
+for file_name in sorted(os.listdir(args.amr_matrix_png_dir)):
+    file_path = os.path.abspath(os.path.join(args.amr_matrix_png_dir, file_name))
+    amr_matrix_files.append(file_path)
 # Prepare the features BED files.
 feature_bed_files = []
 for file_name in sorted(os.listdir(args.feature_bed_dir)):
@@ -719,15 +777,21 @@ for file_name in sorted(os.listdir(args.mutation_regions_dir)):
     mutation_regions_files.append(file_path)
 
 markdown_report = PimaReport(args.analysis_name,
+                             args.amr_deletions_file,
+                             amr_matrix_files,
                              args.assembly_fasta_file,
                              args.assembly_name,
                              feature_bed_files,
                              feature_png_files,
                              args.contig_coverage_file,
                              args.dbkey,
+                             args.dnadiff_snps_file,
+                             args.genome_insertions_file,
                              args.gzipped,
                              args.illumina_fastq_file,
                              args.mutation_regions_bed_file,
                              mutation_regions_files,
-                             args.pima_css)
+                             args.pima_css,
+                             args.plasmids_file,
+                             args.reference_insertions_file)
 markdown_report.make_report()
