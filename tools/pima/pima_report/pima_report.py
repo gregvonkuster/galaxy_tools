@@ -15,9 +15,10 @@ CDC_ADVISORY = 'The analysis and report presented here should be treated as prel
 
 class PimaReport:
 
-    def __init__(self, amr_deletions_file=None, amr_matrix_files=None, analysis_name=None, assembly_fasta_file=None,
-                 assembly_name=None, feature_bed_files=None, feature_png_files=None, contig_coverage_file=None, dbkey=None,
-                 dnadiff_snps_file=None, genome_insertions_file=None, gzipped=None, illumina_fastq_file=None,
+    def __init__(self, analysis_name=None, amr_deletions_file=None, amr_matrix_files=None, assembly_fasta_file=None,
+                 assembly_name=None, compute_sequence_length_file=None, contig_coverage_file=None, dbkey=None,
+                 dnadiff_snps_file=None, feature_bed_files=None, feature_png_files=None, flye_assembly_info_file=None,
+                 flye_version=None, genome_insertions_file=None, gzipped=None, illumina_fastq_file=None,
                  mutation_regions_bed_file=None, mutation_regions_tsv_files=None, pima_css=None, plasmids_file=None,
                  reference_insertions_file=None):
         self.ofh = open("process_log.txt", "w")
@@ -27,11 +28,14 @@ class PimaReport:
         self.ofh.write("analysis_name: %s\n" % str(analysis_name))
         self.ofh.write("assembly_fasta_file: %s\n" % str(assembly_fasta_file))
         self.ofh.write("assembly_name: %s\n" % str(assembly_name))
-        self.ofh.write("feature_bed_files: %s\n" % str(feature_bed_files))
-        self.ofh.write("feature_png_files: %s\n" % str(feature_png_files))
+        self.ofh.write("compute_sequence_length_file: %s\n" % str(compute_sequence_length_file))
         self.ofh.write("contig_coverage_file: %s\n" % str(contig_coverage_file))
         self.ofh.write("dbkey: %s\n" % str(dbkey))
         self.ofh.write("dnadiff_snps_file: %s\n" % str(dnadiff_snps_file))
+        self.ofh.write("feature_bed_files: %s\n" % str(feature_bed_files))
+        self.ofh.write("feature_png_files: %s\n" % str(feature_png_files))
+        self.ofh.write("flye_assembly_info_file: %s\n" % str(flye_assembly_info_file))
+        self.ofh.write("flye_version: %s\n" % str(flye_version))
         self.ofh.write("gzipped: %s\n" % str(gzipped))
         self.ofh.write("genome_insertions_file: %s\n" % str(genome_insertions_file))
         self.ofh.write("illumina_fastq_file: %s\n" % str(illumina_fastq_file))
@@ -52,11 +56,14 @@ class PimaReport:
         self.analysis_name = analysis_name
         self.assembly_fasta_file = assembly_fasta_file
         self.assembly_name = assembly_name
-        self.feature_bed_files = feature_bed_files
-        self.feature_png_files = feature_png_files
+        self.compute_sequence_length_file = compute_sequence_length_file
         self.contig_coverage_file = contig_coverage_file
         self.dbkey = dbkey
         self.dnadiff_snps_file = dnadiff_snps_file
+        self.feature_bed_files = feature_bed_files
+        self.feature_png_files = feature_png_files
+        self.flye_assembly_info_file = flye_assembly_info_file
+        self.flye_version = flye_version
         self.gzipped = gzipped
         self.genome_insertions_file = genome_insertions_file
         self.illumina_fastq_file = illumina_fastq_file
@@ -88,6 +95,7 @@ class PimaReport:
         self.methods_title = 'Methods'
         self.mutation_title = 'Mutations found in the sample'
         self.mutation_methods_title = 'Mutation screening'
+        self.plasmid_methods_title = 'Plasmid annotation'
         self.plasmid_title = 'Plasmid annotation'
         self.reference_methods_title = 'Reference comparison'
         self.snp_indel_title = 'SNPs and small indels'
@@ -113,7 +121,6 @@ class PimaReport:
         # Values
         self.assembly_size = 0
         self.contig_info = None
-        self.did_flye_ont_fastq = False
         self.did_medaka_ont_assembly = False
         self.feature_hits = pandas.Series(dtype='float64')
         self.illumina_length_mean = 0
@@ -121,7 +128,10 @@ class PimaReport:
         self.illumina_bases = 0
         self.mean_coverage = 0
         self.num_assembly_contigs = 0
-        self.self.quast_indels = 0
+        # TODO: should the following 2 values  be passed as  parameters?
+        self.ont_n50_min = 2500
+        self.ont_coverage_min = 30
+        self.quast_indels = 0
         self.quast_mismatches = 0
 
         # Actions
@@ -156,6 +166,22 @@ class PimaReport:
         self.contig_info[self.read_type] = pandas.read_csv(self.contig_coverage_file, header=None, index_col=None, sep='\t').sort_values(1, axis=0, ascending=False)
         self.contig_info[self.read_type].columns = ['contig', 'size', 'coverage']
         self.mean_coverage = (self.contig_info[self.read_type].iloc[:, 1] * self.contig_info[self.read_type].iloc[:, 2]).sum() / self.contig_info[self.read_type].iloc[:, 1].sum()
+        if self.mean_coverage <= self.ont_coverage_min:
+            warning = '%s mean coverage ({:.0f}X) is less than the recommended minimum ({:.0f}X).'.format(self.mean_coverage, self.ont_coverage_min) % self.read_type
+            self.assembly_notes = self.assembly_notes.append(pandas.Series(warning))
+        # Report if some contigs have low coverage.
+        low_coverage = self.contig_info[self.read_type].loc[self.contig_info[self.read_type]['coverage'] < self.ont_coverage_min, :]
+        if low_coverage.shape[0] >= 0:
+            for contig_i in range(low_coverage.shape[0]):
+                warning = '%s coverage of {:s} ({:.0f}X) is less than the recommended minimum ({:.0f}X).'.format(low_coverage.iloc[contig_i, 0], low_coverage.iloc[contig_i, 2], self.ont_coverage_min) % self.read_type
+                self.assembly_notes = self.assembly_notes.append(pandas.Series(warning))
+        # See if some contigs have anolously low coverage.
+        fold_coverage = self.contig_info[self.read_type]['coverage'] / self.mean_coverage
+        low_coverage = self.contig_info[self.read_type].loc[fold_coverage < 1 / 5, :]
+        if low_coverage.shape[0] >= 0 :
+            for contig_i in range(low_coverage.shape[0]):
+                warning = '%s coverage of {:s} ({:.0f}X) is less than 1/5 the mean coverage ({:.0f}X).'.format(low_coverage.iloc[contig_i, 0], low_coverage.iloc[contig_i, 2], self.mean_coverage) % self.read_type
+                self.assembly_notes = self.assembly_notes.append(pandas.Series(warning))
 
     def load_fasta(self, fasta):
         sequence = pandas.Series(dtype=object)
@@ -272,6 +298,20 @@ class PimaReport:
         ]
         self.doc.new_table(columns=2, rows=4, text=Table_List, text_align='left')
 
+    def evaluate_assembly(self) :
+        assembly_info = pandas.read_csv(self.compute_sequence_length_file, sep='\t', header=None)
+        assembly_info.columns = ['contig', 'length']
+        self.contig_sizes = assembly_info
+        # Take a look at the number of contigs, their sizes,
+        # and circularity.  Warn if things don't look good.
+        if assembly_info.shape[0] > 4:
+            warning = 'Assembly produced {:d} contigs, more than ususally expected; assembly may be fragmented'.format(assembly_info.shape[0])
+            self.assembly_notes = self.assembly_notes.append(pandas.Series(warning))
+        small_contigs = assembly_info.loc[assembly_info['length'] <= 3000, :]
+        if small_contigs.shape[0] > 0:
+            warning = 'Assembly produced {:d} small contigs ({:s}); assembly may include spurious sequences.'.format(small_contigs.shape[0], ', '.join(small_contigs['contig']))
+            self.assembly_notes = self.assembly_notes.append(pandas.Series(warning))
+
     def add_assembly_information(self):
         self.ofh.write("\nXXXXXX In add_assembly_information\n\n")
         if self.assembly_fasta_file is None:
@@ -307,15 +347,17 @@ class PimaReport:
         if result[1] == '0':
             self.error_out('No ONT reads found')
         ont_n50, ont_read_count, ont_raw_bases = [int(i) for i in result]
-
         command = ' '.join([opener,
                             fastq_file,
                             '| awk \'{getline;print length($0);getline;getline;}\''])
         result = self.run_command(command)
         result = list(filter(lambda x: x != '', result))
-        ont_read_lengths = [int(i) for i in result]
-
-        return ([ont_n50, ont_read_count, ont_raw_bases, ont_read_lengths])
+        # TODO: the following are not yet used...
+        # ont_read_lengths = [int(i) for i in result]
+        # ont_bases = self.format_kmg(ont_raw_bases, decimals=1)
+        if ont_n50 <= self.ont_n50_min:
+            warning = 'ONT N50 (%s) is less than the recommended minimum (%s)' % (str(ont_n50), str(self.ont_n50_min))
+            self.assembly_notes = self.assembly_notes.append(pandas.Series(warning))
 
     def wordwrap_markdown(self, string):
         if string:
@@ -364,7 +406,7 @@ class PimaReport:
         self.doc.new_line()
         self.doc.new_header(2, self.assembly_notes_title)
         # TODO: may need to add assembly notes.
-        for note in self.analysis.assembly_notes:
+        for note in self.assembly_notes:
             self.doc.new_line(note)
 
     def add_contamination(self):
@@ -591,7 +633,8 @@ class PimaReport:
         # Pull in the number of SNPs and small indels.
         try:
             snps = pandas.read_csv(filepath_or_buffer=self.dnadiff_snps_file, sep='\t', header=None)
-            small_indels = snps.loc[(snps.iloc[:, 1] == '.') | (snps.iloc[:, 2] == '.'), :]
+            # TODO: the following is not used...
+            # small_indels = snps.loc[(snps.iloc[:, 1] == '.') | (snps.iloc[:, 2] == '.'), :]
             snps = snps.loc[(snps.iloc[:, 1] != '.') & (snps.iloc[:, 2] != '.'), :]
         except Exception:
             snps = pandas.DataFrame()
@@ -685,15 +728,25 @@ class PimaReport:
             methods += ['ONT reads were demultiplexed and trimmed using qcat']
         self.methods[self.basecalling_methods_title] = pandas.Series(methods)
         self.add_illumina_library_information()
-        self.add_assembly_information()
         self.add_contig_info()
-        self.add_assembly_notes()
-        if self.did_flye_ont_fastq:
-            method = 'ONT reads were assembled using Flye.'
+        self.evaluate_assembly()
+        self.add_assembly_information()
+        if self.flye_assembly_info_file is not None:
+            method = 'ONT reads were assembled using %s' % self.flye_version
             self.methods[self.assembly_methods_title] = self.methods[self.assembly_methods_title].append(pandas.Series(method))
+            # Pull in the assembly summary and look at the coverage.
+            assembly_info = pandas.read_csv(self.flye_assembly_info_file, header=0, index_col=0, sep='\t')
+            # Look for non-circular contigs.
+            open_contigs = assembly_info.loc[assembly_info['circ.'] == 'N', :]
+            if open_contigs.shape[0] > 0:
+                open_contig_ids = open_contigs.index.values
+                warning = 'Flye reported {:d} open contigs ({:s}); assembly may be incomplete.'.format(open_contigs.shape[0], ', '.join(open_contig_ids))
+                self.assembly_notes = self.assembly_notes.append(pandas.Series(warning))
         if self.did_medaka_ont_assembly:
             method = 'the genome assembly was polished using ont reads and medaka.'
             self.methods[self.assembly_methods_title] = self.methods[self.assembly_methods_title].append(pandas.series(method))
+        self.info_ont_fastq(self.illumina_fastq_file)
+        self.add_assembly_notes()
 
     def make_tex(self):
         self.doc.new_table_of_contents(table_title='detailed run information', depth=2, marker="tableofcontents")
@@ -738,11 +791,14 @@ parser.add_argument('--amr_matrix_png_dir', action='store', dest='amr_matrix_png
 parser.add_argument('--analysis_name', action='store', dest='analysis_name', help='Sample identifier')
 parser.add_argument('--assembly_fasta_file', action='store', dest='assembly_fasta_file', help='Assembly fasta file')
 parser.add_argument('--assembly_name', action='store', dest='assembly_name', help='Assembly identifier')
-parser.add_argument('--feature_bed_dir', action='store', dest='feature_bed_dir', help='Directory of best feature hits bed files')
-parser.add_argument('--feature_png_dir', action='store', dest='feature_png_dir', help='Directory of best feature hits png files')
+parser.add_argument('--compute_sequence_length_file', action='store', dest='compute_sequence_length_file', help='Comnpute sequence length tabular file')
 parser.add_argument('--contig_coverage_file', action='store', dest='contig_coverage_file', help='Contig coverage TSV file')
 parser.add_argument('--dbkey', action='store', dest='dbkey', help='Reference genome identifier')
 parser.add_argument('--dnadiff_snps_file', action='store', dest='dnadiff_snps_file', help='DNAdiff snps tabular file')
+parser.add_argument('--feature_bed_dir', action='store', dest='feature_bed_dir', help='Directory of best feature hits bed files')
+parser.add_argument('--feature_png_dir', action='store', dest='feature_png_dir', help='Directory of best feature hits png files')
+parser.add_argument('--flye_assembly_info_file', action='store', dest='flye_assembly_info_file', default=None, help='Flye assembly info tabular file')
+parser.add_argument('--flye_version', action='store', dest='flye_version', default=None, help='Flye version string')
 parser.add_argument('--genome_insertions_file', action='store', dest='genome_insertions_file', help='Genome insertions BED file')
 parser.add_argument('--gzipped', action='store_true', dest='gzipped', default=False, help='Input sample is gzipped')
 parser.add_argument('--illumina_fastq_file', action='store', dest='illumina_fastq_file', help='Input sample')
@@ -781,11 +837,14 @@ markdown_report = PimaReport(args.analysis_name,
                              amr_matrix_files,
                              args.assembly_fasta_file,
                              args.assembly_name,
-                             feature_bed_files,
-                             feature_png_files,
+                             args.compute_sequence_length_file,
                              args.contig_coverage_file,
                              args.dbkey,
                              args.dnadiff_snps_file,
+                             feature_bed_files,
+                             feature_png_files,
+                             args.flye_assembly_info_file,
+                             args.flye_version,
                              args.genome_insertions_file,
                              args.gzipped,
                              args.illumina_fastq_file,

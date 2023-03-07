@@ -9,6 +9,10 @@
 
 #set analysis_name = re.sub('[^\s\w\-]', '_', str($illumina_fastq_file.element_identifier))
 #set assembly_name = re.sub('[^\s\w\-]', '_', str($assembly_fasta_file.element_identifier))
+#if str($flye_assembly_info_file) not in ['None', '']:
+    #set flye_version = re.sub('[^\s\w\-]', '_', str($flye_assembly_info_file.element_identifier))
+    #set flye_version = $flye_version.rstrip('(assembly info)')
+#end if
 
 mkdir amr_matrix_png_dir &&
 mkdir feature_bed_dir &&
@@ -38,16 +42,21 @@ touch 'pima_report.pdf' &&
 #end for
 
 python '${__tool_directory__}/pima_report.py' 
---amr_matrix_png_dir '$amr_matrix_png_dir'
+--amr_matrix_png_dir 'amr_matrix_png_dir'
 --amr_deletions_file '$amr_deletions_file'
 --analysis_name '$analysis_name'
 --assembly_fasta_file '$assembly_fasta_file'
 --assembly_name '$assembly_name'
+--compute_sequence_length_file '$compute_sequence_length_file'
 --contig_coverage_file '$contig_coverage_file'
 --dbkey '$aligned_sample.metadata.dbkey'
 --dnadiff_snps_file '$dnadiff_snps_file'
 --feature_bed_dir 'feature_bed_dir'
 --feature_png_dir 'feature_png_dir'
+#if str($flye_assembly_info_file) not in ['None', '']:
+    --flye_assembly_info_file '$flye_assembly_info_file'
+    --flye_version '$flye_version'
+#end if
 --genome_insertions_file '$genome_insertions_file'
 #if $illumina_fastq_file.ext.endswith(".gz"):
     --gzipped
@@ -65,10 +74,12 @@ python '${__tool_directory__}/pima_report.py'
         <param name="aligned_sample" type="data" format="bam" label="Aligned sample BAM file"/>
         <param name="amr_deletions_file" type="data" format="bed" label="AMR deletions BED file"/>
         <param name="assembly_fasta_file" type="data" format="fasta" label="Assembly FASTA file"/>
+        <param name="compute_sequence_length_file" type="data" format="tabular,tsv" label="Compute sequence length tabular file"/>
+        <param name="contig_coverage_file" type="data" format="tabular,tsv" label="Contig coverage tabular file"/>
         <param name="dnadiff_snps_file" type="data" format="tabular" label="DNAdiff snps tabular file"/>
         <param name="features_bed" format="bed" type="data_collection" collection_type="list" label="Collection of best feature hits BED files"/>
         <param name="features_png" format="png" type="data_collection" collection_type="list" label="Collection of best feature hits PNG files"/>
-        <param name="contig_coverage_file" type="data" format="tabular,tsv" label="Contig coverage tabular file"/>
+        <param name="flye_assembly_info_file" type="data" format="tabular,tsv" optional="true" label="Flye assembly info tabular file" help="Optional, ignored if not selected"/>
         <param name="genome_insertions_file" type="data" format="bed" label="Genome insertions BED file"/>
         <param name="illumina_fastq_file" type="data" format="fastqsanger,fastqsanger.gz" label="Fastq sample file"/>
         <param name="mutation_regions" format="tabular,tsv" type="data_collection" collection_type="list" label="Collection of mutation regions tabular files"/>
