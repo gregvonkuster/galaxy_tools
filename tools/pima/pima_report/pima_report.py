@@ -405,7 +405,6 @@ class PimaReport:
         self.doc.new_line('<div style="page-break-after: always;"></div>')
         self.doc.new_line()
         self.doc.new_header(2, self.assembly_notes_title)
-        # TODO: may need to add assembly notes.
         for note in self.assembly_notes:
             self.doc.new_line(note)
 
