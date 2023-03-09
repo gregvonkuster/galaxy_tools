@@ -421,7 +421,7 @@ class PimaReport:
         if self.kraken2_report_file is None:
             return
         # Read in the Kraken fractions and pull out the useful parts
-        self.kraken_fracs = pandas.read_csv(self.kraken_report_file, delimiter='\t', header=None)
+        self.kraken_fracs = pandas.read_csv(self.kraken2_report_file, delimiter='\t', header=None)
         self.kraken_fracs.index = self.kraken_fracs.iloc[:, 4].values
         self.kraken_fracs = self.kraken_fracs.loc[self.kraken_fracs.iloc[:, 3].str.match('[UG]1?'), :]
         self.kraken_fracs = self.kraken_fracs.loc[(self.kraken_fracs.iloc[:, 0] >= 1) | (self.kraken_fracs.iloc[:, 3] == 'U'), :]
