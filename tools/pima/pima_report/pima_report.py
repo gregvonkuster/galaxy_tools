@@ -109,9 +109,6 @@ class PimaReport:
         self.snp_indel_title = 'SNPs and small indels'
         self.summary_title = 'Analysis of %s' % analysis_name
 
-        # Contamination
-        self.kraken_fracs = pandas.Series(dtype=object)
-
         # Methods
         self.methods = pandas.Series(dtype='float64')
         self.methods[self.contamination_methods_title] = pandas.Series(dtype='float64')
@@ -186,7 +183,7 @@ class PimaReport:
         # See if some contigs have anolously low coverage.
         fold_coverage = self.contig_info[self.read_type]['coverage'] / self.mean_coverage
         low_coverage = self.contig_info[self.read_type].loc[fold_coverage < 1 / 5, :]
-        if low_coverage.shape[0] >= 0 :
+        if low_coverage.shape[0] >= 0:
             for contig_i in range(low_coverage.shape[0]):
                 warning = '%s coverage of {:s} ({:.0f}X) is less than 1/5 the mean coverage ({:.0f}X).'.format(low_coverage.iloc[contig_i, 0], low_coverage.iloc[contig_i, 2], self.mean_coverage) % self.read_type
                 self.assembly_notes = self.assembly_notes.append(pandas.Series(warning))
@@ -306,7 +303,7 @@ class PimaReport:
         ]
         self.doc.new_table(columns=2, rows=4, text=Table_List, text_align='left')
 
-    def evaluate_assembly(self) :
+    def evaluate_assembly(self):
         assembly_info = pandas.read_csv(self.compute_sequence_length_file, sep='\t', header=None)
         assembly_info.columns = ['contig', 'length']
         self.contig_sizes = assembly_info
@@ -421,18 +418,18 @@ class PimaReport:
         if self.kraken2_report_file is None:
             return
         # Read in the Kraken fractions and pull out the useful parts
-        self.kraken_fracs = pandas.read_csv(self.kraken2_report_file, delimiter='\t', header=None)
-        self.kraken_fracs.index = self.kraken_fracs.iloc[:, 4].values
-        self.kraken_fracs = self.kraken_fracs.loc[self.kraken_fracs.iloc[:, 3].str.match('[UG]1?'), :]
-        self.kraken_fracs = self.kraken_fracs.loc[(self.kraken_fracs.iloc[:, 0] >= 1) | (self.kraken_fracs.iloc[:, 3] == 'U'), :]
-        self.kraken_fracs = self.kraken_fracs.iloc[:, [0, 1, 3, 5]]
-        self.kraken_fracs.columns = ['Fraction', 'Reads', 'Level', 'Taxa']
-        self.kraken_fracs['Fraction'] = (self.kraken_fracs['Fraction'] / 100).round(4)
-        self.kraken_fracs.sort_values(by='Fraction', inplace=True, ascending=False)
-        self.kraken_fracs['Taxa'] = self.kraken_fracs['Taxa'].str.lstrip()
+        kraken_fracs = pandas.read_csv(self.kraken2_report_file, delimiter='\t', header=None)
+        kraken_fracs.index = kraken_fracs.iloc[:, 4].values
+        kraken_fracs = kraken_fracs.loc[kraken_fracs.iloc[:, 3].str.match('[UG]1?'), :]
+        kraken_fracs = kraken_fracs.loc[(kraken_fracs.iloc[:, 0] >= 1) | (kraken_fracs.iloc[:, 3] == 'U'), :]
+        kraken_fracs = kraken_fracs.iloc[:, [0, 1, 3, 5]]
+        kraken_fracs.columns = ['Fraction', 'Reads', 'Level', 'Taxa']
+        kraken_fracs['Fraction'] = (kraken_fracs['Fraction'] / 100).round(4)
+        kraken_fracs.sort_values(by='Fraction', inplace=True, ascending=False)
+        kraken_fracs['Taxa'] = kraken_fracs['Taxa'].str.lstrip()
         self.doc.new_line()
         self.doc.new_header(2, 'Contamination check')
-        for read_type, kraken_fracs in self.kraken_fracs.iteritems():
+        for read_type, kraken_fracs in kraken_fracs.iteritems():
             self.doc.new_line(self.read_type + ' classifications')
             self.doc.new_line()
             Table_List = ["Percent of Reads", "Reads", "Level", "Label"]
@@ -546,7 +543,7 @@ class PimaReport:
         self.ofh.write("\nXXXXXX In add_mutations\n\n")
         if len(self.mutation_regions_tsv_files) == 0:
             return
-        try :
+        try:
             mutation_regions = pandas.read_csv(self.mutation_regions_bed_file, sep='\t', header=0, index_col=False)
         except Exception:
             # Likely an empty file.
@@ -583,7 +580,7 @@ class PimaReport:
             if region_mutations_tsv_name not in self.mutation_regions_tsv_files:
                 continue
             region_mutations_tsv = self.mutation_regions_tsv_files[region_mutations_tsv_name]
-            try :
+            try:
                 region_mutations = pandas.read_csv(region_mutations_tsv, sep='\t', header=0, index_col=False)
             except Exception:
                 region_mutations = pandas.DataFrame()
@@ -687,7 +684,7 @@ class PimaReport:
         self.doc.new_line()
 
     def add_plasmids(self):
-        try :
+        try:
             plasmids = pandas.read_csv(filepath_or_buffer=self.plasmids_file, sep='\t', header=0)
         except Exception:
             return
