@@ -16,11 +16,11 @@ CDC_ADVISORY = 'The analysis and report presented here should be treated as prel
 class PimaReport:
 
     def __init__(self, analysis_name=None, amr_deletions_file=None, amr_matrix_files=None, assembly_fasta_file=None,
-                 assembly_name=None, compute_sequence_length_file=None, contig_coverage_file=None, dbkey=None,
-                 dnadiff_snps_file=None, feature_bed_files=None, feature_png_files=None, flye_assembly_info_file=None,
-                 flye_version=None, genome_insertions_file=None, gzipped=None, illumina_fastq_file=None,
-                 mutation_regions_bed_file=None, mutation_regions_tsv_files=None, pima_css=None, plasmids_file=None,
-                 reference_insertions_file=None):
+                 assembly_name=None, blastn_version=None, compute_sequence_length_file=None, contig_coverage_file=None,
+                 dbkey=None, dnadiff_snps_file=None, dnadiff_version=None, feature_bed_files=None, feature_png_files=None,
+                 flye_assembly_info_file=None, flye_version=None, genome_insertions_file=None, gzipped=None,
+                 illumina_fastq_file=None, kraken2_report_file=None, kraken2_version=None, mutation_regions_bed_file=None,
+                 mutation_regions_tsv_files=None, pima_css=None, plasmids_file=None, reference_insertions_file=None):
         self.ofh = open("process_log.txt", "w")
 
         self.ofh.write("amr_deletions_file: %s\n" % str(amr_deletions_file))
@@ -28,10 +28,12 @@ class PimaReport:
         self.ofh.write("analysis_name: %s\n" % str(analysis_name))
         self.ofh.write("assembly_fasta_file: %s\n" % str(assembly_fasta_file))
         self.ofh.write("assembly_name: %s\n" % str(assembly_name))
+        self.ofh.write("blastn_version: %s\n" % str(blastn_version))
         self.ofh.write("compute_sequence_length_file: %s\n" % str(compute_sequence_length_file))
         self.ofh.write("contig_coverage_file: %s\n" % str(contig_coverage_file))
         self.ofh.write("dbkey: %s\n" % str(dbkey))
         self.ofh.write("dnadiff_snps_file: %s\n" % str(dnadiff_snps_file))
+        self.ofh.write("dnadiff_version: %s\n" % str(dnadiff_version))
         self.ofh.write("feature_bed_files: %s\n" % str(feature_bed_files))
         self.ofh.write("feature_png_files: %s\n" % str(feature_png_files))
         self.ofh.write("flye_assembly_info_file: %s\n" % str(flye_assembly_info_file))
@@ -39,6 +41,8 @@ class PimaReport:
         self.ofh.write("gzipped: %s\n" % str(gzipped))
         self.ofh.write("genome_insertions_file: %s\n" % str(genome_insertions_file))
         self.ofh.write("illumina_fastq_file: %s\n" % str(illumina_fastq_file))
+        self.ofh.write("kraken2_report_file: %s\n" % str(kraken2_report_file))
+        self.ofh.write("kraken2_version: %s\n" % str(kraken2_version))
         self.ofh.write("mutation_regions_bed_file: %s\n" % str(mutation_regions_bed_file))
         self.ofh.write("mutation_regions_tsv_files: %s\n" % str(mutation_regions_tsv_files))
         self.ofh.write("pima_css: %s\n" % str(pima_css))
@@ -56,10 +60,12 @@ class PimaReport:
         self.analysis_name = analysis_name
         self.assembly_fasta_file = assembly_fasta_file
         self.assembly_name = assembly_name
+        self.blastn_version = blastn_version
         self.compute_sequence_length_file = compute_sequence_length_file
         self.contig_coverage_file = contig_coverage_file
         self.dbkey = dbkey
         self.dnadiff_snps_file = dnadiff_snps_file
+        self.dnadiff_version = dnadiff_version
         self.feature_bed_files = feature_bed_files
         self.feature_png_files = feature_png_files
         self.flye_assembly_info_file = flye_assembly_info_file
@@ -67,6 +73,8 @@ class PimaReport:
         self.gzipped = gzipped
         self.genome_insertions_file = genome_insertions_file
         self.illumina_fastq_file = illumina_fastq_file
+        self.kraken2_report_file = kraken2_report_file
+        self.kraken2_version = kraken2_version
         self.mutation_regions_bed_file = mutation_regions_bed_file
         self.mutation_regions_tsv_files = mutation_regions_tsv_files
         self.read_type = 'Illumina'
@@ -101,6 +109,9 @@ class PimaReport:
         self.snp_indel_title = 'SNPs and small indels'
         self.summary_title = 'Analysis of %s' % analysis_name
 
+        # Contamination
+        self.kraken_fracs = pandas.Series(dtype=object)
+
         # Methods
         self.methods = pandas.Series(dtype='float64')
         self.methods[self.contamination_methods_title] = pandas.Series(dtype='float64')
@@ -109,9 +120,6 @@ class PimaReport:
         self.methods[self.mutation_methods_title] = pandas.Series(dtype='float64')
         self.methods[self.feature_methods_title] = pandas.Series(dtype='float64')
         self.methods[self.plasmid_methods_title] = pandas.Series(dtype='float64')
-
-        # Contamination
-        self.kraken_fracs = pandas.Series(dtype=object)
 
         # Notes
         self.assembly_notes = pandas.Series(dtype=object)
@@ -410,12 +418,22 @@ class PimaReport:
 
     def add_contamination(self):
         self.ofh.write("\nXXXXXX In add_contamination\n\n")
-        if len(self.kraken_fracs) == 0:
+        if self.kraken2_report_file is None:
             return
+        # Read in the Kraken fractions and pull out the useful parts
+        self.kraken_fracs = pandas.read_csv(self.kraken_report_file, delimiter='\t', header=None)
+        self.kraken_fracs.index = self.kraken_fracs.iloc[:, 4].values
+        self.kraken_fracs = self.kraken_fracs.loc[self.kraken_fracs.iloc[:, 3].str.match('[UG]1?'), :]
+        self.kraken_fracs = self.kraken_fracs.loc[(self.kraken_fracs.iloc[:, 0] >= 1) | (self.kraken_fracs.iloc[:, 3] == 'U'), :]
+        self.kraken_fracs = self.kraken_fracs.iloc[:, [0, 1, 3, 5]]
+        self.kraken_fracs.columns = ['Fraction', 'Reads', 'Level', 'Taxa']
+        self.kraken_fracs['Fraction'] = (self.kraken_fracs['Fraction'] / 100).round(4)
+        self.kraken_fracs.sort_values(by='Fraction', inplace=True, ascending=False)
+        self.kraken_fracs['Taxa'] = self.kraken_fracs['Taxa'].str.lstrip()
         self.doc.new_line()
         self.doc.new_header(2, 'Contamination check')
-        for read_type, kraken_fracs in self.kraken_fracs.iteritems():
-            self.doc.new_line(read_type + ' classifications')
+        for kraken_fracs in self.kraken_fracs.iteritems():
+            self.doc.new_line(self.read_type + ' classifications')
             self.doc.new_line()
             Table_List = ["Percent of Reads", "Reads", "Level", "Label"]
             for index, row in kraken_fracs.iterrows():
@@ -424,7 +442,7 @@ class PimaReport:
             self.doc.new_table(columns=4, rows=row_count, text=Table_List, text_align='left')
             if self.contamination_methods_title not in self.methods:
                 self.methods[self.contamination_methods_title] = ''
-        method = 'Kraken2 was used to assign the raw reads into taxa.'
+        method = 'Kraken2 version %s was used to assign the raw reads into taxa.' % self.kraken2_version
         self.methods[self.contamination_methods_title] = self.methods[self.contamination_methods_title].append(pandas.Series(method))
 
     def add_alignment(self):
@@ -461,7 +479,7 @@ class PimaReport:
             self.doc.new_line(self.doc.new_inline_image(text='contig_title', path=os.path.abspath(image_png)))
             self.doc.new_line('<div style="page-break-after: always;"></div>')
             self.doc.new_line()
-        method = 'The genome assembly was aligned against the reference sequencing using dnadiff.'
+        method = 'The genome assembly was aligned against the reference sequencing using dnadiff version %s.' % self.dnadiff_version
         self.methods[self.reference_methods_title] = self.methods[self.reference_methods_title].append(pandas.Series(method))
 
     def add_features(self):
@@ -500,18 +518,16 @@ class PimaReport:
                     feature = contig_features.iloc[i, :].copy(deep=True)
                     self.ofh.write("feature: %s\n" % str(feature))
                     feature[4] = '{:.3f}'.format(feature[4])
-                    # FIXME: Uncommenting the following line (which is
-                    # https://github.com/appliedbinf/pima_md/blob/main/MarkdownReport.py#L317)
-                    # will cause the job to fail with this exception:
-                    # ValueError: columns * rows is not equal to text length
-                    # Table_List = Table_List + feature[1:].values.tolist()
+                    self.ofh.write("feature[1:].values.tolist(): %s\n" % str(feature[1:].values.tolist()))
+                    Table_List = Table_List + feature[1:].values.tolist()
                 self.ofh.write("Table_List: %s\n" % str(Table_List))
                 row_count = int(len(Table_List) / 5)
                 self.ofh.write("row_count: %s\n" % str(row_count))
                 self.doc.new_line()
                 self.ofh.write("Before new_table, len(Table_List):: %s\n" % str(len(Table_List)))
                 self.doc.new_table(columns=5, rows=row_count, text=Table_List, text_align='left')
-        blastn_version = 'The genome assembly was queried for features using blastn.'
+        if self.blastn_version is not None:
+            blastn_version = 'The genome assembly was queried for features using blastn version %s.' % self.blastn_version
         bedtools_version = 'Feature hits were clustered using bedtools and the highest scoring hit for each cluster was reported.'
         method = '%s  %s' % (blastn_version, bedtools_version)
         self.methods[self.feature_methods_title] = self.methods[self.feature_methods_title].append(pandas.Series(method))
@@ -581,22 +597,23 @@ class PimaReport:
             region_mutations = pandas.concat([region_mutations, region_mutation_types, region_mutation_drugs, region_notes], axis=1)
             region_mutations = region_mutations[['#CHROM', 'POS', 'TYPE', 'REF', 'ALT', 'DRUG', 'NOTE']]
             amr_mutations[region['name']] = region_mutations
-        # Report the mutations.
-        self.doc.new_line()
-        self.doc.new_header(level=2, title=self.mutation_title)
-        for region_name in amr_mutations.index.tolist():
-            region_mutations = amr_mutations[region_name].copy()
+        if (amr_mutations.shape[0] > 0):
+            # Report the mutations.
             self.doc.new_line()
-            self.doc.new_header(level=3, title=region_name)
-            if (region_mutations.shape[0] == 0):
-                self.doc.append('None')
-                continue
-            region_mutations.iloc[:, 1] = region_mutations.iloc[:, 1].apply(lambda x: '{:,}'.format(x))
-            Table_List = ['Reference contig', 'Position', 'Reference', 'Alternate', 'Drug', 'Note']
-            for i in range(region_mutations.shape[0]):
-                Table_List = Table_List + region_mutations.iloc[i, [0, 1, 3, 4, 5, 6]].values.tolist()
-            row_count = int(len(Table_List) / 6)
-            self.doc.new_table(columns=6, rows=row_count, text=Table_List, text_align='left')
+            self.doc.new_header(level=2, title=self.mutation_title)
+            for region_name in amr_mutations.index.tolist():
+                region_mutations = amr_mutations[region_name].copy()
+                self.doc.new_line()
+                self.doc.new_header(level=3, title=region_name)
+                if (region_mutations.shape[0] == 0):
+                    self.doc.append('None')
+                    continue
+                region_mutations.iloc[:, 1] = region_mutations.iloc[:, 1].apply(lambda x: '{:,}'.format(x))
+                Table_List = ['Reference contig', 'Position', 'Reference', 'Alternate', 'Drug', 'Note']
+                for i in range(region_mutations.shape[0]):
+                    Table_List = Table_List + region_mutations.iloc[i, [0, 1, 3, 4, 5, 6]].values.tolist()
+                row_count = int(len(Table_List) / 6)
+                self.doc.new_table(columns=6, rows=row_count, text=Table_List, text_align='left')
         method = '%s reads were mapped to the reference sequence using minimap2.' % self.read_type
         self.methods[self.mutation_methods_title] = self.methods[self.mutation_methods_title].append(pandas.Series(method))
         method = 'Mutations were identified using samtools mpileup and varscan.'
@@ -690,7 +707,7 @@ class PimaReport:
         self.doc.new_table(columns=6, rows=row_count, text=Table_List, text_align='left')
         method = 'The plasmid reference database was queried against the genome assembly using minimap2.'
         self.methods[self.plasmid_methods_title] = self.methods[self.plasmid_methods_title].append(pandas.Series(method))
-        method = 'The resulting SAM was converted to a PSL using a custom version of sam2psl.'
+        method = 'The resulting BAM was converted to a PSL using a custom version of sam2psl.'
         self.methods[self.plasmid_methods_title] = self.methods[self.plasmid_methods_title].append(pandas.Series(method))
         method = 'Plasmid-to-genome hits were resolved using the pChunks algorithm.'
         self.methods[self.plasmid_methods_title] = self.methods[self.plasmid_methods_title].append(pandas.Series(method))
@@ -766,7 +783,6 @@ class PimaReport:
         self.add_mutations()
         self.add_large_indels()
         self.add_plasmids()
-        # TODO stuff working to here...
         self.add_amr_matrix()
         # self.add_snps()
         self.add_methods()
@@ -790,10 +806,12 @@ parser.add_argument('--amr_matrix_png_dir', action='store', dest='amr_matrix_png
 parser.add_argument('--analysis_name', action='store', dest='analysis_name', help='Sample identifier')
 parser.add_argument('--assembly_fasta_file', action='store', dest='assembly_fasta_file', help='Assembly fasta file')
 parser.add_argument('--assembly_name', action='store', dest='assembly_name', help='Assembly identifier')
+parser.add_argument('--blastn_version', action='store', dest='blastn_version', default=None, help='Blastn version string')
 parser.add_argument('--compute_sequence_length_file', action='store', dest='compute_sequence_length_file', help='Comnpute sequence length tabular file')
 parser.add_argument('--contig_coverage_file', action='store', dest='contig_coverage_file', help='Contig coverage TSV file')
 parser.add_argument('--dbkey', action='store', dest='dbkey', help='Reference genome identifier')
 parser.add_argument('--dnadiff_snps_file', action='store', dest='dnadiff_snps_file', help='DNAdiff snps tabular file')
+parser.add_argument('--dnadiff_version', action='store', dest='dnadiff_version', help='DNAdiff version string')
 parser.add_argument('--feature_bed_dir', action='store', dest='feature_bed_dir', help='Directory of best feature hits bed files')
 parser.add_argument('--feature_png_dir', action='store', dest='feature_png_dir', help='Directory of best feature hits png files')
 parser.add_argument('--flye_assembly_info_file', action='store', dest='flye_assembly_info_file', default=None, help='Flye assembly info tabular file')
@@ -801,6 +819,8 @@ parser.add_argument('--flye_version', action='store', dest='flye_version', defau
 parser.add_argument('--genome_insertions_file', action='store', dest='genome_insertions_file', help='Genome insertions BED file')
 parser.add_argument('--gzipped', action='store_true', dest='gzipped', default=False, help='Input sample is gzipped')
 parser.add_argument('--illumina_fastq_file', action='store', dest='illumina_fastq_file', help='Input sample')
+parser.add_argument('--kraken2_report_file', action='store', dest='kraken2_report_file', default=None, help='kraken2 report file')
+parser.add_argument('--kraken2_version', action='store', dest='kraken2_version', default=None, help='kraken2 version string')
 parser.add_argument('--mutation_regions_bed_file', action='store', dest='mutation_regions_bed_file', help='AMR mutation regions BRD file')
 parser.add_argument('--mutation_regions_dir', action='store', dest='mutation_regions_dir', help='Directory of mutation regions TSV files')
 parser.add_argument('--pima_css', action='store', dest='pima_css', help='PIMA css stypesheet')
@@ -836,10 +856,12 @@ markdown_report = PimaReport(args.analysis_name,
                              amr_matrix_files,
                              args.assembly_fasta_file,
                              args.assembly_name,
+                             args.blastn_version,
                              args.compute_sequence_length_file,
                              args.contig_coverage_file,
                              args.dbkey,
                              args.dnadiff_snps_file,
+                             args.dnadiff_version,
                              feature_bed_files,
                              feature_png_files,
                              args.flye_assembly_info_file,
@@ -847,6 +869,8 @@ markdown_report = PimaReport(args.analysis_name,
                              args.genome_insertions_file,
                              args.gzipped,
                              args.illumina_fastq_file,
+                             args.kraken2_report_file,
+                             args.kraken2_version,
                              args.mutation_regions_bed_file,
                              mutation_regions_files,
                              args.pima_css,

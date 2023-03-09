@@ -9,9 +9,19 @@
 
 #set analysis_name = re.sub('[^\s\w\-]', '_', str($illumina_fastq_file.element_identifier))
 #set assembly_name = re.sub('[^\s\w\-]', '_', str($assembly_fasta_file.element_identifier))
+
+#if str($blastn_file) not in ['None', '']:
+    #set blastn_version = re.sub('[^\s\w\-]', '_', str($blastn_file.element_identifier))
+#end if
+#set dnadiff_version = re.sub('[^\s\w\-]', '_', str($dnadiff_snps_file.element_identifier))
+#set dnadiff_version = $dnadiff_version.rstrip('(snps)')
 #if str($flye_assembly_info_file) not in ['None', '']:
     #set flye_version = re.sub('[^\s\w\-]', '_', str($flye_assembly_info_file.element_identifier))
     #set flye_version = $flye_version.rstrip('(assembly info)')
+#end if
+#if str($kraken2_report_file) not in ['None', '']:
+    #set kraken2_version = re.sub('[^\s\w\-]', '_', str($kraken2_report_file.element_identifier))
+    #set kraken2_version = $kraken2_version.rstrip('(report)')
 #end if
 
 mkdir amr_matrix_png_dir &&
@@ -47,10 +57,14 @@ python '${__tool_directory__}/pima_report.py'
 --analysis_name '$analysis_name'
 --assembly_fasta_file '$assembly_fasta_file'
 --assembly_name '$assembly_name'
+#if str($blastn_file) not in ['None', '']:
+    --blastn_version '$blastn_version'
+#end if
 --compute_sequence_length_file '$compute_sequence_length_file'
 --contig_coverage_file '$contig_coverage_file'
 --dbkey '$aligned_sample.metadata.dbkey'
 --dnadiff_snps_file '$dnadiff_snps_file'
+--dnadiff_version '$dnadiff_version'
 --feature_bed_dir 'feature_bed_dir'
 --feature_png_dir 'feature_png_dir'
 #if str($flye_assembly_info_file) not in ['None', '']:
@@ -62,6 +76,10 @@ python '${__tool_directory__}/pima_report.py'
     --gzipped
 #end if
 --illumina_fastq_file '$illumina_fastq_file'
+#if str($kraken2_report_file) not in ['None', '']:
+    --kraken2_report_file '$kraken2_report_file'
+    --kraken2_version '$kraken2_version'
+#end if
 --mutation_regions_dir 'mutation_regions_dir'
 --mutation_regions_bed_file '$mutation_regions_bed_file'
 --pima_css '${__tool_directory__}/pima.css'
@@ -74,6 +92,7 @@ python '${__tool_directory__}/pima_report.py'
         <param name="aligned_sample" type="data" format="bam" label="Aligned sample BAM file"/>
         <param name="amr_deletions_file" type="data" format="bed" label="AMR deletions BED file"/>
         <param name="assembly_fasta_file" type="data" format="fasta" label="Assembly FASTA file"/>
+        <param name="blastn_file" type="data" format="bam" label="Blastn BAM file"/>
         <param name="compute_sequence_length_file" type="data" format="tabular,tsv" label="Compute sequence length tabular file"/>
         <param name="contig_coverage_file" type="data" format="tabular,tsv" label="Contig coverage tabular file"/>
         <param name="dnadiff_snps_file" type="data" format="tabular" label="DNAdiff snps tabular file"/>
@@ -81,6 +100,7 @@ python '${__tool_directory__}/pima_report.py'
         <param name="features_png" format="png" type="data_collection" collection_type="list" label="Collection of best feature hits PNG files"/>
         <param name="flye_assembly_info_file" type="data" format="tabular,tsv" optional="true" label="Flye assembly info tabular file" help="Optional, ignored if not selected"/>
         <param name="genome_insertions_file" type="data" format="bed" label="Genome insertions BED file"/>
+        <param name="kraken2_report_file" type="data" format="tabular,tsv" optional="true" label="Kraken2 report tabular file" help="Optional, ignored if not selected"/>
         <param name="illumina_fastq_file" type="data" format="fastqsanger,fastqsanger.gz" label="Fastq sample file"/>
         <param name="mutation_regions" format="tabular,tsv" type="data_collection" collection_type="list" label="Collection of mutation regions tabular files"/>
         <param name="mutation_regions_bed_file" type="data" format="mutations_regions,bed" label="Mutation regions BED file"/>
