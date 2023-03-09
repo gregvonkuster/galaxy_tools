@@ -432,7 +432,7 @@ class PimaReport:
         self.kraken_fracs['Taxa'] = self.kraken_fracs['Taxa'].str.lstrip()
         self.doc.new_line()
         self.doc.new_header(2, 'Contamination check')
-        for kraken_fracs in self.kraken_fracs.iteritems():
+        for read_type, kraken_fracs in self.kraken_fracs.iteritems():
             self.doc.new_line(self.read_type + ' classifications')
             self.doc.new_line()
             Table_List = ["Percent of Reads", "Reads", "Level", "Label"]
