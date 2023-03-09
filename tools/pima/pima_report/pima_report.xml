@@ -10,9 +10,11 @@
 #set analysis_name = re.sub('[^\s\w\-]', '_', str($illumina_fastq_file.element_identifier))
 #set assembly_name = re.sub('[^\s\w\-]', '_', str($assembly_fasta_file.element_identifier))
 
-#if str($blastn_file) not in ['None', '']:
+#set blastn_version = 'unknown'
+#for $i in $blastn_features:
     #set blastn_version = re.sub('[^\s\w\-]', '_', str($blastn_file.element_identifier))
-#end if
+#end for
+
 #set dnadiff_version = re.sub('[^\s\w\-]', '_', str($dnadiff_snps_file.element_identifier))
 #set dnadiff_version = $dnadiff_version.rstrip('(snps)')
 #if str($flye_assembly_info_file) not in ['None', '']:
@@ -92,7 +94,7 @@ python '${__tool_directory__}/pima_report.py'
         <param name="aligned_sample" type="data" format="bam" label="Aligned sample BAM file"/>
         <param name="amr_deletions_file" type="data" format="bed" label="AMR deletions BED file"/>
         <param name="assembly_fasta_file" type="data" format="fasta" label="Assembly FASTA file"/>
-        <param name="blastn_file" type="data" format="bam" label="Blastn BAM file"/>
+        <param name="blastn_features" format="bam" type="data_collection" collection_type="list" label="Collection of blastn BAM files"/>
         <param name="compute_sequence_length_file" type="data" format="tabular,tsv" label="Compute sequence length tabular file"/>
         <param name="contig_coverage_file" type="data" format="tabular,tsv" label="Contig coverage tabular file"/>
         <param name="dnadiff_snps_file" type="data" format="tabular" label="DNAdiff snps tabular file"/>
