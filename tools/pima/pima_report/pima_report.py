@@ -429,16 +429,15 @@ class PimaReport:
         kraken_fracs['Taxa'] = kraken_fracs['Taxa'].str.lstrip()
         self.doc.new_line()
         self.doc.new_header(2, 'Contamination check')
-        for read_type, kraken_fracs in kraken_fracs.iteritems():
-            self.doc.new_line(self.read_type + ' classifications')
-            self.doc.new_line()
-            Table_List = ["Percent of Reads", "Reads", "Level", "Label"]
-            for index, row in kraken_fracs.iteritems():
-                Table_List = Table_List + row.tolist()
-            row_count = int(len(Table_List) / 4)
-            self.doc.new_table(columns=4, rows=row_count, text=Table_List, text_align='left')
-            if self.contamination_methods_title not in self.methods:
-                self.methods[self.contamination_methods_title] = ''
+        self.doc.new_line(self.read_type + ' classifications')
+        self.doc.new_line()
+        Table_List = ["Percent of Reads", "Reads", "Level", "Label"]
+        for index, row in kraken_fracs.iterrows():
+            Table_List = Table_List + row.tolist()
+        row_count = int(len(Table_List) / 4)
+        self.doc.new_table(columns=4, rows=row_count, text=Table_List, text_align='left')
+        if self.contamination_methods_title not in self.methods:
+            self.methods[self.contamination_methods_title] = ''
         method = 'Kraken2 version %s was used to assign the raw reads into taxa.' % self.kraken2_version
         self.methods[self.contamination_methods_title] = self.methods[self.contamination_methods_title].append(pandas.Series(method))
 
