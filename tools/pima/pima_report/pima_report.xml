@@ -10,11 +10,8 @@
 #set analysis_name = re.sub('[^\s\w\-]', '_', str($illumina_fastq_file.element_identifier))
 #set assembly_name = re.sub('[^\s\w\-]', '_', str($assembly_fasta_file.element_identifier))
 
-#set blastn_version = 'unknown'
-#for $i in $blastn_features:
-    #set blastn_version = re.sub('[^\s\w\-]', '_', str($blastn_file.element_identifier))
-#end for
-
+#set blastn_version = re.sub('[^\s\w\-]', '_', str($blastn_features.element_identifier))
+#set blastn_version = $blastn_version.rstrip('(features)')
 #set dnadiff_version = re.sub('[^\s\w\-]', '_', str($dnadiff_snps_file.element_identifier))
 #set dnadiff_version = $dnadiff_version.rstrip('(snps)')
 #if str($flye_assembly_info_file) not in ['None', '']:
@@ -59,9 +56,7 @@ python '${__tool_directory__}/pima_report.py'
 --analysis_name '$analysis_name'
 --assembly_fasta_file '$assembly_fasta_file'
 --assembly_name '$assembly_name'
-#if str($blastn_file) not in ['None', '']:
-    --blastn_version '$blastn_version'
-#end if
+--blastn_version '$blastn_version'
 --compute_sequence_length_file '$compute_sequence_length_file'
 --contig_coverage_file '$contig_coverage_file'
 --dbkey '$aligned_sample.metadata.dbkey'
