@@ -438,7 +438,7 @@ class PimaReport:
         self.doc.new_table(columns=4, rows=row_count, text=Table_List, text_align='left')
         if self.contamination_methods_title not in self.methods:
             self.methods[self.contamination_methods_title] = ''
-        method = 'Kraken2 version %s was used to assign the raw reads into taxa.' % self.kraken2_version
+        method = '%s was used to assign the raw reads into taxa.' % self.kraken2_version.rstrip('report')
         self.methods[self.contamination_methods_title] = self.methods[self.contamination_methods_title].append(pandas.Series(method))
 
     def add_alignment(self):
@@ -523,7 +523,7 @@ class PimaReport:
                 self.ofh.write("Before new_table, len(Table_List):: %s\n" % str(len(Table_List)))
                 self.doc.new_table(columns=5, rows=row_count, text=Table_List, text_align='left')
         if self.blastn_version is not None:
-            blastn_version = 'The genome assembly was queried for features using blastn version %s.' % self.blastn_version
+            blastn_version = 'The genome assembly was queried for features using %s.' % self.blastn_version
         bedtools_version = 'Feature hits were clustered using bedtools and the highest scoring hit for each cluster was reported.'
         method = '%s  %s' % (blastn_version, bedtools_version)
         self.methods[self.feature_methods_title] = self.methods[self.feature_methods_title].append(pandas.Series(method))
@@ -744,7 +744,7 @@ class PimaReport:
         self.evaluate_assembly()
         self.add_assembly_information()
         if self.flye_assembly_info_file is not None:
-            method = 'ONT reads were assembled using %s' % self.flye_version
+            method = 'ONT reads were assembled using %s' % self.flye_version.rstrip('assembly info')
             self.methods[self.assembly_methods_title] = self.methods[self.assembly_methods_title].append(pandas.Series(method))
             # Pull in the assembly summary and look at the coverage.
             assembly_info = pandas.read_csv(self.flye_assembly_info_file, header=0, index_col=0, sep='\t')
