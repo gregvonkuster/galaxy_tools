@@ -433,7 +433,7 @@ class PimaReport:
             self.doc.new_line(self.read_type + ' classifications')
             self.doc.new_line()
             Table_List = ["Percent of Reads", "Reads", "Level", "Label"]
-            for index, row in kraken_fracs.iterrows():
+            for index, row in kraken_fracs.iteritems():
                 Table_List = Table_List + row.tolist()
             row_count = int(len(Table_List) / 4)
             self.doc.new_table(columns=4, rows=row_count, text=Table_List, text_align='left')
