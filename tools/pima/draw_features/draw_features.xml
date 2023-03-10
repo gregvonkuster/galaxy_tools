@@ -17,9 +17,8 @@ mkdir feature_hits_dir &&
 mkdir output_dir &&
 
 #for $i in $feature_hits:
-    #set file_name = $i.file_name
     #set identifier = re.sub('[^\s\w\-\\.]', '_', str($i.element_identifier))
-    cat '$i' | awk '$7 != "."' | awk '{OFS="\t";locus=$7"\t"$8"\t"$9; if($5 > s[locus]){s[locus]=$5;id = sprintf("%.3f", $5); b[locus] = $1"\t"$2"\t"$3"\t"$4"\t"id"\t"$6}} END{for(i in b){print b[i]}}' | sort  -k 1,1 -k2,2n > 'feature_hits_dir/$identifier' &&
+    ln -s $i 'feature_hits_dir/$identifier' &&
 #end for
 
 python '$__tool_directory__/draw_features.py'
@@ -60,7 +59,7 @@ python '$__tool_directory__/draw_features.py'
             <output_collection name="features_bed" type="list" count="1">
                 <element name="amr_cds.bed" ftype="bed">
                     <assert_contents>
-                        <has_size value="129" delta="10"/>
+                        <has_size value="610" delta="10"/>
                     </assert_contents>
                 </element>
             </output_collection>
