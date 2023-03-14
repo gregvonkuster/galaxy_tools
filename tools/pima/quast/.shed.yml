@@ -1,0 +1,7 @@
+categories: [Assembly]
+description: Quast (Quality ASsessment Tool) evaluates genome assemblies.
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/pima/quast
+homepage_url: http://quast.bioinf.spbau.ru/
+name: quast
+owner: greg
+long_description: QUAST evaluates genome assemblies by computing various metrics.
