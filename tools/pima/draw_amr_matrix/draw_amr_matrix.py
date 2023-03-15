@@ -108,25 +108,6 @@ def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, varscan_vcf_file
                 elif mutation_regions.shape[0] == 0:
                     ofh.write("\nNo rows in mutation regions file.\n")
                 else:
-                    """
-                    TODO: move this coder to the pima_report tool...
-                    # Make sure the positions in the BED file fall within the chromosomes provided in the reference sequence.
-                    for mutation_region in range(mutation_regions.shape[0]):
-                        mutation_region = mutation_regions.iloc[mutation_region, :]
-                        if not (mutation_region[0] in reference):
-                            ofh.write("\nMutation region: %s not found in reference genome.\n" % ' '.join(mutation_region.astype(str)))
-                            continue
-                        if not isinstance(mutation_region[1], numpy.int64):
-                            ofh.write("\nNon-integer found in mutation region start (column 2): %s.\n" % str(mutation_region[1]))
-                            break
-                        elif not isinstance(mutation_region[2], numpy.int64):
-                            ofh.write("\nNon-integer found in mutation region start (column 3): %s.\n" % str(mutation_region[2]))
-                            break
-                        if mutation_region[1] <= 0 or mutation_region[2] <= 0:
-                            ofh.write("\nMutation region %s starts before the reference sequence.\n" % ' '.join(mutation_region.astype(str)))
-                        if mutation_region[1] > len(reference[mutation_region[0]].seq) or mutation_region[2] > len(reference[mutation_region[0]].seq):
-                            ofh.write("\nMutation region %s ends after the reference sequence.\n" % ' '.join(mutation_region.astype(str)))
-                    """
                     for region_i in range(mutation_regions.shape[0]):
                         region = mutation_regions.iloc[region_i, :]
                         if not region.get('type', default='No Type') in ['snp', 'small-indel', 'any']:
@@ -144,23 +125,6 @@ def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, varscan_vcf_file
                                         '1>' + region_mutations_tsv])
                         ofh.write("\ncmd:\n%s\n" % cmd)
                         run_command(cmd)
-                        """
-                        TODO: move this coder to the pima_report tool...
-                        try:
-                            region_mutations = pandas.read_csv(region_mutations_tsv, sep='\t', header=0, index_col=False)
-                        except Exception:
-                            region_mutations = pandas.DataFrame()
-                        if region_mutations.shape[0] == 0:
-                            continue
-                        # Figure out what kind of mutations are in this region.
-                        region_mutation_types = pandas.Series(['snp'] * region_mutations.shape[0], name='TYPE', index=region_mutations.index)
-                        region_mutation_types[region_mutations['REF'].str.len() != region_mutations['ALT'].str.len()] = 'small-indel'
-                        region_mutation_drugs = pandas.Series(region['drug'] * region_mutations.shape[0], name='DRUG', index=region_mutations.index)
-                        region_notes = pandas.Series(region['note'] * region_mutations.shape[0], name='NOTE', index=region_mutations.index)
-                        region_mutations = pandas.concat([region_mutations, region_mutation_types, region_mutation_drugs, region_notes], axis=1)
-                        region_mutations = region_mutations[['#CHROM', 'POS', 'TYPE', 'REF', 'ALT', 'DRUG', 'NOTE']]
-                        amr_mutations[region['name']] = region_mutations
-                        """
             else:
                 ofh.write("\nMutation region BED not received.\n")
             # Roll up potentially resistance conferring mutations.
