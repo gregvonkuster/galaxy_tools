@@ -1,0 +1,124 @@
+<tool id="draw_circos" name="PIMA: draw circos" version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="@PROFILE@">
+    <description>plot of assembly v. reference alignment</description>
+    <macros>
+        <import>macros.xml</import>
+        <import>macros_conffiles.xml</import>
+    </macros>
+    <edam_topics>
+        <edam_topic>topic_0797</edam_topic>
+        <edam_topic>topic_0092</edam_topic>
+    </edam_topics>
+    <edam_operations>
+        <edam_operation>operation_0337</edam_operation>
+    </edam_operations>
+    <expand macro="requirements"/>
+    <command detect_errors="exit_code"><![CDATA[
+mkdir -p circos_dir &&
+mkdir -p output_png_dir &&
+
+cp '$circos_conf' 'circos_dir/circos.conf' &&
+cp '$ideogram_conf' 'circos_dir/ideogram.conf' &&
+cp '$tick_base_conf' 'circos_dir/tick_base.conf' &&
+
+#if $reference_source.reference_source_selector == 'history':
+    ln -f -s '$reference_source.ref_file' reference.fa &&
+#else:
+    ln -f -s '$reference_source.ref_file.fields.path' reference.fa &&
+#end if
+
+python '$__tool_directory__/draw_circos.py'
+--circos_conf 'circos_dir/circos.conf'
+--dnadiff_1coords_file '$dnadiff_1coords_file'
+--output_png_dir 'output_png_dir'
+--reference_file 'reference.fa'
+--reference_sequence_lengths_file '$reference_sequence_lengths_file'
+--tick_base_conf 'circos_dir/tick_base.conf'
+    ]]></command>
+    <configfiles>
+        <expand macro="configfile_circos_conf"/>
+        <expand macro="configfile_ideogram_conf"/>
+        <expand macro="configfile_tick_base_conf"/>
+    </configfiles>
+    <inputs>
+        <param argument="dnadiff_1coords_file" type="data" format="tabular,tsv" label="DNAdiff 1coords tabular file"/>
+        <conditional name="reference_source">
+            <param name="reference_source_selector" type="select" label="Select a reference genome from your history or use a cached genome index?">
+                <option value="cached">Use a cached genome index</option>
+                <option value="history">Select a genome from the history and build the index</option>
+            </param>
+            <when value="cached">
+                <param name="ref_file" type="select" label="Using reference genome" help="Select reference genome">
+                    <options from_data_table="all_fasta">
+                        <filter type="sort_by" column="2"/>
+                        <validator type="no_options" message="No reference genomes are available"/>
+                    </options>
+                </param>
+            </when>
+            <when value="history">
+                <param name="ref_file" type="data" format="fasta,fastq" label="Select the reference sequence" help="You can upload a FASTA file and use it as reference"/>
+            </when>
+        </conditional>
+        <param name="reference_sequence_lengths_file" type="data" format="tabular" label="Reference sequences lengths tabular file"/>
+    </inputs>
+    <outputs>
+        <collection name="circos_png" type="list" format="png">
+            <discover_datasets pattern="(?P&lt;designation&gt;.+)\.(?P&lt;ext&gt;png)" directory="output_png_dir"/>
+        </collection>
+    </outputs>
+    <tests>
+        <test>
+            <param name="dnadiff_1coords_file" value="dnadiff_1coords.tabular" ftype="tabular"/>
+            <conditional name="reference_source">
+                <param name="reference_source_selector" value="history"/>
+                <param name="ref_file" value="ref_genome.fasta"/>
+            </conditional>
+            <param name="reference_sequence_lengths_file" value="ref_sequence_lengths.tabular" ftype="tabular"/>
+            <output_collection name="circos_png" type="list" count="3">
+                <element name="chromosome" ftype="png">
+                    <assert_contents>
+                        <has_size value="121172" delta="1000"/>
+                    </assert_contents>
+                </element>
+                <element name="pXO1" ftype="png">
+                    <assert_contents>
+                        <has_size value="179913" delta="1000"/>
+                    </assert_contents>
+                </element>
+                <element name="pXO2" ftype="png">
+                    <assert_contents>
+                        <has_size value="169070" delta="1000"/>
+                    </assert_contents>
+                </element>
+            </output_collection>
+        </test>
+        <test>
+            <param name="dnadiff_1coords_file" value="dnadiff_1coords.tabular" ftype="tabular"/>
+            <conditional name="reference_source">
+                <param name="reference_source_selector" value="cached"/>
+                <param name="ref_file" value="ref_genome"/>
+            </conditional>
+            <param name="reference_sequence_lengths_file" value="ref_sequence_lengths.tabular" ftype="tabular"/>
+            <output_collection name="circos_png" type="list" count="3">
+                <element name="chromosome" ftype="png">
+                    <assert_contents>
+                        <has_size value="121172" delta="1000"/>
+                    </assert_contents>
+                </element>
+                <element name="pXO1" ftype="png">
+                    <assert_contents>
+                        <has_size value="179913" delta="1000"/>
+                    </assert_contents>
+                </element>
+                <element name="pXO2" ftype="png">
+                    <assert_contents>
+                        <has_size value="169070" delta="1000"/>
+                    </assert_contents>
+                </element>
+            </output_collection>
+        </test>
+    </tests>
+    <help><![CDATA[
+Renders circos plots of the PIMA assembly versus the reference alignemnt.
+    ]]></help>
+    <expand macro="citations"/>
+</tool>

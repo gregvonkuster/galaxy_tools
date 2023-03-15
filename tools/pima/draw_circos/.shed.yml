@@ -1,0 +1,9 @@
+name: draw_circos
+owner: greg
+description: Renders circos plots of the PIMA assembly versus the reference alignemnt.
+long_description: Renders circos plots of the PIMA assembly versus the reference alignemnt.
+categories: 
+- Visualization
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/pima/draw_circos
+homepage_url: https://github.com/gregvonkuster/galaxy_tools
+type: unrestricted

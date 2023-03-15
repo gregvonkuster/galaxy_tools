@@ -1,0 +1,154 @@
+<macros>
+  <xml name="configfile_circos_conf">
+    <configfile name="circos_conf"><![CDATA[
+<<include colors_fonts_patterns.conf>>
+<<include housekeeping.conf>>
+
+<colors>
+<<include etc/colors.conf>>
+</colors>
+
+<fonts>
+<<include etc/fonts.conf>>
+</fonts>
+
+karyotype = karyotype.txt
+
+<image>
+dir = .
+svg = yes
+file  = circos.svg
+# radius of inscribed circle in image
+radius         = 2000p
+background     = white
+# by default angle=0 is at 3 o'clock position
+angle_offset   = -90
+auto_alpha_colors = yes
+auto_alpha_steps  = 5
+</image>
+
+<image>
+dir = .
+file  = circos.png
+# radius of inscribed circle in image
+radius         = 2000p
+background     = white
+# by default angle=0 is at 3 o'clock position
+angle_offset   = -90
+auto_alpha_colors = yes
+auto_alpha_steps  = 5
+</image>
+
+
+chromosomes_units           = 1
+chromosomes_display_default = yes
+
+<plots>
+
+<plot>
+type      = highlight
+file = alignment.txt
+r1        = 1.51r
+r0        = 1.79r
+layers    = 1
+margin    = 0
+stroke_thickness = 4
+stroke_color     = 0,132,169
+fill_color            = 0,132,169
+</plot>
+
+<plot>
+type      = highlight
+file = gap.txt
+r1        = 1.51r
+r0        = 1.79r
+layers    = 1
+margin    = 0u
+stroke_thickness = 4
+stroke_color     = 255,180,65
+fill_color            = 255,180,65
+</plot>
+
+<plot>
+type = text
+file = tick.txt
+
+r0 = 1.05r
+r1 = 1.35r
+
+label_size = 96p
+padding = 0p
+rpadding = 0p
+</plot>
+
+</plots>
+
+<<include ideogram.conf>>
+    ]]></configfile>
+  </xml>
+  <xml name="configfile_ideogram_conf">
+    <configfile name="ideogram_conf"><![CDATA[
+<ideogram>
+
+radius = .5r
+thickness = 0r
+
+<spacing>
+
+default = 0u
+break   = 0u
+
+axis_break_at_edge = no
+axis_break         = no
+axis_break_style   = 2
+
+<break_style 1>
+stroke_color = black
+fill_color   = blue
+thickness    = 0.25r
+stroke_thickness = 2p
+</break>
+
+<break_style 2>
+stroke_color     = black
+stroke_thickness = 5p
+thickness        = 2r
+</break>
+
+</spacing>
+
+</ideogram>
+]]></configfile>
+  </xml>
+  <xml name="configfile_tick_base_conf">
+    <configfile name="tick_base_conf"><![CDATA[
+
+show_ticks          = yes
+show_tick_labels    = yes
+label_rorate = no
+
+<ticks>
+
+  radius               = 1.5r
+    label_size = 1r 
+    orientation = in
+    
+  <tick>
+    spacing = TICK_MAJOR
+    size = 125p
+    thickness = 7.5p
+    show_label = no
+  </tick>
+
+  <tick>
+    spacing = TICK_MINOR
+    size = 75p
+    show_label = no
+    thickness = 4p
+  </tick>
+
+
+</ticks>
+]]></configfile>
+  </xml>
+</macros>

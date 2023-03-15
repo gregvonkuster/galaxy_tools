@@ -1,0 +1,23 @@
+<macros>
+    <token name="@TOOL_VERSION@">0.69.8</token>
+    <token name="@VERSION_SUFFIX@">0</token>
+    <token name="@PROFILE@">21.01</token>
+    <xml name="requirements">
+        <requirements>
+            <requirement type="package" version="2.30.0">bedtools</requirement>
+            <requirement type="package" version="1.79">biopython</requirement>
+            <requirement type="package" version="@TOOL_VERSION@">circos</requirement>
+            <requirement type="package" version="9.1">coreutils</requirement>
+            <requirement type="package" version="5.1.0">gawk</requirement>
+            <requirement type="package" version="1.23.5">numpy</requirement>
+            <requirement type="package" version="1.5.3">pandas</requirement>
+            <yield />
+          </requirements>
+      </xml>
+      <xml name="citations">
+          <citations>
+              <citation type="doi">10.1093/gigascience/giaa065</citation>
+              <citation type="doi">10.1101/gr.092759.109</citation>
+          </citations>
+      </xml>
+</macros>
