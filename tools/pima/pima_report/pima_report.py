@@ -21,8 +21,8 @@ class PimaReport:
                  feature_bed_files=None, feature_png_files=None, flye_assembly_info_file=None, flye_version=None,
                  genome_insertions_file=None, gzipped=None, illumina_fastq_file=None, kraken2_report_file=None,
                  kraken2_version=None, minimap2_version=None, mutation_regions_bed_file=None,
-                 mutation_regions_tsv_files=None, pima_css=None, plasmids_file=None, reference_insertions_file=None,
-                 samtools_version=None, varscan_version=None):
+                 mutation_regions_tsv_files=None, pima_css=None, plasmids_file=None, quast_report_file=None,
+                 reference_insertions_file=None, samtools_version=None, varscan_version=None):
         self.ofh = open("process_log.txt", "w")
 
         self.ofh.write("amr_deletions_file: %s\n" % str(amr_deletions_file))
@@ -51,6 +51,7 @@ class PimaReport:
         self.ofh.write("mutation_regions_tsv_files: %s\n" % str(mutation_regions_tsv_files))
         self.ofh.write("pima_css: %s\n" % str(pima_css))
         self.ofh.write("plasmids_file: %s\n" % str(plasmids_file))
+        self.ofh.write("quast_report_file: %s\n" % str(quast_report_file))
         self.ofh.write("reference_insertions_file: %s\n" % str(reference_insertions_file))
         self.ofh.write("samtools_version: %s\n" % str(samtools_version))
         self.ofh.write("varscan_version: %s\n" % str(varscan_version))
@@ -108,6 +109,8 @@ class PimaReport:
         self.ont_read_count = None
         self.pima_css = pima_css
         self.plasmids_file = plasmids_file
+        self.quast_report_file = quast_report_file
+        self.reference_insertions_file = reference_insertions_file
         self.reference_insertions_file = reference_insertions_file
         if samtools_version is None:
             self.samtools_version = 'samtools (version unknown)'
@@ -163,13 +166,9 @@ class PimaReport:
         self.illumina_length_mean = 0
         self.illumina_read_count = 0
         self.illumina_bases = 0
-        self.mean_coverage = 0
-        self.num_assembly_contigs = 0
         # TODO: should the following 2 values  be passed as  parameters?
         self.ont_n50_min = 2500
         self.ont_coverage_min = 30
-        self.quast_indels = 0
-        self.quast_mismatches = 0
 
         # Actions
         self.did_guppy_ont_fast5 = False
@@ -319,7 +318,7 @@ class PimaReport:
 
     def add_illumina_library_information(self):
         self.ofh.write("\nXXXXXX In add_illumina_library_information\n\n")
-        if self.illumina_length_mean is None:
+        if self.illumina_length_mean == 0:
             return
         self.doc.new_line()
         self.doc.new_header(2, 'Illumina library statistics')
@@ -480,6 +479,10 @@ class PimaReport:
             alignments = self.contig_alignment
         else:
             return
+        # Process quast values.
+        quast_report = pandas.read_csv(self.quast_report_file, header=0, index_col=0, sep='\t')
+        quast_mismatches = int(float(quast_report.loc['# mismatches per 100 kbp', :][0]) * (float(quast_report.loc['Total length (>= 0 bp)', :][0]) / 100000.))
+        quast_indels = int(float(quast_report.loc['# indels per 100 kbp', :][0]) * (float(quast_report.loc['Total length (>= 0 bp)', :][0]) / 100000.))
         self.doc.new_line()
         self.doc.new_header(level=2, title=self.alignment_title)
         self.doc.new_line()
@@ -488,9 +491,9 @@ class PimaReport:
             "Category",
             "Quantity",
             'SNPs',
-            '{:,}'.format(self.quast_mismatches),
+            '{:,}'.format(quast_mismatches),
             'Small indels',
-            '{:,}'.format(self.quast_indels)
+            '{:,}'.format(quast_indels)
         ]
         self.doc.new_table(columns=2, rows=3, text=Table_1, text_align='left')
         self.doc.new_line('<div style="page-break-after: always;"></div>')
@@ -854,6 +857,7 @@ parser.add_argument('--mutation_regions_bed_file', action='store', dest='mutatio
 parser.add_argument('--mutation_regions_dir', action='store', dest='mutation_regions_dir', help='Directory of mutation regions TSV files')
 parser.add_argument('--pima_css', action='store', dest='pima_css', help='PIMA css stypesheet')
 parser.add_argument('--plasmids_file', action='store', dest='plasmids_file', help='pChunks plasmids TSV file')
+parser.add_argument('--quast_report_file', action='store', dest='quast_report_file', help='Quast report tabular file')
 parser.add_argument('--reference_insertions_file', action='store', dest='reference_insertions_file', help='Reference insertions BED file')
 parser.add_argument('--samtools_version', action='store', dest='samtools_version', default=None, help='Samtools version string')
 parser.add_argument('--varscan_version', action='store', dest='varscan_version', default=None, help='Varscan version string')
@@ -907,6 +911,7 @@ markdown_report = PimaReport(args.analysis_name,
                              mutation_regions_files,
                              args.pima_css,
                              args.plasmids_file,
+                             args.quast_report_file,
                              args.reference_insertions_file,
                              args.samtools_version,
                              args.varscan_version)

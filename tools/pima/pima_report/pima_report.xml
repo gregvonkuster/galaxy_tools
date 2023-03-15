@@ -103,6 +103,7 @@ python '${__tool_directory__}/pima_report.py'
 --mutation_regions_bed_file '$mutation_regions_bed_file'
 --pima_css '${__tool_directory__}/pima.css'
 --plasmids_file '$plasmids_file'
+--quast_report_file '$quast_report_file'
 --reference_insertions_file '$reference_insertions_file'
 #if str($samtools_pileup_file) not in ['None', '']:
     --samtools_version '$samtools_version'
@@ -131,6 +132,7 @@ python '${__tool_directory__}/pima_report.py'
         <param name="minimap2_bam_file" type="data" format="bam" label="Minimap2 BAM file"/>
         <param name="mutation_regions" format="tabular,tsv" type="data_collection" collection_type="list" label="Collection of mutation regions tabular files"/>
         <param name="mutation_regions_bed_file" type="data" format="mutations_regions,bed" label="Mutation regions BED file"/>
+        <param name="quast_report_file" type="data" format="tabular" label="Quast report tabular file"/>
         <param name="reference_insertions_file" type="data" format="bed" label="Reference insertions BED file"/>
         <param name="plasmids_file" type="data" format="tsv" label="pChunks plasmids TSV file"/>
         <param name="samtools_pileup_file" type="data" format="pileup" label="Samtools pileup file"/>
