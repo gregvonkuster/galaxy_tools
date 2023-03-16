@@ -36,6 +36,7 @@
 #end if
 
 mkdir amr_matrix_png_dir &&
+mkdir circos_png_dir &&
 mkdir feature_bed_dir &&
 mkdir feature_png_dir &&
 mkdir mutation_regions_dir &&
@@ -45,6 +46,11 @@ touch 'pima_report.pdf' &&
     #set file_name = $i.file_name
     #set identifier = re.sub('[^\s\w\-\\.]', '_', str($i.element_identifier))
     ln -s $i 'amr_matrix_png_dir/$identifier' &&
+#end for
+#for $i in $circos_png:
+    #set file_name = $i.file_name
+    #set identifier = re.sub('[^\s\w\-\\.]', '_', str($i.element_identifier))
+    ln -s $i 'circos_png_dir/$identifier' &&
 #end for
 #for $i in $features_bed:
     #set file_name = $i.file_name
@@ -74,6 +80,7 @@ python '${__tool_directory__}/pima_report.py'
 #if str($blastn_features) not in ['None', '']:
     --blastn_version '$blastn_version'
 #end if
+--circos_png_dir 'circos_png_dir'
 --compute_sequence_length_file '$compute_sequence_length_file'
 --contig_coverage_file '$contig_coverage_file'
 --dbkey '$aligned_sample.metadata.dbkey'
@@ -120,6 +127,7 @@ python '${__tool_directory__}/pima_report.py'
         <param name="assembly_fasta_file" type="data" format="fasta" label="Assembly FASTA file"/>
         <param name="bedtools_complementbed_file" type="data" format="bed" label="Bedtools ComplementBed BED file"/>
         <param name="blastn_features" format="tabular" type="data_collection" collection_type="list" label="Collection of blastn tabular files"/>
+        <param name="circos_png" format="png" type="data_collection" collection_type="list" label="Collection of circos PNG files"/>
         <param name="compute_sequence_length_file" type="data" format="tabular,tsv" label="Compute sequence length tabular file"/>
         <param name="contig_coverage_file" type="data" format="tabular,tsv" label="Contig coverage tabular file"/>
         <param name="dnadiff_snps_file" type="data" format="tabular" label="DNAdiff snps tabular file"/>

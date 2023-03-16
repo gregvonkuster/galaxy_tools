@@ -16,11 +16,11 @@ CDC_ADVISORY = 'The analysis and report presented here should be treated as prel
 class PimaReport:
 
     def __init__(self, analysis_name=None, amr_deletions_file=None, amr_matrix_files=None, assembly_fasta_file=None,
-                 assembly_name=None, bedtools_version=None, blastn_version=None, compute_sequence_length_file=None,
-                 contig_coverage_file=None, dbkey=None, dnadiff_snps_file=None, dnadiff_version=None,
-                 feature_bed_files=None, feature_png_files=None, flye_assembly_info_file=None, flye_version=None,
-                 genome_insertions_file=None, gzipped=None, illumina_fastq_file=None, kraken2_report_file=None,
-                 kraken2_version=None, minimap2_version=None, mutation_regions_bed_file=None,
+                 assembly_name=None, bedtools_version=None, blastn_version=None, circos_files=None,
+                 compute_sequence_length_file=None, contig_coverage_file=None, dbkey=None, dnadiff_snps_file=None,
+                 dnadiff_version=None, feature_bed_files=None, feature_png_files=None, flye_assembly_info_file=None,
+                 flye_version=None, genome_insertions_file=None, gzipped=None, illumina_fastq_file=None,
+                 kraken2_report_file=None, kraken2_version=None, minimap2_version=None, mutation_regions_bed_file=None,
                  mutation_regions_tsv_files=None, pima_css=None, plasmids_file=None, quast_report_file=None,
                  reference_insertions_file=None, samtools_version=None, varscan_version=None):
         self.ofh = open("process_log.txt", "w")
@@ -32,6 +32,7 @@ class PimaReport:
         self.ofh.write("assembly_name: %s\n" % str(assembly_name))
         self.ofh.write("bedtools_version: %s\n" % str(bedtools_version))
         self.ofh.write("blastn_version: %s\n" % str(blastn_version))
+        self.ofh.write("circos_files: %s\n" % str(circos_files))
         self.ofh.write("compute_sequence_length_file: %s\n" % str(compute_sequence_length_file))
         self.ofh.write("contig_coverage_file: %s\n" % str(contig_coverage_file))
         self.ofh.write("dbkey: %s\n" % str(dbkey))
@@ -63,7 +64,8 @@ class PimaReport:
         # Inputs
         self.amr_deletions_file = amr_deletions_file
         self.amr_matrix_files = amr_matrix_files
-        self.analysis_name = re.sub('_', '.', analysis_name.rstrip(' _consensus_'))
+        self.analysis_name = analysis_name.split('_')[0]
+        self.ofh.write("self.analysis_name: %s\n" % str(self.analysis_name))
         self.assembly_fasta_file = assembly_fasta_file
         self.assembly_name = re.sub('_', '.', assembly_name.rstrip(' _consensus_'))
         if bedtools_version is None:
@@ -74,6 +76,7 @@ class PimaReport:
             self.blastn_version = 'blastn (version unknown)'
         else:
             self.blastn_version = re.sub('_', '.', blastn_version.rstrip(' _features_'))
+        self.circos_files = circos_files
         self.compute_sequence_length_file = compute_sequence_length_file
         self.contig_coverage_file = contig_coverage_file
         self.dbkey = dbkey
@@ -142,7 +145,7 @@ class PimaReport:
         self.plasmid_title = 'Plasmid annotation'
         self.reference_methods_title = 'Reference comparison'
         self.snp_indel_title = 'SNPs and small indels'
-        self.summary_title = 'Analysis of %s' % analysis_name
+        self.summary_title = 'Summary'
 
         # Methods
         self.methods = pandas.Series(dtype='float64')
@@ -264,7 +267,8 @@ class PimaReport:
         self.illumina_bases = self.format_kmg(self.illumina_bases, decimals=1)
 
     def start_doc(self):
-        self.doc = MdUtils(file_name=self.report_md, title='')
+        header_text = 'Analysis of ' + self.analysis_name
+        self.doc = MdUtils(file_name=self.report_md, title=header_text)
 
     def add_run_information(self):
         self.ofh.write("\nXXXXXX In add_run_information\n\n")
@@ -474,42 +478,41 @@ class PimaReport:
 
     def add_alignment(self):
         self.ofh.write("\nXXXXXX In add_alignment\n\n")
-        # TODO: implement the draw_circos function for this.
-        if len(self.contig_alignment) > 0:
-            alignments = self.contig_alignment
-        else:
-            return
-        # Process quast values.
-        quast_report = pandas.read_csv(self.quast_report_file, header=0, index_col=0, sep='\t')
-        quast_mismatches = int(float(quast_report.loc['# mismatches per 100 kbp', :][0]) * (float(quast_report.loc['Total length (>= 0 bp)', :][0]) / 100000.))
-        quast_indels = int(float(quast_report.loc['# indels per 100 kbp', :][0]) * (float(quast_report.loc['Total length (>= 0 bp)', :][0]) / 100000.))
-        self.doc.new_line()
-        self.doc.new_header(level=2, title=self.alignment_title)
-        self.doc.new_line()
-        self.doc.new_header(level=3, title=self.snp_indel_title)
-        Table_1 = [
-            "Category",
-            "Quantity",
-            'SNPs',
-            '{:,}'.format(quast_mismatches),
-            'Small indels',
-            '{:,}'.format(quast_indels)
-        ]
+        if self.quast_report_file is not None:
+            # Process quast values.
+            quast_report = pandas.read_csv(self.quast_report_file, header=0, index_col=0, sep='\t')
+            quast_mismatches = int(float(quast_report.loc['# mismatches per 100 kbp', :][0]) * (float(quast_report.loc['Total length (>= 0 bp)', :][0]) / 100000.))
+            quast_indels = int(float(quast_report.loc['# indels per 100 kbp', :][0]) * (float(quast_report.loc['Total length (>= 0 bp)', :][0]) / 100000.))
+            self.doc.new_line()
+            self.doc.new_header(level=2, title=self.alignment_title)
+            self.doc.new_line()
+            self.doc.new_header(level=3, title=self.snp_indel_title)
+            Table_1 = [
+                "Category",
+                "Quantity",
+                'SNPs',
+                '{:,}'.format(quast_mismatches),
+                'Small indels',
+                '{:,}'.format(quast_indels)
+            ]
         self.doc.new_table(columns=2, rows=3, text=Table_1, text_align='left')
         self.doc.new_line('<div style="page-break-after: always;"></div>')
         self.doc.new_line()
+        # TODO: self.alignment_notes is not currently populated.
         if len(self.alignment_notes) > 0:
             self.doc.new_header(level=3, title=self.alignment_notes_title)
             for note in self.alignment_notes:
                 self.doc.new_line(note)
-        for contig in alignments.index.tolist():
-            contig_title = 'Alignment to %s' % contig
-            image_png = alignments[contig]
-            self.doc.new_line()
-            self.doc.new_header(level=3, title=contig_title)
-            self.doc.new_line(self.doc.new_inline_image(text='contig_title', path=os.path.abspath(image_png)))
-            self.doc.new_line('<div style="page-break-after: always;"></div>')
-            self.doc.new_line()
+        if len(self.circos_files) > 0:
+            # Add circos PNG files.
+            for circos_file in self.circos_files:
+                contig = os.path.basename(circos_file)
+                contig_title = 'Alignment to %s' % contig
+                self.doc.new_line()
+                self.doc.new_header(level=3, title=contig_title)
+                self.doc.new_line(self.doc.new_inline_image(text='contig_title', path=os.path.abspath(circos_file)))
+                self.doc.new_line('<div style="page-break-after: always;"></div>')
+                self.doc.new_line()
         method = 'The genome assembly was aligned against the reference sequencing using dnadiff version %s.' % self.dnadiff_version
         self.methods[self.reference_methods_title] = self.methods[self.reference_methods_title].append(pandas.Series(method))
 
@@ -646,7 +649,7 @@ class PimaReport:
                 self.doc.new_table(columns=6, rows=row_count, text=Table_List, text_align='left')
         method = '%s reads were mapped to the reference sequence using %s.' % (self.read_type, self.minimap2_version)
         self.methods[self.mutation_methods_title] = self.methods[self.mutation_methods_title].append(pandas.Series(method))
-        method = 'Mutations were identified using %s mpileup and %s.' % (self.samtools_version, self.varscan_version)
+        method = 'Mutations were identified using %s and %s.' % (self.samtools_version, self.varscan_version)
         self.methods[self.mutation_methods_title] = self.methods[self.mutation_methods_title].append(pandas.Series(method))
 
     def add_amr_matrix(self):
@@ -675,15 +678,6 @@ class PimaReport:
             genome_insertions = pandas.DataFrame()
         large_indels['Reference insertions'] = reference_insertions
         large_indels['Query insertions'] = genome_insertions
-        # TODO: we don't seem to be reporting snps and deletions for some reason...
-        # Pull in the number of SNPs and small indels.
-        try:
-            snps = pandas.read_csv(filepath_or_buffer=self.dnadiff_snps_file, sep='\t', header=None)
-            # TODO: the following is not used...
-            # small_indels = snps.loc[(snps.iloc[:, 1] == '.') | (snps.iloc[:, 2] == '.'), :]
-            snps = snps.loc[(snps.iloc[:, 1] != '.') & (snps.iloc[:, 2] != '.'), :]
-        except Exception:
-            snps = pandas.DataFrame()
         # Pull in deletions.
         try:
             amr_deletions = pandas.read_csv(filepath_or_buffer=self.amr_deletion_file, sep='\t', header=None)
@@ -838,6 +832,7 @@ parser.add_argument('--assembly_fasta_file', action='store', dest='assembly_fast
 parser.add_argument('--assembly_name', action='store', dest='assembly_name', help='Assembly identifier')
 parser.add_argument('--bedtools_version', action='store', dest='bedtools_version', default=None, help='Bedtools version string')
 parser.add_argument('--blastn_version', action='store', dest='blastn_version', default=None, help='Blastn version string')
+parser.add_argument('--circos_png_dir', action='store', dest='circos_png_dir', help='Directory of circos PNG files')
 parser.add_argument('--compute_sequence_length_file', action='store', dest='compute_sequence_length_file', help='Comnpute sequence length tabular file')
 parser.add_argument('--contig_coverage_file', action='store', dest='contig_coverage_file', help='Contig coverage TSV file')
 parser.add_argument('--dbkey', action='store', dest='dbkey', help='Reference genome identifier')
@@ -869,6 +864,11 @@ amr_matrix_files = []
 for file_name in sorted(os.listdir(args.amr_matrix_png_dir)):
     file_path = os.path.abspath(os.path.join(args.amr_matrix_png_dir, file_name))
     amr_matrix_files.append(file_path)
+# Prepare the circos PNG files.
+circos_files = []
+for file_name in sorted(os.listdir(args.circos_png_dir)):
+    file_path = os.path.abspath(os.path.join(args.circos_png_dir, file_name))
+    circos_files.append(file_path)
 # Prepare the features BED files.
 feature_bed_files = []
 for file_name in sorted(os.listdir(args.feature_bed_dir)):
@@ -892,6 +892,7 @@ markdown_report = PimaReport(args.analysis_name,
                              args.assembly_name,
                              args.bedtools_version,
                              args.blastn_version,
+                             circos_files,
                              args.compute_sequence_length_file,
                              args.contig_coverage_file,
                              args.dbkey,
