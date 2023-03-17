@@ -7,7 +7,7 @@
     <command detect_errors="exit_code"><![CDATA[
 #import re
 
-#set analysis_name = re.sub('[^\s\w\-]', '_', str($illumina_fastq_file.element_identifier))
+#set analysis_name = re.sub('[^\s\w\-]', '_', str($ont_fastq_file.element_identifier))
 #set assembly_name = re.sub('[^\s\w\-]', '_', str($assembly_fasta_file.element_identifier))
 
 #if str($bedtools_complementbed_file) not in ['None', '']:
@@ -95,10 +95,10 @@ python '${__tool_directory__}/pima_report.py'
     --flye_version '$flye_version'
 #end if
 --genome_insertions_file '$genome_insertions_file'
-#if $illumina_fastq_file.ext.endswith(".gz"):
+#if $ont_fastq_file.ext.endswith(".gz"):
     --gzipped
 #end if
---illumina_fastq_file '$illumina_fastq_file'
+--ont_fastq_file '$ont_fastq_file'
 #if str($kraken2_report_file) not in ['None', '']:
     --kraken2_report_file '$kraken2_report_file'
     --kraken2_version '$kraken2_version'
@@ -136,7 +136,7 @@ python '${__tool_directory__}/pima_report.py'
         <param name="flye_assembly_info_file" type="data" format="tabular,tsv" optional="true" label="Flye assembly info tabular file" help="Optional, ignored if not selected"/>
         <param name="genome_insertions_file" type="data" format="bed" label="Genome insertions BED file"/>
         <param name="kraken2_report_file" type="data" format="tabular,tsv" optional="true" label="Kraken2 report tabular file" help="Optional, ignored if not selected"/>
-        <param name="illumina_fastq_file" type="data" format="fastqsanger,fastqsanger.gz" label="Fastq sample file"/>
+        <param name="ont_fastq_file" type="data" format="fastqsanger,fastqsanger.gz" label="ONT fastq sample file"/>
         <param name="minimap2_bam_file" type="data" format="bam" label="Minimap2 BAM file"/>
         <param name="mutation_regions" format="tabular,tsv" type="data_collection" collection_type="list" label="Collection of mutation regions tabular files"/>
         <param name="mutation_regions_bed_file" type="data" format="mutations_regions,bed" label="Mutation regions BED file"/>
@@ -154,7 +154,7 @@ python '${__tool_directory__}/pima_report.py'
             <param name="aligned_sample" value="aligned_sample.bam" ftype="bam"/>
             <param name="assembly_fasta_file" value="assembly_fasta.fasta" ftype="fasta"/>
             <param name="contig_coverage_file" value="contig_coverage.tabular" ftype="tabular"/>
-            <param name="illumina_fastq_file" value="illumina_fastq.fastq" ftype="fastq"/>
+            <param name="ont_fastq_file" value="ont_fastq.fastq" ftype="fastq"/>
             <output name="output" value="output.pdf" ftype="pdf"/>
         </test>
     </tests>

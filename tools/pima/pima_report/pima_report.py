@@ -9,6 +9,8 @@ import sys
 from Bio import SeqIO
 from datetime import date
 from mdutils.mdutils import MdUtils
+# FIXME: TableOfContents doesn't work.
+# from mdutils.tools import TableOfContents
 
 CDC_ADVISORY = 'The analysis and report presented here should be treated as preliminary.  Please contact the CDC/BDRD with any results regarding _Bacillus anthracis_.'
 
@@ -19,10 +21,10 @@ class PimaReport:
                  assembly_name=None, bedtools_version=None, blastn_version=None, circos_files=None,
                  compute_sequence_length_file=None, contig_coverage_file=None, dbkey=None, dnadiff_snps_file=None,
                  dnadiff_version=None, feature_bed_files=None, feature_png_files=None, flye_assembly_info_file=None,
-                 flye_version=None, genome_insertions_file=None, gzipped=None, illumina_fastq_file=None,
-                 kraken2_report_file=None, kraken2_version=None, minimap2_version=None, mutation_regions_bed_file=None,
-                 mutation_regions_tsv_files=None, pima_css=None, plasmids_file=None, quast_report_file=None,
-                 reference_insertions_file=None, samtools_version=None, varscan_version=None):
+                 flye_version=None, genome_insertions_file=None, gzipped=None, kraken2_report_file=None,
+                 kraken2_version=None, minimap2_version=None, mutation_regions_bed_file=None, mutation_regions_tsv_files=None,
+                 ont_fastq_file=None, pima_css=None, plasmids_file=None, quast_report_file=None, reference_insertions_file=None,
+                 samtools_version=None, varscan_version=None):
         self.ofh = open("process_log.txt", "w")
 
         self.ofh.write("amr_deletions_file: %s\n" % str(amr_deletions_file))
@@ -44,12 +46,12 @@ class PimaReport:
         self.ofh.write("flye_version: %s\n" % str(flye_version))
         self.ofh.write("gzipped: %s\n" % str(gzipped))
         self.ofh.write("genome_insertions_file: %s\n" % str(genome_insertions_file))
-        self.ofh.write("illumina_fastq_file: %s\n" % str(illumina_fastq_file))
         self.ofh.write("kraken2_report_file: %s\n" % str(kraken2_report_file))
         self.ofh.write("kraken2_version: %s\n" % str(kraken2_version))
         self.ofh.write("minimap2_version: %s\n" % str(minimap2_version))
         self.ofh.write("mutation_regions_bed_file: %s\n" % str(mutation_regions_bed_file))
         self.ofh.write("mutation_regions_tsv_files: %s\n" % str(mutation_regions_tsv_files))
+        self.ofh.write("ont_fastq_file: %s\n" % str(ont_fastq_file))
         self.ofh.write("pima_css: %s\n" % str(pima_css))
         self.ofh.write("plasmids_file: %s\n" % str(plasmids_file))
         self.ofh.write("quast_report_file: %s\n" % str(quast_report_file))
@@ -94,7 +96,6 @@ class PimaReport:
             self.flye_version = re.sub('_', '.', flye_version.rstrip(' _assembly info_'))
         self.gzipped = gzipped
         self.genome_insertions_file = genome_insertions_file
-        self.illumina_fastq_file = illumina_fastq_file
         self.kraken2_report_file = kraken2_report_file
         if kraken2_version is None:
             self.kraken2_version = 'kraken2 (version unknown)'
@@ -106,13 +107,10 @@ class PimaReport:
             self.minimap2_version = re.sub('_', '.', minimap2_version)
         self.mutation_regions_bed_file = mutation_regions_bed_file
         self.mutation_regions_tsv_files = mutation_regions_tsv_files
-        self.read_type = 'Illumina'
-        self.ont_bases = None
-        self.ont_n50 = None
-        self.ont_read_count = None
         self.pima_css = pima_css
         self.plasmids_file = plasmids_file
         self.quast_report_file = quast_report_file
+        self.read_type = 'ONT'
         self.reference_insertions_file = reference_insertions_file
         self.reference_insertions_file = reference_insertions_file
         if samtools_version is None:
@@ -166,16 +164,25 @@ class PimaReport:
         self.contig_info = None
         self.did_medaka_ont_assembly = False
         self.feature_hits = pandas.Series(dtype='float64')
-        self.illumina_length_mean = 0
-        self.illumina_read_count = 0
-        self.illumina_bases = 0
-        # TODO: should the following 2 values  be passed as  parameters?
-        self.ont_n50_min = 2500
+        self.illumina_fastq_file = None
+        self.illumina_length_mean = None
+        self.illumina_read_count = None
+        self.illumina_bases = None
+        self.ont_bases = None
+        # TODO: should the following be passed as a parameter?
         self.ont_coverage_min = 30
+        self.ont_fast5 = None
+        self.ont_fastq_file = ont_fastq_file
+        self.ont_n50 = None
+        # TODO: should the following be passed as a parameter?
+        self.ont_n50_min = 2500
+        self.ont_raw_fastq = self.analysis_name
+        self.ont_read_count = None
 
         # Actions
         self.did_guppy_ont_fast5 = False
         self.did_qcat_ont_fastq = False
+        self.info_ont_fastq(self.ont_fastq_file)
         self.info_illumina_fastq()
         self.load_contig_info()
 
@@ -237,12 +244,14 @@ class PimaReport:
 
     def info_illumina_fastq(self):
         self.ofh.write("\nXXXXXX In info_illumina_fastq\n\n")
+        if self.illumina_length_mean is None:
+            return
         if self.gzipped:
             opener = 'gunzip -c'
         else:
             opener = 'cat'
         command = ' '.join([opener,
-                            self.illumina_fastq_file,
+                            self.ont_fastq_file,
                             '| awk \'{getline;s += length($1);getline;getline;}END{print s/(NR/4)"\t"(NR/4)"\t"s}\''])
         output = self.run_command(command)
         self.ofh.write("output:\n%s\n" % str(output))
@@ -260,15 +269,21 @@ class PimaReport:
         self.illumina_read_count += int(values[1])
         self.ofh.write("values[2]:\n%s\n" % str(values[2]))
         self.illumina_bases += int(values[2])
-        # The original PIMA code inserts self.illumina_fastq into
+        # The original PIMA code inserts self.illumina_fastq_file into
         # a list for no apparent reason.  We don't do that here.
-        # self.illumina_length_mean /= len(self.illumina_fastq)
+        # self.illumina_length_mean /= len(self.illumina_fastq_file)
         self.illumina_length_mean /= 1
         self.illumina_bases = self.format_kmg(self.illumina_bases, decimals=1)
 
     def start_doc(self):
         header_text = 'Analysis of ' + self.analysis_name
         self.doc = MdUtils(file_name=self.report_md, title=header_text)
+
+    def add_table_of_contents(self):
+        self.doc.create_marker(text_marker="TableOfContents")
+        self.doc.new_line()
+        self.doc.new_line('<div style="page-break-after: always;"></div>')
+        self.doc.new_line()
 
     def add_run_information(self):
         self.ofh.write("\nXXXXXX In add_run_information\n\n")
@@ -281,11 +296,11 @@ class PimaReport:
             "Date",
             date.today(),
             "ONT FAST5",
-            "N/A",
+            self.wordwrap_markdown(self.ont_fast5),
             "ONT FASTQ",
-            "N/A",
+            self.wordwrap_markdown(self.ont_raw_fastq),
             "Illumina FASTQ",
-            self.wordwrap_markdown(self.analysis_name),
+            self.wordwrap_markdown(self.illumina_fastq_file),
             "Assembly",
             self.wordwrap_markdown(self.assembly_name),
             "Reference",
@@ -293,6 +308,8 @@ class PimaReport:
         ]
         self.doc.new_table(columns=2, rows=7, text=Table_list, text_align='left')
         self.doc.new_line()
+        # FIXME: the following doesn't work.
+        # self.add_table_of_contents()
         self.doc.new_line()
 
     def add_ont_library_information(self):
@@ -311,7 +328,7 @@ class PimaReport:
             "ONT bases",
             '{:s}'.format(self.ont_bases),
             "Illumina FASTQ",
-            self.wordwrap_markdown(self.illumina_fastq_file),
+            self.wordwrap_markdown(self.ont_fastq_file),
             "Assembly",
             self.wordwrap_markdown(self.assembly_name),
             "Reference",
@@ -322,7 +339,7 @@ class PimaReport:
 
     def add_illumina_library_information(self):
         self.ofh.write("\nXXXXXX In add_illumina_library_information\n\n")
-        if self.illumina_length_mean == 0:
+        if self.illumina_length_mean is None:
             return
         self.doc.new_line()
         self.doc.new_header(2, 'Illumina library statistics')
@@ -386,17 +403,15 @@ class PimaReport:
         result = list(re.split('\\t', self.run_command(command)[0]))
         if result[1] == '0':
             self.error_out('No ONT reads found')
-        ont_n50, ont_read_count, ont_raw_bases = [int(i) for i in result]
+        self.ont_n50, self.ont_read_count, ont_raw_bases = [int(i) for i in result]
         command = ' '.join([opener,
                             fastq_file,
                             '| awk \'{getline;print length($0);getline;getline;}\''])
         result = self.run_command(command)
         result = list(filter(lambda x: x != '', result))
-        # TODO: the following are not yet used...
-        # ont_read_lengths = [int(i) for i in result]
-        # ont_bases = self.format_kmg(ont_raw_bases, decimals=1)
-        if ont_n50 <= self.ont_n50_min:
-            warning = 'ONT N50 (%s) is less than the recommended minimum (%s)' % (str(ont_n50), str(self.ont_n50_min))
+        self.ont_bases = self.format_kmg(ont_raw_bases, decimals=1)
+        if self.ont_n50 <= self.ont_n50_min:
+            warning = 'ONT N50 (%s) is less than the recommended minimum (%s)' % (str(self.ont_n50), str(self.ont_n50_min))
             self.assembly_notes = self.assembly_notes.append(pandas.Series(warning))
 
     def wordwrap_markdown(self, string):
@@ -767,7 +782,7 @@ class PimaReport:
         if self.did_qcat_ont_fastq:
             methods += ['ONT reads were demultiplexed and trimmed using qcat']
         self.methods[self.basecalling_methods_title] = pandas.Series(methods)
-        self.add_illumina_library_information()
+        # self.add_illumina_library_information()
         self.add_contig_info()
         self.evaluate_assembly()
         self.add_assembly_information()
@@ -785,7 +800,6 @@ class PimaReport:
         if self.did_medaka_ont_assembly:
             method = 'the genome assembly was polished using ont reads and medaka.'
             self.methods[self.assembly_methods_title] = self.methods[self.assembly_methods_title].append(pandas.series(method))
-        self.info_ont_fastq(self.illumina_fastq_file)
         self.add_assembly_notes()
 
     def make_tex(self):
@@ -844,7 +858,7 @@ parser.add_argument('--flye_assembly_info_file', action='store', dest='flye_asse
 parser.add_argument('--flye_version', action='store', dest='flye_version', default=None, help='Flye version string')
 parser.add_argument('--genome_insertions_file', action='store', dest='genome_insertions_file', help='Genome insertions BED file')
 parser.add_argument('--gzipped', action='store_true', dest='gzipped', default=False, help='Input sample is gzipped')
-parser.add_argument('--illumina_fastq_file', action='store', dest='illumina_fastq_file', help='Input sample')
+parser.add_argument('--ont_fastq_file', action='store', dest='ont_fastq_file', help='Input sample')
 parser.add_argument('--kraken2_report_file', action='store', dest='kraken2_report_file', default=None, help='kraken2 report file')
 parser.add_argument('--kraken2_version', action='store', dest='kraken2_version', default=None, help='kraken2 version string')
 parser.add_argument('--minimap2_version', action='store', dest='minimap2_version', default=None, help='minimap2 version string')
@@ -904,12 +918,12 @@ markdown_report = PimaReport(args.analysis_name,
                              args.flye_version,
                              args.genome_insertions_file,
                              args.gzipped,
-                             args.illumina_fastq_file,
                              args.kraken2_report_file,
                              args.kraken2_version,
                              args.minimap2_version,
                              args.mutation_regions_bed_file,
                              mutation_regions_files,
+                             args.ont_fastq_file,
                              args.pima_css,
                              args.plasmids_file,
                              args.quast_report_file,
