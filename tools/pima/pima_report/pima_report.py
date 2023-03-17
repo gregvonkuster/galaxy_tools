@@ -300,7 +300,7 @@ class PimaReport:
             "ONT FASTQ",
             self.wordwrap_markdown(self.ont_raw_fastq),
             "Illumina FASTQ",
-            "N/A"
+            "N/A",
             "Assembly",
             self.wordwrap_markdown(self.assembly_name),
             "Reference",
