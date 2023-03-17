@@ -328,7 +328,7 @@ class PimaReport:
             "ONT bases",
             '{:s}'.format(self.ont_bases),
             "Illumina FASTQ",
-            self.wordwrap_markdown(self.ont_fastq_file),
+            "N/A",
             "Assembly",
             self.wordwrap_markdown(self.assembly_name),
             "Reference",
