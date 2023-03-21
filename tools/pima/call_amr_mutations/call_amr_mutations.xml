@@ -5,10 +5,7 @@
     </macros>
     <expand macro="requirements"/>
     <command detect_errors="exit_code"><![CDATA[
-## NOTE: This tool provides the functionality of the PIMA filter_varsacn()
-## function here https://github.com/appliedbinf/pima_md/blob/main/pima.py#L3012
-
-python '$__tool_directory__/filter_varscan.py'
+python '$__tool_directory__/call_amr_mutations.py'
 --varscan_raw '$varscan_raw'
 --output '$output'
 ]]></command>
