@@ -9,7 +9,7 @@ import subprocess
 import sys
 
 
-def run_command(self, command):
+def run_command(command):
     try:
         return re.split('\\n', subprocess.check_output(command, shell=True).decode('utf-8'))
     except Exception:
