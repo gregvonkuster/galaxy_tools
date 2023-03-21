@@ -106,47 +106,70 @@ def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, varscan_vcf_file
                 mutation_regions = pandas.read_csv(amr_mutation_regions_bed_file, header=0, sep='\t', index_col=False)
                 # Validate mutation regions.
                 if mutation_regions.shape[1] != 7:
-                    efh.write("\nThe selected mutations regions BED file is invalid, it should be a six column file.\n")
+                    efh.write("The selected mutations regions BED file is invalid, it should be a six column file.\n")
                 elif mutation_regions.shape[0] == 0:
-                    efh.write("\nThere are no rows in the selected mutation regions file.\n")
+                    efh.write("There are no rows in the selected mutation regions file.\n")
                 else:
                     for region_i in range(mutation_regions.shape[0]):
                         region = mutation_regions.iloc[region_i, :]
                         if region[0] not in reference:
-                            efh.write("\nMutation region '%s' not found in reference genome.\n" % str(region))
+                            efh.write("Mutation region '%s' not found in reference genome.\n" % str(region))
                             break
                         if not isinstance(region[1], numpy.int64):
-                            efh.write("\nNon-integer found in mutation region start (column 2): %s.\n" % str(region[1]))
+                            efh.write("Non-integer found in mutation region start (column 2): %s.\n" % str(region[1]))
                             break
                         if not isinstance(region[2], numpy.int64):
-                            efh.write("\nNon-integer found in mutation region start (column 3): %s.\n" % str(region[2]))
+                            efh.write("Non-integer found in mutation region start (column 3): %s.\n" % str(region[2]))
                             break
                         if region[1] <= 0 or region[2] <= 0:
-                            efh.write("\nMutation region '%s' starts before the reference sequence.\n" % str(region))
+                            efh.write("Mutation region '%s' starts before the reference sequence.\n" % str(region))
                         if region[1] > len(reference[region[0]].seq) or region[2] > len(reference[region[0]].seq):
-                            efh.write("\nMutation region '%s' ends after the reference sequence.\n" % str(region))
+                            efh.write("Mutation region '%s' ends after the reference sequence.\n" % str(region))
                         if not region.get('type', default='No Type') in ['snp', 'small-indel', 'any']:
                             ofh.write("\n\nSkipping mutation region '%s' with invalid type '%s', valid types are 'snp', 'small-indel', 'any'.\n\n" % (str(region), str(region.get('type', default='No Type'))))
                             continue
                         ofh.write("\nFinding AMR mutations for %s.\n" % str(region['name']))
                         region_bed = 'region_%s.bed' % region_i
+                        ofh.write("region_bed: %s\n" % str(region_bed))
                         mutation_regions.loc[[region_i], ].to_csv(path_or_buf=region_bed, sep='\t', header=False, index=False)
+                        ofh.write("mutation_regions.loc[[region_i], ]:\n%s\n" % str(mutation_regions.loc[[region_i], ]))
                         region_mutations_tsv = os.path.join(mutation_regions_dir, 'region_%s_mutations.tsv' % region_i)
-                        cmd = ' '.join(['bedtools intersect -nonamecheck -wb -a',
-                                        region_bed,
-                                        '-b',
-                                        varscan_vcf_file,
+                        ofh.write("region_mutations_tsv: %s\n" % str(region_mutations_tsv))
+                        cmd = ' '.join(['bedtools intersect',
+                                        '-nonamecheck',
+                                        '-wb',
+                                        '-a', region_bed,
+                                        '-b', varscan_vcf_file,
                                         ' | awk \'BEGIN{getline < "' + amr_mutation_regions_bed_file + '";printf $0"\\t";',
                                         'getline < "' + varscan_vcf_file + '"; getline < "' + varscan_vcf_file + '";print $0}{print}\'',
                                         '1>' + region_mutations_tsv])
                         ofh.write("\ncmd:\n%s\n" % cmd)
                         run_command(cmd)
+                        try:
+                            ofh.write("After running command, os.path.getsize((region_mutations_tsv): %s\n" % str(os.path.getsize(region_mutations_tsv)))
+                            region_mutations = pandas.read_csv(region_mutations_tsv, sep='\t', header=0, index_col=False)
+                        except Exception:
+                            continue
+                        # Figure out what kind of mutations are in this region.
+                        region_mutation_types = pandas.Series(['snp'] * region_mutations.shape[0], name='TYPE', index=region_mutations.index)
+                        region_mutation_types[region_mutations['REF'].str.len() != region_mutations['ALT'].str.len()] = 'small-indel'
+                        region_mutation_drugs = pandas.Series(region['drug'] * region_mutations.shape[0], name='DRUG', index=region_mutations.index)
+                        region_notes = pandas.Series(region['note'] * region_mutations.shape[0], name='NOTE', index=region_mutations.index)
+                        region_mutations = pandas.concat([region_mutations, region_mutation_types, region_mutation_drugs, region_notes], axis=1)
+                        region_mutations = region_mutations[['#CHROM', 'POS', 'TYPE', 'REF', 'ALT', 'DRUG', 'NOTE']]
+                        amr_mutations[region['name']] = region_mutations
             else:
-                ofh.write("\nMutation region BED not received.\n")
+                ofh.write("\nMutation region BED file not received.\n")
             # Roll up potentially resistance conferring mutations.
+            ofh.write("\n##### Rolling up potentially resistance conferring mutations..\n")
             for mutation_region, mutation_hits in amr_mutations.iteritems():
+                ofh.write("mutation_region: %s\n" % str(mutation_region))
+                ofh.write("mutation_hits: %s\n" % str(mutation_hits))
                 for mutation_idx, mutation_hit in mutation_hits.iterrows():
+                    ofh.write("mutation_idx: %s\n" % str(mutation_idx))
+                    ofh.write("mutation_hit: %s\n" % str(mutation_hit))
                     mutation_name = mutation_region + ' ' + mutation_hit['REF'] + '->' + mutation_hit['ALT']
+                    ofh.write("mutation_name: %s\n" % str(mutation_name))
                     amr_to_draw = amr_to_draw.append(pandas.Series([mutation_name, mutation_hit['DRUG']], name=amr_to_draw.shape[0], index=amr_to_draw.columns))
 
         if amr_deletions_file not in [None, 'None'] and os.path.getsize(amr_deletions_file) > 0:
