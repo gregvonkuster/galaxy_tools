@@ -38,6 +38,7 @@ python '$__tool_directory__/draw_amr_matrix.py'
 --amr_gene_drug_file '$amr_gene_drug_file'
 --reference_genome reference.fa
 --amr_matrix_png_dir 'amr_matrix_png_dir'
+--errors '$errors'
 #if str($output_process_log) == 'yes':
     && mv 'process_log' '$process_log'
 #end if
@@ -74,6 +75,7 @@ python '$__tool_directory__/draw_amr_matrix.py'
         <data name="process_log" format="txt" label="${tool.name} on ${on_string} (process log)">
             <filter>output_process_log == 'yes'</filter>
         </data>
+        <data name="errors" format="txt" label="${tool.name} on ${on_string} (errors)"/>
         <collection name="mutation_regions_tsv" type="list" format="tsv" label="${tool.name} on ${on_string} (mutation regions)">
             <filter>amr_mutation_regions_bed_file not in [None, 'None']</filter>
             <discover_datasets pattern="(?P&lt;designation&gt;.+)\.(?P&lt;ext&gt;tsv)" directory="mutation_regions_dir"/>
@@ -99,6 +101,7 @@ python '$__tool_directory__/draw_amr_matrix.py'
                     </assert_contents>
                 </element>
             </output_collection>
+            <output name="errors" value="errors.txt" ftype="txt"/>
         </test>
     </tests>
     <help>
