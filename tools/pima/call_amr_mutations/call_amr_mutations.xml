@@ -5,33 +5,29 @@
     </macros>
     <expand macro="requirements"/>
     <command detect_errors="exit_code"><![CDATA[
-#import os
+## NOTE: This tool provides the functionality of the PIMA filter_varsacn()
+## function here https://github.com/appliedbinf/pima_md/blob/main/pima.py#L3012
 
-#if $os.path.getsize(str($varscan_raw)) > 0:
-    cat '$varscan_raw' | awk '(NR > 1 && $9 == 2 && $5 + $6 >= 15){OFS = "\t";f = $6 / ($5 + $6); gsub(/.*\//, "", $4);s = $4;gsub(/[+\\-]/, "", s);$7 = sprintf("%.2f%%", f * 100);min = 1 / log(length(s) + 2) / log(10) + 2/10;if(f > min){print}}' > varscan_snp &&
-    cat varscan_snp | awk '{OFS = "\t"; print $1,$2,".",$3,$4,-log($14),"PASS",".","GT","1|1"}' > snp_vcf &&
-    cat snp_vcf | sort -k 1,1 -k 2n,2n | awk 'BEGIN{OFS = "\t";print "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tSAMPLE"}{print}' > '$varscan_vcf'
-#end if
+python '$__tool_directory__/filter_varscan.py'
+--varscan_raw '$varscan_raw'
+--output '$output'
 ]]></command>
     <inputs>
         <param name="varscan_raw" type="data" format="vcf" label="Raw varscan VCF file"/>
-        <param name="mutation_regions" type="data" format="bed" label="AMR mutation regions BED file"/>
     </inputs>
     <outputs>
-        <data name="varscan_vcf" format="vcf"/>
+        <data name="output" format="vcf"/>
     </outputs>
     <tests>
         <test>
-            <param name="varscan_raw" value="input1.vcf" ftype="vcf"/>
-            <param name="mutation_regions" value="mutation_regions.bed" ftype="bed"/>
-            <output name="varscan_vcf" value="output1.vcf" ftype="vcf"/>
+            <param name="varscan_raw" value="input.vcf" ftype="vcf"/>
+            <output name="output" value="output.vcf" ftype="vcf"/>
         </test>
     </tests>
     <help>
 **What it does**
 
-Accepts VarScan mpileup2snps file, filters them, and produces a VCF file.
+Accepts VarScan mpileup2snps VCF file, filters it, and produces a filtered VCF file.
     </help>
     <expand macro="citations"/>
 </tool>
-
