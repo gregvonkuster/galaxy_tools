@@ -88,6 +88,7 @@ python '${__tool_directory__}/pima_report.py'
 #if str($dnadiff_snps_file) not in ['None', '']:
     --dnadiff_version '$dnadiff_version'
 #end if
+--errors_file '$errors_file'
 --feature_bed_dir 'feature_bed_dir'
 --feature_png_dir 'feature_png_dir'
 #if str($flye_assembly_info_file) not in ['None', '']:
@@ -111,6 +112,7 @@ python '${__tool_directory__}/pima_report.py'
 --pima_css '${__tool_directory__}/pima.css'
 --plasmids_file '$plasmids_file'
 --quast_report_file '$quast_report_file'
+--read_type '$read_type'
 --reference_insertions_file '$reference_insertions_file'
 #if str($samtools_pileup_file) not in ['None', '']:
     --samtools_version '$samtools_version'
@@ -131,6 +133,7 @@ python '${__tool_directory__}/pima_report.py'
         <param name="compute_sequence_length_file" type="data" format="tabular,tsv" label="Compute sequence length tabular file"/>
         <param name="contig_coverage_file" type="data" format="tabular,tsv" label="Contig coverage tabular file"/>
         <param name="dnadiff_snps_file" type="data" format="tabular" label="DNAdiff snps tabular file"/>
+        <param name="errors_file" type="data" format="txt" label="AMR mutation regions error txt file"/>
         <param name="features_bed" format="bed" type="data_collection" collection_type="list" label="Collection of best feature hits BED files"/>
         <param name="features_png" format="png" type="data_collection" collection_type="list" label="Collection of best feature hits PNG files"/>
         <param name="flye_assembly_info_file" type="data" format="tabular,tsv" optional="true" label="Flye assembly info tabular file" help="Optional, ignored if not selected"/>
@@ -141,6 +144,10 @@ python '${__tool_directory__}/pima_report.py'
         <param name="mutation_regions" format="tabular,tsv" type="data_collection" collection_type="list" label="Collection of mutation regions tabular files"/>
         <param name="mutation_regions_bed_file" type="data" format="mutations_regions,bed" label="Mutation regions BED file"/>
         <param name="quast_report_file" type="data" format="tabular" label="Quast report tabular file"/>
+        <param argument="--read_type" type="select" label="Specify the read type">
+            <option value="ont" selected="true">Long reads - Oxford Nanopore Technologies (ONT)</option>
+            <option value="illumina">Short reads - Illumina</option>
+        </param>
         <param name="reference_insertions_file" type="data" format="bed" label="Reference insertions BED file"/>
         <param name="plasmids_file" type="data" format="tsv" label="pChunks plasmids TSV file"/>
         <param name="samtools_pileup_file" type="data" format="pileup" label="Samtools pileup file"/>

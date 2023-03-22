@@ -20,11 +20,12 @@ class PimaReport:
     def __init__(self, analysis_name=None, amr_deletions_file=None, amr_matrix_files=None, assembly_fasta_file=None,
                  assembly_name=None, bedtools_version=None, blastn_version=None, circos_files=None,
                  compute_sequence_length_file=None, contig_coverage_file=None, dbkey=None, dnadiff_snps_file=None,
-                 dnadiff_version=None, feature_bed_files=None, feature_png_files=None, flye_assembly_info_file=None,
-                 flye_version=None, genome_insertions_file=None, gzipped=None, kraken2_report_file=None,
-                 kraken2_version=None, minimap2_version=None, mutation_regions_bed_file=None, mutation_regions_tsv_files=None,
-                 ont_fastq_file=None, pima_css=None, plasmids_file=None, quast_report_file=None, reference_insertions_file=None,
-                 samtools_version=None, varscan_version=None):
+                 dnadiff_version=None, errors_file=None, feature_bed_files=None, feature_png_files=None,
+                 flye_assembly_info_file=None, flye_version=None, genome_insertions_file=None, gzipped=None,
+                 kraken2_report_file=None, kraken2_version=None, minimap2_version=None, mutation_regions_bed_file=None,
+                 mutation_regions_tsv_files=None, ont_fastq_file=None, pima_css=None, plasmids_file=None,
+                 quast_report_file=None, read_type=None, reference_insertions_file=None, samtools_version=None,
+                 varscan_version=None):
         self.ofh = open("process_log.txt", "w")
 
         self.ofh.write("amr_deletions_file: %s\n" % str(amr_deletions_file))
@@ -40,6 +41,7 @@ class PimaReport:
         self.ofh.write("dbkey: %s\n" % str(dbkey))
         self.ofh.write("dnadiff_snps_file: %s\n" % str(dnadiff_snps_file))
         self.ofh.write("dnadiff_version: %s\n" % str(dnadiff_version))
+        self.ofh.write("errors_file: %s\n" % str(errors_file))
         self.ofh.write("feature_bed_files: %s\n" % str(feature_bed_files))
         self.ofh.write("feature_png_files: %s\n" % str(feature_png_files))
         self.ofh.write("flye_assembly_info_file: %s\n" % str(flye_assembly_info_file))
@@ -55,6 +57,7 @@ class PimaReport:
         self.ofh.write("pima_css: %s\n" % str(pima_css))
         self.ofh.write("plasmids_file: %s\n" % str(plasmids_file))
         self.ofh.write("quast_report_file: %s\n" % str(quast_report_file))
+        self.ofh.write("read_type: %s\n" % str(read_type))
         self.ofh.write("reference_insertions_file: %s\n" % str(reference_insertions_file))
         self.ofh.write("samtools_version: %s\n" % str(samtools_version))
         self.ofh.write("varscan_version: %s\n" % str(varscan_version))
@@ -87,6 +90,7 @@ class PimaReport:
             self.dnadiff_version = 'dnadiff (version unknown)'
         else:
             self.dnadiff_version = re.sub('_', '.', dnadiff_version.rstrip(' _snps_'))
+        self.errors_file = errors_file
         self.feature_bed_files = feature_bed_files
         self.feature_png_files = feature_png_files
         self.flye_assembly_info_file = flye_assembly_info_file
@@ -110,7 +114,7 @@ class PimaReport:
         self.pima_css = pima_css
         self.plasmids_file = plasmids_file
         self.quast_report_file = quast_report_file
-        self.read_type = 'ONT'
+        self.read_type = read_type.upper()
         self.reference_insertions_file = reference_insertions_file
         self.reference_insertions_file = reference_insertions_file
         if samtools_version is None:
@@ -137,6 +141,7 @@ class PimaReport:
         self.feature_plot_title = 'Feature annotation plots'
         self.large_indel_title = 'Large insertions & deletions'
         self.methods_title = 'Methods'
+        self.mutation_errors_title = 'Errors finding mutations in the sample'
         self.mutation_title = 'Mutations found in the sample'
         self.mutation_methods_title = 'Mutation screening'
         self.plasmid_methods_title = 'Plasmid annotation'
@@ -599,29 +604,6 @@ class PimaReport:
         except Exception:
             # Likely an empty file.
             return
-        # TODO: this is the only place where reference_genome is used,
-        # so I'm commenting it out for now.  We need to confirm if these
-        # errors that require the reference genmoe being passed are necessary.
-        # If so, we'll need to implement data tables in this tool.
-        # Make sure that the positions in the BED file fall within
-        # the chromosomes provided in the reference sequence.
-        """
-        for mutation_region in range(mutation_regions.shape[0]):
-            mutation_region = mutation_regions.iloc[mutation_region, :]
-            if not (mutation_region[0] in self.reference_genome):
-                self.ofh.write("\nMutation region: %s not found in reference genome.\n" % ' '.join(mutation_region.astype(str)))
-                continue
-            if not isinstance(mutation_region[1], int):
-                self.ofh.write("\nNon-integer found in mutation region start (column 2): %s.\n" % str(mutation_region[1]))
-                break
-            elif not isinstance(mutation_region[2], int):
-                self.ofh.write("\nNon-integer found in mutation region start (column 3): %s.\n" % str(mutation_region[2]))
-                break
-            if mutation_region[1] <= 0 or mutation_region[2] <= 0:
-                self.ofh.write("\nMutation region %s starts before the reference sequence.\n" % ' '.join(mutation_region.astype(str)))
-            if mutation_region[1] > len(self.reference_genome[mutation_region[0]].seq) or mutation_region[2] > len(self.reference_genome[mutation_region[0]].seq):
-                self.ofh.write("\nMutation region %s ends after the reference sequence.\n" % ' '.join(mutation_region.astype(str)))
-        """
         amr_mutations = pandas.Series(dtype=object)
         for region_i in range(mutation_regions.shape[0]):
             region = mutation_regions.iloc[region_i, :]
@@ -662,6 +644,16 @@ class PimaReport:
                     Table_List = Table_List + region_mutations.iloc[i, [0, 1, 3, 4, 5, 6]].values.tolist()
                 row_count = int(len(Table_List) / 6)
                 self.doc.new_table(columns=6, rows=row_count, text=Table_List, text_align='left')
+        if os.path.getsize(self.errors_file) > 0:
+            # Report the errors encountered when attempting
+            # to find mutations in the sample.
+            self.doc.new_line()
+            self.doc.new_header(level=2, title=self.mutation_errors_title)
+            with open(self.errors_file, 'r') as efh:
+                for i, line in enumerate(efh):
+                    line = line.strip()
+                    if line:
+                        self.doc.new_line('* %s' % line)
         method = '%s reads were mapped to the reference sequence using %s.' % (self.read_type, self.minimap2_version)
         self.methods[self.mutation_methods_title] = self.methods[self.mutation_methods_title].append(pandas.Series(method))
         method = 'Mutations were identified using %s and %s.' % (self.samtools_version, self.varscan_version)
@@ -703,6 +695,7 @@ class PimaReport:
             amr_deletions = amr_deletions.loc[amr_deletions['type'].isin(['large-deletion', 'any']), :]
         self.doc.new_line()
         self.doc.new_header(level=2, title=self.large_indel_title)
+        self.doc.new_line('This section is informative only when your idolates were identified as *Bacillus anthracis* strains')
         for genome in ['Reference insertions', 'Query insertions']:
             genome_indels = large_indels[genome].copy()
             self.doc.new_line()
@@ -852,6 +845,7 @@ parser.add_argument('--contig_coverage_file', action='store', dest='contig_cover
 parser.add_argument('--dbkey', action='store', dest='dbkey', help='Reference genome identifier')
 parser.add_argument('--dnadiff_snps_file', action='store', dest='dnadiff_snps_file', help='DNAdiff snps tabular file')
 parser.add_argument('--dnadiff_version', action='store', dest='dnadiff_version', default=None, help='DNAdiff version string')
+parser.add_argument('--errors_file', action='store', dest='errors_file', default=None, help='AMR mutations errors encountered txt file')
 parser.add_argument('--feature_bed_dir', action='store', dest='feature_bed_dir', help='Directory of best feature hits bed files')
 parser.add_argument('--feature_png_dir', action='store', dest='feature_png_dir', help='Directory of best feature hits png files')
 parser.add_argument('--flye_assembly_info_file', action='store', dest='flye_assembly_info_file', default=None, help='Flye assembly info tabular file')
@@ -867,6 +861,7 @@ parser.add_argument('--mutation_regions_dir', action='store', dest='mutation_reg
 parser.add_argument('--pima_css', action='store', dest='pima_css', help='PIMA css stypesheet')
 parser.add_argument('--plasmids_file', action='store', dest='plasmids_file', help='pChunks plasmids TSV file')
 parser.add_argument('--quast_report_file', action='store', dest='quast_report_file', help='Quast report tabular file')
+parser.add_argument('--read_type', action='store', dest='read_type', help='Sample read type (ONT or Illumina)')
 parser.add_argument('--reference_insertions_file', action='store', dest='reference_insertions_file', help='Reference insertions BED file')
 parser.add_argument('--samtools_version', action='store', dest='samtools_version', default=None, help='Samtools version string')
 parser.add_argument('--varscan_version', action='store', dest='varscan_version', default=None, help='Varscan version string')
@@ -912,6 +907,7 @@ markdown_report = PimaReport(args.analysis_name,
                              args.dbkey,
                              args.dnadiff_snps_file,
                              args.dnadiff_version,
+                             args.errors_file,
                              feature_bed_files,
                              feature_png_files,
                              args.flye_assembly_info_file,
@@ -927,6 +923,7 @@ markdown_report = PimaReport(args.analysis_name,
                              args.pima_css,
                              args.plasmids_file,
                              args.quast_report_file,
+                             args.read_type,
                              args.reference_insertions_file,
                              args.samtools_version,
                              args.varscan_version)
