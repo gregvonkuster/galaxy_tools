@@ -2,9 +2,10 @@
 
 import argparse
 import os
+import random
 
-import pandas
 import matplotlib.pyplot as pyplot
+import pandas
 from Bio import SeqIO
 from dna_features_viewer import GraphicFeature, GraphicRecord
 
@@ -13,6 +14,12 @@ AMR_COLOR = '#FED976'
 INC_GROUPS_COLOR = '#0570B0'
 FEATURE_COLORS = [AMR_COLOR, INC_GROUPS_COLOR]
 FIGURE_WIDTH = 13
+
+
+def get_random_color():
+    number_of_colors = 16
+    colors = ['#%s' % ' '.join([random.choice('0123456789ABCDEF') for j in range(6)]) for i in range(number_of_colors)]
+    return random.choice(colors)
 
 
 def draw_features(feature_hits_files, contigs, output_dir):
@@ -51,7 +58,11 @@ def draw_features(feature_hits_files, contigs, output_dir):
             features_to_plot = []
             for i in range(contig_features.shape[0]):
                 i = contig_features.iloc[i, :]
-                features_to_plot += [GraphicFeature(start=i[1], end=i[2], label=i[3], strand=1 * i[5], color=FEATURE_COLORS[feature_number])]
+                if feature_number <= len(FEATURE_COLORS):
+                    color = FEATURE_COLORS[feature_number]
+                else:
+                    color = get_random_color()
+                features_to_plot += [GraphicFeature(start=i[1], end=i[2], label=i[3], strand=1 * i[5], color=color)]
             feature_sets_to_plot[feature_name] = features_to_plot
         ofh.write("Number of features to plot: %d\n" % len(feature_sets_to_plot))
         if len(feature_sets_to_plot) == 0:
