@@ -17,9 +17,8 @@ FIGURE_WIDTH = 13
 
 
 def get_random_color():
-    number_of_colors = 16
-    colors = ['#%s' % ' '.join([random.choice('0123456789ABCDEF') for j in range(6)]) for i in range(number_of_colors)]
-    return random.choice(colors)
+    r = lambda: random.randint(0,255)
+    return '#%02X%02X%02X' % (r(),r(),r())
 
 
 def draw_features(feature_hits_files, contigs, output_dir):
@@ -58,7 +57,7 @@ def draw_features(feature_hits_files, contigs, output_dir):
             features_to_plot = []
             for i in range(contig_features.shape[0]):
                 i = contig_features.iloc[i, :]
-                if feature_number <= len(FEATURE_COLORS):
+                if feature_number < len(FEATURE_COLORS):
                     color = FEATURE_COLORS[feature_number]
                 else:
                     color = get_random_color()
