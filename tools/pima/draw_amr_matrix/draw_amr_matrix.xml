@@ -90,14 +90,16 @@ python '$__tool_directory__/draw_amr_matrix.py'
             <param name="ref_file" ftype="fasta" value="ref_genome.fasta"/>
             <param name="amr_feature_hits">
                 <collection type="list">
-                    <element name="amr_pima_md.bed" value="amr_pima_md.bed"/>
+                    <element name="amr_pima_md" value="amr_pima_md.bed"/>
                 </collection>
             </param>
+            <param name="varscan_vcf_file" value="varscan.vcf" ftype="vcf"/>
+            <param name="amr_mutation_regions_bed_file" value="amr_mutation_regions.bed" ftype="bed"/>
             <param name="amr_gene_drug_file" value="amr_gene_drug.tsv" ftype="tsv"/>
             <output_collection name="amr_matrix_png" type="list" count="1">
-                <element name="contig_1" ftype="png">
+                <element name="amr_matrix" ftype="png">
                     <assert_contents>
-                        <has_size value="25383" delta="100"/>
+                        <has_size value="28798" delta="1000"/>
                     </assert_contents>
                 </element>
             </output_collection>

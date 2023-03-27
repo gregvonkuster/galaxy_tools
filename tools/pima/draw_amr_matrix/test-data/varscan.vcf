@@ -1,0 +1,21 @@
+##fileformat=VCFv4.2
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SAMPLE
+chromosome	6848	.	C	T	0	PASS	.	GT	1|1
+chromosome	28975	.	G	A	0	PASS	.	GT	1|1
+chromosome	387637	.	G	A	0	PASS	.	GT	1|1
+chromosome	644625	.	T	C	0	PASS	.	GT	1|1
+chromosome	692932	.	C	T	0	PASS	.	GT	1|1
+chromosome	702761	.	G	C	0	PASS	.	GT	1|1
+chromosome	1303210	.	G	A	0	PASS	.	GT	1|1
+chromosome	1631941	.	G	T	0	PASS	.	GT	1|1
+chromosome	2067935	.	G	A	0	PASS	.	GT	1|1
+chromosome	4126060	.	T	C	0	PASS	.	GT	1|1
+chromosome	5140491	.	G	A	0	PASS	.	GT	1|1
+pXO1	7452	.	C	T	0	PASS	.	GT	1|1
+pXO1	55874	.	A	T	0	PASS	.	GT	1|1
+pXO1	77518	.	A	G	0	PASS	.	GT	1|1
+pXO1	141921	.	T	G	0	PASS	.	GT	1|1
+pXO1	141922	.	T	A	0	PASS	.	GT	1|1
+pXO1	141923	.	T	A	0	PASS	.	GT	1|1
+pXO1	141924	.	C	A	0	PASS	.	GT	1|1
+pXO1	150892	.	C	A	0	PASS	.	GT	1|1

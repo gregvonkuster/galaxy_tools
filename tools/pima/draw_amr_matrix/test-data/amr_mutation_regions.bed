@@ -1,0 +1,44 @@
+#contig	start	stop	name	type	drug	note
+chromosome	6843	6862	gyrA QRDR	snp	quinolone	gyrA QRDR mutation is the most common quinolone resistance mutation.  It has not been observed in naturally occuring isolates.
+chromosome	5664	6166	gyrB QRDR	snp	quinolone	gyrB QRDR mutation is less a less common quinolone resistance mutation.  It has not been observed in naturally occuring isolates.
+chromosome	124092	124443	rplV	any	macrolide	rplV alteration has been associated with macrolide resistance.
+chromosome	3365449	3365459	parC QRDR 1	snp	quinolone	parC QRDR mutation is less a less common quinolone resistance mutation.  It has not been observed in naturally occuring isolates.   
+chromosome	3365231	3365648	parC QRDR 2	snp	quinolone	parC QRDR mutation is less a less common quinolone resistance mutation.  It has not been observed in naturally occuring isolates.   
+chromosome	3366159	3366605	parE QRDR 	snp	quinolone	parE QRDR mutation is less a less common quinolone resistance mutation.  It has not been observed in naturally occuring isolates.   
+chromosome	842403	842981	tetR	any	quinolone	terR inactivation has been shown to confer quinolone resistance in a lab setting.  It has not been observed in natually ocurring isolates.
+chromosome	2323274	2323294	rsip poly-A	any	beta-lactam	 rsiP inactivation has been shown to confer penicillin resistance in a lab setting.  It has not been observed in naturally ocurring isolates.
+chromosome	2323269	2324096	rsip broad-gene	any	beta-lactam	 rsiP inactivation has been shown to confer penicillin resistance in a lab setting.  It has not been observed in naturally ocurring isolates.
+chromosome	2421872	2421877	abc-f poly-A	indel	lincosamide	 Restoration of the abc-f ORF has been associated with lincosamide resistance in a lab setting.  It has not been observed in naturally ocurring isolates.
+chromosome	9307	10861	16S.1	point	NA	NA
+chromosome	11230	14158	23S.1	point	NA	NA
+chromosome	14203	14318	5S.1	point	NA	NA
+chromosome	29101	30655	16S.2	point	NA	NA
+chromosome	31024	33952	23S.2	point	NA	NA
+chromosome	33997	34112	5S.2	point	NA	NA
+chromosome	82423	83977	16S.3	point	NA	NA
+chromosome	84119	87047	23S.3	point	NA	NA
+chromosome	87093	87208	5S.3	point	NA	NA
+chromosome	145487	147041	16S.4	point	NA	NA
+chromosome	147183	150111	23S.4	point	NA	NA
+chromosome	150194	150309	5S.4	point	NA	NA
+chromosome	246207	247761	16S.5	point	NA	NA
+chromosome	247903	250831	23S.5	point	NA	NA
+chromosome	250877	250992	5S.5	point	NA	NA
+chromosome	266786	268340	16S.6	point	NA	NA
+chromosome	268482	271410	23S.6	point	NA	NA
+chromosome	271456	271571	5S.6	point	NA	NA
+chromosome	280084	281638	16S.7	point	NA	NA
+chromosome	281780	284708	23S.7	point	NA	NA
+chromosome	284755	284870	5S.7	point	NA	NA
+chromosome	290057	291611	16S.8	point	NA	NA
+chromosome	291753	294681	23S.8	point	NA	NA
+chromosome	294728	294843	5S.8	point	NA	NA
+chromosome	532435	533988	16S.9	point	NA	NA
+chromosome	534123	537051	23S.9	point	NA	NA
+chromosome	537148	537263	5S.9	point	NA	NA
+chromosome	741537	743091	16S.10	point	NA	NA
+chromosome	743233	746161	23S.10	point	NA	NA
+chromosome	746259	746374	5S.10	point	NA	NA
+chromosome	4652034	4652149	5S.11	point	NA	NA
+chromosome	4652247	4655175	23S.11	point	NA	NA
+chromosome	4655317	4656870	16S.11	point	NA	NA

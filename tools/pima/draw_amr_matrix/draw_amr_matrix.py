@@ -65,7 +65,9 @@ def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, varscan_vcf_file
     # Read amr_feature_hits_files.
     amr_feature_hits = pandas.Series(dtype=object)
     for amr_feature_hits_file in amr_feature_hits_files:
+        ofh.write("\namr_feature_hits_file: %s\n" % amr_feature_hits_file)
         feature_name = os.path.basename(amr_feature_hits_file)
+        ofh.write("\nfeature_name: %s\n" % feature_name)
         # Make sure the file is not empty.
         if os.path.isfile(amr_feature_hits_file) and os.path.getsize(amr_feature_hits_file) > 0:
             best_hits = pandas.read_csv(filepath_or_buffer=amr_feature_hits_file, sep='\t', header=None)
@@ -148,6 +150,7 @@ def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, varscan_vcf_file
                         try:
                             ofh.write("After running command, os.path.getsize((region_mutations_tsv): %s\n" % str(os.path.getsize(region_mutations_tsv)))
                             region_mutations = pandas.read_csv(region_mutations_tsv, sep='\t', header=0, index_col=False)
+                            ofh.write("\nregion_mutations: %s\n" % region_mutations)
                         except Exception:
                             continue
                         # Figure out what kind of mutations are in this region.
@@ -160,6 +163,7 @@ def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, varscan_vcf_file
                         amr_mutations[region['name']] = region_mutations
             else:
                 ofh.write("\nMutation region BED file not received.\n")
+            ofh.write("\nAfter processing mutations, amr_mutations: %s\n" % str(amr_mutations))
             # Roll up potentially resistance conferring mutations.
             ofh.write("\n##### Rolling up potentially resistance conferring mutations..\n")
             for mutation_region, mutation_hits in amr_mutations.iteritems():
@@ -171,6 +175,8 @@ def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, varscan_vcf_file
                     mutation_name = mutation_region + ' ' + mutation_hit['REF'] + '->' + mutation_hit['ALT']
                     ofh.write("mutation_name: %s\n" % str(mutation_name))
                     amr_to_draw = amr_to_draw.append(pandas.Series([mutation_name, mutation_hit['DRUG']], name=amr_to_draw.shape[0], index=amr_to_draw.columns))
+            ofh.write("\nAfter processing mutations, amr_to_draw: %s\n" % str(amr_to_draw))
+            ofh.write("\nAfter processing mutations, amr_to_draw.shape[0]: %s\n" % str(amr_to_draw.shape[0]))
 
         if amr_deletions_file not in [None, 'None'] and os.path.getsize(amr_deletions_file) > 0:
             # Roll up deletions that might confer resistance.
@@ -183,8 +189,10 @@ def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, varscan_vcf_file
                 amr_deletions = amr_deletions.loc[amr_deletions['type'].isin(['large-deletion', 'any']), :]
                 for deletion_idx, deleted_gene in amr_deletions.iterrows():
                     amr_to_draw = amr_to_draw.append(pandas.Series(['\u0394' + deleted_gene[3], deleted_gene[5]], name=amr_to_draw.shape[0], index=amr_to_draw.columns))
+            ofh.write("\nAfter processing deletions, amr_to_draw: %s\n" % str(amr_to_draw))
 
-        if amr_to_draw.shape[0] > 1:
+        ofh.write("\namr_to_draw.shape[0]: %s\n" % str(amr_to_draw.shape[0]))
+        if amr_to_draw.shape[0] > 0:
             ofh.write("\nDrawing AMR matrix...\n")
             present_genes = amr_to_draw['gene'].unique()
             present_drugs = amr_to_draw['drug'].unique()
