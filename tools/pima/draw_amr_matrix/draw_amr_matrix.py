@@ -192,7 +192,7 @@ def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, varscan_vcf_file
             ofh.write("\nAfter processing deletions, amr_to_draw: %s\n" % str(amr_to_draw))
 
         ofh.write("\namr_to_draw.shape[0]: %s\n" % str(amr_to_draw.shape[0]))
-        if amr_to_draw.shape[0] > 0:
+        if amr_to_draw.shape[0] > 1:
             ofh.write("\nDrawing AMR matrix...\n")
             present_genes = amr_to_draw['gene'].unique()
             present_drugs = amr_to_draw['drug'].unique()
