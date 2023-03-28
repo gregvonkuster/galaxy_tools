@@ -197,7 +197,7 @@ def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, varscan_vcf_file
         # exact inputs when running outside of planeo that result in the value
         # being 2.  So we have to pass this in_test_mode flag in order to get
         # functional tests to work.
-        if in_test_mode:
+        if in_test_mode == 'true':
             shape_val = 0
         else:
             shape_val = 1

@@ -39,10 +39,10 @@ python '$__tool_directory__/draw_amr_matrix.py'
 --reference_genome reference.fa
 --amr_matrix_png_dir 'amr_matrix_png_dir'
 --errors '$errors'
+--in_test_mode '$in_test_mode'
 #if str($output_process_log) == 'yes':
     && mv 'process_log' '$process_log'
 #end if
---in_test_mode '$in_test_mode'
 ]]></command>
     <inputs>
         <conditional name="reference_source">
