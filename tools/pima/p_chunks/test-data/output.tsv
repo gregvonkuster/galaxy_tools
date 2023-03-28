@@ -1,0 +1,2 @@
+query.name	plasmid.name	plasmid.accession	query.size	aligned.bases	plasmid.size	plasmid.missing
+contig_2	Bacillus anthracis str. Sterne plasmid pXO1	CP009540.1	181626	181626	181624	0

@@ -29,7 +29,11 @@ Rscript '${__tool_directory__}/p_chunks.R'
         <data name="output_plasmids" format="tsv" label="${tool.name} on ${on_string} (plasmids)"/>
     </outputs>
     <tests>
-        <!-- Tests are not possible due to file size requirements -->
+        <test>
+            <param name="plasmid_psl" value="input.psl" ftype="psl"/>
+            <param name="plasmid_database" value="input.blastdbn" ftype="blastdbn"/>
+            <output name="output_plasmids" value="output.tsv" ftype="tsv"/>
+        </test>
     </tests>
     <help>
 **What it does**
