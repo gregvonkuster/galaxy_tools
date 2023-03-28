@@ -42,6 +42,7 @@ python '$__tool_directory__/draw_amr_matrix.py'
 #if str($output_process_log) == 'yes':
     && mv 'process_log' '$process_log'
 #end if
+--in_test_mode '$in_test_mode'
 ]]></command>
     <inputs>
         <conditional name="reference_source">
@@ -70,6 +71,7 @@ python '$__tool_directory__/draw_amr_matrix.py'
             <option value="no" selected="true">No</option>
             <option value="yes">Yes</option>
         </param>
+        <param name="in_test_mode" type="hidden" value="false"/>
     </inputs>
     <outputs>
         <data name="process_log" format="txt" label="${tool.name} on ${on_string} (process log)">
@@ -96,6 +98,7 @@ python '$__tool_directory__/draw_amr_matrix.py'
             <param name="varscan_vcf_file" value="varscan.vcf" ftype="vcf"/>
             <param name="amr_mutation_regions_bed_file" value="amr_mutation_regions.bed" ftype="bed"/>
             <param name="amr_gene_drug_file" value="amr_gene_drug.tsv" ftype="tsv"/>
+            <param name="in_test_mode" value="true"/>
             <output_collection name="amr_matrix_png" type="list" count="1">
                 <element name="amr_matrix" ftype="png">
                     <assert_contents>
