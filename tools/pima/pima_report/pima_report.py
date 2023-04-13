@@ -542,6 +542,7 @@ class PimaReport:
                 contig_title = 'Alignment to %s' % contig
                 self.doc.new_line()
                 self.doc.new_header(level=3, title=contig_title)
+                self.doc.new_line('Blue indicates aligned sequences (to the reference) and yellow indicates missing sequences')
                 self.doc.new_line(self.doc.new_inline_image(text='contig_title', path=os.path.abspath(circos_file)))
                 self.doc.new_line('<div style="page-break-after: always;"></div>')
                 self.doc.new_line()
