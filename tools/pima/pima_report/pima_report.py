@@ -17,20 +17,20 @@ CDC_ADVISORY = 'The analysis and report presented here should be treated as prel
 
 class PimaReport:
 
-    def __init__(self, analysis_name=None, amr_deletions_file=None, amr_matrix_files=None, assembly_fasta_file=None,
-                 assembly_name=None, bedtools_version=None, blastn_version=None, circos_files=None,
-                 compute_sequence_length_file=None, contig_coverage_file=None, dbkey=None, dnadiff_snps_file=None,
-                 dnadiff_version=None, errors_file=None, feature_bed_files=None, feature_png_files=None,
-                 flye_assembly_info_file=None, flye_version=None, genome_insertions_file=None, gzipped=None,
+    def __init__(self, analysis_name=None, amr_deletions_file=None, amr_matrix_files=None, assembler_version=None,
+                 assembly_fasta_file=None, assembly_name=None, bedtools_version=None, blastn_version=None,
+                 circos_files=None, compute_sequence_length_file=None, contig_coverage_file=None, dbkey=None,
+                 dnadiff_snps_file=None, dnadiff_version=None, errors_file=None, fastq_file=None, feature_bed_files=None,
+                 feature_png_files=None, flye_assembly_info_file=None, genome_insertions_file=None, gzipped=None,
                  kraken2_report_file=None, kraken2_version=None, minimap2_version=None, mutation_regions_bed_file=None,
-                 mutation_regions_tsv_files=None, ont_fastq_file=None, pima_css=None, plasmids_file=None,
-                 quast_report_file=None, read_type=None, reference_insertions_file=None, samtools_version=None,
-                 varscan_version=None):
+                 mutation_regions_tsv_files=None, pima_css=None, plasmids_file=None, quast_report_file=None,
+                 read_type=None, reference_insertions_file=None, samtools_version=None, varscan_version=None):
         self.ofh = open("process_log.txt", "w")
 
         self.ofh.write("amr_deletions_file: %s\n" % str(amr_deletions_file))
         self.ofh.write("amr_matrix_files: %s\n" % str(amr_matrix_files))
         self.ofh.write("analysis_name: %s\n" % str(analysis_name))
+        self.ofh.write("assembler_version: %s\n" % str(assembler_version))
         self.ofh.write("assembly_fasta_file: %s\n" % str(assembly_fasta_file))
         self.ofh.write("assembly_name: %s\n" % str(assembly_name))
         self.ofh.write("bedtools_version: %s\n" % str(bedtools_version))
@@ -42,10 +42,10 @@ class PimaReport:
         self.ofh.write("dnadiff_snps_file: %s\n" % str(dnadiff_snps_file))
         self.ofh.write("dnadiff_version: %s\n" % str(dnadiff_version))
         self.ofh.write("errors_file: %s\n" % str(errors_file))
+        self.ofh.write("fastq_file: %s\n" % str(fastq_file))
         self.ofh.write("feature_bed_files: %s\n" % str(feature_bed_files))
         self.ofh.write("feature_png_files: %s\n" % str(feature_png_files))
         self.ofh.write("flye_assembly_info_file: %s\n" % str(flye_assembly_info_file))
-        self.ofh.write("flye_version: %s\n" % str(flye_version))
         self.ofh.write("gzipped: %s\n" % str(gzipped))
         self.ofh.write("genome_insertions_file: %s\n" % str(genome_insertions_file))
         self.ofh.write("kraken2_report_file: %s\n" % str(kraken2_report_file))
@@ -53,7 +53,6 @@ class PimaReport:
         self.ofh.write("minimap2_version: %s\n" % str(minimap2_version))
         self.ofh.write("mutation_regions_bed_file: %s\n" % str(mutation_regions_bed_file))
         self.ofh.write("mutation_regions_tsv_files: %s\n" % str(mutation_regions_tsv_files))
-        self.ofh.write("ont_fastq_file: %s\n" % str(ont_fastq_file))
         self.ofh.write("pima_css: %s\n" % str(pima_css))
         self.ofh.write("plasmids_file: %s\n" % str(plasmids_file))
         self.ofh.write("quast_report_file: %s\n" % str(quast_report_file))
@@ -71,6 +70,16 @@ class PimaReport:
         self.amr_matrix_files = amr_matrix_files
         self.analysis_name = analysis_name.split('_')[0]
         self.ofh.write("self.analysis_name: %s\n" % str(self.analysis_name))
+        if assembler_version is None:
+            self.assembler_version = 'assembler (version unknown)'
+        else:
+            if read_type == 'ont':
+                # Assembler is flye.
+                assembler_version = assembler_version.rstrip(' _assembly info_')
+            else:
+                # Assembler is spades.
+                assembler_version = assembler_version.rstrip(' _contigs')
+            self.assembler_version = re.sub('_', '.', assembler_version)
         self.assembly_fasta_file = assembly_fasta_file
         self.assembly_name = re.sub('_', '.', assembly_name.rstrip(' _consensus_'))
         if bedtools_version is None:
@@ -94,10 +103,6 @@ class PimaReport:
         self.feature_bed_files = feature_bed_files
         self.feature_png_files = feature_png_files
         self.flye_assembly_info_file = flye_assembly_info_file
-        if flye_version is None:
-            self.flye_version = 'flye (version unknown)'
-        else:
-            self.flye_version = re.sub('_', '.', flye_version.rstrip(' _assembly info_'))
         self.gzipped = gzipped
         self.genome_insertions_file = genome_insertions_file
         self.kraken2_report_file = kraken2_report_file
@@ -146,6 +151,7 @@ class PimaReport:
         self.mutation_methods_title = 'Mutation screening'
         self.plasmid_methods_title = 'Plasmid annotation'
         self.plasmid_title = 'Plasmid annotation'
+        self.reference_genome_title = 'Reference genome'
         self.reference_methods_title = 'Reference comparison'
         self.snp_indel_title = 'SNPs and small indels'
         self.summary_title = 'Summary'
@@ -154,6 +160,7 @@ class PimaReport:
         self.methods = pandas.Series(dtype='float64')
         self.methods[self.contamination_methods_title] = pandas.Series(dtype='float64')
         self.methods[self.assembly_methods_title] = pandas.Series(dtype='float64')
+        self.methods[self.reference_genome_title] = pandas.Series(dtype='float64')
         self.methods[self.reference_methods_title] = pandas.Series(dtype='float64')
         self.methods[self.mutation_methods_title] = pandas.Series(dtype='float64')
         self.methods[self.feature_methods_title] = pandas.Series(dtype='float64')
@@ -169,7 +176,6 @@ class PimaReport:
         self.contig_info = None
         self.did_medaka_ont_assembly = False
         self.feature_hits = pandas.Series(dtype='float64')
-        self.illumina_fastq_file = None
         self.illumina_length_mean = None
         self.illumina_read_count = None
         self.illumina_bases = None
@@ -177,18 +183,26 @@ class PimaReport:
         # TODO: should the following be passed as a parameter?
         self.ont_coverage_min = 30
         self.ont_fast5 = None
-        self.ont_fastq_file = ont_fastq_file
+        self.fastq_file = fastq_file
         self.ont_n50 = None
         # TODO: should the following be passed as a parameter?
         self.ont_n50_min = 2500
-        self.ont_raw_fastq = self.analysis_name
+        if self.read_type == 'ONT':
+            self.ont_raw_fastq = self.analysis_name
+            self.illumina_fastq = None
+        else:
+            self.ont_raw_fastq = None
+            self.illumina_fastq = self.analysis_name
         self.ont_read_count = None
 
         # Actions
         self.did_guppy_ont_fast5 = False
         self.did_qcat_ont_fastq = False
-        self.info_ont_fastq(self.ont_fastq_file)
-        self.info_illumina_fastq()
+        self.ofh.write("self.read_type: %s\n" % str(self.read_type))
+        if self.read_type == 'ONT':
+            self.info_ont_fastq(self.fastq_file)
+        else:
+            self.info_illumina_fastq(self.fastq_file)
         self.load_contig_info()
 
     def run_command(self, command):
@@ -247,7 +261,7 @@ class PimaReport:
             self.assembly_size += len(i.seq)
         self.assembly_size = self.format_kmg(self.assembly_size, decimals=1)
 
-    def info_illumina_fastq(self):
+    def info_illumina_fastq(self, fastq_file):
         self.ofh.write("\nXXXXXX In info_illumina_fastq\n\n")
         if self.illumina_length_mean is None:
             return
@@ -256,7 +270,7 @@ class PimaReport:
         else:
             opener = 'cat'
         command = ' '.join([opener,
-                            self.ont_fastq_file,
+                            fastq_file,
                             '| awk \'{getline;s += length($1);getline;getline;}END{print s/(NR/4)"\t"(NR/4)"\t"s}\''])
         output = self.run_command(command)
         self.ofh.write("output:\n%s\n" % str(output))
@@ -274,9 +288,6 @@ class PimaReport:
         self.illumina_read_count += int(values[1])
         self.ofh.write("values[2]:\n%s\n" % str(values[2]))
         self.illumina_bases += int(values[2])
-        # The original PIMA code inserts self.illumina_fastq_file into
-        # a list for no apparent reason.  We don't do that here.
-        # self.illumina_length_mean /= len(self.illumina_fastq_file)
         self.illumina_length_mean /= 1
         self.illumina_bases = self.format_kmg(self.illumina_bases, decimals=1)
 
@@ -305,7 +316,7 @@ class PimaReport:
             "ONT FASTQ",
             self.wordwrap_markdown(self.ont_raw_fastq),
             "Illumina FASTQ",
-            "N/A",
+            self.wordwrap_markdown(self.illumina_fastq),
             "Assembly",
             self.wordwrap_markdown(self.assembly_name),
             "Reference",
@@ -407,7 +418,8 @@ class PimaReport:
                             'END{printf "%d\\t%d\\t%d\\n", n50, (NR - 1), s;exit}\''])
         result = list(re.split('\\t', self.run_command(command)[0]))
         if result[1] == '0':
-            self.error_out('No ONT reads found')
+            warning = 'No ONT reads found'
+            self.assembly_notes = self.assembly_notes.append(pandas.Series(warning))
         self.ont_n50, self.ont_read_count, ont_raw_bases = [int(i) for i in result]
         command = ' '.join([opener,
                             fastq_file,
@@ -530,11 +542,16 @@ class PimaReport:
                 contig_title = 'Alignment to %s' % contig
                 self.doc.new_line()
                 self.doc.new_header(level=3, title=contig_title)
-                self.doc.new_line('Blue indicates aligned sequences (to the reference) and yellow indicates missing sequences')
                 self.doc.new_line(self.doc.new_inline_image(text='contig_title', path=os.path.abspath(circos_file)))
                 self.doc.new_line('<div style="page-break-after: always;"></div>')
                 self.doc.new_line()
-        method = 'The genome assembly was aligned against the reference sequencing using dnadiff version %s.' % self.dnadiff_version
+        if self.dbkey == 'ref_genome':
+            headers = ["* Chromosome - NC_007530.2 Bacillus anthracis str. 'Ames Ancestor', complete sequence",
+                       "* pXO1 - NC_007322.2 Bacillus anthracis str. 'Ames Ancestor' plasmid pXO1, complete sequence",
+                       "* pXO2 - NC_007323.3 Bacillus anthracis str. 'Ames Ancestor' plasmid pXO2, complete sequence"]
+            method = '\n'.join(headers)
+            self.methods[self.reference_genome_title] = self.methods[self.reference_genome_title].append(pandas.Series(method))
+        method = 'The genome assembly was aligned against the reference sequence using %s.' % self.dnadiff_version
         self.methods[self.reference_methods_title] = self.methods[self.reference_methods_title].append(pandas.Series(method))
 
     def add_features(self):
@@ -780,17 +797,20 @@ class PimaReport:
         self.add_contig_info()
         self.evaluate_assembly()
         self.add_assembly_information()
-        if self.flye_assembly_info_file is not None:
-            method = 'ONT reads were assembled using %s' % self.flye_version.rstrip('assembly info')
-            self.methods[self.assembly_methods_title] = self.methods[self.assembly_methods_title].append(pandas.Series(method))
-            # Pull in the assembly summary and look at the coverage.
-            assembly_info = pandas.read_csv(self.flye_assembly_info_file, header=0, index_col=0, sep='\t')
-            # Look for non-circular contigs.
-            open_contigs = assembly_info.loc[assembly_info['circ.'] == 'N', :]
-            if open_contigs.shape[0] > 0:
-                open_contig_ids = open_contigs.index.values
-                warning = 'Flye reported {:d} open contigs ({:s}); assembly may be incomplete.'.format(open_contigs.shape[0], ', '.join(open_contig_ids))
-                self.assembly_notes = self.assembly_notes.append(pandas.Series(warning))
+        if self.assembler_version is not None:
+            if self.read_type == 'ONT':
+                method = 'ONT reads were assembled using %s' % self.assembler_version
+                self.methods[self.assembly_methods_title] = self.methods[self.assembly_methods_title].append(pandas.Series(method))
+                # Pull in the assembly summary and look at the coverage.
+                assembly_info = pandas.read_csv(self.flye_assembly_info_file, header=0, index_col=0, sep='\t')
+                # Look for non-circular contigs.
+                open_contigs = assembly_info.loc[assembly_info['circ.'] == 'N', :]
+                if open_contigs.shape[0] > 0:
+                    open_contig_ids = open_contigs.index.values
+                    warning = 'Flye reported {:d} open contigs ({:s}); assembly may be incomplete.'.format(open_contigs.shape[0], ', '.join(open_contig_ids))
+                    self.assembly_notes = self.assembly_notes.append(pandas.Series(warning))
+                else:
+                    method = 'Illumina reads were assembled using %s' % self.assembler_version
         if self.did_medaka_ont_assembly:
             method = 'the genome assembly was polished using ont reads and medaka.'
             self.methods[self.assembly_methods_title] = self.methods[self.assembly_methods_title].append(pandas.series(method))
@@ -836,6 +856,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--amr_deletions_file', action='store', dest='amr_deletions_file', help='AMR deletions BED file')
 parser.add_argument('--amr_matrix_png_dir', action='store', dest='amr_matrix_png_dir', help='Directory of AMR matrix PNG files')
 parser.add_argument('--analysis_name', action='store', dest='analysis_name', help='Sample identifier')
+parser.add_argument('--assembler_version', action='store', dest='assembler_version', default=None, help='Assembler version string')
 parser.add_argument('--assembly_fasta_file', action='store', dest='assembly_fasta_file', help='Assembly fasta file')
 parser.add_argument('--assembly_name', action='store', dest='assembly_name', help='Assembly identifier')
 parser.add_argument('--bedtools_version', action='store', dest='bedtools_version', default=None, help='Bedtools version string')
@@ -847,13 +868,12 @@ parser.add_argument('--dbkey', action='store', dest='dbkey', help='Reference gen
 parser.add_argument('--dnadiff_snps_file', action='store', dest='dnadiff_snps_file', help='DNAdiff snps tabular file')
 parser.add_argument('--dnadiff_version', action='store', dest='dnadiff_version', default=None, help='DNAdiff version string')
 parser.add_argument('--errors_file', action='store', dest='errors_file', default=None, help='AMR mutations errors encountered txt file')
+parser.add_argument('--fastq_file', action='store', dest='fastq_file', help='Input sample')
 parser.add_argument('--feature_bed_dir', action='store', dest='feature_bed_dir', help='Directory of best feature hits bed files')
 parser.add_argument('--feature_png_dir', action='store', dest='feature_png_dir', help='Directory of best feature hits png files')
 parser.add_argument('--flye_assembly_info_file', action='store', dest='flye_assembly_info_file', default=None, help='Flye assembly info tabular file')
-parser.add_argument('--flye_version', action='store', dest='flye_version', default=None, help='Flye version string')
 parser.add_argument('--genome_insertions_file', action='store', dest='genome_insertions_file', help='Genome insertions BED file')
 parser.add_argument('--gzipped', action='store_true', dest='gzipped', default=False, help='Input sample is gzipped')
-parser.add_argument('--ont_fastq_file', action='store', dest='ont_fastq_file', help='Input sample')
 parser.add_argument('--kraken2_report_file', action='store', dest='kraken2_report_file', default=None, help='kraken2 report file')
 parser.add_argument('--kraken2_version', action='store', dest='kraken2_version', default=None, help='kraken2 version string')
 parser.add_argument('--minimap2_version', action='store', dest='minimap2_version', default=None, help='minimap2 version string')
@@ -898,6 +918,7 @@ for file_name in sorted(os.listdir(args.mutation_regions_dir)):
 markdown_report = PimaReport(args.analysis_name,
                              args.amr_deletions_file,
                              amr_matrix_files,
+                             args.assembler_version,
                              args.assembly_fasta_file,
                              args.assembly_name,
                              args.bedtools_version,
@@ -909,10 +930,10 @@ markdown_report = PimaReport(args.analysis_name,
                              args.dnadiff_snps_file,
                              args.dnadiff_version,
                              args.errors_file,
+                             args.fastq_file,
                              feature_bed_files,
                              feature_png_files,
                              args.flye_assembly_info_file,
-                             args.flye_version,
                              args.genome_insertions_file,
                              args.gzipped,
                              args.kraken2_report_file,
@@ -920,7 +941,6 @@ markdown_report = PimaReport(args.analysis_name,
                              args.minimap2_version,
                              args.mutation_regions_bed_file,
                              mutation_regions_files,
-                             args.ont_fastq_file,
                              args.pima_css,
                              args.plasmids_file,
                              args.quast_report_file,
