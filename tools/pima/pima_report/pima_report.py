@@ -881,7 +881,7 @@ parser.add_argument('--minimap2_version', action='store', dest='minimap2_version
 parser.add_argument('--mutation_regions_bed_file', action='store', dest='mutation_regions_bed_file', help='AMR mutation regions BRD file')
 parser.add_argument('--mutation_regions_dir', action='store', dest='mutation_regions_dir', help='Directory of mutation regions TSV files')
 parser.add_argument('--pima_css', action='store', dest='pima_css', help='PIMA css stypesheet')
-parser.add_argument('--plasmids_file', action='store', dest='plasmids_file', help='pChunks plasmids TSV file')
+parser.add_argument('--plasmids_file', action='store', dest='plasmids_file', default=None, help='pChunks plasmids TSV file')
 parser.add_argument('--quast_report_file', action='store', dest='quast_report_file', help='Quast report tabular file')
 parser.add_argument('--read_type', action='store', dest='read_type', help='Sample read type (ONT or Illumina)')
 parser.add_argument('--reference_insertions_file', action='store', dest='reference_insertions_file', help='Reference insertions BED file')

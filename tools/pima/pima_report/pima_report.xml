@@ -152,7 +152,7 @@ python '${__tool_directory__}/pima_report.py'
             <option value="illumina">Short reads - Illumina</option>
         </param>
         <param name="reference_insertions_file" type="data" format="bed" label="Reference insertions BED file"/>
-        <param name="plasmids_file" type="data" format="tsv" label="pChunks plasmids TSV file"/>
+        <param name="plasmids_file" type="data" format="tsv" optional="true" label="pChunks plasmids TSV file" help="Optional, ignored if not selected"/>
         <param name="samtools_pileup_file" type="data" format="pileup" label="Samtools pileup file"/>
         <param name="varscan_vcf_file" type="data" format="vcf" label="Varscan VCF file"/>
     </inputs>
