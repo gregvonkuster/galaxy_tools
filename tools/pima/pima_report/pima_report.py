@@ -542,7 +542,7 @@ class PimaReport:
                 contig_title = 'Alignment to %s' % contig
                 self.doc.new_line()
                 self.doc.new_header(level=3, title=contig_title)
-                self.doc.new_line('Blue indicates aligned sequences (to the reference) and yellow indicates missing sequences')
+                self.doc.new_line('Blue color indicates query sequences aligned to the reference sequence, which is shown in yellow')
                 self.doc.new_line(self.doc.new_inline_image(text='contig_title', path=os.path.abspath(circos_file)))
                 self.doc.new_line('<div style="page-break-after: always;"></div>')
                 self.doc.new_line()
@@ -714,7 +714,7 @@ class PimaReport:
             amr_deletions = amr_deletions.loc[amr_deletions['type'].isin(['large-deletion', 'any']), :]
         self.doc.new_line()
         self.doc.new_header(level=2, title=self.large_indel_title)
-        self.doc.new_line('This section is informative only when your idolates were identified as *Bacillus anthracis* strains')
+        self.doc.new_line('This section is informative only when your isolates were identified as *Bacillus anthracis* strains')
         for genome in ['Reference insertions', 'Query insertions']:
             genome_indels = large_indels[genome].copy()
             self.doc.new_line()
@@ -765,8 +765,6 @@ class PimaReport:
 
     def add_methods(self):
         self.ofh.write("\nXXXXXX In add_methods\n\n")
-        self.doc.new_line('<div style="page-break-after: always;"></div>')
-        self.doc.new_line()
         if len(self.methods) == 0:
             return
         self.doc.new_line()
@@ -777,6 +775,8 @@ class PimaReport:
             self.doc.new_line()
             self.doc.new_header(level=3, title=methods_section)
             self.doc.new_paragraph(' '.join(self.methods[methods_section]))
+        self.doc.new_line('<div style="page-break-after: always;"></div>')
+        self.doc.new_line()
 
     def add_summary(self):
         self.ofh.write("\nXXXXXX In add_summary\n\n")
