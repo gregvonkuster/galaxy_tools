@@ -7,10 +7,10 @@
     <command detect_errors="exit_code"><![CDATA[
 #import re
 
-#if str($read_type) == 'ont':
-    #set analysis_name = re.sub('[^\s\w\-]', '_', str($fastq_file.element_identifier))
+#if str($read_type_cond.read_type) == 'ont':
+    #set analysis_name = re.sub('[^\s\w\-]', '_', str($read_type_cond.ont_file.element_identifier))
 #else:
-    #set analysis_name = re.sub('[^\s\w\-]', '_', str($extracted_fastq_file.element_identifier))
+    #set analysis_name = re.sub('[^\s\w\-]', '_', str($read_type_cond.illumina_forward_read.element_identifier))
 #end if
 #set assembly_name = re.sub('[^\s\w\-]', '_', str($assembly_fasta_file.element_identifier))
 
@@ -23,9 +23,20 @@
 #if str($dnadiff_snps_file) not in ['None', '']:
     #set dnadiff_version = re.sub('[^\s\w\-]', '_', str($dnadiff_snps_file.element_identifier))
 #end if
-#if str($assembler_version_file) not in ['None', '']:
+
+## All ONT samples are single-end reads, while all Illumina samples are
+## sets if paired reads.  For ONT, we need both an assembly_fasta_file
+## which is produced by the medaka pipeline and and assembler_version_file
+## which is produced by flye.  For Illumina we need only the assembly_fasta_file
+## which is produced by SPAdes since the version can be derived from it.
+#if str($assembler_version_file) in ['None', '']:
+    ## We're analyzing a set of Illumina paired reads.
+    #set assembler_version = re.sub('[^\s\w\-]', '_', str($assembly_fasta_file.element_identifier))
+#else:
+    ## We're analyzing an ONT sample.
     #set assembler_version = re.sub('[^\s\w\-]', '_', str($assembler_version_file.element_identifier))
 #end if
+
 #if str($kraken2_report_file) not in ['None', '']:
     #set kraken2_version = re.sub('[^\s\w\-]', '_', str($kraken2_report_file.element_identifier))
 #end if
@@ -97,16 +108,26 @@ python '${__tool_directory__}/pima_report.py'
 --feature_png_dir 'feature_png_dir'
 #if str($assembler_version_file) not in ['None', '']:
     --assembler_version '$assembler_version'
-    #if str($read_type) == 'ont':
+    #if str($read_type_cond.read_type) == 'ont':
         ## Need to pass the tabular flye assembly file.
         --flye_assembly_info_file '$assembler_version_file'
     #end if
 #end if
 --genome_insertions_file '$genome_insertions_file'
-#if $fastq_file.ext.endswith(".gz"):
-    --gzipped
+#if str($read_type_cond.read_type) == 'ont':
+    ## We're analyzing a single-edn ONT sample.
+    #if $read_type_cond.ont_file.ext.endswith(".gz"):
+        --gzipped
+    #end if
+    --ont_file '$read_type_cond.ont_file'
+#else:
+    ## We're analyzing a set of Illumina paired reads.
+    #if $read_type_cond.illumina_forward_read.ext.endswith(".gz"):
+        --gzipped
+    #end if
+    --illumina_forward_read_file '$read_type_cond.illumina_forward_read'
+    --illumina_reverse_read_file '$read_type_cond.illumina_reverse_read'
 #end if
---fastq_file '$fastq_file'
 #if str($kraken2_report_file) not in ['None', '']:
     --kraken2_report_file '$kraken2_report_file'
     --kraken2_version '$kraken2_version'
@@ -119,7 +140,7 @@ python '${__tool_directory__}/pima_report.py'
 --pima_css '${__tool_directory__}/pima.css'
 --plasmids_file '$plasmids_file'
 --quast_report_file '$quast_report_file'
---read_type '$read_type'
+--read_type '$read_type_cond.read_type'
 --reference_insertions_file '$reference_insertions_file'
 #if str($samtools_pileup_file) not in ['None', '']:
     --samtools_version '$samtools_version'
@@ -141,8 +162,6 @@ python '${__tool_directory__}/pima_report.py'
         <param name="contig_coverage_file" type="data" format="tabular,tsv" label="Contig coverage tabular file"/>
         <param name="dnadiff_snps_file" type="data" format="tabular" label="DNAdiff snps tabular file"/>
         <param name="errors_file" type="data" format="txt" label="AMR mutation regions error txt file"/>
-        <param name="extracted_fastq_file" type="data" format="fastqsanger,fastqsanger.gz" optional="true" label="Fastq sample file extracted from a paired collection" help="Used only with Illumina paired reads, leave blank to ignore"/>
-        <param name="fastq_file" type="data" format="fastqsanger,fastqsanger.gz" label="Fastq sample file"/>
         <param name="features_bed" format="bed" type="data_collection" collection_type="list" label="Collection of best feature hits BED files"/>
         <param name="features_png" format="png" type="data_collection" collection_type="list" label="Collection of best feature hits PNG files"/>
         <param name="assembler_version_file" type="data" format="fasta,tabular,tsv" optional="true" label="Assembly version file" help="Optional, ignored if not selected"/>
@@ -152,10 +171,19 @@ python '${__tool_directory__}/pima_report.py'
         <param name="mutation_regions" format="tabular,tsv" type="data_collection" collection_type="list" label="Collection of mutation regions tabular files"/>
         <param name="mutation_regions_bed_file" type="data" format="mutations_regions,bed" label="Mutation regions BED file"/>
         <param name="quast_report_file" type="data" format="tabular" label="Quast report tabular file"/>
-        <param argument="--read_type" type="select" label="Specify the read type">
-            <option value="ont" selected="true">Long reads - Oxford Nanopore Technologies (ONT)</option>
-            <option value="illumina">Short reads - Illumina</option>
-        </param>
+        <conditional name="read_type_cond">
+            <param argument="--read_type" type="select" label="Specify the read type">
+                <option value="ont" selected="true">ONT single read</option>
+                <option value="illumina">Illumina read pair</option>
+            </param>
+            <when value="ont">
+                <param name="ont_file" type="data" format="fastqsanger,fastqsanger.gz" label="ONT single read sample file"/>
+            </when>
+            <when value="illumina">
+                <param name="illumina_forward_read" format="fastqsanger,fastqsanger.gz" type="data" label="Illumina forward read sample file"/>
+                <param name="illumina_reverse_read" format="fastqsanger,fastqsanger.gz" type="data" label="Illumina reverse read sample file"/>
+            </when>
+        </conditional>
         <param name="reference_insertions_file" type="data" format="bed" label="Reference insertions BED file"/>
         <param name="plasmids_file" type="data" format="tsv" optional="true" label="pChunks plasmids TSV file" help="Optional, ignored if not selected"/>
         <param name="samtools_pileup_file" type="data" format="pileup" label="Samtools pileup file"/>
@@ -169,7 +197,8 @@ python '${__tool_directory__}/pima_report.py'
             <param name="aligned_sample" value="aligned_sample.bam" ftype="bam"/>
             <param name="assembly_fasta_file" value="assembly_fasta.fasta" ftype="fasta"/>
             <param name="contig_coverage_file" value="contig_coverage.tabular" ftype="tabular"/>
-            <param name="fastq_file" value="ont_fastq.fastq" ftype="fastq"/>
+            <param name="read_type" value="ont"/>
+            <param name="ont_file" value="ont_fastq.fastq" ftype="fastq"/>
             <output name="output" value="output.pdf" ftype="pdf"/>
         </test>
     </tests>
