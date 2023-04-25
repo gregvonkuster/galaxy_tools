@@ -816,7 +816,7 @@ class PimaReport:
                 else:
                     method = 'Illumina reads were assembled using %s' % self.assembler_version
                 method = 'The genome assembly was polished using ONT reads and medaka.'
-                self.methods[self.assembly_methods_title] = self.methods[self.assembly_methods_title].append(pandas.series(method))
+                self.methods[self.assembly_methods_title] = self.methods[self.assembly_methods_title].append(pandas.Series(method))
         self.add_assembly_notes()
 
     def make_tex(self):
