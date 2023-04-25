@@ -1,4 +1,4 @@
-<tool id="filter_contigs" name="PIMA: filter contigs" version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="@PROFILE@">
+<tool id="filter_contigs" name="Filter contigs" version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="@PROFILE@">
   <description>from an assembled FASTA file</description>
     <macros>
         <import>macros.xml</import>
@@ -10,11 +10,27 @@
 #else:
     ln -s '$input' 'input.fasta' &&
 #end if
-faidx -i chromsizes 'input.fasta' | awk '($2 <= $max_len) {print $1}' | parallel -n1 -n1 \$(which faidx) 'input.fasta' > '$output'
+#if str($max_min_cond.max_min) == 'max':
+    faidx -i chromsizes 'input.fasta' | awk '($2 <= $max_min_cond.max_len) {print $1}' | parallel -n1 -n1 \$(which faidx) 'input.fasta' > '$output'
+#else:
+    faidx -i chromsizes 'input.fasta' | awk '($2 > $max_min_cond.min_len) {print $1}' | parallel -n1 -n1 \$(which faidx) 'input.fasta' > '$output'
+#end if
+
     ]]></command>
     <inputs>
         <param name="input" type="data" format="fasta,fasta.gz" label="Assembled FASTA file"/>
-        <param name="max_len" type="integer" value="1500000" min="0" label="Maximum contig length"/>
+        <conditional name="max_min_cond">
+            <param name="max_min" type="select" label="Use minimum or maximum contig length when filtering?">
+                <option value="max" selected="true">Maximum - contigs shorter than or equal to this length will be filtered</option>
+                <option value="min">Minimum - contigs longer than this length will be filtered</option>
+            </param>
+            <when value="max">
+                <param name="max_len" type="integer" value="1500000" min="0" label="Maximum contig length"/>
+            </when>
+            <when value="min">
+                <param name="min_len" type="integer" value="1000" min="0" label="Maximum contig length"/>
+            </when>
+        </conditional>
     </inputs>
     <outputs>
         <data name="output" format="fasta"/>
