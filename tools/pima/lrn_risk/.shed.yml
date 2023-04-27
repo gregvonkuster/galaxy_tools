@@ -1,0 +1,9 @@
+name: lrn_risk
+owner: greg
+description: Produces detected blacklisted genes and distribution of virulence factors and AMR genes for PIMA
+long_description: Produces detected blacklisted genes and distribution of virulence factors and AMR genes for PIMA
+categories: 
+- Nanopore
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/tools/pima/lrn_risk
+homepage_url: https://github.com/lmc297/LRNRisk
+type: unrestricted

@@ -1,0 +1,54 @@
+<tool id="lrn_risk" name="PIMA: LRNRisk" version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="@PROFILE@">
+    <description>isolate classification</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <expand macro="requirements"/>
+    <command detect_errors="exit_code"><![CDATA[
+python '$__tool_directory__/lrn_risk.py'
+--gtdb_file '$gtdb_file'
+--virulence_factors_file '$virulence_factors_file'
+--amr_determinants_file '$amr_determinants_file'
+--blacklist_file '$blacklist_file'
+--vf_distribution_file '$vf_distribution_file'
+--amr_distribution_file '$amr_distribution_file'
+--blacklist_output_file '$blacklist_output_file'
+--vfdb_output_file '$vfdb_output_file'
+--amr_output_file '$amr_output_file'
+]]></command>
+    <inputs>
+        <param name="gtdb_file" type="data" format="tabular,tsv" label="GTDB-Tk Classify genomes file"/>
+        <param name="virulence_factors_file" type="data" format="tabular,tsv" label="File containing virulence factors detected via BLAST"/>
+        <param name="amr_determinants_file" type="data" format="tabular,tsv" label="File containing Pima AMR determinants detected via BLAST"/>
+        <param name="blacklist_file" type="data" format="tabular,tsv" label="File containing blacklisted high-risk virulence factors"/>
+        <param name="vf_distribution_file" type="data" format="tabular,tsv" label="File containing virulence factor distribution"/>
+        <param name="amr_distribution_file" type="data" format="tabular,tsv" label="File containing AMR determinant distribution"/>
+    </inputs>
+    <outputs>
+        <data name="blacklist_output_file" format="tsv" label="${tool.name} on ${on_string} (blacklist)"/>
+        <data name="vfdb_output_file" format="tsv" label="${tool.name} on ${on_string} (VFDB)"/>
+        <data name="amr_output_file" format="tsv" label="${tool.name} on ${on_string} (AMR)"/>
+    </outputs>
+    <tests>
+        <test>
+            <param name="gtdb_file" value="gtdb.tsv" ftype="tsv"/>
+            <param name="virulence_factors_file" value="virulence_factors.tsv" ftype="tsv"/>
+            <param name="amr_determinants_file" value="amr_determinants.tsv" ftype="tsv"/>
+            <param name="blacklist_file" value="blacklist.tsv" ftype="tsv"/>
+            <param name="vf_distribution_file" value="vf_distribution.tsv" ftype="tsv"/>
+            <param name="amr_distribution_file" value="amr_distribution.tsv" ftype="tsv"/>
+            <output name="blacklist_output_file" value="blacklist.tsv" ftype="tsv"/>
+            <output name="vfdb_output_file" value="vfdb_output.tsv" ftype="tsv"/>
+            <output name="amr_output_file" value="amr_output.tsv" ftype="tsv"/>
+        </test>
+    </tests>
+    <help>
+**What it does**
+
+Classifies isolates into "high risk" and "unlikely high risk" and provides information about prevalence of a given virulence
+gene among all publicly available genome of a given species and prevalence of a given antimicrobial resistance gene among all
+publicly available genomes of a given species. 
+    </help>
+    <expand macro="citations"/>
+</tool>
+
