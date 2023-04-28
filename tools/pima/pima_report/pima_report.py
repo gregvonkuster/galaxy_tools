@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import argparse
 import os
 import pandas
@@ -23,9 +25,10 @@ class PimaReport:
                  dnadiff_snps_file=None, dnadiff_version=None, errors_file=None, feature_bed_files=None,
                  feature_png_files=None, flye_assembly_info_file=None, genome_insertions_file=None, gzipped=None,
                  illumina_forward_read_file=None, illumina_reverse_read_file=None, kraken2_report_file=None,
-                 kraken2_version=None, minimap2_version=None, mutation_regions_bed_file=None,
-                 mutation_regions_tsv_files=None, ont_file=None, pima_css=None, plasmids_file=None, quast_report_file=None,
-                 read_type=None, reference_insertions_file=None, samtools_version=None, varscan_version=None):
+                 kraken2_version=None, lrn_risk_amr_file=None, lrn_risk_blacklist_file=None, lrn_risk_vf_file=None,
+                 minimap2_version=None, mutation_regions_bed_file=None, mutation_regions_tsv_files=None,
+                 ont_file=None, pima_css=None, plasmids_file=None, quast_report_file=None, read_type=None,
+                 reference_insertions_file=None, samtools_version=None, varscan_version=None):
         self.ofh = open("process_log.txt", "w")
 
         self.ofh.write("amr_deletions_file: %s\n" % str(amr_deletions_file))
@@ -52,6 +55,9 @@ class PimaReport:
         self.ofh.write("illumina_reverse_read_file: %s\n" % str(illumina_reverse_read_file))
         self.ofh.write("kraken2_report_file: %s\n" % str(kraken2_report_file))
         self.ofh.write("kraken2_version: %s\n" % str(kraken2_version))
+        self.ofh.write("lrn_risk_amr_file: %s\n" % str(lrn_risk_amr_file))
+        self.ofh.write("lrn_risk_blacklist_file: %s\n" % str(lrn_risk_blacklist_file))
+        self.ofh.write("lrn_risk_vf_file: %s\n" % str(lrn_risk_vf_file))
         self.ofh.write("minimap2_version: %s\n" % str(minimap2_version))
         self.ofh.write("mutation_regions_bed_file: %s\n" % str(mutation_regions_bed_file))
         self.ofh.write("mutation_regions_tsv_files: %s\n" % str(mutation_regions_tsv_files))
@@ -115,6 +121,9 @@ class PimaReport:
             self.kraken2_version = 'kraken2 (version unknown)'
         else:
             self.kraken2_version = re.sub('_', '.', kraken2_version.rstrip(' _report_'))
+        self.lrn_risk_amr_file = lrn_risk_amr_file
+        self.lrn_risk_blacklist_file = lrn_risk_blacklist_file
+        self.lrn_risk_vf_file = lrn_risk_vf_file
         if minimap2_version is None:
             self.minimap2_version = 'minimap2 (version unknown)'
         else:
@@ -150,6 +159,7 @@ class PimaReport:
         self.feature_methods_title = 'Feature annotation'
         self.feature_plot_title = 'Feature annotation plots'
         self.large_indel_title = 'Large insertions & deletions'
+        self.lrn_risk_title = 'LRNRisk isolate classification'
         self.methods_title = 'Methods'
         self.mutation_errors_title = 'Errors finding mutations in the sample'
         self.mutation_title = 'Mutations found in the sample'
@@ -740,6 +750,57 @@ class PimaReport:
         self.doc.new_line('<div style="page-break-after: always;"></div>')
         self.doc.new_line()
 
+    def add_lrn_risk_info(self):
+        self.ofh.write("\nXXXXXX In add_lrn_risk_info\n\n")
+        if self.lrn_risk_amr_file is None and self.lrn_risk_blacklist_file is None and self.lrn_risk_vf_file is None:
+            return
+        self.doc.new_line()
+        self.doc.new_header(level=2, title=self.lrn_risk_title)
+        # Process self.lrn_risk_amr_file.
+        try:
+            lrn_risk_amr = pandas.read_csv(filepath_or_buffer=self.lrn_risk_amr_file, sep='\t', header=0)
+        except Exception:
+            lrn_risk_amr = pandas.DataFrame()
+        if lrn_risk_amr.shape[0] > 0:
+            self.doc.new_line()
+            self.doc.new_header(level=2, title="AMR Determinant Distribution")
+            self.doc.new_line()
+            Table_List = ["Gene", "Contig", "% Identity", "% Coverage", "E-Value", "Annotation", "Comparison to Publicly Available Genomes"]
+            for index, row in lrn_risk_amr.iterrows():
+                Table_List = Table_List + row.tolist()
+            row_count = int(len(Table_List) / 7)
+            self.doc.new_table(columns=7, rows=row_count, text=Table_List, text_align='left')
+        # Process self.lrn_risk_blacklist_file.
+        try:
+            lrn_risk_blacklist = pandas.read_csv(filepath_or_buffer=self.lrn_risk_blacklist_file, sep='\t', header=0)
+        except Exception:
+            lrn_risk_blacklist = pandas.DataFrame()
+        if lrn_risk_blacklist.shape[0] > 0:
+            self.doc.new_line()
+            self.doc.new_header(level=2, title="Blacklisted High-risk Virulence Factors")
+            self.doc.new_line()
+            Table_List = ["Blacklisted Gene", "Reason", "Risk Category"]
+            for index, row in lrn_risk_blacklist.iterrows():
+                Table_List = Table_List + row.tolist()
+            row_count = int(len(Table_List) / 3)
+            self.doc.new_table(columns=3, rows=row_count, text=Table_List, text_align='left')
+        # Process self.lrn_risk_vf_file.
+        try:
+            lrn_risk_vf = pandas.read_csv(filepath_or_buffer=self.lrn_risk_vf_file, sep='\t', header=0)
+        except Exception:
+            lrn_risk_vf = pandas.DataFrame()
+        if lrn_risk_vf.shape[0] > 0:
+            self.doc.new_line()
+            self.doc.new_header(level=2, title="Virulence Factor Distribution")
+            self.doc.new_line()
+            Table_List = ["Gene", "Contig", "% Identity", "% Coverage", "E-Value", "Annotation", "Comparison to Publicly Available Genomes"]
+            for index, row in lrn_risk_vf.iterrows():
+                Table_List = Table_List + row.tolist()
+            row_count = int(len(Table_List) / 7)
+            self.doc.new_table(columns=7, rows=row_count, text=Table_List, text_align='left')
+        self.doc.new_line('<div style="page-break-after: always;"></div>')
+        self.doc.new_line()
+
     def add_plasmids(self):
         try:
             plasmids = pandas.read_csv(filepath_or_buffer=self.plasmids_file, sep='\t', header=0)
@@ -839,6 +900,7 @@ class PimaReport:
         self.add_large_indels()
         self.add_plasmids()
         self.add_amr_matrix()
+        self.add_lrn_risk_info()
         # self.add_snps()
         self.add_methods()
         self.make_tex()
@@ -880,6 +942,9 @@ parser.add_argument('--illumina_forward_read_file', action='store', dest='illumi
 parser.add_argument('--illumina_reverse_read_file', action='store', dest='illumina_reverse_read_file', help='Illumina reverse read file')
 parser.add_argument('--kraken2_report_file', action='store', dest='kraken2_report_file', default=None, help='kraken2 report file')
 parser.add_argument('--kraken2_version', action='store', dest='kraken2_version', default=None, help='kraken2 version string')
+parser.add_argument('--lrn_risk_amr_file', action='store', dest='lrn_risk_amr_file', default=None, help='LRN RISK AMR TSV file')
+parser.add_argument('--lrn_risk_blacklist_file', action='store', dest='lrn_risk_blacklist_file', default=None, help='LRN RISK blacklist TSV file')
+parser.add_argument('--lrn_risk_vf_file', action='store', dest='lrn_risk_vf_file', default=None, help='LRN RISK virulence factors TSV file')
 parser.add_argument('--minimap2_version', action='store', dest='minimap2_version', default=None, help='minimap2 version string')
 parser.add_argument('--mutation_regions_bed_file', action='store', dest='mutation_regions_bed_file', help='AMR mutation regions BRD file')
 parser.add_argument('--mutation_regions_dir', action='store', dest='mutation_regions_dir', help='Directory of mutation regions TSV files')
@@ -944,6 +1009,9 @@ markdown_report = PimaReport(args.analysis_name,
                              args.illumina_reverse_read_file,
                              args.kraken2_report_file,
                              args.kraken2_version,
+                             args.lrn_risk_amr_file,
+                             args.lrn_risk_blacklist_file,
+                             args.lrn_risk_vf_file,
                              args.minimap2_version,
                              args.mutation_regions_bed_file,
                              mutation_regions_files,

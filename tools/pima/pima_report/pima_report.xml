@@ -83,6 +83,30 @@ touch 'pima_report.pdf' &&
     ln -s $i 'mutation_regions_dir/$identifier' &&
 #end for
 
+#if $lrn_risk_amr_collection:
+    #set lrn_risk_amr_file = 'lrn_risk_amr.tsv'
+    touch $lrn_risk_amr_file &&
+    #for $i in $lrn_risk_amr_collection:
+        cat $i >> $lrn_risk_amr_file &&
+    #end for
+#end if
+
+#if $lrn_risk_blacklist_collection:
+    #set lrn_risk_blacklist_file = 'lrn_risk_blacklist.tsv'
+    touch $lrn_risk_blacklist_file &&
+    #for $i in $lrn_risk_blacklist_collection:
+        cat $i >> $lrn_risk_blacklist_file &&
+    #end for
+#end if
+
+#if $lrn_risk_vf_collection:
+    #set lrn_risk_vf_file = 'lrn_risk_vf.tsv'
+    touch $lrn_risk_vf_file &&
+    #for $i in $lrn_risk_vf_collection:
+        cat $i >> $lrn_risk_vf_file &&
+    #end for
+#end if
+
 python '${__tool_directory__}/pima_report.py' 
 --amr_matrix_png_dir 'amr_matrix_png_dir'
 --amr_deletions_file '$amr_deletions_file'
@@ -132,6 +156,15 @@ python '${__tool_directory__}/pima_report.py'
     --kraken2_report_file '$kraken2_report_file'
     --kraken2_version '$kraken2_version'
 #end if
+#if $lrn_risk_amr_collection:
+    --lrn_risk_amr_file '$lrn_risk_amr_file'
+#end if
+#if $lrn_risk_blacklist_collection:
+    --lrn_risk_blacklist_file '$lrn_risk_blacklist_file'
+#end if
+#if $lrn_risk_vf_collection:
+    --lrn_risk_vf_file '$lrn_risk_vf_file'
+#end if
 #if str($minimap2_bam_file) not in ['None', '']:
     --minimap2_version '$minimap2_version'
 #end if
@@ -167,6 +200,9 @@ python '${__tool_directory__}/pima_report.py'
         <param name="assembler_version_file" type="data" format="fasta,tabular,tsv" optional="true" label="Assembly version file" help="Optional, ignored if not selected"/>
         <param name="genome_insertions_file" type="data" format="bed" label="Genome insertions BED file"/>
         <param name="kraken2_report_file" type="data" format="tabular,tsv" optional="true" label="Kraken2 report tabular file" help="Optional, ignored if not selected"/>
+        <param name="lrn_risk_amr_collection" format="tsv" type="data_collection" collection_type="list" optional="true" label="LRN Risk AMR collection"/>
+        <param name="lrn_risk_blacklist_collection" format="tsv" type="data_collection" collection_type="list" optional="true" label="LRN Risk blacklist collection"/>
+        <param name="lrn_risk_vf_collection" format="tsv" type="data_collection" collection_type="list" optional="true" label="LRN Risk virulence factors collection"/>
         <param name="minimap2_bam_file" type="data" format="bam" label="Minimap2 BAM file"/>
         <param name="mutation_regions" format="tabular,tsv" type="data_collection" collection_type="list" label="Collection of mutation regions tabular files"/>
         <param name="mutation_regions_bed_file" type="data" format="mutations_regions,bed" label="Mutation regions BED file"/>
