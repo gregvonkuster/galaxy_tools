@@ -15,13 +15,16 @@ def get_species_from_gtdb(f):
             if i == 0:
                 # Skip header.
                 continue
-            items = line.split('\t')
-            tax = items[1].strip()
-            tax = tax.split(';')[-1].strip()
-            # split on GTDB species tag
-            tax = tax.split('s__')[1].strip()
+            try:
+                items = line.split('\t')
+                tax = items[1]
+                tax = tax.split(';')[-1]
+                # split on GTDB species tag
+                tax = tax.split('s__')[1]
+            except Exception:
+                return '(Unknown Species)'
             if len(tax) == 0:
-                tax = '(Unknown Species)'
+                return '(Unknown Species)'
     return tax
 
 
@@ -32,18 +35,21 @@ def get_blast_genes(f):
     d = {}
     with open(f, 'r') as fh:
         for line in fh:
-            items = line.split('\t')
-            gene = items[0]
-            # contig = items[1]
-            # pid = items[2]
-            alen = items[3]
-            # e = items[-4]
-            qlen = items[-1]
-            # calculate query coverage by dividing alignment length by query length
-            qcov = round(float(alen) / float(qlen) * 100.0, 2)
-            if gene not in d.keys():
-                d[gene] = []
-            d[gene].append('%s\t%s' % (line, str(qcov)))
+            try:
+                items = line.split('\t')
+                gene = items[0]
+                # contig = items[1]
+                # pid = items[2]
+                alen = items[3]
+                # e = items[-4]
+                qlen = items[-1]
+                # calculate query coverage by dividing alignment length by query length
+                qcov = round(float(alen) / float(qlen) * 100.0, 2)
+                if gene not in d.keys():
+                    d[gene] = []
+                d[gene].append('%s\t%s' % (line, str(qcov)))
+            except Exception:
+                return d
     return d
 
 
@@ -54,13 +60,16 @@ def get_blacklist(v, b):
     # column 1=the reason why the gene was blacklisted, which will be reported
     # e.g., 'ANTHRAX TOXIN'
     bdict = {}
+    blacklist_present = {}
     with open(b, 'r') as fh:
         for line in fh:
-            items = line.split('\t')
-            gene = items[0].strip()
-            val = items[1].strip()
-            bdict[gene] = val
-    blacklist_present = {}
+            try:
+                items = line.split('\t')
+                gene = items[0]
+                val = items[1]
+                bdict[gene] = val
+            except Exception:
+                return blacklist_present
     for key in v.keys():
         if key in bdict.keys():
             val = bdict[key]
@@ -82,21 +91,24 @@ def gene_dist(f, blast, gtdb):
     d = {}
     annd = {}
     gtdbd = {}
+    finallines = []
     with open(f, 'r') as fh:
         for line in fh:
-            items = line.split('\t')
-            tax = items[0].strip()
-            tax = tax.split('s__')[1].strip()
-            if len(tax) == 0:
-                tax = '(Unknown Species)'
-            gene = items[1].strip()
-            ann = items[-1].strip()
-            denom = items[3].strip()
-            d['%s___%s' % (tax, gene)] = line
-            annd[gene] = ann
-            gtdbd[tax] = denom
+            try:
+                items = line.split('\t')
+                tax = items[0]
+                tax = tax.split('s__')[1]
+                if len(tax) == 0:
+                    tax = '(Unknown Species)'
+                gene = items[1]
+                ann = items[-1]
+                denom = items[3]
+                d['%s___%s' % (tax, gene)] = line
+                annd[gene] = ann
+                gtdbd[tax] = denom
+            except Exception:
+                return finallines
     # parse BLAST results
-    finallines = []
     for key in blast.keys():
         blastval = blast[key]
         for bv in blastval:
@@ -104,16 +116,16 @@ def gene_dist(f, blast, gtdb):
             if testkey in d.keys() and gtdb != '(Unknown Species)':
                 taxval = d[testkey]
                 items = taxval.split('\t')
-                tax = items[0].strip()
-                tax = tax.split('s__')[1].strip()
+                tax = items[0]
+                tax = tax.split('s__')[1]
                 if len(tax) == 0:
                     tax = '(Unknown Species)'
-                gene = items[1].strip()
-                pres = items[2].strip()
-                denom = items[3].strip()
-                perc = items[4].strip()
+                gene = items[1]
+                pres = items[2]
+                denom = items[3]
+                perc = items[4]
                 perc = str(round(float(perc), 2))
-                ann = items[-1].strip()
+                ann = items[-1]
                 freetext = 'Gene {0} has been detected in {1}% of {2} genomes ({3} of {4} genomes queried)'.format(gene, perc, tax, pres, denom)
             elif gtdb != '(Unknown Species)':
                 ann = annd[key]
@@ -157,15 +169,15 @@ def output_vfdb(vfdist, vfdb_output_file):
                 # blast_header=['Gene', 'Contig', 'Percent (%) Nucleotide Identity', 'Alignment Length', 'Mismatches', 'Gaps', 'Query Start', 'Query End', 'Subject Start', 'Subject End', 'E-Value', 'Bit Score',  'Identical Matches', 'Query Length']
                 # lc_header=['Query Coverage', 'Annotation', 'Comparison to Publicly Available Genomes']
                 items = vline.split('\t')
-                vgene = items[0].strip()
-                vcontig = items[1].strip()
-                vid = items[2].strip()
-                vcov = items[-3].strip()
-                veval = items[-7].strip()
-                vann = items[-2].strip()
-                vnotes = items[-1].strip()
+                vgene = items[0]
+                vcontig = items[1]
+                vid = items[2]
+                vcov = items[-3]
+                veval = items[-7]
+                vann = items[-2]
+                vnotes = items[-1]
                 vfinal = [vgene, vcontig, vid, vcov, veval, vann, vnotes]
-                vfinal = '\t'.join(vfinal).strip()
+                vfinal = '\t'.join(vfinal)
                 fh.write('%s\n' % vfinal)
 
 
@@ -183,15 +195,15 @@ def output_amr(amrdist, amr_output_file):
                 # blast_header=['Gene', 'Contig', 'Percent (%) Nucleotide Identity', 'Alignment Length', 'Mismatches', 'Gaps', 'Query Start', 'Query End', 'Subject Start', 'Subject End', 'E-Value', 'Bit Score',  'Identical Matches', 'Query Length']
                 # lc_header=['Query Coverage', 'Annotation', 'Comparison to Publicly Available Genomes']
                 items = aline.split('\t')
-                agene = items[0].strip()
-                acontig = items[1].strip()
-                aid = items[2].strip()
-                acov = items[-3].strip()
-                aeval = items[-7].strip()
-                aann = items[-2].strip()
-                anotes = items[-1].strip()
+                agene = items[0]
+                acontig = items[1]
+                aid = items[2]
+                acov = items[-3]
+                aeval = items[-7]
+                aann = items[-2]
+                anotes = items[-1]
                 afinal = [agene, acontig, aid, acov, aeval, aann, anotes]
-                afinal = '\t'.join(afinal).strip()
+                afinal = '\t'.join(afinal)
                 fh.write('%s\n' % afinal)
 
 
