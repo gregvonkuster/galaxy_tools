@@ -11,15 +11,17 @@ def get_species_from_gtdb(f):
     # get GTDB species
     # assumes there is one genome in the GTDB-Tk output file
     with open(f, 'r') as fh:
-        for line in fh:
-            if line.find('user_genome') < 0:
-                items = line.split('\t')
-                tax = items[1].strip()
-                tax = tax.split(';')[-1].strip()
-                # split on GTDB species tag
-                tax = tax.split('s__')[1].strip()
-                if len(tax) == 0:
-                    tax = '(Unknown Species)'
+        for i, line in enumerate(fh):
+            if i == 0:
+                # Skip header.
+                continue
+            items = line.split('\t')
+            tax = items[1].strip()
+            tax = tax.split(';')[-1].strip()
+            # split on GTDB species tag
+            tax = tax.split('s__')[1].strip()
+            if len(tax) == 0:
+                tax = '(Unknown Species)'
     return tax
 
 

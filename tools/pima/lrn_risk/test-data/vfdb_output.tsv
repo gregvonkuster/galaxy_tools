@@ -1,0 +1,8 @@
+Gene	Contig	% Identity	% Coverage	E-Value	Annotation	Comparison to Publicly Available Genomes
+BAS3109	contig_1	100.000	100.0	0.0	(BAS3109) thiol-activated cytolysin [ALO (VF0534)] [Bacillus anthracis str. Sterne]	Gene BAS3109 has been detected in 97.36% of Bacillus_A anthracis genomes (406 of 417 genomes queried)
+cya	contig_2	99.958	100.0	0.0	(cya) calmodulin sensitive adenylate cyclase edema factor [Anthrax toxin (VF0142)] [Bacillus anthracis str. Sterne]	Gene cya has been detected in 50.12% of Bacillus_A anthracis genomes (209 of 417 genomes queried)
+inhA	contig_1	100.000	100.0	0.0	(inhA) immune inhibitor A metalloprotease [InhA (VF0536)] [Bacillus anthracis str. Sterne]	Gene inhA has been detected in 99.76% of Bacillus_A anthracis genomes (416 of 417 genomes queried)
+lef	contig_2	100.000	100.0	0.0	(lef) anthrax toxin lethal factor precursor [Anthrax toxin (VF0142)] [Bacillus anthracis str. Sterne]	Gene lef has been detected in 50.12% of Bacillus_A anthracis genomes (209 of 417 genomes queried)
+nheA	contig_1	95.780	100.0	0.0	(nheA) non-hemolytic enterotoxin A [Nhe (VF0533)] [Bacillus cereus ATCC 10987]	Gene nheA has been detected in 100.0% of Bacillus_A anthracis genomes (417 of 417 genomes queried)
+nheB	contig_1	95.620	100.08	0.0	(nheB) non-hemolytic enterotoxin B [Nhe (VF0533)] [Bacillus cereus ATCC 10987]	Gene nheB has been detected in 100.0% of Bacillus_A anthracis genomes (417 of 417 genomes queried)
+pagA	contig_2	100.000	100.0	0.0	(pagA) anthrax toxin moiety protective antigen [Anthrax toxin (VF0142)] [Bacillus anthracis str. Sterne]	Gene pagA has been detected in 50.84% of Bacillus_A anthracis genomes (212 of 417 genomes queried)

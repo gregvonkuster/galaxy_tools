@@ -5,10 +5,23 @@
     </macros>
     <expand macro="requirements"/>
     <command detect_errors="exit_code"><![CDATA[
+#import re
+
+#for $i in $blast_features_collection:
+    #set file_name = $i.file_name
+    #set identifier = re.sub('[^\s\w\-\\.]', '_', str($i.element_identifier))
+    #if $identifier.lower().startswith('features_amr'):
+        #set amr_determinants_input = $identifier
+    #else if $identifier.lower().startswith('features_vfdb'):
+        #set virulence_factors_input = $identifier
+    #end if
+    ln -s '$file_name' '$identifier' &&
+#end for
+
 python '$__tool_directory__/lrn_risk.py'
 --gtdb_file '$gtdb_file'
---virulence_factors_file '$virulence_factors_file'
---amr_determinants_file '$amr_determinants_file'
+--virulence_factors_file '$virulence_factors_input'
+--amr_determinants_file '$amr_determinants_input'
 --blacklist_file '$blacklist_file'
 --vf_distribution_file '$vf_distribution_file'
 --amr_distribution_file '$amr_distribution_file'
@@ -18,8 +31,7 @@ python '$__tool_directory__/lrn_risk.py'
 ]]></command>
     <inputs>
         <param name="gtdb_file" type="data" format="tabular,tsv" label="GTDB-Tk Classify genomes file"/>
-        <param name="virulence_factors_file" type="data" format="tabular,tsv" label="File containing virulence factors detected via BLAST"/>
-        <param name="amr_determinants_file" type="data" format="tabular,tsv" label="File containing Pima AMR determinants detected via BLAST"/>
+        <param name="blast_features_collection" format="tabular,tsv" type="data_collection" collection_type="list" label="Collection BLAST features databases"/>
         <param name="blacklist_file" type="data" format="tabular,tsv" label="File containing blacklisted high-risk virulence factors"/>
         <param name="vf_distribution_file" type="data" format="tabular,tsv" label="File containing virulence factor distribution"/>
         <param name="amr_distribution_file" type="data" format="tabular,tsv" label="File containing AMR determinant distribution"/>
@@ -32,12 +44,17 @@ python '$__tool_directory__/lrn_risk.py'
     <tests>
         <test>
             <param name="gtdb_file" value="gtdb.tsv" ftype="tsv"/>
-            <param name="virulence_factors_file" value="virulence_factors.tsv" ftype="tsv"/>
-            <param name="amr_determinants_file" value="amr_determinants.tsv" ftype="tsv"/>
+            <param name="blast_features_collection">
+                <collection type="list">
+                    <element name="FEATURES_AMR_database_2023_02_02.fasta" value="FEATURES_AMR_database_2023_02_02.tsv"/>
+                    <element name="FEATURES_incompatibility_groups_database_2023_01_01.fasta" value="FEATURES_incompatibility_groups_database_2023_01_01.tsv"/>
+                    <element name="FEATURES_vfdb_core_database_2023_03_30.fasta" value="FEATURES_vfdb_core_database_2023_03_30.tsv"/>
+                </collection>
+            </param>
             <param name="blacklist_file" value="blacklist.tsv" ftype="tsv"/>
             <param name="vf_distribution_file" value="vf_distribution.tsv" ftype="tsv"/>
             <param name="amr_distribution_file" value="amr_distribution.tsv" ftype="tsv"/>
-            <output name="blacklist_output_file" value="blacklist.tsv" ftype="tsv"/>
+            <output name="blacklist_output_file" value="blacklist_output.tsv" ftype="tsv"/>
             <output name="vfdb_output_file" value="vfdb_output.tsv" ftype="tsv"/>
             <output name="amr_output_file" value="amr_output.tsv" ftype="tsv"/>
         </test>
