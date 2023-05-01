@@ -235,7 +235,6 @@ if __name__ == '__main__':
     parser.add_argument('--mutation_regions_dir', action='store', dest='mutation_regions_dir', help='Directory for mutation regions TSV files produced by this tool')
     parser.add_argument('--amr_matrix_png_dir', action='store', dest='amr_matrix_png_dir', help='Directory for PNG files produced by this tool')
     parser.add_argument('--errors', action='store', dest='errors', help='Output file containing errors')
-    parser.add_argument('--in_test_mode', action='store', dest='in_test_mode', help='Flag for running functional tests')
 
     args = parser.parse_args()
 
@@ -254,4 +253,4 @@ if __name__ == '__main__':
     for i in reference:
         reference_size += len(i.seq)
 
-    draw_amr_matrix(amr_feature_hits_files, args.amr_deletions_file, args.varscan_vcf_file, args.amr_mutation_regions_bed_file, args.amr_gene_drug_file, reference, reference_size, args.mutation_regions_dir, args.amr_matrix_png_dir, args.errors, args.in_test_mode)
+    draw_amr_matrix(amr_feature_hits_files, args.amr_deletions_file, args.varscan_vcf_file, args.amr_mutation_regions_bed_file, args.amr_gene_drug_file, reference, reference_size, args.mutation_regions_dir, args.amr_matrix_png_dir, args.errors)
