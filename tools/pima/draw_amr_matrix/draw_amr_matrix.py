@@ -58,7 +58,7 @@ def stop_err(msg):
     sys.exit(1)
 
 
-def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, varscan_vcf_file, amr_mutation_regions_bed_file, amr_gene_drug_file, reference, reference_size, mutation_regions_dir, amr_matrix_png_dir, errors, in_test_mode):
+def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, varscan_vcf_file, amr_mutation_regions_bed_file, amr_gene_drug_file, reference, reference_size, mutation_regions_dir, amr_matrix_png_dir, errors):
     efh = open(errors, 'w')
     ofh = open('process_log', 'w')
 
@@ -192,16 +192,12 @@ def draw_amr_matrix(amr_feature_hits_files, amr_deletions_file, varscan_vcf_file
             ofh.write("\nAfter processing deletions, amr_to_draw: %s\n" % str(amr_to_draw))
 
         ofh.write("\namr_to_draw.shape[0]: %s\n" % str(amr_to_draw.shape[0]))
-        # I have no idea why, but when running functional test with planemo
+        # I have no idea why, but when running functional tests with planemo
         # the value of amr_to_draw.shape[0] is 1 even though the tests use the
         # exact inputs when running outside of planeo that result in the value
-        # being 2.  So we have to pass this in_test_mode flag in order to get
-        # functional tests to work.
-        if in_test_mode == 'true':
-            shape_val = 0
-        else:
-            shape_val = 1
-        if amr_to_draw.shape[0] > shape_val:
+        # being 2.  So we cannot test with planemo unless we incorporate a hack
+        # like a hidden in_test_mode parameter.
+        if amr_to_draw.shape[0] > 1:
             ofh.write("\nDrawing AMR matrix...\n")
             present_genes = amr_to_draw['gene'].unique()
             present_drugs = amr_to_draw['drug'].unique()
