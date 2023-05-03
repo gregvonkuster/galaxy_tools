@@ -754,6 +754,10 @@ class PimaReport:
         self.ofh.write("\nXXXXXX In add_lrn_risk_info\n\n")
         if self.lrn_risk_amr_file is None and self.lrn_risk_blacklist_file is None and self.lrn_risk_vf_file is None:
             return
+        if not os.path.isfile(self.lrn_risk_amr_file) and not os.path.isfile(self.lrn_risk_blacklist_file) and not os.path.isfile(self.lrn_risk_vf_file):
+            return
+        if os.path.getsize(self.lrn_risk_amr_file) == 0 and os.path.getsize(self.lrn_risk_blacklist_file) == 0 and os.path.getsize(self.lrn_risk_vf_file) == 0:
+            return
         self.doc.new_line()
         self.doc.new_header(level=2, title=self.lrn_risk_title)
         # Process self.lrn_risk_amr_file.
