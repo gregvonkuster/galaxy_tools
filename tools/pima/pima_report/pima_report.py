@@ -29,46 +29,6 @@ class PimaReport:
                  minimap2_version=None, mutation_regions_bed_file=None, mutation_regions_tsv_files=None,
                  ont_file=None, pima_css=None, plasmids_file=None, quast_report_file=None, read_type=None,
                  reference_insertions_file=None, samtools_version=None, varscan_version=None):
-        self.ofh = open("process_log.txt", "w")
-
-        self.ofh.write("amr_deletions_file: %s\n" % str(amr_deletions_file))
-        self.ofh.write("amr_matrix_files: %s\n" % str(amr_matrix_files))
-        self.ofh.write("analysis_name: %s\n" % str(analysis_name))
-        self.ofh.write("assembler_version: %s\n" % str(assembler_version))
-        self.ofh.write("assembly_fasta_file: %s\n" % str(assembly_fasta_file))
-        self.ofh.write("assembly_name: %s\n" % str(assembly_name))
-        self.ofh.write("bedtools_version: %s\n" % str(bedtools_version))
-        self.ofh.write("blastn_version: %s\n" % str(blastn_version))
-        self.ofh.write("circos_files: %s\n" % str(circos_files))
-        self.ofh.write("compute_sequence_length_file: %s\n" % str(compute_sequence_length_file))
-        self.ofh.write("contig_coverage_file: %s\n" % str(contig_coverage_file))
-        self.ofh.write("dbkey: %s\n" % str(dbkey))
-        self.ofh.write("dnadiff_snps_file: %s\n" % str(dnadiff_snps_file))
-        self.ofh.write("dnadiff_version: %s\n" % str(dnadiff_version))
-        self.ofh.write("errors_file: %s\n" % str(errors_file))
-        self.ofh.write("feature_bed_files: %s\n" % str(feature_bed_files))
-        self.ofh.write("feature_png_files: %s\n" % str(feature_png_files))
-        self.ofh.write("flye_assembly_info_file: %s\n" % str(flye_assembly_info_file))
-        self.ofh.write("gzipped: %s\n" % str(gzipped))
-        self.ofh.write("genome_insertions_file: %s\n" % str(genome_insertions_file))
-        self.ofh.write("illumina_forward_read_file: %s\n" % str(illumina_forward_read_file))
-        self.ofh.write("illumina_reverse_read_file: %s\n" % str(illumina_reverse_read_file))
-        self.ofh.write("kraken2_report_file: %s\n" % str(kraken2_report_file))
-        self.ofh.write("kraken2_version: %s\n" % str(kraken2_version))
-        self.ofh.write("lrn_risk_amr_file: %s\n" % str(lrn_risk_amr_file))
-        self.ofh.write("lrn_risk_blacklist_file: %s\n" % str(lrn_risk_blacklist_file))
-        self.ofh.write("lrn_risk_vf_file: %s\n" % str(lrn_risk_vf_file))
-        self.ofh.write("minimap2_version: %s\n" % str(minimap2_version))
-        self.ofh.write("mutation_regions_bed_file: %s\n" % str(mutation_regions_bed_file))
-        self.ofh.write("mutation_regions_tsv_files: %s\n" % str(mutation_regions_tsv_files))
-        self.ofh.write("ont_file: %s\n" % str(ont_file))
-        self.ofh.write("pima_css: %s\n" % str(pima_css))
-        self.ofh.write("plasmids_file: %s\n" % str(plasmids_file))
-        self.ofh.write("quast_report_file: %s\n" % str(quast_report_file))
-        self.ofh.write("read_type: %s\n" % str(read_type))
-        self.ofh.write("reference_insertions_file: %s\n" % str(reference_insertions_file))
-        self.ofh.write("samtools_version: %s\n" % str(samtools_version))
-        self.ofh.write("varscan_version: %s\n" % str(varscan_version))
 
         # General
         self.doc = None
@@ -78,7 +38,6 @@ class PimaReport:
         self.amr_deletions_file = amr_deletions_file
         self.amr_matrix_files = amr_matrix_files
         self.analysis_name = analysis_name.split('_')[0]
-        self.ofh.write("self.analysis_name: %s\n" % str(self.analysis_name))
         if assembler_version is None:
             self.assembler_version = 'assembler (version unknown)'
         else:
@@ -217,7 +176,6 @@ class PimaReport:
         # Actions
         self.did_guppy_ont_fast5 = False
         self.did_qcat_ont_fastq = False
-        self.ofh.write("self.read_type: %s\n" % str(self.read_type))
         if self.read_type == 'ONT':
             self.info_ont_fastq(self.ont_file)
         else:
@@ -225,7 +183,6 @@ class PimaReport:
         self.load_contig_info()
 
     def run_command(self, command):
-        self.ofh.write("\nXXXXXX In run_command, command:\n%s\n\n" % str(command))
         try:
             return re.split('\\n', subprocess.check_output(command, shell=True).decode('utf-8'))
         except Exception:
@@ -233,8 +190,6 @@ class PimaReport:
             sys.exit(message)
 
     def format_kmg(self, number, decimals=0):
-        self.ofh.write("\nXXXXXX In format_kmg, number:\n%s\n" % str(number))
-        self.ofh.write("XXXXXX In format_kmg, decimals:\n%s\n\n" % str(decimals))
         if number == 0:
             return '0'
         magnitude_powers = [10**9, 10**6, 10**3, 1]
@@ -279,7 +234,6 @@ class PimaReport:
         self.assembly_size = self.format_kmg(sum([len(x) for x in self.assembly]), decimals=1)
 
     def info_illumina_fastq(self, illumina_read_files):
-        self.ofh.write("\nXXXXXX In info_illumina_fastq\n\n")
         if self.gzipped:
             opener = 'gunzip -c'
         else:
@@ -288,21 +242,14 @@ class PimaReport:
             command = ' '.join([opener,
                                 fastq_file,
                                 '| awk \'{getline;s += length($1);getline;getline;}END{print s/(NR/4)"\t"(NR/4)"\t"s}\''])
-            output = self.run_command(command)
-            self.ofh.write("output:\n%s\n" % str(output))
-            self.ofh.write("re.split('\\t', self.run_command(command)[0]:\n%s\n" % str(re.split('\\t', self.run_command(command)[0])))
             values = []
             for i in re.split('\\t', self.run_command(command)[0]):
                 if i == '':
                     values.append(float('nan'))
                 else:
                     values.append(float(i))
-            self.ofh.write("values:\n%s\n" % str(values))
-            self.ofh.write("values[0]:\n%s\n" % str(values[0]))
             self.illumina_length_mean += values[0]
-            self.ofh.write("values[1]:\n%s\n" % str(values[1]))
             self.illumina_read_count += int(values[1])
-            self.ofh.write("values[2]:\n%s\n" % str(values[2]))
             self.illumina_bases += int(values[2])
         self.illumina_length_mean /= 2
         self.illumina_bases = self.format_kmg(self.illumina_bases, decimals=1)
@@ -318,7 +265,6 @@ class PimaReport:
         self.doc.new_line()
 
     def add_run_information(self):
-        self.ofh.write("\nXXXXXX In add_run_information\n\n")
         self.doc.new_line()
         self.doc.new_header(1, 'Run information')
         # Tables in md.utils are implemented as a wrapping function.
@@ -345,7 +291,6 @@ class PimaReport:
         self.doc.new_line()
 
     def add_ont_library_information(self):
-        self.ofh.write("\nXXXXXX In add_ont_library_information\n\n")
         if self.ont_n50 is None:
             return
         self.doc.new_line()
@@ -370,7 +315,6 @@ class PimaReport:
         self.doc.new_line()
 
     def add_illumina_library_information(self):
-        self.ofh.write("\nXXXXXX In add_illumina_library_information\n\n")
         if self.illumina_length_mean is None:
             return
         self.doc.new_line()
@@ -402,7 +346,6 @@ class PimaReport:
             self.assembly_notes = self.assembly_notes.append(pandas.Series(warning))
 
     def add_assembly_information(self):
-        self.ofh.write("\nXXXXXX In add_assembly_information\n\n")
         if self.assembly_fasta_file is None:
             return
         self.load_assembly()
@@ -419,7 +362,6 @@ class PimaReport:
         self.doc.new_table(columns=2, rows=3, text=Table_List, text_align='left')
 
     def info_ont_fastq(self, fastq_file):
-        self.ofh.write("\nXXXXXX In info_ont_fastq, fastq_file:\n%s\n\n" % str(fastq_file))
         opener = 'cat'
         if self.gzipped:
             opener = 'gunzip -c'
@@ -469,7 +411,6 @@ class PimaReport:
             return string
 
     def add_contig_info(self):
-        self.ofh.write("\nXXXXXX In add_contig_info\n\n")
         if self.contig_info is None or self.read_type not in self.contig_info.index:
             return
         self.doc.new_line()
@@ -483,7 +424,6 @@ class PimaReport:
         self.doc.new_table(columns=3, rows=row_count, text=Table_List, text_align='left')
 
     def add_assembly_notes(self):
-        self.ofh.write("\nXXXXXX In add_assembly_notes\n\n")
         if len(self.assembly_notes) == 0:
             return
         self.doc.new_line()
@@ -494,7 +434,6 @@ class PimaReport:
             self.doc.new_line(note)
 
     def add_contamination(self):
-        self.ofh.write("\nXXXXXX In add_contamination\n\n")
         if self.kraken2_report_file is None:
             return
         # Read in the Kraken fractions and pull out the useful parts
@@ -522,7 +461,6 @@ class PimaReport:
         self.methods[self.contamination_methods_title] = self.methods[self.contamination_methods_title].append(pandas.Series(method))
 
     def add_alignment(self):
-        self.ofh.write("\nXXXXXX In add_alignment\n\n")
         if self.quast_report_file is not None:
             # Process quast values.
             quast_report = pandas.read_csv(self.quast_report_file, header=0, index_col=0, sep='\t')
@@ -555,7 +493,7 @@ class PimaReport:
                 contig_title = 'Alignment to %s' % contig
                 self.doc.new_line()
                 self.doc.new_header(level=3, title=contig_title)
-                self.doc.new_line('Blue color indicates query sequences aligned to the reference sequence, which is shown in yellow')
+                self.doc.new_line('Blue indicates query sequences aligned to the reference sequence, yellow indicates no alignment')
                 self.doc.new_line(self.doc.new_inline_image(text='contig_title', path=os.path.abspath(circos_file)))
                 self.doc.new_line('<div style="page-break-after: always;"></div>')
                 self.doc.new_line()
@@ -569,7 +507,6 @@ class PimaReport:
         self.methods[self.reference_methods_title] = self.methods[self.reference_methods_title].append(pandas.Series(method))
 
     def add_features(self):
-        self.ofh.write("\nXXXXXX In add_features\n\n")
         if len(self.feature_bed_files) == 0:
             return
         for bbf in self.feature_bed_files:
@@ -578,13 +515,10 @@ class PimaReport:
                 self.feature_hits[os.path.basename(bbf)] = best
         if len(self.feature_hits) == 0:
             return
-        self.ofh.write("self.feature_hits: %s\n" % str(self.feature_hits))
         self.doc.new_line()
         self.doc.new_header(level=2, title=self.feature_title)
         for feature_name in self.feature_hits.index.tolist():
-            self.ofh.write("feature_name: %s\n" % str(feature_name))
             features = self.feature_hits[feature_name].copy()
-            self.ofh.write("features: %s\n" % str(features))
             if features.shape[0] == 0:
                 continue
             features.iloc[:, 1] = features.iloc[:, 1].apply(lambda x: '{:,}'.format(x))
@@ -594,23 +528,15 @@ class PimaReport:
             if (features.shape[0] == 0):
                 continue
             for contig in pandas.unique(features.iloc[:, 0]):
-                self.ofh.write("contig: %s\n" % str(contig))
                 self.doc.new_line(contig)
                 contig_features = features.loc[(features.iloc[:, 0] == contig), :]
-                self.ofh.write("contig_features: %s\n" % str(contig_features))
                 Table_List = ['Start', 'Stop', 'Feature', 'Identity (%)', 'Strand']
                 for i in range(contig_features.shape[0]):
-                    self.ofh.write("i: %s\n" % str(i))
                     feature = contig_features.iloc[i, :].copy(deep=True)
-                    self.ofh.write("feature: %s\n" % str(feature))
                     feature[4] = '{:.3f}'.format(feature[4])
-                    self.ofh.write("feature[1:].values.tolist(): %s\n" % str(feature[1:].values.tolist()))
                     Table_List = Table_List + feature[1:].values.tolist()
-                self.ofh.write("Table_List: %s\n" % str(Table_List))
                 row_count = int(len(Table_List) / 5)
-                self.ofh.write("row_count: %s\n" % str(row_count))
                 self.doc.new_line()
-                self.ofh.write("Before new_table, len(Table_List):: %s\n" % str(len(Table_List)))
                 self.doc.new_table(columns=5, rows=row_count, text=Table_List, text_align='left')
         blastn_version = 'The genome assembly was queried for features using %s.' % self.blastn_version
         bedtools_version = 'Feature hits were clustered using %s and the highest scoring hit for each cluster was reported.' % self.bedtools_version
@@ -618,7 +544,6 @@ class PimaReport:
         self.methods[self.feature_methods_title] = self.methods[self.feature_methods_title].append(pandas.Series(method))
 
     def add_feature_plots(self):
-        self.ofh.write("\nXXXXXX In add_feature_plots\n\n")
         if len(self.feature_png_files) == 0:
             return
         self.doc.new_line()
@@ -628,7 +553,6 @@ class PimaReport:
             self.doc.new_line(self.doc.new_inline_image(text='Analysis', path=os.path.abspath(feature_png_file)))
 
     def add_mutations(self):
-        self.ofh.write("\nXXXXXX In add_mutations\n\n")
         if len(self.mutation_regions_tsv_files) == 0:
             return
         try:
@@ -640,7 +564,6 @@ class PimaReport:
         for region_i in range(mutation_regions.shape[0]):
             region = mutation_regions.iloc[region_i, :]
             region_name = str(region['name'])
-            self.ofh.write("Processing mutations for region %s\n" % region_name)
             region_mutations_tsv_name = '%s_mutations.tsv' % region_name
             if region_mutations_tsv_name not in self.mutation_regions_tsv_files:
                 continue
@@ -692,19 +615,17 @@ class PimaReport:
         self.methods[self.mutation_methods_title] = self.methods[self.mutation_methods_title].append(pandas.Series(method))
 
     def add_amr_matrix(self):
-        self.ofh.write("\nXXXXXX In add_amr_matrix\n\n")
         # Make sure that we have an AMR matrix to plot
         if len(self.amr_matrix_files) == 0:
             return
         self.doc.new_line()
         self.doc.new_header(level=2, title=self.amr_matrix_title)
-        self.doc.new_line('AMR genes and mutations with their corresponding drugs')
+        amr_matrix_text = 'AMR genes and mutations with their corresponding drugs: dark blue indicates the presence of a gene/mutation, light blue indicates the absence of a gene/mutation'
+        self.doc.new_line(amr_matrix_text)
         for amr_matrix_file in self.amr_matrix_files:
-            self.doc.new_line(self.doc.new_inline_image(text='AMR genes and mutations with their corresponding drugs',
-                                                        path=os.path.abspath(amr_matrix_file)))
+            self.doc.new_line(self.doc.new_inline_image(text=amr_matrix_text, path=os.path.abspath(amr_matrix_file)))
 
     def add_large_indels(self):
-        self.ofh.write("\nXXXXXX In add_large_indels\n\n")
         large_indels = pandas.Series(dtype='float64')
         # Pull in insertions.
         try:
@@ -751,7 +672,6 @@ class PimaReport:
         self.doc.new_line()
 
     def add_lrn_risk_info(self):
-        self.ofh.write("\nXXXXXX In add_lrn_risk_info\n\n")
         if self.lrn_risk_amr_file is None and self.lrn_risk_blacklist_file is None and self.lrn_risk_vf_file is None:
             return
         if not os.path.isfile(self.lrn_risk_amr_file) and not os.path.isfile(self.lrn_risk_blacklist_file) and not os.path.isfile(self.lrn_risk_vf_file):
@@ -832,7 +752,6 @@ class PimaReport:
         self.methods[self.plasmid_methods_title] = self.methods[self.plasmid_methods_title].append(pandas.Series(method))
 
     def add_methods(self):
-        self.ofh.write("\nXXXXXX In add_methods\n\n")
         if len(self.methods) == 0:
             return
         self.doc.new_line()
@@ -847,7 +766,6 @@ class PimaReport:
         self.doc.new_line()
 
     def add_summary(self):
-        self.ofh.write("\nXXXXXX In add_summary\n\n")
         # Add summary title
         self.doc.new_header(level=1, title=self.summary_title)
         # First section of Summary
@@ -893,7 +811,6 @@ class PimaReport:
         self.doc.create_md_file()
 
     def make_report(self):
-        self.ofh.write("\nXXXXXX In make_report\n\n")
         self.start_doc()
         self.add_summary()
         self.add_contamination()
@@ -912,12 +829,10 @@ class PimaReport:
         # (implied) argument in the following command must be 'html' instead of
         # the more logical 'pdf'.  see the answer from snsn in this thread:
         # https://github.com/jessicategner/pypandoc/issues/186
-        self.ofh.write("\nXXXXX In make_report, calling pypandoc.convert_file...\n\n")
         pypandoc.convert_file(self.report_md,
                               'html',
                               extra_args=['--pdf-engine=weasyprint', '-V', '-css=%s' % self.pima_css],
                               outputfile='pima_report.pdf')
-        self.ofh.close()
 
 
 parser = argparse.ArgumentParser()
