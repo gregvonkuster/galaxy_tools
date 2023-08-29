@@ -133,11 +133,15 @@ def gene_dist(f, blast, gtdb):
                 freetext = '{0}/{1} ({2}%)'.format(pres, denom, perc)
             elif gtdb != '(Unknown Species)':
                 ann = 'NA'
-                denom = gtdbd[gtdb]
+                if gtdb in gtdbd.keys():
+                    denom = gtdbd[gtdb]
+                else:
+                    denom = 'NA' 
                 freetext = "*WARNING"
-                warnings.append("*WARNING: This gene has never been detected in this species! Interpret with caution!")
+                warnings.append("*WARNING: This gene has never been detected in this species and/or this species has not been included in the LRNRisk database! Interpret with caution!")
             else:
                 ann = 'NA'
+                denom = 'NA'
                 freetext = "**WARNING"
                 warnings.append("**WARNING: This genome belongs to an undescribed species. Interpret with caution!")
             finallines.append('%s\t%s\t%s' % (bv, ann, freetext))
