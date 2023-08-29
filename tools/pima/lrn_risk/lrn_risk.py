@@ -82,7 +82,7 @@ def get_blacklist(v, b):
 def gene_dist(f, blast, gtdb):
     # get within-species prevalence of genes
     # for virulence factors (VFs): uses VFDB VFs detected via ABRicate's VFDB db
-    # for AMR genes: uses AMR genes detected via ABRicate's ResFinder db
+    # for AMR genes: uses AMR genes detected via ABRicate + PIMA db
     # for VFs and AMR genes: genes were detected via ABRicate XXX
     # minimum nucleotide identity and coverage values >=80%
     # total of 61,161 genomes queried
@@ -132,12 +132,12 @@ def gene_dist(f, blast, gtdb):
                 ann = items[-1]
                 freetext = '{0}/{1} ({2}%)'.format(pres, denom, perc)
             elif gtdb != '(Unknown Species)':
-                ann = annd[key]
+                ann = 'NA'
                 denom = gtdbd[gtdb]
                 freetext = "*WARNING"
                 warnings.append("*WARNING: This gene has never been detected in this species! Interpret with caution!")
             else:
-                ann = annd[key]
+                ann = 'NA'
                 freetext = "**WARNING"
                 warnings.append("**WARNING: This genome belongs to an undescribed species. Interpret with caution!")
             finallines.append('%s\t%s\t%s' % (bv, ann, freetext))
