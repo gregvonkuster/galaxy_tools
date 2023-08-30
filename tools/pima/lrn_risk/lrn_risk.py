@@ -93,8 +93,7 @@ def gene_dist(f, blast, gtdb):
     d = {}
     annd = {}
     gtdbd = {}
-    finallines = []
-    warnings = []
+    finallines = [] 
     with open(f, 'r') as fh:
         for line in fh:
             try:
@@ -137,15 +136,13 @@ def gene_dist(f, blast, gtdb):
                     denom = gtdbd[gtdb]
                 else:
                     denom = 'NA' 
-                freetext = "*WARNING"
-                warnings.append("*WARNING: This gene has never been detected in this species and/or this species has not been included in the LRNRisk database! Interpret with caution!")
+                freetext = "NA" 
             else:
                 ann = 'NA'
                 denom = 'NA'
-                freetext = "**WARNING"
-                warnings.append("**WARNING: This genome belongs to an undescribed species. Interpret with caution!")
+                freetext = "NA" 
             finallines.append('%s\t%s\t%s' % (bv, ann, freetext))
-    return [finallines, warnings]
+    return [finallines]
 
 
 def output_blacklist(blacklist, blacklist_output_file):
@@ -164,7 +161,7 @@ def output_blacklist(blacklist, blacklist_output_file):
                 fh.write('%s\t%s\tHIGH RISK\n' % (key, val))
 
 
-def output_vfdb(vfdist, vfdb_output_file, vf_warnings):
+def output_vfdb(vfdist, vfdb_output_file):
     # takes distribution of virulence factors as input (vfdist)
     # VFDB results
     with open(vfdb_output_file, 'w') as fh:
@@ -187,11 +184,8 @@ def output_vfdb(vfdist, vfdb_output_file, vf_warnings):
                 vnotes = items[-1]
                 vfinal = [vgene, vcontig, vid, vcov, veval, vann, vnotes]
                 fh.write('%s\n' % '\t'.join(vfinal))
-            for vfw in sorted(vf_warnings, key=lambda x: x.count('*')):
-                fh.write('%s\n' % vfw)
 
-
-def output_amr(amrdist, amr_output_file, amr_warnings):
+def output_amr(amrdist, amr_output_file):
     # takes distribution of AMR genes as input (amrdist)
     # AMR results
     with open(amr_output_file, 'w') as fh:
@@ -214,9 +208,6 @@ def output_amr(amrdist, amr_output_file, amr_warnings):
                 anotes = items[-1]
                 afinal = [agene, acontig, aid, acov, aeval, aann, anotes]
                 fh.write('%s\n' % '\t'.join(afinal))
-            for amrw in sorted(amr_warnings, key=lambda x: x.count('*')):
-                fh.write('%s\n' % amrw)
-
 
 # lrnrisk_prototype arguments
 parser = argparse.ArgumentParser()
@@ -242,12 +233,10 @@ blacklist = get_blacklist(virulence_genes, args.blacklist_file)
 output_blacklist(blacklist, args.blacklist_output_file)
 
 vf_distribution = gene_dist(args.vf_distribution_file, virulence_genes, species)
-vf_warnings = vf_distribution[1]
 vf_distribution = vf_distribution[0]
-output_vfdb(vf_distribution, args.vfdb_output_file, vf_warnings)
+output_vfdb(vf_distribution, args.vfdb_output_file)
 
 amr_genes = get_blast_genes(args.amr_determinants_file)
 amr_distribution = gene_dist(args.amr_distribution_file, amr_genes, species)
-amr_warnings = amr_distribution[1]
 amr_distribution = amr_distribution[0]
-output_amr(amr_distribution, args.amr_output_file, amr_warnings)
+output_amr(amr_distribution, args.amr_output_file)
