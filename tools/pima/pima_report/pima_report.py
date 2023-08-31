@@ -479,13 +479,13 @@ class PimaReport:
                     'Small indels',
                     '{:,}'.format(quast_indels)
                 ]
+                self.doc.new_table(columns=2, rows=3, text=Table_1, text_align='left')
+                self.doc.new_line('<div style="page-break-after: always;"></div>')
+                self.doc.new_line()
             except Exception:
                 # Likely a high dissimilarity bewteen the sample
                 # and the reference, resulting in a failed alignment.
                 pass
-        self.doc.new_table(columns=2, rows=3, text=Table_1, text_align='left')
-        self.doc.new_line('<div style="page-break-after: always;"></div>')
-        self.doc.new_line()
         # TODO: self.alignment_notes is not currently populated.
         if len(self.alignment_notes) > 0:
             self.doc.new_header(level=3, title=self.alignment_notes_title)
