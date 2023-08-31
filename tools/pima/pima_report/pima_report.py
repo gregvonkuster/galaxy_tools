@@ -464,20 +464,25 @@ class PimaReport:
         if self.quast_report_file is not None:
             # Process quast values.
             quast_report = pandas.read_csv(self.quast_report_file, header=0, index_col=0, sep='\t')
-            quast_mismatches = int(float(quast_report.loc['# mismatches per 100 kbp', :][0]) * (float(quast_report.loc['Total length (>= 0 bp)', :][0]) / 100000.))
-            quast_indels = int(float(quast_report.loc['# indels per 100 kbp', :][0]) * (float(quast_report.loc['Total length (>= 0 bp)', :][0]) / 100000.))
-            self.doc.new_line()
-            self.doc.new_header(level=2, title=self.alignment_title)
-            self.doc.new_line()
-            self.doc.new_header(level=3, title=self.snp_indel_title)
-            Table_1 = [
-                "Category",
-                "Quantity",
-                'SNPs',
-                '{:,}'.format(quast_mismatches),
-                'Small indels',
-                '{:,}'.format(quast_indels)
-            ]
+            try:
+                quast_mismatches = int(float(quast_report.loc['# mismatches per 100 kbp', :][0]) * (float(quast_report.loc['Total length (>= 0 bp)', :][0]) / 100000.))
+                quast_indels = int(float(quast_report.loc['# indels per 100 kbp', :][0]) * (float(quast_report.loc['Total length (>= 0 bp)', :][0]) / 100000.))
+                self.doc.new_line()
+                self.doc.new_header(level=2, title=self.alignment_title)
+                self.doc.new_line()
+                self.doc.new_header(level=3, title=self.snp_indel_title)
+                Table_1 = [
+                    "Category",
+                    "Quantity",
+                    'SNPs',
+                    '{:,}'.format(quast_mismatches),
+                    'Small indels',
+                    '{:,}'.format(quast_indels)
+                ]
+            except Exception:
+                # Likely a high dissimilarity bewteen the sample
+                # and the reference, resulting in a failed alignment.
+                pass
         self.doc.new_table(columns=2, rows=3, text=Table_1, text_align='left')
         self.doc.new_line('<div style="page-break-after: always;"></div>')
         self.doc.new_line()
