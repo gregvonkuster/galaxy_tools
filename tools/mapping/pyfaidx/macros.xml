@@ -1,0 +1,16 @@
+<macros>
+    <token name="@TOOL_VERSION@">0.7.2.2</token>
+    <token name="@VERSION_SUFFIX@">0</token>
+    <token name="@PROFILE@">21.01</token>
+    <xml name="requirements">
+        <requirements>
+            <requirement type="package" version="@TOOL_VERSION@">pyfaidx</requirement>
+        </requirements>
+    </xml>
+    <xml name="citations">
+        <citations>
+            <citation type="doi">10.7287/peerj.preprints.970v1</citation>
+        </citations>
+    </xml>
+</macros>
+

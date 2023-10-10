@@ -1,0 +1,9 @@
+name: pyfaidx
+owner: greg
+description: Runs faidx to index the input FASTA file.
+long_description: Runs faidx to index the input FASTA file.
+categories: 
+- Next Gen Mappers
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/mapping/pyfaidx
+homepage_url: https://github.com/gregvonkuster/galaxy_tools
+type: unrestricted
