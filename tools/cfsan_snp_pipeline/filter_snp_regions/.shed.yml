@@ -1,0 +1,11 @@
+name: cfsan_snp_pipeline_filter_snp_regions
+owner: greg
+description: Remove abnormally dense SNPs from the input VCF file, save the reserved SNPs
+  into a new VCF file, and save the removed SNPs into another VCF file.
+long_description: Remove abnormally dense SNPs from the input VCF file, save the reserved SNPs
+  into a new VCF file, and save the removed SNPs into another VCF file.
+categories: 
+- Metagenomics
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/snp_pipeline/cfsan_snp_pipeline_filter_snp_regions
+homepage_url: https://github.com/gregvonkuster/galaxy_tools
+type: unrestricted
