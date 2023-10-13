@@ -1,0 +1,15 @@
+name: cfsan_snp_pipeline_snp_matrix
+owner: greg
+description: Create the SNP matrix containing the consensus base for each of the samples at
+  the positions where high-confidence SNPs were found in any of the samples.
+long_description: Create the SNP matrix containing the consensus base for each of the samples at
+  the positions where high-confidence SNPs were found in any of the samples. The
+  matrix contains one row per sample and one column per SNP position. Non-SNP
+  positions are not included in the matrix. The matrix is formatted as a fasta
+  file, with each sequence (all of identical length) corresponding to the SNPs
+  in the correspondingly named sequence.
+categories: 
+- Metagenomics
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/snp_pipeline/cfsan_snp_pipeline_snp_matrix
+homepage_url: https://github.com/gregvonkuster/galaxy_tools
+type: unrestricted

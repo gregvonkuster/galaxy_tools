@@ -1,0 +1,77 @@
+<tool id="cfsan_snp_pipeline_snp_matrix" name="CFSAN SNP Pipeline: create SNP matrix"  version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="@PROFILE@">
+    <description>and associated matrices</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <expand macro="requirements"/>
+    <command detect_errors="exit_code"><![CDATA[
+python '$__tool_directory__/snp_wind.py' ./
+#if str($input_type_cond.input_type) == 'single':
+    -n '$input_fasta.element_identifier'
+    -f '$input_fasta'
+#else:
+    #for $fa in sorted($input_fasta_collection, key=lambda f: f.element_identifier)
+        -n '$fa.element_identifier'
+        -f '$fa'
+    #end for
+#end if
+-p 'consensus.fasta' > ./file &&
+cfsan_snp_pipeline snp_matrix -o '$output_snp_matrix_fasta' ./file &&
+cfsan_snp_pipeline distance -p '$output_snp_pairwise_matrix_tsv' -m '$output_snp_distance_matrix_tsv' '$output_snp_matrix_fasta' &&
+cfsan_snp_pipeline snp_reference
+-l '$input_merged_snp_sites'
+-o '$output_snp_reference_fasta'
+#if str($reference_cond.reference_source) == 'cached'
+    '$reference_cond.reference.fields.path'
+#else:
+    '$reference_cond.reference'
+#end if
+    ]]></command>
+    <inputs>
+        <expand macro="input_type_cond"/>
+        <expand macro="reference_cond"/>
+        <param name="input_merged_snp_sites" type="data" format="tabular" label="Merged SNP sites tabular file"/>
+    </inputs>
+    <outputs>
+        <data name="output_snp_matrix_fasta" format="fasta" label="SNP matrix (fasta)"/>
+        <data name="output_snp_pairwise_matrix_tsv" format="tsv" label="SNP pairwise matrix (tsv)"/>
+        <data name="output_snp_distance_matrix_tsv" format="tsv" label="SNP distance matrix (tsv)"/>
+        <data name="output_snp_reference_fasta" format="fasta" label="SNP Reference (fasta)"/>
+    </outputs>
+    <tests>
+        <test>
+            <param name="input_type" value="collection"/>
+            <param name="input_fasta_collection">
+                <collection type="list">
+                    <element name="sample1" value="input1.fasta"/>
+                    <element name="sample2" value="input2.fasta"/>
+                    <element name="sample3" value="input3.fasta"/>
+                    <element name="sample4" value="input4.fasta"/>
+                </collection>
+            </param>
+            <param name="reference_source" value="history"/>
+            <param name="reference" value="lambda_virus.fasta"/>
+            <param name="input_merged_snp_sites" value="input_merged_snp_sites.tabular"/>
+            <output name="output_snp_matrix_fasta" value="output_snp_matrix.fasta"/>
+            <output name="output_snp_pairwise_matrix_tsv" value="output_snp_pairwise_matrix.tsv"/>
+            <output name="output_snp_distance_matrix_tsv" value="output_snp_distance_matrix.tsv"/>
+            <output name="output_snp_reference_fasta" value="output_snp_reference.fasta"/>
+        </test>
+    </tests>
+    <help><![CDATA[
+**What it does**
+
+Create the SNP matrix containing the consensus base for each of the samples at
+the positions where high-confidence SNPs were found in any of the samples. The
+matrix contains one row per sample and one column per SNP position. Non-SNP
+positions are not included in the matrix. The matrix is formatted as a fasta
+file, with each sequence (all of identical length) corresponding to the SNPs
+in the correspondingly named sequence.
+
+**More information**
+
+CFSAN SNP Pipeline `create SNP matrix documentation <https://snp-pipeline.readthedocs.io/en/latest/cmd_ref.html#snp-matrix>`_
+    ]]></help>
+    <expand macro="citations"/>
+</tool>
+
