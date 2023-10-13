@@ -51,7 +51,7 @@ into a new VCF file, and save the removed SNPs into another VCF file.
 
 **More information**
 
-[CFSAN SNP Pipeline](https://snp-pipeline.readthedocs.io/en/latest/usage.html#snp-filtering 'SNP Filtering')
+CFSAN SNP Pipeline `SNP filtering documentation <https://snp-pipeline.readthedocs.io/en/latest/usage.html#snp-filtering>`_
     ]]></help>
     <expand macro="citations"/>
 </tool>
