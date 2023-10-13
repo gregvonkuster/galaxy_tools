@@ -1,0 +1,59 @@
+<tool id="cfsan_snp_pipeline_call_consensus_snps" name="CFSAN SNP Pipeline: call consensus SNPs" version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="@PROFILE@">
+    <description></description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <expand macro="requirements"/>
+    <command detect_errors="exit_code"><![CDATA[
+cfsan_snp_pipeline call_consensus -v 4 -l '$input_merged_snp_sites' --vcfFileName 'consensus.vcf' '$input_call_pileup' &&
+mv ./consensus.fasta '$output_fasta' &&
+mv ./consensus.vcf '$output_vcf'
+    ]]></command>
+    <inputs>
+        <param type="data" name="input_merged_snp_sites" format="tabular" label="Merged SNP sites tabular file"/>
+        <param type="data" name="input_snp_sites" format="vcf" label="SNP sites vcf file"/>
+        <param type="data" name="input_call_pileup" format="pileup" label="SNP sites pileup file"/>
+    </inputs>
+    <outputs>
+        <data name="output_vcf" format="vcf" label="Consensus SNPs (vcf)"/>
+        <data name="output_fasta" format="fasta" label="Consensus SNPs (fasta)"/>
+    </outputs>
+    <tests>
+        <test>
+            <param name="input_merged_snp_sites" value="input_merged_snp_sites.tabular"/>
+            <param name="input_snp_sites" value="input_snp_sites.vcf"/>
+            <param name="input_call_pileup" value="input_call_pileup.pileup"/>
+            <output name="output_vcf" value="output.vcf" lines_diff="20"/>
+            <output name="output_fasta" value="output.fasta" lines_diff="2"/>
+        </test>
+    </tests>
+    <help><![CDATA[
+**What it does**
+
+Call the consensus base for a sample at the specified positions where high-
+confidence SNPs were previously called in any of the samples. Generates a
+single-sequence fasta file with one base per specified position.
+
+**Optional parameters**
+
+    * **force** - Force processing even when result file already exists and is newer than inputs (default: False)
+    * **snpListFile** - Relative or absolute path to the SNP list file across all samples (default: snplist.txt)
+    * **excludeFile** - VCF file of positions to exclude (default: None)
+    * **minBaseQual** - Mimimum base quality score to count a read - all other snp filters take effect after the low-quality reads are discarded (default: 0)
+    * **minConsFreq** - Consensus frequency. Mimimum fraction of high-quality reads supporting the consensus to make a call (default: 0.6)
+    * **minConsFreq** - Consensus frequency. Mimimum fraction of high-quality reads supporting the consensus to make a call (default: 0.6)
+    * **minConsDpth** - Consensus depth - minimum number of high-quality reads supporting the consensus to make a call (default: 1)
+    * **minConsStrdDpth** - Consensus strand depth - minimum number of high-quality reads supporting the consensus which must be present on both the forward and reverse strands to make a call (default: 0)
+    * **minConsStrdBias** - Strand bias - minimum fraction of the high-quality consensus-supporting reads which must be present on both the forward and reverse strands to make a call.  The numerator of this fraction is the number of high-quality consensus-supporting reads on one strand.  The denominator is the total number of high-quality consensus-supporting reads on both strands combined. (default: 0)
+    * **vcfRefName** - Name of the reference file. This is only used in the generated VCF file header. (default: Unknown reference)
+    * **vcfAllPos** - Flag to cause VCF file generation at all positions, not just the snp positions. This has no effect on the consensus fasta file, it only affects the VCF file. This capability is intended primarily as a diagnostic tool and enabling this flag will greatly increase execution time. (default: False)
+    * **vcfPreserveRefCase** - Flag to cause the VCF file generator to emit each reference base in uppercase/lowercase as it appears in the reference sequence file. If not specified, the reference base is emitted in uppercase. (default: False)
+    * **vcfFailedSnpGt** - Controls the VCF file GT data element when a snp fails filters. Possible values: .) The GT element will be a dot, indicating unable to make a call. 0) The GT element will be 0, indicating the reference base. 1) The GT element will be the ALT index of the most commonly occuring base, usually 1. (default: .)
+
+**More information**
+
+CFSAN SNP Pipeline `call consensus documentation <https://snp-pipeline.readthedocs.io/en/latest/cmd_ref.html#call-consensus>`_
+    ]]></help>
+    <expand macro="citations"/>
+</tool>
+

@@ -1,0 +1,12 @@
+name: cfsan_snp_pipeline_call_consensus_snps
+owner: greg
+description: Call the consensus base for a sample at the specified positions where high-
+  confidence SNPs were previously called in any of the samples.
+long_description: Call the consensus base for a sample at the specified positions where high-
+  confidence SNPs were previously called in any of the samples.  Generates a single-sequence
+  fasta file with one base per specified position.
+categories: 
+- Metagenomics
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/snp_pipeline/cfsan_snp_pipeline_call_consensus_snps
+homepage_url: https://github.com/gregvonkuster/galaxy_tools
+type: unrestricted
