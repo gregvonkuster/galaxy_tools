@@ -26,6 +26,10 @@ python '$__tool_directory__/snp_wind.py' ./
     </outputs>
     <tests>
         <test>
+            <param name="input_vcf" value="input1.vcf"/>
+            <output name="output" value="output.tabular"/>
+        </test>
+        <test>
             <param name="input_type" value="collection"/>
             <param name="input_vcf_collection">
                 <collection type="list">
@@ -35,7 +39,7 @@ python '$__tool_directory__/snp_wind.py' ./
                     <element name="input4" value="input4.vcf" ftype="vcf"/>
                 </collection>
             </param>
-            <output name="output" value="output.tabular"/>
+            <output name="output" value="output2.tabular"/>
         </test>
     </tests>
     <help><![CDATA[
