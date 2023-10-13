@@ -1,0 +1,31 @@
+<macros>
+    <token name="@TOOL_VERSION@">2.2.1</token>
+    <token name="@VERSION_SUFFIX@">0</token>
+    <token name="@PROFILE@">21.01</token>
+    <xml name="requirements">
+        <requirements>
+            <requirement type="package" version="@TOOL_VERSION@">snp-pipeline</requirement>
+            <requirement type="package" version="3.6.8">python</requirement>
+        </requirements>
+    </xml>
+    <xml name="input_type_cond">
+        <conditional name="input_type_cond">
+            <param name="input_type" type="select" label="Choose the category for the files to be analyzed">
+                <option value="single" selected="true">Single files</option>
+                <option value="collection">Collection of files</option>
+            </param>
+            <when value="single">
+                <param name="input_vcf" type="data" format="vcf" label="VCF file"/>
+            </when>
+            <when value="collection">
+                <param name="input_vcf_collection" type="data_collection" format="vcf" collection_type="list" label="Collection of VCF files"/>
+            </when>
+        </conditional>
+    </xml>
+    <xml name="citations">
+        <citations>
+            <citation type="doi">10.7717/peerj-cs.20</citation>
+        </citations>
+    </xml>
+</macros>
+

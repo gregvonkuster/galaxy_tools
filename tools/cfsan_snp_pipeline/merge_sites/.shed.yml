@@ -1,0 +1,11 @@
+name: cfsan_snp_pipeline_merge_sites
+owner: greg
+description: Combine the SNP positions across all samples into a single unified SNP list
+  file identifying the positions and sample names where SNPs were called.
+long_description:  Combine the SNP positions across all samples into a single unified SNP list
+file identifying the positions and sample names where SNPs were called.
+categories: 
+- Metagenomics
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/snp_pipeline/cfsan_snp_pipeline_merge_sites
+homepage_url: https://github.com/gregvonkuster/galaxy_tools
+type: unrestricted

@@ -1,0 +1,59 @@
+<tool id="cfsan_snp_pipeline_merge_sites" name="CFSAN SNP Pipeline: merge sites" version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="@PROFILE@">
+    <description>from multiple samples</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <expand macro="requirements"/>
+    <command detect_errors="exit_code"><![CDATA[
+python '$__tool_directory__/snp_wind.py' ./
+#if str($input_type_cond.input_type) == 'single':
+    -n '$input_vcf.element_identifier'
+    -f '$input_vcf'
+#else:
+    #for $input_vcf in $input_vcf_collection
+        -n '$input_vcf.element_identifier'
+        -f '$input_vcf'
+    #end for
+#end if
+-p 'var.fit.vcf' > ./file
+&& cfsan_snp_pipeline merge_sites -v 4 -n 'var.fit.vcf' ./file ./filtered_snps -o '$output'
+    ]]></command>
+    <inputs>
+        <expand macro="input_type_cond"/>
+    </inputs>
+    <outputs>
+        <data name="output" format="tabular"/>
+    </outputs>
+    <tests>
+        <test>
+            <param name="input_type" value="collection"/>
+            <param name="input_vcf_collection">
+                <collection type="list">
+                    <element name="input1" value="input1.vcf" ftype="vcf"/>
+                    <element name="input2" value="input2.vcf" ftype="vcf"/>
+                    <element name="input3" value="input3.vcf" ftype="vcf"/>
+                    <element name="input4" value="input4.vcf" ftype="vcf"/>
+                </collection>
+            </param>
+            <output name="output" value="output.tabular"/>
+        </test>
+    </tests>
+    <help><![CDATA[
+**What it does**
+
+Combine the SNP positions across all samples into a single unified SNP list
+file identifing the positions and sample names where SNPs were called.
+
+**Optional parameters**
+
+ * **force** - Force processing even when result file already exists and is newer than inputs (default: False)
+ * **vcfname** - File name of the VCF files which must exist in each of the sample directories (default: var.flt.vcf)
+ * **maxsnps** - Exclude samples having more than this maximum allowed number of SNPs. Set to -1 to disable this function (default: -1)
+
+**More information**
+
+CFSAN SNP Pipeline `merge sites documentation <https://snp-pipeline.readthedocs.io/en/latest/cmd_ref.html#merge-sites>`_
+    ]]></help>
+    <expand macro="citations"/>
+</tool>
+
