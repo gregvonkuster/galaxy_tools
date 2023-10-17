@@ -1,0 +1,48 @@
+<tool id="cfsan_snp_pipeline_quast_select" name="CFSAN SNP Pipeline: Select best assembly"  version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="@PROFILE@">
+    <description>based on a combined QUAST table</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <expand macro="requirements"/>
+    <command detect_errors="exit_code"><![CDATA[
+#for $fasta_file in $input_collection_fasta
+    ln -s $fasta_file $fasta_file.element_identifier &&
+#end for
+mv ./\$(python '$__tool_directory__/cfsan_snp_pipeline_quast_select.py' '$input_quast_tsv' '$criterion') '$output'
+    ]]></command>
+    <inputs>
+        <param name="input_quast_tsv" type="data" format="tabular,tsv" label="Combined QUAST output tabular file"/>
+        <param name="criterion" type="select" label="Select best assembly by">
+            <option value="N50" selected="true">longest N50</option>
+            <option value="Largest contig">longest single contig</option>
+            <option value="# contigs">fewest contigs</option>
+	    <option value="# contigs (>= 1000 bp)">fewest contigs of length 1kbp or longer</option>
+            <option value="Total length">total assembly length</option>
+	    <option value="Total length (>= 1000 bp)">total assembly length of contigs longer than 1kbp</option>
+        </param>
+        <param name="input_collection_fasta" type="data_collection" collection_type="list" format="fasta" label="Collection of FASTA assemblies"/>
+    </inputs>
+    <outputs>
+        <data name="output" format="fasta" label="Best assembly by ${criterion}"/>
+    </outputs>
+    <tests>
+        <test>
+            <param name="input_quast_tsv" value="quast_report.tsv"/>
+            <param name="input_collection_fasta" >
+                <collection type="list">
+                    <element name="SRR3168967" value="SRR3168967.fasta"/>
+                </collection>
+            </param>
+            <param name="criterion" value="N50"/>
+            <!-- the output is the same as the input here -->
+            <output name="output" value="SRR3168967.fasta"/>
+        </test>
+    </tests>
+    <help><![CDATA[
+**What it does**
+
+Selects the best assembly from a collection of assemblies and a combined QUAST report.
+    ]]></help>
+    <expand macro="citations"/>
+</tool>
+

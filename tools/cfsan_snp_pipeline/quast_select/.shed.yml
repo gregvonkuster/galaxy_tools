@@ -1,0 +1,9 @@
+name: cfsan_snp_pipeline_quast_select
+owner: greg
+description: Selects the best assembly from a collection of assemblies and a combined QUAST report
+long_description:  Selects the best assembly from a collection of assemblies and a combined QUAST report
+categories: 
+- Metagenomics
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/snp_pipeline/cfsan_snp_pipeline_quast_select
+homepage_url: https://github.com/gregvonkuster/galaxy_tools
+type: unrestricted
