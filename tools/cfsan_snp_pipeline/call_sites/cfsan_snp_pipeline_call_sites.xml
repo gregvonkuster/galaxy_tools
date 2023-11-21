@@ -15,10 +15,9 @@
         <param name="reference" label="FASTA Reference from your history" type="data" format="fasta"/>
     </inputs>
     <outputs>
-        <data name="calls" label="${input.name.split(' ')[0]} unfiltered SNPs" format="vcf"/>
-        <data name="pileup" label="${input.name.split(' ')[0]} pileup" format="pileup"/>
-        <data name="metrics" label="Metrics from Picard" format="txt"/>
-        <data label="S3 Cache log" name="cache_log" format="txt"/>
+        <data name="calls" label="Call Sites (unfiltered SNPs)" format="vcf"/>
+        <data name="pileup" label="Call Sites (pileup)" format="pileup"/>
+        <data name="metrics" label="Call sites (Picard metrics)" format="txt"/>
     </outputs>
     <tests>
         <test>
@@ -27,12 +26,12 @@
             <output name="calls" ftype="vcf">
                 <assert_contents>
                     <has_size value="9976" delta="100"/>
-        </assert_contents>
+                </assert_contents>
             </output>
             <output name="pileup" ftype="pileup">
                 <assert_contents>
                     <has_size value="4259620" delta="100"/>
-        </assert_contents>
+                </assert_contents>
             </output>
         </test>
     </tests>
