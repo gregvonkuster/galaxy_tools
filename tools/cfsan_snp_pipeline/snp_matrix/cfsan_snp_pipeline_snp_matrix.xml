@@ -5,30 +5,23 @@
     </macros>
     <expand macro="requirements"/>
     <command detect_errors="exit_code"><![CDATA[
-python '$__tool_directory__/snp_wind.py' ./
-#if str($input_type_cond.input_type) == 'single':
-    -n '$input_fasta.element_identifier'
-    -f '$input_fasta'
+#if str($reference_cond.reference_source) == 'cached'
+    set reference = '$reference_cond.reference.fields.path'
 #else:
-    #for $fa in sorted($input_fasta_collection, key=lambda f: f.element_identifier)
-        -n '$fa.element_identifier'
-        -f '$fa'
-    #end for
+    set reference = '$reference_cond.reference'
 #end if
--p 'consensus.fasta' > ./file &&
+
+python '$__tool_directory__/snp_wind.py' ./ -p 'consensus.fasta'
+#for $fa in sorted($input_fasta_collection, key=lambda f: f.element_identifier):
+    -n '$fa.element_identifier' -f '$fa'
+#end for
+> ./file &&
 cfsan_snp_pipeline snp_matrix -o '$output_snp_matrix_fasta' ./file &&
 cfsan_snp_pipeline distance -p '$output_snp_pairwise_matrix_tsv' -m '$output_snp_distance_matrix_tsv' '$output_snp_matrix_fasta' &&
-cfsan_snp_pipeline snp_reference
--l '$input_merged_snp_sites'
--o '$output_snp_reference_fasta'
-#if str($reference_cond.reference_source) == 'cached'
-    '$reference_cond.reference.fields.path'
-#else:
-    '$reference_cond.reference'
-#end if
+cfsan_snp_pipeline snp_reference -l '$input_merged_snp_sites' -o '$output_snp_reference_fasta' '$reference'
     ]]></command>
     <inputs>
-        <expand macro="input_type_cond"/>
+        <param name="input_fasta_collection" type="data_collection" format="fasta" collection_type="list" label="Collection of fasta files"/>
         <expand macro="reference_cond"/>
         <param name="input_merged_snp_sites" type="data" format="tabular" label="Merged SNP sites tabular file"/>
     </inputs>
@@ -40,7 +33,6 @@ cfsan_snp_pipeline snp_reference
     </outputs>
     <tests>
         <test>
-            <param name="input_type" value="collection"/>
             <param name="input_fasta_collection">
                 <collection type="list">
                     <element name="sample1" value="input1.fasta"/>
