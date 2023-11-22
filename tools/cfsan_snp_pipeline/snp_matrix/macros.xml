@@ -4,8 +4,10 @@
     <token name="@PROFILE@">21.01</token>
     <xml name="requirements">
         <requirements>
-            <requirement type="package" version="@TOOL_VERSION@">snp-pipeline</requirement>
+            <requirement type="package" version="1.9">bcftools</requirement>
             <requirement type="package" version="3.6.8">python</requirement>
+            <requirement type="package" version="@TOOL_VERSION@">snp-pipeline</requirement>
+            <requirement type="package" version="0.2.5">tabix</requirement>
         </requirements>
     </xml>
     <xml name="reference_cond">
