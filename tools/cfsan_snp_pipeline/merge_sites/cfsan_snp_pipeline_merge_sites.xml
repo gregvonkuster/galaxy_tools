@@ -7,10 +7,10 @@
     <command detect_errors="exit_code"><![CDATA[
 python '$__tool_directory__/snp_wind.py' ./
 #if str($input_type_cond.input_type) == 'single':
-    -n '$input_vcf.element_identifier'
-    -f '$input_vcf'
+    -n '$input_type_cond.input_vcf.element_identifier'
+    -f '$input_type_cond.input_vcf'
 #else:
-    #for $input_vcf in $input_vcf_collection
+    #for $input_vcf in $input_type_cond.input_vcf_collection:
         -n '$input_vcf.element_identifier'
         -f '$input_vcf'
     #end for
