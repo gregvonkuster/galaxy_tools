@@ -36,7 +36,13 @@
         </test>
     </tests>
     <help><![CDATA[
-        <a href="http://snp-pipeline.readthedocs.io/en/latest/index.html">http://snp-pipeline.readthedocs.io/en/latest/index.html</a>
+**What it does**
+
+Finds the sites with high-confidence SNPs in a sample.
+
+**More information**
+
+CFSAN SNP Pipeline `call consensus documentation <https://snp-pipeline.readthedocs.io/en/latest/cmd_ref.html#call-consensus>`_
     ]]></help>
     <expand macro="citations"/>
 </tool>

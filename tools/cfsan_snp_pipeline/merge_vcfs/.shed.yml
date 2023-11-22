@@ -1,0 +1,9 @@
+name: cfsan_snp_pipeline_merge_vcfs
+owner: greg
+description: Merge the consensus vcf files from all samples into a single multi-vcf file.
+long_description: Merge the consensus vcf files from all samples into a single multi-vcf file
+categories: 
+- Metagenomics
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/snp_pipeline/cfsan_snp_pipeline_merge_vcfs
+homepage_url: https://github.com/gregvonkuster/galaxy_tools
+type: unrestricted

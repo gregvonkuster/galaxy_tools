@@ -1,7 +1,7 @@
 name: cfsan_snp_pipeline_call_sites
 owner: greg
-description: Wrapper for picard MarkDuplicate, samtools mpileup and varscan mpileup2snp
-long_description: Wrapper for picard MarkDuplicate, samtools mpileup and varscan mpileup2snp
+description: Find the sites with high-confidence SNPs in a sample.
+long_description: Find the sites with high-confidence SNPs in a sample.
 categories: 
 - Metagenomics
 remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/snp_pipeline/cfsan_snp_pipeline_call_sites

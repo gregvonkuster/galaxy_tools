@@ -1,0 +1,56 @@
+<tool id="cfsan_snp_pipeline_merge_vcfs" name="CFSAN SNP Pipeline: merge vcfs" version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="@PROFILE@">
+    <description>from multiple samples</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <expand macro="requirements"/>
+    <command detect_errors="exit_code"><![CDATA[
+python '$__tool_directory__/snp_wind.py' ./
+#if str($input_type_cond.input_type) == 'single':
+    -n '$input_vcf.element_identifier'
+    -f '$input_vcf'
+#else:
+    #for $input_vcf in $input_vcf_collection
+        -n '$input_vcf.element_identifier'
+        -f '$input_vcf'
+    #end for
+#end if
+-p 'consensus.vcf' > ./file
+&& cfsan_snp_pipeline merge_vcfs ./file
+    ]]></command>
+    <inputs>
+        <expand macro="input_type_cond"/>
+    </inputs>
+    <outputs>
+        <data name="output" format="vcf"/>
+    </outputs>
+    <tests>
+        <test>
+            <param name="input_type" value="collection"/>
+            <param name="input_vcf_collection">
+                <collection type="list">
+                    <element name="sample1" value="samples/sample1/consensus.vcf" ftype="vcf"/>
+                    <element name="sample2" value="samples/sample2/consensus.vcf" ftype="vcf"/>
+                    <element name="sample3" value="samples/sample3/consensus.vcf" ftype="vcf"/>
+                    <element name="sample4" value="samples/sample4/consensus.vcf" ftype="vcf"/>
+                </collection>
+            </param>
+            <output name="output" ftype="vcf">
+                <assert_contents>
+                    <has_size value="0" delta="100"/>
+                </assert_contents>
+            </output>
+        </test>
+    </tests>
+    <help><![CDATA[
+**What it does**
+
+Merges the consensus vcf files from all samples into a single multi-vcf file.
+
+**More information**
+
+CFSAN SNP Pipeline `merge sites documentation <https://snp-pipeline.readthedocs.io/en/latest/cmd_ref.html#merge-sites>`_
+    ]]></help>
+    <expand macro="citations"/>
+</tool>
+
