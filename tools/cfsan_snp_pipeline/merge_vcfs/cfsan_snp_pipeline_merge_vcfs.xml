@@ -9,14 +9,15 @@ python '$__tool_directory__/snp_wind.py' ./ -p 'consensus.vcf'
 #for $input_vcf in $input_vcf_collection
     -n '$input_vcf.element_identifier' -f '$input_vcf'
 #end for
-> ./file
-&& cfsan_snp_pipeline merge_vcfs ./file
+> ./file &&
+cfsan_snp_pipeline merge_vcfs ./file &&
+mv snpma.vcf '$output'
     ]]></command>
     <inputs>
         <param name="input_vcf_collection" type="data_collection" format="vcf" collection_type="list" label="Collection of VCF files"/>
     </inputs>
     <outputs>
-        <data name="output" format="vcf"/>
+        <data name="output" label="SNP matrix" format="vcf"/>
     </outputs>
     <tests>
         <test>
@@ -30,7 +31,7 @@ python '$__tool_directory__/snp_wind.py' ./ -p 'consensus.vcf'
             </param>
             <output name="output" ftype="vcf">
                 <assert_contents>
-                    <has_size value="0" delta="100"/>
+                    <has_size value="31888" delta="100"/>
                 </assert_contents>
             </output>
         </test>
