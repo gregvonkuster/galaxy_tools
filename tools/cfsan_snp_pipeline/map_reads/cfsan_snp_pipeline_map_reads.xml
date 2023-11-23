@@ -1,0 +1,93 @@
+<tool id="cfsan_snp_pipeline_map_reads" name="CFSAN SNP Pipeline: map reads" version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="@PROFILE@">
+    <description></description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <expand macro="requirements"/>
+    <command detect_errors="exit_code"><![CDATA[
+#set compressed =" False"
+#if str($input_type_cond.input_type) == 'paired':
+    #set forward = $input_type_cond.reads_collection.forward
+    #set reverse = $input_type_cond.reads_collection.reverse
+#end if
+#if $forward.is_of_type("fastq.gz","fastqsanger.gz"):
+    ln -s '$forward' forward.gz &&
+    #set forward = 'forward.gz'
+    #set compressed = "GZ"
+#else if $forward.is_of_type("fastq.bz2", "fastqsanger.bz2"):
+    ln -s '$forward' forward.bz2 &&
+    #set forward = 'forward.bz2'
+    #set compressed = "BZ2"
+#end if
+#if $reverse.is_of_type("fastq.gz","fastqsanger.gz"):
+    ln -s '$reverse' reverse.gz &&
+    #set reverse = 'reverse.gz'
+    #set compressed = "GZ"
+#else if $reverse.is_of_type("fastq.bz2", "fastqsanger.bz2"):
+    ln -s '$reverse' reverse.bz2 &&
+    #set reverse = 'reverse.bz2'
+    #set compressed = "BZ2"
+#end if
+bowtie2-build '$reference' --threads \${GALAXY_SLOTS:-4} 'reference' &&
+bowtie2 -q -x reference -1 '$forward' -2 '$reverse' -p \${GALAXY_SLOTS:-4} --reorder -X 1000 -S '$output'
+    ]]></command>
+    <inputs>
+        <conditional name="input_type_cond">
+            <param name="input_type" type="select" label="Choose the category of the files to be analyzed">
+                <option value="paired" selected="true">List of dataset pairs</option>
+                <option value="pair">Dataset pair</option>
+            </param>
+            <when value="pair">
+                <param name="forward" type="data" format="fastqsanger.gz,fastqsanger" label="Read1 fastq file"/>
+                <param name="reverse" type="data" format="fastqsanger.gz,fastqsanger" label="Read2 fastq file"/>
+            </when>
+            <when value="paired">
+                <param name="reads_collection" type="data_collection" format="fastqsanger,fastqsanger.gz" collection_type="paired" label="Collection of fastqsanger paired read files"/>
+            </when>
+        </conditional>
+        <expand macro="reference_cond"/>
+    </inputs>
+    <outputs>
+        <data name="output" format="sam"/>
+    </outputs>
+    <tests>
+        <test>
+            <param name="reference" value="lambda_virus.fasta" ftype="fasta"/>
+            <param name="input_type" value="pair"/>
+            <param name="forward" value="sample1_1.fastq.gz" ftype="fastqsanger.gz"/>
+            <param name="reverse" value="sample1_2.fastq.gz" ftype="fastqsanger.gz"/>
+            <output name="output" ftype="sam">
+                <assert_contents>
+                    <has_size value="7285613" delta="1000"/>
+                </assert_contents>
+            </output>
+        </test>
+        <test>
+            <param name="reference" value="lambda_virus.fasta" ftype="fasta"/>
+            <param name="input_type" value="paired"/>
+            <param name="reads_collection">
+                <collection type="paired">
+                    <element name="forward" value="sample1_1.fastq.gz"/>
+                    <element name="reverse" value="sample1_2.fastq.gz"/>
+                </collection>
+            </param>
+            <output name="output" ftype="sam">
+                <assert_contents>
+                    <has_size value="7285613" delta="1000"/>
+                </assert_contents>
+            </output>
+        </test>
+    </tests>
+    <help><![CDATA[
+**What it does**
+
+Aligns the sequence reads for a specified sample to a specified reference genome. The reads are
+sorted, duplicates marked, and realigned around indels.
+
+**More information**
+
+CFSAN SNP Pipeline `call consensus documentation <https://snp-pipeline.readthedocs.io/en/latest/cmd_ref.html#call-consensus>`_
+    ]]></help>
+    <expand macro="citations"/>
+</tool>
+

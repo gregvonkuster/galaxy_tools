@@ -1,0 +1,10 @@
+name: cfsan_snp_pipeline_map_reads
+owner: greg
+description: Align the sequence reads for a specified sample to a specified reference genome
+long_description: Align the sequence reads for a specified sample to a specified reference genome
+  The reads are sorted, duplicates marked, and realigned around indels.
+categories: 
+- Metagenomics
+remote_repository_url: https://github.com/gregvonkuster/galaxy_tools/tree/master/snp_pipeline/cfsan_snp_pipeline_map_reads
+homepage_url: https://github.com/gregvonkuster/galaxy_tools
+type: unrestricted

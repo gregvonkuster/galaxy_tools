@@ -1,0 +1,35 @@
+<macros>
+    <token name="@TOOL_VERSION@">2.2.1</token>
+    <token name="@VERSION_SUFFIX@">0</token>
+    <token name="@PROFILE@">21.01</token>
+    <xml name="requirements">
+        <requirements>
+            <requirement type="package" version="2.5.2">bowtie2</requirement>
+            <requirement type="package" version="@TOOL_VERSION@">snp-pipeline</requirement>
+        </requirements>
+    </xml>
+    <xml name="reference_cond">
+        <conditional name="reference_cond">
+            <param name="reference_source" type="select" label="Choose the source for the reference genome">
+                <option value="history" selected="true">from history</option>
+                <option value="cached">locally cached</option>
+            </param>
+            <when value="cached">
+                <param name="reference" type="select" label="Select reference">
+                    <options from_data_table="all_fasta">
+                        <filter type="sort_by" column="2"/>
+                        <validator type="no_options" message="No assemblies are available for the selected input dataset"/>
+                    </options>
+                </param>
+            </when>
+            <when value="history">
+                <param name="reference" type="data" format="fasta" label="FASTA Reference from your history"/>
+            </when>
+        </conditional>
+    </xml>
+    <xml name="citations">
+        <citations>
+            <citation type="doi">10.7717/peerj-cs.20</citation>
+        </citations>
+    </xml>
+</macros>

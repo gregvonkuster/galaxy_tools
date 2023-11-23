@@ -1,0 +1,8 @@
+<tables>
+    <!-- Locations of all fasta files under tool-data/genome directory -->
+    <table name="bowtie2_indexes" comment_char="#" allow_duplicate_entries="False">
+        <columns>value, dbkey, name, path</columns>
+        <file path="${__HERE__}/test-data/bowtie2_indexes.loc" />
+    </table>
+</tables>
+
