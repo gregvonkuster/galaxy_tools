@@ -7,11 +7,13 @@
     <command detect_errors="exit_code"><![CDATA[
     cp '$reference' 'reference.fasta' &&
     samtools faidx 'reference.fasta' &&  
-    picard MarkDuplicates INPUT='$input' OUTPUT=/dev/stdout METRICS_FILE='$metrics' | samtools mpileup -f ./reference.fasta - -o '$pileup' &&
+    samtools view -b -F 4 '$input' -o ./unsorted.bam &&
+    samtools sort -o ./sorted.bam -O BAM ./unsorted.bam &&
+    picard MarkDuplicates INPUT=./sorted.bam OUTPUT=/dev/stdout METRICS_FILE='$metrics' | samtools mpileup -f ./reference.fasta - -o '$pileup' &&
     varscan mpileup2snp '$pileup' --min_var-freq 0.90 --output-vcf 1 > '$calls' 
     ]]></command>
     <inputs>
-        <param name="input" label="Read alignment to reference" type="data" format="bam"/>
+        <param name="input" label="Read alignment to reference" type="data" format="sam"/>
         <param name="reference" label="FASTA Reference from your history" type="data" format="fasta"/>
     </inputs>
     <outputs>
@@ -22,7 +24,7 @@
     <tests>
         <test>
             <param name="reference" value="lambda_virus.fasta"/>
-            <param name="input" value="reads.bam"/>
+            <param name="input" value="reads.sam"/>
             <output name="calls" ftype="vcf">
                 <assert_contents>
                     <has_size value="9976" delta="100"/>
