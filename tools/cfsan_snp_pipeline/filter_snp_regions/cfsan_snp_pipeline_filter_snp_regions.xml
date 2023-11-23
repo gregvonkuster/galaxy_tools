@@ -11,7 +11,7 @@
     #set reference = $reference_cond.reference
 #end if
 mkdir -p ./samples/sample/ &&
-ln -s '$calls' ./samples/sample/var.flt.vcf &&
+cp '$calls' ./samples/sample/var.flt.vcf &&
 echo "\$PWD/samples/sample" > ./alignment.txt &&
 cfsan_snp_pipeline filter_regions ./alignment.txt '$reference' &&
 cp ./samples/sample/var.flt_preserved.vcf '$filcalls' &&
