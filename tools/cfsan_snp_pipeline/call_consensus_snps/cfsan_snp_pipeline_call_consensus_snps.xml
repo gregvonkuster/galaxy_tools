@@ -5,8 +5,8 @@
     </macros>
     <expand macro="requirements"/>
     <command detect_errors="exit_code"><![CDATA[
-#set $identifier = $input_call_pileup.element_identifier
-mkdir -p ./$identifier/ &&
+#set identifier = $input_call_pileup.element_identifier
+mkdir -p ./'$identifier'/ &&
 cp '$input_call_pileup' ./'$identifier'/reads.all.pileup &&
 cfsan_snp_pipeline call_consensus -v 4 -l '$input_merged_snp_sites' --vcfFileName 'consensus.vcf' ./'$identifier'/reads.all.pileup 1>&2 &&
 mv ./consensus.fasta '$output_fasta' &&
