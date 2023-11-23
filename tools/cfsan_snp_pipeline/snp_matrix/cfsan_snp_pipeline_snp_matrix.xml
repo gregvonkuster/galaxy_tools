@@ -6,9 +6,9 @@
     <expand macro="requirements"/>
     <command detect_errors="exit_code"><![CDATA[
 #if str($reference_cond.reference_source) == 'cached'
-    set reference = '$reference_cond.reference.fields.path'
+    #set reference = $reference_cond.reference.fields.path
 #else:
-    set reference = '$reference_cond.reference'
+    #set reference = $reference_cond.reference
 #end if
 
 python '$__tool_directory__/snp_wind.py' ./ -p 'consensus.fasta'
