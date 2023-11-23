@@ -20,7 +20,6 @@ python '$__tool_directory__/snp_wind.py' ./
     </outputs>
     <tests>
         <test>
-            <param name="input_type" value="collection"/>
             <param name="input_vcf_collection">
                 <collection type="list">
                     <element name="input1" value="input1.vcf" ftype="vcf"/>
