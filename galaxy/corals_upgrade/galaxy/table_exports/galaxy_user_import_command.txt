@@ -1,0 +1,1 @@
+galaxy_user from '/home/galaxies/coral/galaxy/table_exports/galaxy_user.csv' CSV;

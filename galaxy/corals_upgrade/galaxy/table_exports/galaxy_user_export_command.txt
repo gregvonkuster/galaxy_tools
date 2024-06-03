@@ -1,0 +1,1 @@
+\copy (select id, create_time, update_time, email, username, password, last_password_change, external, form_values_id, deleted, purged, disk_usage, active, activation_token from galaxy_user) TO 'galaxy_user.csv' CSV;

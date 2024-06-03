@@ -1,0 +1,2 @@
+update galaxy_user set disk_usage = 0;
+

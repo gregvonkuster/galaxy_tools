@@ -1,0 +1,1 @@
+"""Galaxy coralsnp reports controllers."""
