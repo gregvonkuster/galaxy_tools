@@ -1,1 +1,18 @@
-../macros.xml
+<?xml version='1.0' encoding='UTF-8'?>
+<macros>
+    <token name="@TOOL_VERSION@">1.0</token>
+    <xml name="param_method">
+        <param name="method" type="select" label="Protein clustering method" dynamic_options="get_clustering_method_options(scaffold)"/>
+    </xml>
+    <xml name="param_scaffold">
+        <param name="scaffold" type="select" label="Gene family scaffold" refresh_on_change="True">
+            <options from_data_table="plant_tribes_scaffolds">
+                <column name="name" index="1"/>
+                <column name="value" index="2"/>
+                <column name="path" index="2"/>
+                <filter type="sort_by" column="1"/>
+                <validator type="no_options" message="No PlantTribes scaffolds are available.  Use the PlantTribes Scaffolds Download Data Manager tool in Galaxy to install and populate the PlantTribes scaffolds data table."/>
+            </options>
+        </param>
+    </xml>
+</macros>

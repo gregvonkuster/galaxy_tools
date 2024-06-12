@@ -1,4 +1,4 @@
-<tool id="plant_tribes_assembly_post_processor" name="AssemblyPostProcessor" version="@WRAPPER_VERSION@.4.0" profile="18.09">
+<tool id="plant_tribes_assembly_post_processor" name="AssemblyPostProcessor" version="@TOOL_VERSION@.4.0+galaxy0" profile="18.09">
     <description>post-processes de novo transcriptome assembly</description>
     <macros>
         <import>macros.xml</import>
@@ -118,21 +118,21 @@ fi]]></command>
         <data name="output_cds" format="fasta" label="transcripts.cds: ${tool.name} on ${on_string}"/>
     </outputs>
     <tests>
-        <test>
+        <test expect_num_outputs="4">
             <param name="input" value="assembly.fasta" ftype="fasta"/>
             <output name="output_cds" file="transcripts.cds" ftype="fasta"/>
             <output name="output_cleaned_cds" file="transcripts.cleaned.cds" ftype="fasta"/>
             <output name="output_cleaned_pep" file="transcripts.cleaned.pep" ftype="fasta"/>
             <output name="output_pep" file="transcripts.pep" ftype="fasta"/>
         </test>
-        <test>
+        <test expect_num_outputs="8">
             <param name="input" value="assembly_tgf.fasta" ftype="fasta"/>
             <param name="options_type_selector" value="advanced"/>
             <param name="target_gene_family_assembly" value="yes"/>
             <param name="orthogroups" value="target_orthos.ids"/>
             <param name="method" value="orthomcl"/>
             <param name="dereplicate" value="yes"/>
-            <output_collection name="output_targeted_gene_families" type="list">
+            <output_collection name="output_targeted_gene_families" type="list" count="0">
             </output_collection>
             <output name="output_targeted_gene_families_stats" file="output_targeted_gene_families_stats.tabular" ftype="tabular"/>
             <output name="output_cds" file="transcripts_tgf.cds" ftype="fasta"/>
@@ -174,105 +174,16 @@ de novo assembly.
 
     </help>
     <citations>
-        <expand macro="citation1" />
-        <citation type="bibtex">
-            @article{Honaas2016,
-            journal = {PloS one},
-            author = {2. Honaas LA, Wafula EK, Wickett NJ, Der JP, Zhang Y, Edger PP, Altman NS, Pires JC, Leebens-Mack JH},
-            title = {Selecting superior de novo transcriptome assemblies: lessons learned by leveraging the best plant genome},
-            year = {2016},
-            volume = {11},
-            number = {1},
-            pages = {e0146062},}
-        </citation>
-        <citation type="bibtex">
-            @article{Haas2013,
-            journal = {Nature Protocols},
-            author = {3. Haas BJ, Papanicolaou A, Yassour M, Grabherr M, Blood PD, Bowden J, Couger MB, Eccles D, Li B, Lieber M, MacManes MD},
-            title = {De novo transcript sequence reconstruction from RNA-seq using the Trinity platform for reference generation and analysis},
-            year = {2013},
-            volume = {8},
-            number = {8},
-            pages = {1494-1512},}
-        </citation>
-        <citation type="bibtex">
-            @article{Huang1999,
-            journal = {Genome Research},
-            author = {5. Huang X, Madan A},
-            title = {CAP3: A DNA sequence assembly program},
-            year = {1999},
-            volume = {9},
-            number = {9},
-            pages = {868-877},
-            url = {http://seq.cs.iastate.edu/cap3.html},}
-        </citation>
-        <citation type="bibtex">
-            @article{Eddy2009,
-            journal = {Genome Inform},
-            author = {6. Eddy SR},
-            title = {A new generation of homology search tools based on probabilistic inference},
-            year = {2009},
-            volume = {23},
-            number = {1},
-            pages = {205-211},}
-        </citation>
-        <citation type="bibtex">
-            @article{Katoh2013,
-            journal = {Molecular biology and evolution},
-            author = {7. Katoh K, Standley DM},
-            title = {MAFFT multiple sequence alignment software version 7: improvements in performance and usability},
-            year = {2013},
-            volume = {30},
-            number = {4},
-            pages = {772-780},}
-        </citation>
-        <citation type="bibtex">
-            @article{Sasidharan2012,
-            journal = {Nucleic Acids Research},
-            author = {8. Sasidharan R, Nepusz T, Swarbreck D, Huala E, Paccanaro A},
-            title = {GFam: a platform for automatic annotation of gene families},
-            year = {2012},
-            pages = {gks631},}
-        </citation>
-        <citation type="bibtex">
-            @article{Li2003,
-            journal = {Genome Research}
-            author = {9. Li L, Stoeckert CJ, Roos DS},
-            title = {OrthoMCL: identification of ortholog groups for eukaryotic genomes},
-            year = {2003},
-            volume = {13},
-            number = {9},
-            pages = {2178-2189},}
-        </citation>
-        <citation type="bibtex">
-            @article{Emms2015,
-            journal = {Genome Biology}
-            author = {10. Emms DM, Kelly S},
-            title = {OrthoFinder: solving fundamental biases in whole genome comparisons dramatically improves orthogroup inference accuracy},
-            year = {2015},
-            volume = {16},
-            number = {1},
-            pages = {157},}
-        </citation>
-        <citation type="bibtex">
-            @article{Capella-Gutierrez2009,
-            journal = {Bioinformatics,},
-            author = {11. Capella-Gutierrez S, Silla-Martínez JM, Gabaldón T},
-            title = {trimAl: a tool for automated alignment trimming in large-scale phylogenetic analyses},
-            year = {2009},
-            volume = {25},
-            number = {15},
-            pages = {1972-1973},}
-        </citation>
-        <citation type="bibtex">
-            @article{Gremme2013,
-            journal = {IEEE/ACM Transactions on Computational Biology and Bioinformatics},
-            author = {12. Gremme G, Steinbiss S, Kurtz S},
-            title = {GenomeTools: a comprehensive software library for efficient processing of structured genome annotations},
-            year = {2013},
-            volume = {10},
-            number = {3},
-            pages = {645-656},}
-        </citation>
+        <citation type="doi">10.3389/fpls.2022.1011199</citation>
+        <citation type="doi">10.1371/journal.pone.0146062</citation>
+        <citation type="doi">10.1038/nprot.2013.084</citation>
+        <citation type="doi">10.1101/gr.9.9.868</citation>
+        <citation type="doi">10.1142/9781848165632_0019</citation>
+        <citation type="doi">10.1093/molbev/mst010</citation>
+        <citation type="doi">10.1093/nar/gks631</citation>
+        <citation type="doi">10.1101/gr.1224503</citation>
+        <citation type="doi">10.1186/s13059-015-0721-2</citation>
+        <citation type="doi">10.1093/bioinformatics/btp348</citation>
+        <citation type="doi">10.1109/TCBB.2013.68</citation>
     </citations>
 </tool>
