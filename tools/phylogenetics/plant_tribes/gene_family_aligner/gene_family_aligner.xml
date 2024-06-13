@@ -1,4 +1,4 @@
-<tool id="plant_tribes_gene_family_aligner" name="GeneFamilyAligner" version="@WRAPPER_VERSION@.4.0">
+<tool id="plant_tribes_gene_family_aligner" name="GeneFamilyAligner" version="@TOOL_VERSION@.4.0+galaxy0">
     <description>aligns integrated orthologous gene family clusters</description>
     <macros>
         <import>macros.xml</import>
@@ -138,7 +138,7 @@ fi
         </collection>
     </outputs>
     <tests>
-        <test>
+        <test expect_num_outputs="2">
             <param name="input">
                 <collection type="list">
                     <element name="3722.faa" value="3722.faa"/>
@@ -151,14 +151,62 @@ fi
             </param>
             <param name="codon_alignments" value="yes"/>
             <output_collection name="primary_faa" type="list">
-                <element name="3722.faa.aln" file="3722.faa.aln" ftype="fasta"/>
-                <element name="38889.faa.aln" file="38889.faa.aln" ftype="fasta"/>
-                <element name="39614.faa.aln" file="39614.faa.aln" ftype="fasta"/>
+                <element name="3722.faa.aln" ftype="fasta">
+                    <assert_contents>
+                        <has_text text=">gnl_Glyma1.01_PACid_16266208"/>
+                        <has_text text=">gnl_Vitvi12X_PACid_17827068"/>
+                        <has_text text=">gnl_Selmo1.0_PACid_15401289"/>
+                        <has_text text=">gnl_Orysa6.0_PACid_16864430"/>
+                        <has_text text=">contig_7"/>
+                    </assert_contents>
+                </element>
+                <element name="38889.faa.aln" ftype="fasta">
+                    <assert_contents>
+                        <has_text text=">gnl_Mimgu1.0_PACid_17675619"/>
+                        <has_text text=">gnl_Solly2.3_Solyc06g053200.2.1"/>
+                        <has_text text=">gnl_Mimgu1.0_PACid_17675619"/>
+                        <has_text text=">gnl_Solly2.3_Solyc06g053200.2.1"/>
+                        <has_text text=">contig_2"/>
+                    </assert_contents>
+                </element>
+                <element name="39614.faa.aln" ftype="fasta">
+                    <assert_contents>
+                        <has_text text=">gnl_Orysa6.0_PACid_16878968"/>
+                        <has_text text=">gnl_Phoda3.0_PDK_30s1023721g001"/>
+                        <has_text text=">gnl_Orysa6.0_PACid_16878968"/>
+                        <has_text text=">gnl_Phoda3.0_PDK_30s1023721g001"/>
+                        <has_text text=">contig_3"/>
+                    </assert_contents>
+                </element>
             </output_collection>
             <output_collection name="primary_fna" type="list">
-                <element name="3722.fna.aln" file="3722.fna.aln" ftype="fasta"/>
-                <element name="38889.fna.aln" file="38889.fna.aln" ftype="fasta"/>
-                <element name="39614.fna.aln" file="39614.fna.aln" ftype="fasta"/>
+                <element name="3722.fna.aln" ftype="fasta">
+                    <assert_contents>
+                        <has_text text=">gnl_Glyma1.01_PACid_16266208"/>
+                        <has_text text=">gnl_Glyma1.01_PACid_16266209"/>
+                        <has_text text=">gnl_Glyma1.01_PACid_16266210"/>
+                        <has_text text=">gnl_Glyma1.01_PACid_16301083"/>
+                        <has_text text=">contig_7"/>
+                    </assert_contents>
+                </element>
+                <element name="38889.fna.aln" ftype="fasta">
+                    <assert_contents>
+                        <has_text text=">gnl_Mimgu1.0_PACid_17675619"/>
+                        <has_text text=">gnl_Solly2.3_Solyc06g053200.2.1"/>
+                        <has_text text=">gnl_Mimgu1.0_PACid_17675619"/>
+                        <has_text text=">gnl_Solly2.3_Solyc06g053200.2.1"/>
+                        <has_text text=">contig_2"/>
+                    </assert_contents>
+                </element>
+                <element name="39614.fna.aln" ftype="fasta">
+                    <assert_contents>
+                        <has_text text=">gnl_Orysa6.0_PACid_16878968"/>
+                        <has_text text=">gnl_Phoda3.0_PDK_30s1023721g001"/>
+                        <has_text text=">gnl_Orysa6.0_PACid_16878968"/>
+                        <has_text text=">gnl_Phoda3.0_PDK_30s1023721g001"/>
+                        <has_text text=">contig_3"/>
+                    </assert_contents>
+                </element>
             </output_collection>
         </test>
     </tests>
@@ -199,65 +247,16 @@ of integrated orthologous gene family fasta files produced by the GeneFamilyInte
 
     </help>
     <citations>
-        <expand macro="citation1" />
-        <citation type="bibtex">
-            @article{Wall2008,
-            journal = {Nucleic Acids Research},
-            author = {2. Wall PK, Leebens-Mack J, Muller KF, Field D, Altman NS},
-            title = {PlantTribes: a gene and gene family resource for comparative genomics in plants},
-            year = {2008},
-            volume = {36},
-            number = {suppl 1},
-            pages = {D970-D976},}
-        </citation>
-        <citation type="bibtex">
-            @article{Katoh2013,
-            journal = {Molecular biology and evolution},
-            author = {3. Katoh K, Standley DM},
-            title = {MAFFT multiple sequence alignment software version 7: improvements in performance and usability},
-            year = {2013},
-            volume = {30},
-            number = {4},
-            pages = {772-780},}
-        </citation>
-        <citation type="bibtex">
-            @article{Mirarab2014,
-            journal = {Research in Computational Molecular Biology (RECOMB)},
-            author = {4. Mirarab S, Nguyen N, Warnow T},
-            title = {PASTA: Ultra-Large Multiple Sequence Alignment. In R. Sharan (Ed.)},
-            year = {2014},
-            pages = {177–191},
-            url = {https://github.com/smirarab/pasta},}
-        </citation>
-        <citation type="bibtex">
-            @article{Capella-Gutierrez2009,
-            journal = {Bioinformatics,},
-            author = {5. Capella-Gutierrez S, Silla-Martínez JM, Gabaldón T},
-            title = {trimAl: a tool for automated alignment trimming in large-scale phylogenetic analyses},
-            year = {2009},
-            volume = {25},
-            number = {15},
-            pages = {1972-1973},}
-        </citation>
-        <citation type="bibtex">
-            @article{Yachdav2016,
-            journal = {Bioinformatics,},
-            author = {6. Yachdav G, Wilzbach S, Rauscher B, Sheridan R, Sillitoe I, Procter J, Lewis SE, Rost B, Goldberg T},
-            title = {MSAViewer: interactive JavaScript visualization of multiple sequence alignments},
-            year = {2016},
-            volume = {32},
-            number = {22},
-            pages = {3501-3503},}
-        </citation>
-        <citation type="bibtex">
-            @article{Clamp2004,
-            journal = {Bioinformatics,},
-            author = {7. Clamp M, Cuff J, Searle SM, Barton GJ},
-            title = {The jalview java alignment editor},
-            year = {2004},
-            volume = {20},
-            number = {3},
-            pages = {426-427},}
-        </citation>
+        <citation type="doi">10.3389/fpls.2022.1011199</citation>
+        <citation type="doi">10.1371/journal.pone.0146062</citation>
+        <citation type="doi">10.1038/nprot.2013.084</citation>
+        <citation type="doi">10.1101/gr.9.9.868</citation>
+        <citation type="doi">10.1142/9781848165632_0019</citation>
+        <citation type="doi">10.1093/molbev/mst010</citation>
+        <citation type="doi">10.1093/nar/gks631</citation>
+        <citation type="doi">10.1101/gr.1224503</citation>
+        <citation type="doi">10.1186/s13059-015-0721-2</citation>
+        <citation type="doi">10.1093/bioinformatics/btp348</citation>
+        <citation type="doi">10.1109/TCBB.2013.68</citation>
     </citations>
 </tool>
