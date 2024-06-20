@@ -1,0 +1,150 @@
+{
+    "a_galaxy_workflow": "true",
+    "annotation": "Filter all genotyped samples",
+    "creator": [
+        {
+            "class": "Organization",
+            "name": "Baums Lab",
+            "url": "https://baumslab.org"
+        }
+    ],
+    "format-version": "0.1",
+    "license": "MIT",
+    "name": "FilterAllGenotypedSamples",
+    "steps": {
+        "0": {
+            "annotation": "bcftools merge",
+            "content_id": null,
+            "errors": null,
+            "id": 0,
+            "input_connections": {},
+            "inputs": [
+                {
+                    "description": "bcftools merge",
+                    "name": "bcftools merge"
+                }
+            ],
+            "label": "bcftools merge",
+            "name": "Input dataset",
+            "outputs": [],
+            "position": {
+                "bottom": 746.9301147460938,
+                "height": 63.86029052734375,
+                "left": 1006.7095336914062,
+                "right": 1206.7095184326172,
+                "top": 683.06982421875,
+                "width": 199.99998474121094,
+                "x": 1006.7095336914062,
+                "y": 683.06982421875
+            },
+            "tool_id": null,
+            "tool_state": "{\"optional\": false, \"format\": [\"vcf\"]}",
+            "tool_version": null,
+            "type": "data_input",
+            "uuid": "014535eb-bcf2-412d-a2a3-0fc8166a8ea0",
+            "workflow_outputs": []
+        },
+        "1": {
+            "annotation": "unique mlg ids",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/greg/unique_mlg_id/unique_mlg_id/1.0.0",
+            "errors": null,
+            "id": 1,
+            "input_connections": {},
+            "inputs": [],
+            "label": "unique mlg ids",
+            "name": "Unique MLG IDs",
+            "outputs": [
+                {
+                    "name": "output",
+                    "type": "tabular"
+                }
+            ],
+            "position": {
+                "bottom": 899.0991973876953,
+                "height": 85.03675842285156,
+                "left": 1006.7462768554688,
+                "right": 1206.7462615966797,
+                "top": 814.0624389648438,
+                "width": 199.99998474121094,
+                "x": 1006.7462768554688,
+                "y": 814.0624389648438
+            },
+            "post_job_actions": {},
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/greg/unique_mlg_id/unique_mlg_id/1.0.0",
+            "tool_shed_repository": {
+                "changeset_revision": "c39c543605a2",
+                "name": "unique_mlg_id",
+                "owner": "greg",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{}",
+            "tool_version": "1.0.0",
+            "type": "tool",
+            "uuid": "aea411d2-b496-4eb5-8160-d5da6fe95a73",
+            "workflow_outputs": [
+                {
+                    "label": "Unique MLG IDs output",
+                    "output_name": "output",
+                    "uuid": "e4bae703-f40e-439e-bba7-dadd89b56db0"
+                }
+            ]
+        },
+        "2": {
+            "annotation": "bcftools view",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/iuc/bcftools_view/bcftools_view/1.10",
+            "errors": null,
+            "id": 2,
+            "input_connections": {
+                "input_file": {
+                    "id": 0,
+                    "output_name": "output"
+                },
+                "sec_subset|samples_file": {
+                    "id": 1,
+                    "output_name": "output"
+                }
+            },
+            "inputs": [],
+            "label": "bcftools view",
+            "name": "bcftools view",
+            "outputs": [
+                {
+                    "name": "output_file",
+                    "type": "vcf"
+                }
+            ],
+            "position": {
+                "bottom": 904.6138916015625,
+                "height": 148.566162109375,
+                "left": 1279.705810546875,
+                "right": 1479.705795288086,
+                "top": 756.0477294921875,
+                "width": 199.99998474121094,
+                "x": 1279.705810546875,
+                "y": 756.0477294921875
+            },
+            "post_job_actions": {},
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/iuc/bcftools_view/bcftools_view/1.10",
+            "tool_shed_repository": {
+                "changeset_revision": "98d5499ead46",
+                "name": "bcftools_view",
+                "owner": "iuc",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"input_file\": {\"__class__\": \"ConnectedValue\"}, \"output_type\": \"v\", \"sec_filter\": {\"min_ac\": null, \"max_ac\": null, \"select_genotype\": null, \"types\": null, \"exclude_types\": null, \"known_or_novel\": null, \"min_alleles\": null, \"max_alleles\": null, \"phased\": null, \"min_af\": null, \"max_af\": null, \"uncalled\": null, \"private\": null}, \"sec_output\": {\"drop_genotypes\": \"false\", \"header\": null, \"compression_level\": null, \"invert_targets_file\": \"false\"}, \"sec_restrict\": {\"apply_filters\": \"\", \"regions\": {\"regions_src\": \"__none__\", \"__current_case__\": 0}, \"targets\": {\"targets_src\": \"__none__\", \"__current_case__\": 0}, \"include\": \"\", \"exclude\": \"\"}, \"sec_subset\": {\"samples\": \"\", \"invert_samples\": \"false\", \"samples_file\": {\"__class__\": \"ConnectedValue\"}, \"invert_samples_file\": \"false\", \"force_samples\": \"false\", \"no_update\": \"false\", \"trim_alt_alleles\": \"false\"}, \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "1.10",
+            "type": "tool",
+            "uuid": "342cbf3f-8d32-4162-a7d8-0c365e87fe42",
+            "workflow_outputs": [
+                {
+                    "label": "bcftools view",
+                    "output_name": "output_file",
+                    "uuid": "09a365ed-2b16-4a79-8c52-9a254eba1893"
+                }
+            ]
+        }
+    },
+    "tags": [],
+    "uuid": "8056d3fb-63df-456a-bb58-3ef7c2cdaa6f",
+    "version": 20
+}

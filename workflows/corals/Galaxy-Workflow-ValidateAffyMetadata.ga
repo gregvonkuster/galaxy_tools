@@ -1,0 +1,106 @@
+{
+    "a_galaxy_workflow": "true",
+    "annotation": "Validate Affymetrix metadata",
+    "creator": [
+        {
+            "class": "Organization",
+            "name": "Baums Lab",
+            "url": "https://baumslab.org"
+        }
+    ],
+    "format-version": "0.1",
+    "license": "MIT",
+    "name": "ValidateAffyMetadata",
+    "steps": {
+        "0": {
+            "annotation": "metadata",
+            "content_id": null,
+            "errors": null,
+            "id": 0,
+            "input_connections": {},
+            "inputs": [
+                {
+                    "description": "metadata",
+                    "name": "Affymetrix metadata"
+                }
+            ],
+            "label": "Affymetrix metadata",
+            "name": "Input dataset",
+            "outputs": [],
+            "position": {
+                "bottom": 579.5220184326172,
+                "height": 85.03675842285156,
+                "left": 437.9963073730469,
+                "right": 637.9962921142578,
+                "top": 494.4852600097656,
+                "width": 199.99998474121094,
+                "x": 437.9963073730469,
+                "y": 494.4852600097656
+            },
+            "tool_id": null,
+            "tool_state": "{\"optional\": false}",
+            "tool_version": null,
+            "type": "data_input",
+            "uuid": "0d376413-e045-4980-bf5f-425cc3dc9a48",
+            "workflow_outputs": []
+        },
+        "1": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/greg/validate_affy_metadata/validate_affy_metadata/1.0.0",
+            "errors": null,
+            "id": 1,
+            "input_connections": {
+                "input": {
+                    "id": 0,
+                    "output_name": "output"
+                }
+            },
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Validate Affymetrix metadata",
+                    "name": "input"
+                }
+            ],
+            "label": "Validata Affy metadata",
+            "name": "Validate Affymetrix metadata",
+            "outputs": [
+                {
+                    "name": "output",
+                    "type": "tabular"
+                }
+            ],
+            "position": {
+                "bottom": 635.2389373779297,
+                "height": 159.7426300048828,
+                "left": 705.9190673828125,
+                "right": 905.9190521240234,
+                "top": 475.4963073730469,
+                "width": 199.99998474121094,
+                "x": 705.9190673828125,
+                "y": 475.4963073730469
+            },
+            "post_job_actions": {},
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/greg/validate_affy_metadata/validate_affy_metadata/1.0.0",
+            "tool_shed_repository": {
+                "changeset_revision": "b83be3be70a4",
+                "name": "validate_affy_metadata",
+                "owner": "greg",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"input\": {\"__class__\": \"RuntimeValue\"}, \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "1.0.0",
+            "type": "tool",
+            "uuid": "1c2a3bde-2b54-4f7e-b0cb-ee88ec6c769c",
+            "workflow_outputs": [
+                {
+                    "label": "Validated Affy metadata",
+                    "output_name": "output",
+                    "uuid": "1d41ceca-1a2a-4cb5-9ea0-c2c19bba0b0e"
+                }
+            ]
+        }
+    },
+    "tags": [],
+    "uuid": "0f926eb6-0ad0-4cad-a6d6-5f5f4856b60f",
+    "version": 9
+}

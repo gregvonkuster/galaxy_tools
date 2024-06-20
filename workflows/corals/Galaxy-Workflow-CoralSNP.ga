@@ -1,0 +1,952 @@
+{
+    "a_galaxy_workflow": "true",
+    "annotation": "CoralSNP multilocus genotype workflow",
+    "creator": [
+        {
+            "class": "Organization",
+            "name": "Baums Lab",
+            "url": "https://baumslab.org"
+        }
+    ],
+    "format-version": "0.1",
+    "license": "MIT",
+    "name": "CoralSNP",
+    "steps": {
+        "0": {
+            "annotation": "summary",
+            "content_id": null,
+            "errors": null,
+            "id": 0,
+            "input_connections": {},
+            "inputs": [
+                {
+                    "description": "summary",
+                    "name": "apt-probeset genotype summary file"
+                }
+            ],
+            "label": "apt-probeset genotype summary file",
+            "name": "Input dataset",
+            "outputs": [],
+            "position": {
+                "bottom": 70.6249942779541,
+                "height": 85.03675842285156,
+                "left": -419.63232421875,
+                "right": -219.63233947753906,
+                "top": -14.411764144897461,
+                "width": 199.99998474121094,
+                "x": -419.63232421875,
+                "y": -14.411764144897461
+            },
+            "tool_id": null,
+            "tool_state": "{\"optional\": false}",
+            "tool_version": null,
+            "type": "data_input",
+            "uuid": "80a5acb8-382d-4b47-b393-801915d2da1d",
+            "workflow_outputs": []
+        },
+        "1": {
+            "annotation": "snp-posteriors",
+            "content_id": null,
+            "errors": null,
+            "id": 1,
+            "input_connections": {},
+            "inputs": [
+                {
+                    "description": "snp-posteriors",
+                    "name": "apt-probeset genotype snp-posteriors file"
+                }
+            ],
+            "label": "apt-probeset genotype snp-posteriors file",
+            "name": "Input dataset",
+            "outputs": [],
+            "position": {
+                "bottom": 200.95586395263672,
+                "height": 106.21322631835938,
+                "left": -419.63232421875,
+                "right": -219.63233947753906,
+                "top": 94.74263763427734,
+                "width": 199.99998474121094,
+                "x": -419.63232421875,
+                "y": 94.74263763427734
+            },
+            "tool_id": null,
+            "tool_state": "{\"optional\": false}",
+            "tool_version": null,
+            "type": "data_input",
+            "uuid": "0296d34a-51e6-4df7-aa97-41a45c691b5d",
+            "workflow_outputs": []
+        },
+        "2": {
+            "annotation": "annotation",
+            "content_id": null,
+            "errors": null,
+            "id": 2,
+            "input_connections": {},
+            "inputs": [
+                {
+                    "description": "annotation",
+                    "name": "probeset annotation file"
+                }
+            ],
+            "label": "probeset annotation file",
+            "name": "Input dataset",
+            "outputs": [],
+            "position": {
+                "bottom": -24.246322631835938,
+                "height": 85.03675842285156,
+                "left": -423.49261474609375,
+                "right": -223.4926300048828,
+                "top": -109.2830810546875,
+                "width": 199.99998474121094,
+                "x": -423.49261474609375,
+                "y": -109.2830810546875
+            },
+            "tool_id": null,
+            "tool_state": "{\"optional\": false}",
+            "tool_version": null,
+            "type": "data_input",
+            "uuid": "ddb55650-a8a0-4abd-86e9-5030fa3a60b3",
+            "workflow_outputs": []
+        },
+        "3": {
+            "annotation": "report",
+            "content_id": null,
+            "errors": null,
+            "id": 3,
+            "input_connections": {},
+            "inputs": [
+                {
+                    "description": "report",
+                    "name": "apt-probeset genotype report file"
+                }
+            ],
+            "label": "apt-probeset genotype report file",
+            "name": "Input dataset",
+            "outputs": [],
+            "position": {
+                "bottom": 287.75733947753906,
+                "height": 85.03675842285156,
+                "left": -418.49261474609375,
+                "right": -218.4926300048828,
+                "top": 202.7205810546875,
+                "width": 199.99998474121094,
+                "x": -418.49261474609375,
+                "y": 202.7205810546875
+            },
+            "tool_id": null,
+            "tool_state": "{\"optional\": false}",
+            "tool_version": null,
+            "type": "data_input",
+            "uuid": "ef31d0d9-a769-4bcb-a43c-2eaa8dd7b02d",
+            "workflow_outputs": []
+        },
+        "4": {
+            "annotation": "attributes",
+            "content_id": null,
+            "errors": null,
+            "id": 4,
+            "input_connections": {},
+            "inputs": [
+                {
+                    "description": "attributes",
+                    "name": "sample attributes"
+                }
+            ],
+            "label": "sample attributes",
+            "name": "Input dataset",
+            "outputs": [],
+            "position": {
+                "bottom": -126.19483947753906,
+                "height": 85.03675842285156,
+                "left": -425.56982421875,
+                "right": -225.56983947753906,
+                "top": -211.23159790039062,
+                "width": 199.99998474121094,
+                "x": -425.56982421875,
+                "y": -211.23159790039062
+            },
+            "tool_id": null,
+            "tool_state": "{\"optional\": false}",
+            "tool_version": null,
+            "type": "data_input",
+            "uuid": "445145a1-66bb-4022-a308-c7112dc544eb",
+            "workflow_outputs": []
+        },
+        "5": {
+            "annotation": "confidences",
+            "content_id": null,
+            "errors": null,
+            "id": 5,
+            "input_connections": {},
+            "inputs": [
+                {
+                    "description": "confidences",
+                    "name": "apt-probeset genotype confidences file"
+                }
+            ],
+            "label": "apt-probeset genotype confidences file",
+            "name": "Input dataset",
+            "outputs": [],
+            "position": {
+                "bottom": 396.78306579589844,
+                "height": 85.03675842285156,
+                "left": -419.63232421875,
+                "right": -219.63233947753906,
+                "top": 311.7463073730469,
+                "width": 199.99998474121094,
+                "x": -419.63232421875,
+                "y": 311.7463073730469
+            },
+            "tool_id": null,
+            "tool_state": "{\"optional\": false}",
+            "tool_version": null,
+            "type": "data_input",
+            "uuid": "cab69dd8-2d89-40e9-9bb1-7a4e88f7b4b4",
+            "workflow_outputs": []
+        },
+        "6": {
+            "annotation": "metadata",
+            "content_id": null,
+            "errors": null,
+            "id": 6,
+            "input_connections": {},
+            "inputs": [
+                {
+                    "description": "metadata",
+                    "name": "affymetrix metadata"
+                }
+            ],
+            "label": "affymetrix metadata",
+            "name": "Input dataset",
+            "outputs": [],
+            "position": {
+                "bottom": -238.19850158691406,
+                "height": 85.03675842285156,
+                "left": -427.44482421875,
+                "right": -227.44483947753906,
+                "top": -323.2352600097656,
+                "width": 199.99998474121094,
+                "x": -427.44482421875,
+                "y": -323.2352600097656
+            },
+            "tool_id": null,
+            "tool_state": "{\"optional\": false}",
+            "tool_version": null,
+            "type": "data_input",
+            "uuid": "4c7e457d-8e56-446b-8c4d-832a35dfa684",
+            "workflow_outputs": []
+        },
+        "7": {
+            "annotation": "all_genotyped_samples",
+            "content_id": null,
+            "errors": null,
+            "id": 7,
+            "input_connections": {},
+            "inputs": [
+                {
+                    "description": "all_genotyped_samples",
+                    "name": "all previous genotyped samples"
+                }
+            ],
+            "label": "all previous genotyped samples",
+            "name": "Input dataset",
+            "outputs": [],
+            "position": {
+                "bottom": 654.5404205322266,
+                "height": 85.03675842285156,
+                "left": 164.9080810546875,
+                "right": 364.90806579589844,
+                "top": 569.503662109375,
+                "width": 199.99998474121094,
+                "x": 164.9080810546875,
+                "y": 569.503662109375
+            },
+            "tool_id": null,
+            "tool_state": "{\"optional\": false}",
+            "tool_version": null,
+            "type": "data_input",
+            "uuid": "46bba110-9d16-401a-8b0c-8b001b24ed91",
+            "workflow_outputs": []
+        },
+        "8": {
+            "annotation": "calls",
+            "content_id": null,
+            "errors": null,
+            "id": 8,
+            "input_connections": {},
+            "inputs": [
+                {
+                    "description": "calls",
+                    "name": "apt-probeset genotype calls file"
+                }
+            ],
+            "label": "apt-probeset genotype calls file",
+            "name": "Input dataset",
+            "outputs": [],
+            "position": {
+                "bottom": 504.7426300048828,
+                "height": 85.03675842285156,
+                "left": -419.63232421875,
+                "right": -219.63233947753906,
+                "top": 419.70587158203125,
+                "width": 199.99998474121094,
+                "x": -419.63232421875,
+                "y": 419.70587158203125
+            },
+            "tool_id": null,
+            "tool_state": "{\"optional\": false}",
+            "tool_version": null,
+            "type": "data_input",
+            "uuid": "4268f000-bd9f-4668-ae88-2ef179bf8717",
+            "workflow_outputs": []
+        },
+        "9": {
+            "annotation": "",
+            "content_id": "Cut1",
+            "errors": null,
+            "id": 9,
+            "input_connections": {
+                "input": {
+                    "id": 4,
+                    "output_name": "output"
+                }
+            },
+            "inputs": [],
+            "label": null,
+            "name": "Cut",
+            "outputs": [
+                {
+                    "name": "out_file1",
+                    "type": "tabular"
+                }
+            ],
+            "position": {
+                "bottom": 334.4301300048828,
+                "height": 96.21322631835938,
+                "left": 927.3529052734375,
+                "right": 1127.3528900146484,
+                "top": 238.21690368652344,
+                "width": 199.99998474121094,
+                "x": 927.3529052734375,
+                "y": 238.21690368652344
+            },
+            "post_job_actions": {
+                "HideDatasetActionout_file1": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "out_file1"
+                }
+            },
+            "tool_id": "Cut1",
+            "tool_state": "{\"columnList\": \"c1,c4\", \"delimiter\": \"T\", \"input\": {\"__class__\": \"ConnectedValue\"}, \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "1.0.2",
+            "type": "tool",
+            "uuid": "ba3387c0-d7f9-49b2-91d9-c4b70bcf2475",
+            "workflow_outputs": []
+        },
+        "10": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/greg/affy2vcf2/affy2vcf/1.9",
+            "errors": null,
+            "id": 10,
+            "input_connections": {
+                "annot": {
+                    "id": 2,
+                    "output_name": "output"
+                },
+                "calls": {
+                    "id": 8,
+                    "output_name": "output"
+                },
+                "confidences": {
+                    "id": 5,
+                    "output_name": "output"
+                },
+                "report": {
+                    "id": 3,
+                    "output_name": "output"
+                },
+                "snp_posteriors": {
+                    "id": 1,
+                    "output_name": "output"
+                },
+                "summary": {
+                    "id": 0,
+                    "output_name": "output"
+                }
+            },
+            "inputs": [],
+            "label": null,
+            "name": "Convert Affymetrix",
+            "outputs": [
+                {
+                    "name": "output",
+                    "type": "vcf"
+                }
+            ],
+            "position": {
+                "bottom": 474.33821868896484,
+                "height": 400.33087158203125,
+                "left": -123.60293579101562,
+                "right": 76.39704895019531,
+                "top": 74.0073471069336,
+                "width": 199.99998474121094,
+                "x": -123.60293579101562,
+                "y": 74.0073471069336
+            },
+            "post_job_actions": {},
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/greg/affy2vcf2/affy2vcf/1.9",
+            "tool_shed_repository": {
+                "changeset_revision": "b8549f504829",
+                "name": "affy2vcf2",
+                "owner": "greg",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"annot\": {\"__class__\": \"ConnectedValue\"}, \"append_version\": \"no\", \"calls\": {\"__class__\": \"ConnectedValue\"}, \"confidences\": {\"__class__\": \"ConnectedValue\"}, \"output_gender_estimate_cond\": {\"output_gender_estimate\": \"no\", \"__current_case__\": 0}, \"output_type\": \"v\", \"reference_genome_source_cond\": {\"reference_genome_source\": \"cached\", \"__current_case__\": 1, \"locally_cached_item\": \"Adig_1.1\"}, \"report\": {\"__class__\": \"ConnectedValue\"}, \"snp_posteriors\": {\"__class__\": \"ConnectedValue\"}, \"summary\": {\"__class__\": \"ConnectedValue\"}, \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "1.9",
+            "type": "tool",
+            "uuid": "23bfbf65-aaf6-4d13-a044-daccfa0de664",
+            "workflow_outputs": [
+                {
+                    "label": "Convert Affy data to VCF",
+                    "output_name": "output",
+                    "uuid": "ae1fa98a-d64e-4e36-8c1a-13c2dd287a99"
+                }
+            ]
+        },
+        "11": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/greg/bcftools_sort/bcftools_sort/1.4.0",
+            "errors": null,
+            "id": 11,
+            "input_connections": {
+                "input_file": {
+                    "id": 10,
+                    "output_name": "output"
+                }
+            },
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool bcftools sort",
+                    "name": "input_file"
+                }
+            ],
+            "label": null,
+            "name": "bcftools sort",
+            "outputs": [
+                {
+                    "name": "output_file",
+                    "type": "vcf"
+                }
+            ],
+            "position": {
+                "bottom": 477.6102828979492,
+                "height": 117.38970184326172,
+                "left": 173.38233947753906,
+                "right": 373.38232421875,
+                "top": 360.2205810546875,
+                "width": 199.99998474121094,
+                "x": 173.38233947753906,
+                "y": 360.2205810546875
+            },
+            "post_job_actions": {},
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/greg/bcftools_sort/bcftools_sort/1.4.0",
+            "tool_shed_repository": {
+                "changeset_revision": "1d4c51dcbbbe",
+                "name": "bcftools_sort",
+                "owner": "greg",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"input_file\": {\"__class__\": \"RuntimeValue\"}, \"output_type\": \"v\", \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "1.4.0",
+            "type": "tool",
+            "uuid": "e61cb7ef-eb70-4948-8c49-249c81733329",
+            "workflow_outputs": [
+                {
+                    "label": "bcftools sort",
+                    "output_name": "output_file",
+                    "uuid": "8fcbd7a0-60d0-42cc-a6cf-599c5bfc02c7"
+                }
+            ]
+        },
+        "12": {
+            "annotation": "bcftools merge",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/iuc/bcftools_merge/bcftools_merge/1.4.0",
+            "errors": null,
+            "id": 12,
+            "input_connections": {
+                "input_files": [
+                    {
+                        "id": 11,
+                        "output_name": "output_file"
+                    },
+                    {
+                        "id": 7,
+                        "output_name": "output"
+                    }
+                ]
+            },
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool bcftools merge",
+                    "name": "input_files"
+                },
+                {
+                    "description": "runtime parameter for tool bcftools merge",
+                    "name": "sec_header"
+                }
+            ],
+            "label": "bcftools merge",
+            "name": "bcftools merge",
+            "outputs": [
+                {
+                    "name": "output_file",
+                    "type": "vcf"
+                }
+            ],
+            "position": {
+                "bottom": 571.6176147460938,
+                "height": 148.566162109375,
+                "left": 499.1543884277344,
+                "right": 699.1543731689453,
+                "top": 423.05145263671875,
+                "width": 199.99998474121094,
+                "x": 499.1543884277344,
+                "y": 423.05145263671875
+            },
+            "post_job_actions": {
+                "RenameDatasetActionoutput_file": {
+                    "action_arguments": {
+                        "newname": "bcftools merge"
+                    },
+                    "action_type": "RenameDatasetAction",
+                    "output_name": "output_file"
+                }
+            },
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/iuc/bcftools_merge/bcftools_merge/1.4.0",
+            "tool_shed_repository": {
+                "changeset_revision": "85ee7e6c4204",
+                "name": "bcftools_merge",
+                "owner": "iuc",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"input_files\": {\"__class__\": \"RuntimeValue\"}, \"output_type\": \"v\", \"sec_header\": {\"use_header\": {\"__class__\": \"RuntimeValue\"}, \"print_header\": \"false\"}, \"sec_merge\": {\"force_samples\": \"false\", \"info_rules\": \"\", \"merge\": \"id\"}, \"sec_restrict\": {\"apply_filters\": \"\", \"regions\": {\"regions_src\": \"__none__\", \"__current_case__\": 0}}, \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "1.4.0",
+            "type": "tool",
+            "uuid": "e7bdaf5d-d97f-48ff-b411-3593e2dabe0e",
+            "workflow_outputs": [
+                {
+                    "label": "bcftools merge",
+                    "output_name": "output_file",
+                    "uuid": "4abf23a2-e251-4f1a-827e-d219c7b346c1"
+                }
+            ]
+        },
+        "13": {
+            "annotation": "",
+            "content_id": "Grep1",
+            "errors": null,
+            "id": 13,
+            "input_connections": {
+                "input": {
+                    "id": 12,
+                    "output_name": "output_file"
+                }
+            },
+            "inputs": [],
+            "label": null,
+            "name": "Select",
+            "outputs": [
+                {
+                    "name": "out_file1",
+                    "type": "input"
+                }
+            ],
+            "position": {
+                "bottom": 461.3418884277344,
+                "height": 96.21322631835938,
+                "left": 739.4301147460938,
+                "right": 939.4300994873047,
+                "top": 365.128662109375,
+                "width": 199.99998474121094,
+                "x": 739.4301147460938,
+                "y": 365.128662109375
+            },
+            "post_job_actions": {
+                "HideDatasetActionout_file1": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "out_file1"
+                }
+            },
+            "tool_id": "Grep1",
+            "tool_state": "{\"input\": {\"__class__\": \"ConnectedValue\"}, \"invert\": \"\", \"keep_header\": \"false\", \"pattern\": \"^#|PR\", \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "1.0.3",
+            "type": "tool",
+            "uuid": "a000283c-b05a-4f84-afde-6106c01039bb",
+            "workflow_outputs": []
+        },
+        "14": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/greg/affy_ids_for_genotyping/affy_ids_for_genotyping/1.0.0",
+            "errors": null,
+            "id": 14,
+            "input_connections": {
+                "input_vcf": {
+                    "id": 13,
+                    "output_name": "out_file1"
+                }
+            },
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Extract Affymetrix ids for genotyping",
+                    "name": "input_vcf"
+                }
+            ],
+            "label": null,
+            "name": "Extract Affymetrix ids for genotyping",
+            "outputs": [
+                {
+                    "name": "output",
+                    "type": "tabular"
+                }
+            ],
+            "position": {
+                "bottom": 782.5918731689453,
+                "height": 159.7426300048828,
+                "left": 590.8271484375,
+                "right": 790.8271331787109,
+                "top": 622.8492431640625,
+                "width": 199.99998474121094,
+                "x": 590.8271484375,
+                "y": 622.8492431640625
+            },
+            "post_job_actions": {},
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/greg/affy_ids_for_genotyping/affy_ids_for_genotyping/1.0.0",
+            "tool_shed_repository": {
+                "changeset_revision": "326bee593418",
+                "name": "affy_ids_for_genotyping",
+                "owner": "greg",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"input_vcf\": {\"__class__\": \"RuntimeValue\"}, \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "1.0.0",
+            "type": "tool",
+            "uuid": "4c118e90-1e58-4948-900a-4c8615843ef9",
+            "workflow_outputs": [
+                {
+                    "label": "Affy IDs for genotyping",
+                    "output_name": "output",
+                    "uuid": "aa75ea42-fb11-4a79-a9b3-83621970d147"
+                }
+            ]
+        },
+        "15": {
+            "annotation": "",
+            "content_id": "join1",
+            "errors": null,
+            "id": 15,
+            "input_connections": {
+                "input1": {
+                    "id": 14,
+                    "output_name": "output"
+                },
+                "input2": {
+                    "id": 9,
+                    "output_name": "out_file1"
+                }
+            },
+            "inputs": [],
+            "label": null,
+            "name": "Join two Datasets",
+            "outputs": [
+                {
+                    "name": "out_file1",
+                    "type": "tabular"
+                }
+            ],
+            "position": {
+                "bottom": 687.2426147460938,
+                "height": 148.566162109375,
+                "left": 924.6506958007812,
+                "right": 1124.6506805419922,
+                "top": 538.6764526367188,
+                "width": 199.99998474121094,
+                "x": 924.6506958007812,
+                "y": 538.6764526367188
+            },
+            "post_job_actions": {
+                "HideDatasetActionout_file1": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "out_file1"
+                }
+            },
+            "tool_id": "join1",
+            "tool_state": "{\"field1\": \"2\", \"field2\": \"1\", \"fill_empty_columns\": {\"fill_empty_columns_switch\": \"no_fill\", \"__current_case__\": 0}, \"header\": \"\", \"input1\": {\"__class__\": \"ConnectedValue\"}, \"input2\": {\"__class__\": \"ConnectedValue\"}, \"partial\": \"-p\", \"unmatched\": \"-u\", \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "2.1.3",
+            "type": "tool",
+            "uuid": "2b0abcc9-24a5-4f54-9dc4-e831d73a9327",
+            "workflow_outputs": []
+        },
+        "16": {
+            "annotation": "",
+            "content_id": "join1",
+            "errors": null,
+            "id": 16,
+            "input_connections": {
+                "input1": {
+                    "id": 15,
+                    "output_name": "out_file1"
+                },
+                "input2": {
+                    "id": 6,
+                    "output_name": "output"
+                }
+            },
+            "inputs": [],
+            "label": null,
+            "name": "Join two Datasets",
+            "outputs": [
+                {
+                    "name": "out_file1",
+                    "type": "tabular"
+                }
+            ],
+            "position": {
+                "bottom": 607.4999694824219,
+                "height": 148.566162109375,
+                "left": 1179.503662109375,
+                "right": 1379.503646850586,
+                "top": 458.9338073730469,
+                "width": 199.99998474121094,
+                "x": 1179.503662109375,
+                "y": 458.9338073730469
+            },
+            "post_job_actions": {
+                "HideDatasetActionout_file1": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "out_file1"
+                }
+            },
+            "tool_id": "join1",
+            "tool_state": "{\"field1\": \"4\", \"field2\": \"1\", \"fill_empty_columns\": {\"fill_empty_columns_switch\": \"no_fill\", \"__current_case__\": 0}, \"header\": \"\", \"input1\": {\"__class__\": \"ConnectedValue\"}, \"input2\": {\"__class__\": \"ConnectedValue\"}, \"partial\": \"-p\", \"unmatched\": \"-u\", \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "2.1.3",
+            "type": "tool",
+            "uuid": "ac75de06-28a1-41b3-9a08-b9826e1e0dcf",
+            "workflow_outputs": []
+        },
+        "17": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/greg/genotype_population_info/genotype_population_info/1.0.0",
+            "errors": null,
+            "id": 17,
+            "input_connections": {
+                "input_partial_info": {
+                    "id": 16,
+                    "output_name": "out_file1"
+                }
+            },
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Generate genotype population",
+                    "name": "input_partial_info"
+                }
+            ],
+            "label": null,
+            "name": "Generate genotype population",
+            "outputs": [
+                {
+                    "name": "output",
+                    "type": "tabular"
+                }
+            ],
+            "position": {
+                "bottom": 592.9411468505859,
+                "height": 159.7426300048828,
+                "left": 1418.198486328125,
+                "right": 1618.198471069336,
+                "top": 433.1985168457031,
+                "width": 199.99998474121094,
+                "x": 1418.198486328125,
+                "y": 433.1985168457031
+            },
+            "post_job_actions": {},
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/greg/genotype_population_info/genotype_population_info/1.0.0",
+            "tool_shed_repository": {
+                "changeset_revision": "836b90a08eab",
+                "name": "genotype_population_info",
+                "owner": "greg",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"input_partial_info\": {\"__class__\": \"RuntimeValue\"}, \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "1.0.0",
+            "type": "tool",
+            "uuid": "46a59047-667c-4943-bd8d-8385fcfc7b2f",
+            "workflow_outputs": [
+                {
+                    "label": "Genotype population info",
+                    "output_name": "output",
+                    "uuid": "ec379d51-180e-43ba-8868-ceb9ca81e6a0"
+                }
+            ]
+        },
+        "18": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/greg/coral_multilocus_genotype/coral_multilocus_genotype/1.0.0",
+            "errors": null,
+            "id": 18,
+            "input_connections": {
+                "input_affy_metadata": {
+                    "id": 6,
+                    "output_name": "output"
+                },
+                "input_pop_info": {
+                    "id": 17,
+                    "output_name": "output"
+                },
+                "input_vcf": {
+                    "id": 13,
+                    "output_name": "out_file1"
+                }
+            },
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Coral multilocus genotype",
+                    "name": "input_affy_metadata"
+                },
+                {
+                    "description": "runtime parameter for tool Coral multilocus genotype",
+                    "name": "input_pop_info"
+                },
+                {
+                    "description": "runtime parameter for tool Coral multilocus genotype",
+                    "name": "input_vcf"
+                }
+            ],
+            "label": null,
+            "name": "Coral multilocus genotype",
+            "outputs": [
+                {
+                    "name": "output_data_collection",
+                    "type": "input"
+                },
+                {
+                    "name": "output_plot_collection",
+                    "type": "input"
+                },
+                {
+                    "name": "output_log",
+                    "type": "txt"
+                },
+                {
+                    "name": "output_stag_db_report",
+                    "type": "csv"
+                }
+            ],
+            "position": {
+                "bottom": 676.8933563232422,
+                "height": 442.6838073730469,
+                "left": 1667.7021484375,
+                "right": 1867.702133178711,
+                "top": 234.2095489501953,
+                "width": 199.99998474121094,
+                "x": 1667.7021484375,
+                "y": 234.2095489501953
+            },
+            "post_job_actions": {},
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/greg/coral_multilocus_genotype/coral_multilocus_genotype/1.0.0",
+            "tool_shed_repository": {
+                "changeset_revision": "3c42de11ea1d",
+                "name": "coral_multilocus_genotype",
+                "owner": "greg",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"input_affy_metadata\": {\"__class__\": \"RuntimeValue\"}, \"input_pop_info\": {\"__class__\": \"RuntimeValue\"}, \"input_vcf\": {\"__class__\": \"RuntimeValue\"}, \"output_nj_phylogeny_tree\": \"no\", \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "1.0.0",
+            "type": "tool",
+            "uuid": "9f0f49f5-a466-4b8b-8840-38791f8ac9c7",
+            "workflow_outputs": [
+                {
+                    "label": "Coral multilocus genotyp stag database report",
+                    "output_name": "output_stag_db_report",
+                    "uuid": "f5eb9ce6-1ae9-46f3-8668-8e5e69c1b159"
+                },
+                {
+                    "label": "Coral multilocus genotype",
+                    "output_name": "output_log",
+                    "uuid": "dd77cb97-b573-4606-86d6-2b8105bc20e6"
+                },
+                {
+                    "label": "Coral multilocus genotype table data",
+                    "output_name": "output_data_collection",
+                    "uuid": "0affc317-9174-4c32-b01b-dd45b70d522e"
+                },
+                {
+                    "label": "Coral multilocus genotype plots",
+                    "output_name": "output_plot_collection",
+                    "uuid": "41bbf448-7fbf-4e8c-8d88-a5a2ac5879b9"
+                }
+            ]
+        },
+        "19": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/greg/update_stag_database/update_stag_database/1.0.0",
+            "errors": null,
+            "id": 19,
+            "input_connections": {
+                "input": {
+                    "id": 18,
+                    "output_name": "output_data_collection"
+                }
+            },
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Update stag database",
+                    "name": "input"
+                }
+            ],
+            "label": null,
+            "name": "Update stag database",
+            "outputs": [
+                {
+                    "name": "output",
+                    "type": "txt"
+                }
+            ],
+            "position": {
+                "bottom": 497.0771942138672,
+                "height": 180.9191131591797,
+                "left": 1987.4447021484375,
+                "right": 2187.4446868896484,
+                "top": 316.1580810546875,
+                "width": 199.99998474121094,
+                "x": 1987.4447021484375,
+                "y": 316.1580810546875
+            },
+            "post_job_actions": {
+                "HideDatasetActionoutput": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "output"
+                }
+            },
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/greg/update_stag_database/update_stag_database/1.0.0",
+            "tool_shed_repository": {
+                "changeset_revision": "e3d8b5bfdc11",
+                "name": "update_stag_database",
+                "owner": "greg",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"input\": {\"__class__\": \"RuntimeValue\"}, \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "1.0.0",
+            "type": "tool",
+            "uuid": "beb236df-07e9-4a6b-9244-6652d2f86c41",
+            "workflow_outputs": []
+        }
+    },
+    "tags": [],
+    "uuid": "ef58878f-377d-49d8-9921-3a572c9cd569",
+    "version": 53
+}

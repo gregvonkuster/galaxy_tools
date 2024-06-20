@@ -1,0 +1,106 @@
+{
+    "a_galaxy_workflow": "true",
+    "annotation": "Ensure stag database is synchronized with the all_genotyped_samples.vcf file",
+    "creator": [
+        {
+            "class": "Organization",
+            "name": "Baums Lab",
+            "url": "https://baumslab.org"
+        }
+    ],
+    "format-version": "0.1",
+    "license": "MIT",
+    "name": "EnsureSynced",
+    "steps": {
+        "0": {
+            "annotation": "all_genotyped_samples",
+            "content_id": null,
+            "errors": null,
+            "id": 0,
+            "input_connections": {},
+            "inputs": [
+                {
+                    "description": "all_genotyped_samples",
+                    "name": "all genotyped samples"
+                }
+            ],
+            "label": "all genotyped samples",
+            "name": "Input dataset",
+            "outputs": [],
+            "position": {
+                "bottom": 563.5293731689453,
+                "height": 85.03675842285156,
+                "left": 690.9926147460938,
+                "right": 890.9925994873047,
+                "top": 478.49261474609375,
+                "width": 199.99998474121094,
+                "x": 690.9926147460938,
+                "y": 478.49261474609375
+            },
+            "tool_id": null,
+            "tool_state": "{\"optional\": false}",
+            "tool_version": null,
+            "type": "data_input",
+            "uuid": "45eb728e-c8af-489c-9f5f-47410b7398f6",
+            "workflow_outputs": []
+        },
+        "1": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/greg/ensure_synced/ensure_synced/1.0.0",
+            "errors": null,
+            "id": 1,
+            "input_connections": {
+                "input": {
+                    "id": 0,
+                    "output_name": "output"
+                }
+            },
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Ensure synchronized",
+                    "name": "input"
+                }
+            ],
+            "label": "Ensure synchronized",
+            "name": "Ensure synchronized",
+            "outputs": [
+                {
+                    "name": "output",
+                    "type": "txt"
+                }
+            ],
+            "position": {
+                "bottom": 607.0587768554688,
+                "height": 138.566162109375,
+                "left": 929.9815673828125,
+                "right": 1129.9815521240234,
+                "top": 468.49261474609375,
+                "width": 199.99998474121094,
+                "x": 929.9815673828125,
+                "y": 468.49261474609375
+            },
+            "post_job_actions": {},
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/greg/ensure_synced/ensure_synced/1.0.0",
+            "tool_shed_repository": {
+                "changeset_revision": "aaa6ae7c64de",
+                "name": "ensure_synced",
+                "owner": "greg",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"input\": {\"__class__\": \"RuntimeValue\"}, \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": "1.0.0",
+            "type": "tool",
+            "uuid": "2ed25891-1b59-4a4f-a2d4-60d4ed30145a",
+            "workflow_outputs": [
+                {
+                    "label": "Ensure synchronized results",
+                    "output_name": "output",
+                    "uuid": "441b98d9-8b38-4ac7-93b9-9136caf4306f"
+                }
+            ]
+        }
+    },
+    "tags": [],
+    "uuid": "2c3fe7f6-aa4e-4b95-b8a5-a8de217369f6",
+    "version": 8
+}
