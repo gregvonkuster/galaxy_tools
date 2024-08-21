@@ -2,8 +2,8 @@
   <token name="@VERSION@">1.4.0</token>
   <xml name="requirements">
     <requirements>
-      <requirement type="package" version="1.9">bcftools</requirement>
-      <requirement type="package" version="1.9">htslib</requirement>
+      <requirement type="package" version="1.20">bcftools</requirement>
+      <requirement type="package" version="1.20">htslib</requirement>
       <yield />
     </requirements>
   </xml>
