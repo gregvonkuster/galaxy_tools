@@ -1,5 +1,5 @@
 <macros>
-    <token name="@WRAPPER_VERSION@">1.9</token>
+    <token name="@WRAPPER_VERSION@">1.19</token>
     <xml name="citation1">
         <citation type="doi">10.1093/bioinformatics/btp352</citation>
     </xml>
