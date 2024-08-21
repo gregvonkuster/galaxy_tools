@@ -1,23 +1,23 @@
-<tool id="coral_multilocus_genotype" name="Coral multilocus genotype" version="1.0.0">
+<tool id="coral_multilocus_genotype" name="Coral multilocus genotype" version="1.0.1">
     <description>unique combination of alleles for loci</description>
     <requirements>
-        <requirement type="package" version="1.16.0">bioconductor-snprelate</requirement>
-        <requirement type="package" version="2.1.1">r-adegenet</requirement>
-        <requirement type="package" version="5.1">r-ape</requirement>
-        <requirement type="package" version="1.11.6">r-data.table</requirement>
-        <requirement type="package" version="1.2.2">r-dbplyr</requirement>
-        <requirement type="package" version="0.7.6">r-dplyr</requirement>
-        <requirement type="package" version="3.0.0">r-ggplot2</requirement>
-        <requirement type="package" version="1.20">r-knitr</requirement>
-        <requirement type="package" version="3.3.0">r-maps</requirement>
-        <requirement type="package" version="1.2.6">r-mapproj</requirement>
-        <requirement type="package" version="1.6.0">r-optparse</requirement>
-        <requirement type="package" version="2.8.1">r-poppr</requirement>
-        <requirement type="package" version="1.1.2">r-rcolorbrewer</requirement>
-        <requirement type="package" version="1.1.1">r-rpostgres</requirement>
-        <requirement type="package" version="0.8.1">r-tidyr</requirement>
-        <requirement type="package" version="1.8.0">r-vcfr</requirement>
-        <requirement type="package" version="2.5_3">r-vegan</requirement>
+        <requirement type="package" version="1.36.0">bioconductor-snprelate</requirement>
+        <requirement type="package" version="2.1.10">r-adegenet</requirement>
+        <requirement type="package" version="5.8">r-ape</requirement>
+        <requirement type="package" version="1.15.4">r-data.table</requirement>
+        <requirement type="package" version="2.5.0">r-dbplyr</requirement>
+        <requirement type="package" version="1.1.4">r-dplyr</requirement>
+        <requirement type="package" version="3.5.1">r-ggplot2</requirement>
+        <requirement type="package" version="1.47">r-knitr</requirement>
+        <requirement type="package" version="3.4.2">r-maps</requirement>
+        <requirement type="package" version="1.2.11">r-mapproj</requirement>
+        <requirement type="package" version="1.7.5">r-optparse</requirement>
+        <requirement type="package" version="2.9.6">r-poppr</requirement>
+        <requirement type="package" version="1.1_3">r-rcolorbrewer</requirement>
+        <requirement type="package" version="1.4.7">r-rpostgres</requirement>
+        <requirement type="package" version="1.3.1">r-tidyr</requirement>
+        <requirement type="package" version="1.15.0">r-vcfr</requirement>
+        <requirement type="package" version="2.6_6.1">r-vegan</requirement>
         <requirement type="package" version="0.1.5">r-yarrr</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
