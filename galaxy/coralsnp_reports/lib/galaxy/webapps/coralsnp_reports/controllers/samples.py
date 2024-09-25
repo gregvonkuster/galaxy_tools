@@ -9,12 +9,14 @@ from datetime import (
 import sqlalchemy as sa
 from markupsafe import escape
 
-import galaxy.model
+from galaxy.model import corals
 from galaxy import util
-from . import BaseUIController
-from galaxy.web.base.controller import web
+from galaxy.webapps.base.controller import (
+    BaseUIController,
+    web,
+)
 from galaxy.webapps.reports.controllers.jobs import sorter
-from galaxy.webapps.reports.controllers.query import ReportQueryBuilder
+from galaxy.webapps.coralsnp_reports.controllers.query import ReportQueryBuilder
 
 log = logging.getLogger(__name__)
 
@@ -24,34 +26,8 @@ class Samples(BaseUIController, ReportQueryBuilder):
     @web.expose
     def all(self, trans, **kwd):
         message = escape(util.restore_text(kwd.get('message', '')))
-        q = sa.select((galaxy.model.corals.Sample.table.c.id,
-                       galaxy.model.corals.Sample.table.c.affy_id,
-                       galaxy.model.corals.Sample.table.c.sample_id,
-                       galaxy.model.corals.Sample.table.c.allele_id,
-                       galaxy.model.corals.Sample.table.c.genotype_id,
-                       galaxy.model.corals.Sample.table.c.phenotype_id,
-                       galaxy.model.corals.Sample.table.c.experiment_id,
-                       galaxy.model.corals.Sample.table.c.colony_id,
-                       galaxy.model.corals.Sample.table.c.colony_location,
-                       galaxy.model.corals.Sample.table.c.taxonomy_id,
-                       galaxy.model.corals.Sample.table.c.collector_id,
-                       galaxy.model.corals.Sample.table.c.field_call,
-                       galaxy.model.corals.Sample.table.c.collection_date,
-                       galaxy.model.corals.Sample.table.c.user_specimen_id,
-                       galaxy.model.corals.Sample.table.c.registry_id,
-                       galaxy.model.corals.Sample.table.c.depth,
-                       galaxy.model.corals.Sample.table.c.dna_extraction_method,
-                       galaxy.model.corals.Sample.table.c.dna_concentration,
-                       galaxy.model.corals.Sample.table.c.public_after_date,
-                       galaxy.model.corals.Sample.table.c.percent_missing_data_coral,
-                       galaxy.model.corals.Sample.table.c.percent_acerv_coral,
-                       galaxy.model.corals.Sample.table.c.percent_apalm_coral,
-                       galaxy.model.corals.Sample.table.c.percent_heterozygous_coral,
-                       galaxy.model.corals.Sample.table.c.bcoral_genet_id),
-                      from_obj=[galaxy.model.corals.Sample.table],
-                      order_by=[galaxy.model.corals.Sample.table.c.id])
         samples = []
-        for row in q.execute():
+        for row in trans.sa_session.query(corals.Sample):
             try:
                 collection_date = row.collection_date.strftime("%Y-%m-%d")
             except Exception:
@@ -74,7 +50,7 @@ class Samples(BaseUIController, ReportQueryBuilder):
     @web.expose
     def all_by_upload_date(self, trans, **kwd):
         message = escape(util.restore_text(kwd.get('message', '')))
-        num_samples = trans.sa_session.query(galaxy.model.corals.Sample).count()
+        num_samples = trans.sa_session.query(corals.Sample).count()
         return trans.fill_template('/webapps/coralsnp_reports/samples_by_upload_date.mako', num_samples=num_samples, message=message)
 
     @web.expose
@@ -83,34 +59,38 @@ class Samples(BaseUIController, ReportQueryBuilder):
         last_name = kwd.get('last_name')
         first_name = kwd.get('first_name')
         collector_id = kwd.get('collector_id')
-        q = sa.select((galaxy.model.corals.Sample.table.c.id,
-                       galaxy.model.corals.Sample.table.c.affy_id,
-                       galaxy.model.corals.Sample.table.c.sample_id,
-                       galaxy.model.corals.Sample.table.c.allele_id,
-                       galaxy.model.corals.Sample.table.c.genotype_id,
-                       galaxy.model.corals.Sample.table.c.phenotype_id,
-                       galaxy.model.corals.Sample.table.c.experiment_id,
-                       galaxy.model.corals.Sample.table.c.colony_id,
-                       galaxy.model.corals.Sample.table.c.colony_location,
-                       galaxy.model.corals.Sample.table.c.taxonomy_id,
-                       galaxy.model.corals.Sample.table.c.field_call,
-                       galaxy.model.corals.Sample.table.c.collection_date,
-                       galaxy.model.corals.Sample.table.c.user_specimen_id,
-                       galaxy.model.corals.Sample.table.c.registry_id,
-                       galaxy.model.corals.Sample.table.c.depth,
-                       galaxy.model.corals.Sample.table.c.dna_extraction_method,
-                       galaxy.model.corals.Sample.table.c.dna_concentration,
-                       galaxy.model.corals.Sample.table.c.public_after_date,
-                       galaxy.model.corals.Sample.table.c.percent_missing_data_coral,
-                       galaxy.model.corals.Sample.table.c.percent_acerv_coral,
-                       galaxy.model.corals.Sample.table.c.percent_apalm_coral,
-                       galaxy.model.corals.Sample.table.c.percent_heterozygous_coral,
-                       galaxy.model.corals.Sample.table.c.bcoral_genet_id),
-                      whereclause=galaxy.model.corals.Sample.table.c.collector_id == collector_id,
-                      from_obj=[galaxy.model.corals.Sample.table],
-                      order_by=[galaxy.model.corals.Sample.table.c.id])
+        q = (
+            sa.select(
+                corals.Sample.id,
+                corals.Sample.affy_id,
+                corals.Sample.sample_id,
+                corals.Sample.allele_id,
+                corals.Sample.genotype_id,
+                corals.Sample.phenotype_id,
+                corals.Sample.experiment_id,
+                corals.Sample.colony_id,
+                corals.Sample.colony_location,
+                corals.Sample.taxonomy_id,
+                corals.Sample.field_call,
+                corals.Sample.collection_date,
+                corals.Sample.user_specimen_id,
+                corals.Sample.registry_id,
+                corals.Sample.depth,
+                corals.Sample.dna_extraction_method,
+                corals.Sample.dna_concentration,
+                corals.Sample.public_after_date,
+                corals.Sample.percent_missing_data_coral,
+                corals.Sample.percent_acerv_coral,
+                corals.Sample.percent_apalm_coral,
+                corals.Sample.percent_heterozygous_coral,
+                corals.Sample.bcoral_genet_id
+            )
+            .select_from(corals.Sample.table)
+            .where(corals.Sample.table.c.collector_id == collector_id)
+            .order_by(corals.Sample.table.c.id)
+        )
         samples = []
-        for row in q.execute():
+        for row in trans.sa_session.execute(q):
             try:
                 collection_date = row.collection_date.strftime("%Y-%m-%d")
             except Exception:
@@ -142,35 +122,39 @@ class Samples(BaseUIController, ReportQueryBuilder):
         longitude = kwd.get('longitude')
         depth = kwd.get('depth')
         reef_id = kwd.get('reef_id')
-        q = sa.select((galaxy.model.corals.Sample.table.c.id,
-                       galaxy.model.corals.Sample.table.c.affy_id,
-                       galaxy.model.corals.Sample.table.c.sample_id,
-                       galaxy.model.corals.Sample.table.c.allele_id,
-                       galaxy.model.corals.Sample.table.c.genotype_id,
-                       galaxy.model.corals.Sample.table.c.phenotype_id,
-                       galaxy.model.corals.Sample.table.c.experiment_id,
-                       galaxy.model.corals.Sample.table.c.colony_id,
-                       galaxy.model.corals.Sample.table.c.colony_location,
-                       galaxy.model.corals.Sample.table.c.taxonomy_id,
-                       galaxy.model.corals.Sample.table.c.collector_id,
-                       galaxy.model.corals.Sample.table.c.collection_date,
-                       galaxy.model.corals.Sample.table.c.user_specimen_id,
-                       galaxy.model.corals.Sample.table.c.registry_id,
-                       galaxy.model.corals.Sample.table.c.depth,
-                       galaxy.model.corals.Sample.table.c.dna_extraction_method,
-                       galaxy.model.corals.Sample.table.c.dna_concentration,
-                       galaxy.model.corals.Sample.table.c.public_after_date,
-                       galaxy.model.corals.Sample.table.c.percent_missing_data_coral,
-                       galaxy.model.corals.Sample.table.c.percent_acerv_coral,
-                       galaxy.model.corals.Sample.table.c.percent_apalm_coral,
-                       galaxy.model.corals.Sample.table.c.percent_heterozygous_coral,
-                       galaxy.model.corals.Sample.table.c.field_call,
-                       galaxy.model.corals.Sample.table.c.bcoral_genet_id),
-                      whereclause=galaxy.model.corals.Sample.table.c.colony_id == colony_id,
-                      from_obj=[galaxy.model.corals.Sample.table],
-                      order_by=[galaxy.model.corals.Sample.table.c.id])
+        q = (
+            sa.select(
+                corals.Sample.id,
+                corals.Sample.affy_id,
+                corals.Sample.sample_id,
+                corals.Sample.allele_id,
+                corals.Sample.genotype_id,
+                corals.Sample.phenotype_id,
+                corals.Sample.experiment_id,
+                corals.Sample.colony_id,
+                corals.Sample.colony_location,
+                corals.Sample.taxonomy_id,
+                corals.Sample.collector_id,
+                corals.Sample.collection_date,
+                corals.Sample.user_specimen_id,
+                corals.Sample.registry_id,
+                corals.Sample.depth,
+                corals.Sample.dna_extraction_method,
+                corals.Sample.dna_concentration,
+                corals.Sample.public_after_date,
+                corals.Sample.percent_missing_data_coral,
+                corals.Sample.percent_acerv_coral,
+                corals.Sample.percent_apalm_coral,
+                corals.Sample.percent_heterozygous_coral,
+                corals.Sample.field_call,
+                corals.Sample.bcoral_genet_id
+            )
+            .select_from(corals.Sample.table)
+            .where(corals.Sample.table.c.colony_id == colony_id)
+            .order_by(corals.Sample.table.c.id)
+        )
         samples = []
-        for row in q.execute():
+        for row in trans.sa_session.execute(q):
             try:
                 collection_date = row.collection_date.strftime("%Y-%m-%d")
             except Exception:
@@ -203,35 +187,39 @@ class Samples(BaseUIController, ReportQueryBuilder):
         array_version = kwd.get('array_version')
         result_folder_name = kwd.get('result_folder_name')
         plate_barcode = kwd.get('plate_barcode')
-        q = sa.select((galaxy.model.corals.Sample.table.c.id,
-                       galaxy.model.corals.Sample.table.c.affy_id,
-                       galaxy.model.corals.Sample.table.c.sample_id,
-                       galaxy.model.corals.Sample.table.c.allele_id,
-                       galaxy.model.corals.Sample.table.c.genotype_id,
-                       galaxy.model.corals.Sample.table.c.phenotype_id,
-                       galaxy.model.corals.Sample.table.c.experiment_id,
-                       galaxy.model.corals.Sample.table.c.colony_id,
-                       galaxy.model.corals.Sample.table.c.colony_location,
-                       galaxy.model.corals.Sample.table.c.taxonomy_id,
-                       galaxy.model.corals.Sample.table.c.collector_id,
-                       galaxy.model.corals.Sample.table.c.collection_date,
-                       galaxy.model.corals.Sample.table.c.user_specimen_id,
-                       galaxy.model.corals.Sample.table.c.registry_id,
-                       galaxy.model.corals.Sample.table.c.depth,
-                       galaxy.model.corals.Sample.table.c.dna_extraction_method,
-                       galaxy.model.corals.Sample.table.c.dna_concentration,
-                       galaxy.model.corals.Sample.table.c.public_after_date,
-                       galaxy.model.corals.Sample.table.c.percent_missing_data_coral,
-                       galaxy.model.corals.Sample.table.c.percent_acerv_coral,
-                       galaxy.model.corals.Sample.table.c.percent_apalm_coral,
-                       galaxy.model.corals.Sample.table.c.percent_heterozygous_coral,
-                       galaxy.model.corals.Sample.table.c.field_call,
-                       galaxy.model.corals.Sample.table.c.bcoral_genet_id),
-                      whereclause=galaxy.model.corals.Sample.table.c.experiment_id == experiment_id,
-                      from_obj=[galaxy.model.corals.Sample.table],
-                      order_by=[galaxy.model.corals.Sample.table.c.id])
+        q = (
+            sa.select(
+                corals.Sample.id,
+                corals.Sample.affy_id,
+                corals.Sample.sample_id,
+                corals.Sample.allele_id,
+                corals.Sample.genotype_id,
+                corals.Sample.phenotype_id,
+                corals.Sample.experiment_id,
+                corals.Sample.colony_id,
+                corals.Sample.colony_location,
+                corals.Sample.taxonomy_id,
+                corals.Sample.collector_id,
+                corals.Sample.collection_date,
+                corals.Sample.user_specimen_id,
+                corals.Sample.registry_id,
+                corals.Sample.depth,
+                corals.Sample.dna_extraction_method,
+                corals.Sample.dna_concentration,
+                corals.Sample.public_after_date,
+                corals.Sample.percent_missing_data_coral,
+                corals.Sample.percent_acerv_coral,
+                corals.Sample.percent_apalm_coral,
+                corals.Sample.percent_heterozygous_coral,
+                corals.Sample.field_call,
+                corals.Sample.bcoral_genet_id
+            )
+            .select_from(corals.Sample.table)
+            .where(corals.Sample.table.c.experiment_id == experiment_id)
+            .order_by(corals.Sample.table.c.id)
+        )
         samples = []
-        for row in q.execute():
+        for row in trans.sa_session.execute(q):
             try:
                 collection_date = row.collection_date.strftime("%Y-%m-%d")
             except Exception:
@@ -265,41 +253,42 @@ class Samples(BaseUIController, ReportQueryBuilder):
         latitude = kwd.get('latitude')
         longitude = kwd.get('longitude')
         geographic_origin = kwd.get('geographic_origin')
-        q = sa.select((galaxy.model.corals.Sample.table.c.id,
-                       galaxy.model.corals.Sample.table.c.affy_id,
-                       galaxy.model.corals.Sample.table.c.sample_id,
-                       galaxy.model.corals.Sample.table.c.allele_id,
-                       galaxy.model.corals.Sample.table.c.genotype_id,
-                       galaxy.model.corals.Sample.table.c.phenotype_id,
-                       galaxy.model.corals.Sample.table.c.experiment_id,
-                       galaxy.model.corals.Sample.table.c.colony_id,
-                       galaxy.model.corals.Sample.table.c.colony_location,
-                       galaxy.model.corals.Sample.table.c.taxonomy_id,
-                       galaxy.model.corals.Sample.table.c.collector_id,
-                       galaxy.model.corals.Sample.table.c.collection_date,
-                       galaxy.model.corals.Sample.table.c.user_specimen_id,
-                       galaxy.model.corals.Sample.table.c.registry_id,
-                       galaxy.model.corals.Sample.table.c.depth,
-                       galaxy.model.corals.Sample.table.c.dna_extraction_method,
-                       galaxy.model.corals.Sample.table.c.dna_concentration,
-                       galaxy.model.corals.Sample.table.c.public_after_date,
-                       galaxy.model.corals.Sample.table.c.percent_missing_data_coral,
-                       galaxy.model.corals.Sample.table.c.percent_acerv_coral,
-                       galaxy.model.corals.Sample.table.c.percent_apalm_coral,
-                       galaxy.model.corals.Sample.table.c.percent_heterozygous_coral,
-                       galaxy.model.corals.Sample.table.c.field_call,
-                       galaxy.model.corals.Sample.table.c.bcoral_genet_id,
-                       galaxy.model.corals.Colony.table.c.reef_id,
-                       galaxy.model.corals.Reef.table.c.id),
-                      from_obj=[galaxy.model.corals.Sample.table,
-                                galaxy.model.corals.Colony.table,
-                                galaxy.model.corals.Reef.table],
-                      whereclause=sa.and_(galaxy.model.corals.Sample.table.c.colony_id == galaxy.model.corals.Colony.table.c.id,
-                                          galaxy.model.corals.Colony.table.c.reef_id == galaxy.model.corals.Reef.table.c.id,
-                                          galaxy.model.corals.Reef.table.c.id == reef_id),
-                      order_by=[galaxy.model.corals.Sample.table.c.id])
+        q = (
+            sa.select(
+                corals.Sample.id,
+                corals.Sample.affy_id,
+                corals.Sample.sample_id,
+                corals.Sample.allele_id,
+                corals.Sample.genotype_id,
+                corals.Sample.phenotype_id,
+                corals.Sample.experiment_id,
+                corals.Sample.colony_id,
+                corals.Sample.colony_location,
+                corals.Sample.taxonomy_id,
+                corals.Sample.collector_id,
+                corals.Sample.collection_date,
+                corals.Sample.user_specimen_id,
+                corals.Sample.registry_id,
+                corals.Sample.depth,
+                corals.Sample.dna_extraction_method,
+                corals.Sample.dna_concentration,
+                corals.Sample.public_after_date,
+                corals.Sample.percent_missing_data_coral,
+                corals.Sample.percent_acerv_coral,
+                corals.Sample.percent_apalm_coral,
+                corals.Sample.percent_heterozygous_coral,
+                corals.Sample.field_call,
+                corals.Sample.bcoral_genet_id,
+                corals.Colony.reef_id,
+                corals.Reef.id
+            )
+            .select_from(corals.Sample)
+            .join(corals.Colony, corals.Colony.table.c.id == corals.Sample.table.c.colony_id)
+            .join(corals.Reef, sa.and_(corals.Reef.table.c.id == reef_id, corals.Reef.table.c.id == corals.Colony.table.c.reef_id))
+            .order_by(corals.Sample.table.c.id)
+        )
         samples = []
-        for row in q.execute():
+        for row in trans.sa_session.execute(q):
             try:
                 collection_date = row.collection_date.strftime("%Y-%m-%d")
             except Exception:
@@ -331,35 +320,39 @@ class Samples(BaseUIController, ReportQueryBuilder):
         taxonomy_id = kwd.get('taxonomy_id')
         species_name = kwd.get('species_name')
         genus_name = kwd.get('genus_name')
-        q = sa.select((galaxy.model.corals.Sample.table.c.id,
-                       galaxy.model.corals.Sample.table.c.affy_id,
-                       galaxy.model.corals.Sample.table.c.sample_id,
-                       galaxy.model.corals.Sample.table.c.allele_id,
-                       galaxy.model.corals.Sample.table.c.genotype_id,
-                       galaxy.model.corals.Sample.table.c.phenotype_id,
-                       galaxy.model.corals.Sample.table.c.experiment_id,
-                       galaxy.model.corals.Sample.table.c.colony_id,
-                       galaxy.model.corals.Sample.table.c.colony_location,
-                       galaxy.model.corals.Sample.table.c.taxonomy_id,
-                       galaxy.model.corals.Sample.table.c.collector_id,
-                       galaxy.model.corals.Sample.table.c.collection_date,
-                       galaxy.model.corals.Sample.table.c.user_specimen_id,
-                       galaxy.model.corals.Sample.table.c.registry_id,
-                       galaxy.model.corals.Sample.table.c.depth,
-                       galaxy.model.corals.Sample.table.c.dna_extraction_method,
-                       galaxy.model.corals.Sample.table.c.dna_concentration,
-                       galaxy.model.corals.Sample.table.c.public_after_date,
-                       galaxy.model.corals.Sample.table.c.percent_missing_data_coral,
-                       galaxy.model.corals.Sample.table.c.percent_acerv_coral,
-                       galaxy.model.corals.Sample.table.c.percent_apalm_coral,
-                       galaxy.model.corals.Sample.table.c.percent_heterozygous_coral,
-                       galaxy.model.corals.Sample.table.c.field_call,
-                       galaxy.model.corals.Sample.table.c.bcoral_genet_id),
-                      whereclause=galaxy.model.corals.Sample.table.c.taxonomy_id == taxonomy_id,
-                      from_obj=[galaxy.model.corals.Sample.table],
-                      order_by=[galaxy.model.corals.Sample.table.c.id])
+        q = (
+            sa.select(
+                corals.Sample.id,
+                corals.Sample.affy_id,
+                corals.Sample.sample_id,
+                corals.Sample.allele_id,
+                corals.Sample.genotype_id,
+                corals.Sample.phenotype_id,
+                corals.Sample.experiment_id,
+                corals.Sample.colony_id,
+                corals.Sample.colony_location,
+                corals.Sample.taxonomy_id,
+                corals.Sample.collector_id,
+                corals.Sample.collection_date,
+                corals.Sample.user_specimen_id,
+                corals.Sample.registry_id,
+                corals.Sample.depth,
+                corals.Sample.dna_extraction_method,
+                corals.Sample.dna_concentration,
+                corals.Sample.public_after_date,
+                corals.Sample.percent_missing_data_coral,
+                corals.Sample.percent_acerv_coral,
+                corals.Sample.percent_apalm_coral,
+                corals.Sample.percent_heterozygous_coral,
+                corals.Sample.field_call,
+                corals.Sample.bcoral_genet_id
+            )
+            .select_from(corals.Sample.table)
+            .where(corals.Sample.table.c.taxonomy_id == taxonomy_id)
+            .order_by(corals.Sample.table.c.id)
+        )
         samples = []
-        for row in q.execute():
+        for row in trans.sa_session.execute(q):
             try:
                 collection_date = row.collection_date.strftime("%Y-%m-%d")
             except Exception:
@@ -389,15 +382,18 @@ class Samples(BaseUIController, ReportQueryBuilder):
         sort_id = specs.sort_id
         order = specs.order
         arrow = specs.arrow
-        _order = specs.exc_order
 
-        q = sa.select((self.select_month(galaxy.model.corals.Sample.table.c.create_time).label('date'),
-                       sa.func.count(galaxy.model.corals.Sample.table.c.id).label('num_samples')),
-                      from_obj=[galaxy.model.corals.Sample.table],
-                      group_by=self.group_by_month(galaxy.model.corals.Sample.table.c.create_time),
-                      order_by=[_order])
+        q = (
+            sa.select(
+                self.select_month(corals.Sample.table.c.create_time).label('date'),
+                sa.func.count(corals.Sample.table.c.id).label('num_samples'),
+            )
+            .select_from(corals.Sample.table)
+            .group_by(self.group_by_month(corals.Sample.table.c.create_time))
+            .order_by(specs.exc_order)
+        )
         samples = []
-        for row in q.execute():
+        for row in trans.sa_session.execute(q):
             samples.append((row.date.strftime("%Y-%m"),
                             row.num_samples,
                             row.date.strftime("%B"),
@@ -421,37 +417,41 @@ class Samples(BaseUIController, ReportQueryBuilder):
         day_label = start_date.strftime("%A")
         month_label = start_date.strftime("%B")
         year_label = start_date.strftime("%Y")
-        q = sa.select((self.select_day(galaxy.model.corals.Sample.table.c.create_time).label('date'),
-                       galaxy.model.corals.Sample.table.c.id,
-                       galaxy.model.corals.Sample.table.c.affy_id,
-                       galaxy.model.corals.Sample.table.c.sample_id,
-                       galaxy.model.corals.Sample.table.c.allele_id,
-                       galaxy.model.corals.Sample.table.c.genotype_id,
-                       galaxy.model.corals.Sample.table.c.phenotype_id,
-                       galaxy.model.corals.Sample.table.c.experiment_id,
-                       galaxy.model.corals.Sample.table.c.colony_id,
-                       galaxy.model.corals.Sample.table.c.colony_location,
-                       galaxy.model.corals.Sample.table.c.taxonomy_id,
-                       galaxy.model.corals.Sample.table.c.collector_id,
-                       galaxy.model.corals.Sample.table.c.field_call,
-                       galaxy.model.corals.Sample.table.c.collection_date,
-                       galaxy.model.corals.Sample.table.c.user_specimen_id,
-                       galaxy.model.corals.Sample.table.c.registry_id,
-                       galaxy.model.corals.Sample.table.c.depth,
-                       galaxy.model.corals.Sample.table.c.dna_extraction_method,
-                       galaxy.model.corals.Sample.table.c.dna_concentration,
-                       galaxy.model.corals.Sample.table.c.public_after_date,
-                       galaxy.model.corals.Sample.table.c.percent_missing_data_coral,
-                       galaxy.model.corals.Sample.table.c.percent_acerv_coral,
-                       galaxy.model.corals.Sample.table.c.percent_apalm_coral,
-                       galaxy.model.corals.Sample.table.c.percent_heterozygous_coral,
-                       galaxy.model.corals.Sample.table.c.bcoral_genet_id),
-                      whereclause=sa.and_(galaxy.model.corals.Sample.table.c.create_time >= start_date,
-                                          galaxy.model.corals.Sample.table.c.create_time < end_date),
-                      from_obj=[galaxy.model.corals.Sample.table],
-                      order_by=[galaxy.model.corals.Sample.table.c.id])
+        q = (
+            sa.select(
+                self.select_day(corals.Sample.table.c.create_time).label('date'),
+                corals.Sample.id,
+                corals.Sample.affy_id,
+                corals.Sample.sample_id,
+                corals.Sample.allele_id,
+                corals.Sample.genotype_id,
+                corals.Sample.phenotype_id,
+                corals.Sample.experiment_id,
+                corals.Sample.colony_id,
+                corals.Sample.colony_location,
+                corals.Sample.taxonomy_id,
+                corals.Sample.collector_id,
+                corals.Sample.field_call,
+                corals.Sample.collection_date,
+                corals.Sample.user_specimen_id,
+                corals.Sample.registry_id,
+                corals.Sample.depth,
+                corals.Sample.dna_extraction_method,
+                corals.Sample.dna_concentration,
+                corals.Sample.public_after_date,
+                corals.Sample.percent_missing_data_coral,
+                corals.Sample.percent_acerv_coral,
+                corals.Sample.percent_apalm_coral,
+                corals.Sample.percent_heterozygous_coral,
+                corals.Sample.bcoral_genet_id
+            )
+            .select_from(corals.Sample.table)
+            .where(sa.and_(corals.Sample.table.c.create_time >= start_date,
+                           corals.Sample.table.c.create_time < end_date))
+            .order_by(corals.Sample.table.c.id)
+        )
         samples = []
-        for row in q.execute():
+        for row in trans.sa_session.execute(q):
             try:
                 collection_date = row.collection_date.strftime("%Y-%m-%d")
             except Exception:
@@ -489,15 +489,18 @@ class Samples(BaseUIController, ReportQueryBuilder):
         end_date = start_date + timedelta(days=calendar.monthrange(year, month)[1])
         month_label = start_date.strftime("%B")
         year_label = start_date.strftime("%Y")
-        q = sa.select((self.select_day(galaxy.model.corals.Sample.table.c.create_time).label('date'),
-                       sa.func.count(galaxy.model.corals.Sample.table.c.id).label('num_samples')),
-                      whereclause=sa.and_(galaxy.model.corals.Sample.table.c.create_time >= start_date,
-                                          galaxy.model.corals.Sample.table.c.create_time < end_date),
-                      from_obj=[galaxy.model.corals.Sample.table],
-                      group_by=self.group_by_day(galaxy.model.corals.Sample.table.c.create_time),
-                      order_by=[sa.desc('date')])
+        q = (
+            sa.select(
+                self.select_day(corals.Sample.table.c.create_time).label('date'),
+                sa.func.count(corals.Sample.table.c.id).label('num_samples'))
+            .select_from(corals.Sample.table)
+            .where(sa.and_(corals.Sample.table.c.create_time >= start_date,
+                           corals.Sample.table.c.create_time < end_date))
+            .group_by(self.group_by_day(corals.Sample.table.c.create_time))
+            .order_by(sa.desc('date'))
+        )
         samples = []
-        for row in q.execute():
+        for row in trans.sa_session.execute(q):
             samples.append((row.date.strftime("%Y-%m-%d"),
                             row.date.strftime("%d"),
                             row.num_samples,
@@ -516,34 +519,38 @@ class Samples(BaseUIController, ReportQueryBuilder):
         coral_mlg_clonal_id = kwd.get('coral_mlg_clonal_id')
         coral_mlg_rep_sample_id = kwd.get('coral_mlg_rep_sample_id')
         genetic_coral_species_call = kwd.get('genetic_coral_species_call')
-        q = sa.select((galaxy.model.corals.Sample.table.c.id,
-                       galaxy.model.corals.Sample.table.c.affy_id,
-                       galaxy.model.corals.Sample.table.c.sample_id,
-                       galaxy.model.corals.Sample.table.c.allele_id,
-                       galaxy.model.corals.Sample.table.c.phenotype_id,
-                       galaxy.model.corals.Sample.table.c.experiment_id,
-                       galaxy.model.corals.Sample.table.c.colony_id,
-                       galaxy.model.corals.Sample.table.c.colony_location,
-                       galaxy.model.corals.Sample.table.c.taxonomy_id,
-                       galaxy.model.corals.Sample.table.c.collector_id,
-                       galaxy.model.corals.Sample.table.c.collection_date,
-                       galaxy.model.corals.Sample.table.c.user_specimen_id,
-                       galaxy.model.corals.Sample.table.c.registry_id,
-                       galaxy.model.corals.Sample.table.c.depth,
-                       galaxy.model.corals.Sample.table.c.dna_extraction_method,
-                       galaxy.model.corals.Sample.table.c.dna_concentration,
-                       galaxy.model.corals.Sample.table.c.public_after_date,
-                       galaxy.model.corals.Sample.table.c.percent_missing_data_coral,
-                       galaxy.model.corals.Sample.table.c.percent_acerv_coral,
-                       galaxy.model.corals.Sample.table.c.percent_apalm_coral,
-                       galaxy.model.corals.Sample.table.c.percent_heterozygous_coral,
-                       galaxy.model.corals.Sample.table.c.field_call,
-                       galaxy.model.corals.Sample.table.c.bcoral_genet_id),
-                      whereclause=galaxy.model.corals.Sample.table.c.genotype_id == genotype_id,
-                      from_obj=[galaxy.model.corals.Sample.table],
-                      order_by=[galaxy.model.corals.Sample.table.c.id])
+        q = (
+            sa.select(
+                corals.Sample.id,
+                corals.Sample.affy_id,
+                corals.Sample.sample_id,
+                corals.Sample.allele_id,
+                corals.Sample.phenotype_id,
+                corals.Sample.experiment_id,
+                corals.Sample.colony_id,
+                corals.Sample.colony_location,
+                corals.Sample.taxonomy_id,
+                corals.Sample.collector_id,
+                corals.Sample.collection_date,
+                corals.Sample.user_specimen_id,
+                corals.Sample.registry_id,
+                corals.Sample.depth,
+                corals.Sample.dna_extraction_method,
+                corals.Sample.dna_concentration,
+                corals.Sample.public_after_date,
+                corals.Sample.percent_missing_data_coral,
+                corals.Sample.percent_acerv_coral,
+                corals.Sample.percent_apalm_coral,
+                corals.Sample.percent_heterozygous_coral,
+                corals.Sample.field_call,
+                corals.Sample.bcoral_genet_id
+            )
+            .select_from(corals.Sample.table)
+            .where(corals.Sample.table.c.genotype_id == genotype_id)
+            .order_by(corals.Sample.table.c.id)
+        )
         samples = []
-        for row in q.execute():
+        for row in trans.sa_session.execute(q):
             try:
                 collection_date = row.collection_date.strftime("%Y-%m-%d")
             except Exception:
@@ -578,34 +585,38 @@ class Samples(BaseUIController, ReportQueryBuilder):
         spawning = kwd.get('spawning')
         sperm_motility = kwd.get('sperm_motility')
         healing_time = kwd.get('healing_time')
-        q = sa.select((galaxy.model.corals.Sample.table.c.id,
-                       galaxy.model.corals.Sample.table.c.affy_id,
-                       galaxy.model.corals.Sample.table.c.sample_id,
-                       galaxy.model.corals.Sample.table.c.allele_id,
-                       galaxy.model.corals.Sample.table.c.genotype_id,
-                       galaxy.model.corals.Sample.table.c.experiment_id,
-                       galaxy.model.corals.Sample.table.c.colony_id,
-                       galaxy.model.corals.Sample.table.c.colony_location,
-                       galaxy.model.corals.Sample.table.c.taxonomy_id,
-                       galaxy.model.corals.Sample.table.c.collector_id,
-                       galaxy.model.corals.Sample.table.c.collection_date,
-                       galaxy.model.corals.Sample.table.c.user_specimen_id,
-                       galaxy.model.corals.Sample.table.c.registry_id,
-                       galaxy.model.corals.Sample.table.c.depth,
-                       galaxy.model.corals.Sample.table.c.dna_extraction_method,
-                       galaxy.model.corals.Sample.table.c.dna_concentration,
-                       galaxy.model.corals.Sample.table.c.public_after_date,
-                       galaxy.model.corals.Sample.table.c.percent_missing_data_coral,
-                       galaxy.model.corals.Sample.table.c.percent_acerv_coral,
-                       galaxy.model.corals.Sample.table.c.percent_apalm_coral,
-                       galaxy.model.corals.Sample.table.c.percent_heterozygous_coral,
-                       galaxy.model.corals.Sample.table.c.field_call,
-                       galaxy.model.corals.Sample.table.c.bcoral_genet_id),
-                      whereclause=galaxy.model.corals.Sample.table.c.phenotype_id == phenotype_id,
-                      from_obj=[galaxy.model.corals.Sample.table],
-                      order_by=[galaxy.model.corals.Sample.table.c.id])
+        q = (
+            sa.select(
+                corals.Sample.id,
+                corals.Sample.affy_id,
+                corals.Sample.sample_id,
+                corals.Sample.allele_id,
+                corals.Sample.genotype_id,
+                corals.Sample.experiment_id,
+                corals.Sample.colony_id,
+                corals.Sample.colony_location,
+                corals.Sample.taxonomy_id,
+                corals.Sample.collector_id,
+                corals.Sample.collection_date,
+                corals.Sample.user_specimen_id,
+                corals.Sample.registry_id,
+                corals.Sample.depth,
+                corals.Sample.dna_extraction_method,
+                corals.Sample.dna_concentration,
+                corals.Sample.public_after_date,
+                corals.Sample.percent_missing_data_coral,
+                corals.Sample.percent_acerv_coral,
+                corals.Sample.percent_apalm_coral,
+                corals.Sample.percent_heterozygous_coral,
+                corals.Sample.field_call,
+                corals.Sample.bcoral_genet_id
+            )
+            .select_from(corals.Sample.table)
+            .where(corals.Sample.table.c.phenotype_id == phenotype_id)
+            .order_by(corals.Sample.table.c.id)
+        )
         samples = []
-        for row in q.execute():
+        for row in trans.sa_session.execute(q):
             try:
                 collection_date = row.collection_date.strftime("%Y-%m-%d")
             except Exception:

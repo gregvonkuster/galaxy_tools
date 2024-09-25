@@ -3,11 +3,13 @@ import logging
 import sqlalchemy as sa
 from markupsafe import escape
 
-import galaxy.model
+from galaxy.model import corals
 from galaxy import util
-from . import BaseUIController
-from galaxy.web.base.controller import web
-from galaxy.webapps.reports.controllers.query import ReportQueryBuilder
+from galaxy.webapps.base.controller import (
+    BaseUIController,
+    web,
+)
+from galaxy.webapps.coralsnp_reports.controllers.query import ReportQueryBuilder
 
 log = logging.getLogger(__name__)
 
@@ -17,23 +19,25 @@ class Reefs(BaseUIController, ReportQueryBuilder):
     @web.expose
     def all(self, trans, **kwd):
         message = escape(util.restore_text(kwd.get('message', '')))
-        q = sa.select((galaxy.model.corals.Reef.table.c.id,
-                       galaxy.model.corals.Reef.table.c.name,
-                       galaxy.model.corals.Reef.table.c.region,
-                       galaxy.model.corals.Reef.table.c.latitude,
-                       galaxy.model.corals.Reef.table.c.longitude,
-                       galaxy.model.corals.Reef.table.c.geographic_origin,
-                       galaxy.model.corals.Sample.table.c.colony_id,
-                       galaxy.model.corals.Sample.table.c.public,
-                       galaxy.model.corals.Sample.table.c.public_after_date),
-                      from_obj=[galaxy.model.corals.Reef.table,
-                                galaxy.model.corals.Colony.table,
-                                galaxy.model.corals.Sample.table],
-                      whereclause=sa.and_(galaxy.model.corals.Sample.table.c.colony_id == galaxy.model.corals.Colony.table.c.id,
-                                          galaxy.model.corals.Colony.table.c.reef_id == galaxy.model.corals.Reef.table.c.id),
-                      order_by=[galaxy.model.corals.Reef.table.c.id])
+        q = (
+            sa.select(
+                corals.Reef.id,
+                corals.Reef.name,
+                corals.Reef.region,
+                corals.Reef.latitude,
+                corals.Reef.longitude,
+                corals.Reef.geographic_origin,
+                corals.Sample.colony_id,
+                corals.Sample.public,
+                corals.Sample.public_after_date
+            )
+            .select_from(corals.Reef)
+            .join(corals.Colony, corals.Reef.id == corals.Colony.reef_id)
+            .join(corals.Sample, corals.Colony.id == corals.Sample.colony_id)
+            .order_by(corals.Reef.id)
+        )
         reefs = []
-        for row in q.execute():
+        for row in trans.sa_session.execute(q):
             public_after_date = str(row.public_after_date)[:10]
             if str(row.public) == "True":
                 latitude = row.latitude
@@ -41,8 +45,7 @@ class Reefs(BaseUIController, ReportQueryBuilder):
             else:
                 latitude = "Private until %s" % public_after_date
                 longitude = "Private until %s" % public_after_date
-            cols_tup = (row.id, row.name, row.region, latitude, longitude, row.geographic_origin)
-            reefs.append(cols_tup)
+            reefs.append((row.id, row.name, row.region, latitude, longitude, row.geographic_origin))
         return trans.fill_template('/webapps/coralsnp_reports/reefs.mako', reefs=reefs, message=message)
 
     @web.expose
@@ -52,22 +55,23 @@ class Reefs(BaseUIController, ReportQueryBuilder):
         latitude = kwd.get('latitude')
         longitude = kwd.get('longitude')
         depth = kwd.get('depth')
-        q = sa.select((galaxy.model.corals.Reef.table.c.name,
-                       galaxy.model.corals.Reef.table.c.region,
-                       galaxy.model.corals.Reef.table.c.latitude,
-                       galaxy.model.corals.Reef.table.c.longitude,
-                       galaxy.model.corals.Reef.table.c.geographic_origin,
-                       galaxy.model.corals.Sample.table.c.public,
-                       galaxy.model.corals.Sample.table.c.public_after_date),
-                      from_obj=[galaxy.model.corals.Reef.table,
-                                galaxy.model.corals.Colony.table,
-                                galaxy.model.corals.Sample.table],
-                      whereclause=sa.and_(galaxy.model.corals.Reef.table.c.id == reef_id,
-                                          galaxy.model.corals.Sample.table.c.colony_id == galaxy.model.corals.Colony.table.c.id,
-                                          galaxy.model.corals.Colony.table.c.reef_id == galaxy.model.corals.Reef.table.c.id),
-                      order_by=[galaxy.model.corals.Reef.table.c.id])
+        q = (
+            sa.select(
+                corals.Reef.name,
+                corals.Reef.region,
+                corals.Reef.latitude,
+                corals.Reef.longitude,
+                corals.Reef.geographic_origin,
+                corals.Sample.public,
+                corals.Sample.public_after_date
+            )
+            .select_from(corals.Reef).where(corals.Reef.id == reef_id)
+            .join(corals.Colony, corals.Reef.id == corals.Colony.reef_id)
+            .join(corals.Sample, corals.Sample.colony_id == corals.Colony.id)
+            .order_by(corals.Reef.id)
+        )
         reefs = []
-        for row in q.execute():
+        for row in trans.sa_session.execute(q):
             public_after_date = str(row.public_after_date)[:10]
             if str(row.public) == "True":
                 latitude = row.latitude
@@ -75,8 +79,7 @@ class Reefs(BaseUIController, ReportQueryBuilder):
             else:
                 latitude = "Private until %s" % public_after_date
                 longitude = "Private until %s" % public_after_date
-            cols_tup = (row.name, row.region, latitude, longitude, row.geographic_origin)
-            reefs.append(cols_tup)
+            reefs.append((row.name, row.region, latitude, longitude, row.geographic_origin))
         return trans.fill_template('/webapps/coralsnp_reports/reef_of_colony.mako',
                                    latitude=latitude,
                                    longitude=longitude,

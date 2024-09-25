@@ -3,11 +3,13 @@ import logging
 import sqlalchemy as sa
 from markupsafe import escape
 
-import galaxy.model
+from galaxy.model import corals
 from galaxy import util
-from . import BaseUIController
-from galaxy.web.base.controller import web
-from galaxy.webapps.reports.controllers.query import ReportQueryBuilder
+from galaxy.webapps.base.controller import (
+    BaseUIController,
+    web,
+)
+from galaxy.webapps.coralsnp_reports.controllers.query import ReportQueryBuilder
 
 log = logging.getLogger(__name__)
 
@@ -17,22 +19,9 @@ class Phenotypes(BaseUIController, ReportQueryBuilder):
     @web.expose
     def all(self, trans, **kwd):
         message = escape(util.restore_text(kwd.get('message', '')))
-        q = sa.select((galaxy.model.corals.Phenotype.table.c.id,
-                       galaxy.model.corals.Phenotype.table.c.disease_resist,
-                       galaxy.model.corals.Phenotype.table.c.bleach_resist,
-                       galaxy.model.corals.Phenotype.table.c.mortality,
-                       galaxy.model.corals.Phenotype.table.c.tle,
-                       galaxy.model.corals.Phenotype.table.c.spawning,
-                       galaxy.model.corals.Phenotype.table.c.sperm_motility,
-                       galaxy.model.corals.Phenotype.table.c.healing_time),
-                      from_obj=[galaxy.model.corals.Phenotype.table],
-                      order_by=[galaxy.model.corals.Phenotype.table.c.id])
         phenotypes = []
-        for row in q.execute():
-            cols_tup = (row.id, row.disease_resist, row.bleach_resist,
-                        row.mortality, row.tle, row.spawning, row.sperm_motility,
-                        row.healing_time)
-            phenotypes.append(cols_tup)
+        for row in trans.sa_session.query(corals.Phenotype):
+            phenotypes.append((row.id, row.disease_resist, row.bleach_resist, row.mortality, row.tle, row.spawning, row.sperm_motility, row.healing_time))
         return trans.fill_template('/webapps/coralsnp_reports/phenotypes.mako', phenotypes=phenotypes, message=message)
 
     @web.expose
@@ -40,21 +29,23 @@ class Phenotypes(BaseUIController, ReportQueryBuilder):
         message = escape(util.restore_text(kwd.get('message', '')))
         affy_id = kwd.get('affy_id')
         phenotype_id = kwd.get('phenotype_id')
-        q = sa.select((galaxy.model.corals.Phenotype.table.c.disease_resist,
-                       galaxy.model.corals.Phenotype.table.c.bleach_resist,
-                       galaxy.model.corals.Phenotype.table.c.mortality,
-                       galaxy.model.corals.Phenotype.table.c.tle,
-                       galaxy.model.corals.Phenotype.table.c.spawning,
-                       galaxy.model.corals.Phenotype.table.c.sperm_motility,
-                       galaxy.model.corals.Phenotype.table.c.healing_time),
-                      whereclause=sa.and_(galaxy.model.corals.Phenotype.table.c.id == phenotype_id),
-                      from_obj=[galaxy.model.corals.Phenotype.table],
-                      order_by=[galaxy.model.corals.Phenotype.table.c.id])
+        q = (
+            sa.select(
+                corals.Phenotype.disease_resist,
+                corals.Phenotype.bleach_resist,
+                corals.Phenotype.mortality,
+                corals.Phenotype.tle,
+                corals.Phenotype.spawning,
+                corals.Phenotype.sperm_motility,
+                corals.Phenotype.healing_time
+            )
+            .select_from(corals.Phenotype.table)
+            .where(corals.Phenotype.table.c.id == phenotype_id)
+            .order_by(corals.Phenotype.table.c.id)
+        )
         phenotypes = []
-        for row in q.execute():
-            cols_tup = (row.disease_resist, row.bleach_resist, row.mortality, row.tle,
-                        row.spawning, row.sperm_motility, row.healing_time)
-            phenotypes.append(cols_tup)
+        for row in trans.sa_session.execute(q):
+            phenotypes.append((row.disease_resist, row.bleach_resist, row.mortality, row.tle, row.spawning, row.sperm_motility, row.healing_time))
         return trans.fill_template('/webapps/coralsnp_reports/phenotype_of_sample.mako',
                                    affy_id=affy_id,
                                    phenotypes=phenotypes,

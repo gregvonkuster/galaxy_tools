@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 
 def resolve_path(path, root):
     """If 'path' is relative make absolute by prepending 'root'"""
-    if not(os.path.isabs(path)):
+    if not (os.path.isabs(path)):
         path = os.path.join(root, path)
     return path
 
@@ -26,7 +26,7 @@ class Configuration(object):
         self.root = kwargs.get('root_dir', '.')
         # Database related configuration
         self.database = resolve_path(kwargs.get("database_file", "database/universe.sqlite"), self.root)
-        self.database_connection = kwargs.get("database_connection", False)
+        self.corals_database_connection = kwargs.get("corals_database_connection", False)
         self.database_engine_options = get_database_engine_options(kwargs)
         # Where dataset files are stored
         self.file_path = resolve_path(kwargs.get("file_path", "database/files"), self.root)
@@ -36,7 +36,7 @@ class Configuration(object):
         self.require_login = string_as_bool(kwargs.get("require_login", "False"))
         self.session_duration = kwargs.get("session_duration", "0")
         self.template_path = resolve_path(kwargs.get("template_path", "templates"), self.root)
-        self.template_cache = resolve_path(kwargs.get("template_cache_path", "database/compiled_templates/coralsnp_reports"), self.root)
+        self.template_cache_path = resolve_path(kwargs.get("template_cache_path", "database/compiled_templates/coralsnp_reports"), self.root)
         self.allow_user_creation = string_as_bool(kwargs.get("allow_user_creation", "True"))
         self.allow_user_deletion = string_as_bool(kwargs.get("allow_user_deletion", "False"))
         self.log_actions = string_as_bool(kwargs.get('log_actions', 'False'))
