@@ -711,7 +711,10 @@ i <- ifelse(is.na(stag_db_report[3]), "", stag_db_report[[3]]);
 # from the affy_id collumn in the report_user data table.
 i <- i[!apply(i=="", 1, all),];
 # Subset the genclone object to the user data.
-allele_vector <- genind_clone[i, mlg.reset=FALSE, drop=FALSE];
+#allele_vector <- genind_clone[i, mlg.reset=FALSE, drop=FALSE];
+affy_list <- affy_list[affy_list != "FORMAT"]
+affy_list <- affy_list[affy_list != is.na(affy_list)]
+allele_vector <- genind_clone[affy_list, mlg.reset=FALSE, drop=FALSE];
 # Convert the subset genclone to a data frame.
 allele_data_frame <- genind2df(allele_vector, sep="");
 allele_data_frame <- allele_data_frame %>%

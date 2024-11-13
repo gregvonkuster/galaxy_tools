@@ -1,4 +1,4 @@
-<tool id="coral_multilocus_genotype" name="Coral multilocus genotype" version="1.0.1">
+<tool id="coral_multilocus_genotype" name="Coral multilocus genotype" version="1.0.2">
     <description>unique combination of alleles for loci</description>
     <requirements>
         <requirement type="package" version="1.36.0">bioconductor-snprelate</requirement>
