@@ -5,10 +5,7 @@ import sys
 
 import psycopg2
 from sqlalchemy import create_engine
-from sqlalchemy import MetaData
 from sqlalchemy.engine.url import make_url
-
-metadata = MetaData()
 
 SKIP_VALS = ['#CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO', 'FORMAT']
 
@@ -21,7 +18,6 @@ class EnsureSynced(object):
         self.outfh = open(self.args.output, "w")
         self.connect_db()
         self.engine = create_engine(self.args.database_connection_string)
-        self.metadata = MetaData(self.engine)
         self.coral_mlg_rep_sample_ids_from_db = []
         self.affy_ids_from_file = []
 
