@@ -412,7 +412,7 @@ try:
                     datasets_have_queued = True
             if sd_dict['error'] != 0:
                 break
-            if datasets_have_queued and sd_dict['queued'] == 0 and sd_dict['new'] == 0 and sd_dict['running'] <= 1:
+            if not datasets_have_queued and sd_dict['queued'] == 0 and sd_dict['new'] == 0 and sd_dict['running'] <= 1:
                 # The stag database has been updated.
                 stag_database_updated = True
                 break
