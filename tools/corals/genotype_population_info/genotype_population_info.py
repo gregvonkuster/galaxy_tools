@@ -4,7 +4,7 @@ import sys
 
 import psycopg2
 
-from sqlalchemy import MetaData, create_engine
+from sqlalchemy import create_engine
 from sqlalchemy.engine.url import make_url
 
 
@@ -16,7 +16,6 @@ class GenotypeInfoGenerator(object):
         self.outfh = open(self.args.output, "w")
         self.connect_db()
         self.engine = create_engine(self.args.database_connection_string)
-        self.metadata = MetaData(self.engine)
 
     def parse_args(self):
         parser = argparse.ArgumentParser()

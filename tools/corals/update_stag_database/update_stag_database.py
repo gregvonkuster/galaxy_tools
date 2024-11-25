@@ -14,12 +14,10 @@ import psycopg2
 
 from six.moves import configparser
 
-from sqlalchemy import MetaData
 from sqlalchemy import create_engine
 from sqlalchemy.engine.url import make_url
 
 now = datetime.datetime.utcnow
-metadata = MetaData()
 
 DEFAULT_MISSING_NUMERIC_VALUE = -9.000000
 
@@ -159,7 +157,6 @@ class StagDatabaseUpdater(object):
         self.outfh = open(self.args.output, "w")
         self.connect_db()
         self.engine = create_engine(self.args.database_connection_string)
-        self.metadata = MetaData(self.engine)
         self.affy_ids = []
         self.allele_ids = []
         self.colony_ids = []
